@@ -143,15 +143,20 @@ for (let r=1; r<=10; r++){
 function calculate1RM(){
     const weight = parseFloat(weightSelect.value);
     const reps = parseInt(repsSelect.value);
-    if(!weight || !reps){ document.getElementById("result").innerHTML="무게와 반복수를 입력하세요."; return; }
+    if(!weight || !reps){ 
+        document.getElementById("result").innerHTML="무게와 반복수를 입력하세요."; 
+        return; 
+    }
     const oneRM = weight*(1+reps*0.0333);
     document.getElementById("result").innerHTML = `예상 1RM: <b>${oneRM.toFixed(1)} kg</b>`;
-    let html = `<table><tr>`;
+
+    // 세로 표로 수정
+    let html = `<table><tr><th>RM</th><th>무게 (kg)</th></tr>`;
     for(let r=1;r<=10;r++){
         let rmWeight = oneRM/(1+(r-1)*0.0333);
-        html += `<td>${r}RM: ${rmWeight.toFixed(1)} kg</td>`;
+        html += `<tr><td>${r}RM</td><td>${rmWeight.toFixed(1)} kg</td></tr>`;
     }
-    html += `</tr></table>`;
+    html += `</table>`;
     document.getElementById("tableArea").innerHTML = html;
 }
 
