@@ -13,7 +13,7 @@
         padding: 40px;
     }
     .container {
-        max-width: 320px;
+        max-width: 340px;
         margin: auto;
     }
     input, select {
@@ -21,7 +21,7 @@
         padding: 14px;
         margin: 10px 0;
         font-size: 18px;
-        border-radius: 8px;
+        border-radius: 10px;
         border: none;
         text-align: center;
     }
@@ -29,14 +29,29 @@
         width: 100%;
         padding: 14px;
         margin-top: 15px;
-        font-size: 18px;
+        font-size: 20px;
         background: white;
         color: black;
         border: none;
-        border-radius: 8px;
+        border-radius: 10px;
         font-weight: bold;
     }
-    #result { margin-top: 20px; font-size: 22px; }
+    #result { 
+        margin-top: 20px; 
+        font-size: 22px; 
+    }
+    table {
+        width: 100%;
+        margin-top: 25px;
+        border-collapse: collapse;
+        font-size: 17px;
+    }
+    table, th, td {
+        border: 1px solid white;
+    }
+    th, td {
+        padding: 10px;
+    }
 </style>
 </head>
 <body>
@@ -44,17 +59,22 @@
 <div class="container">
     <h2>1RM 계산기</h2>
 
-    <!-- ★ 반복 입력칸 먼저 -->
-    <input type="number" id="reps" placeholder="반복수 (예: 5)" min="1" max="30">
-
-    <!-- ★ 무게 입력은 드롭다운 -->
+    <!-- 무게를 먼저 -->
     <select id="weight">
         <option value="">무게 선택</option>
     </select>
 
-    <button onclick="calculate1RM()">1RM 계산하기</button>
+    <!-- 반복 두 번째 -->
+    <input type="number" id="reps" placeholder="반복수 (예: 5)" min="1" max="30">
 
+    <!-- GO 버튼 -->
+    <button onclick="calculate1RM()">GO</button>
+
+    <!-- 예상 1RM -->
     <div id="result"></div>
+
+    <!-- 표 출력 -->
+    <div id="tableArea"></div>
 </div>
 
 <script>
@@ -77,11 +97,28 @@
             return;
         }
 
-        // Epley 공식: 1RM = 무게 × (1 + 반복수 × 0.0333)
+        // Epley 공식
         const oneRM = weight * (1 + reps * 0.0333);
 
+        // 예상 1RM
         document.getElementById("result").innerHTML =
             `예상 1RM: <b>${oneRM.toFixed(1)} kg</b>`;
+
+        // 1RM~10RM 표 만들기
+        let html = `
+            <table>
+                <tr><th>RM</th><th>무게 (kg)</th></tr>
+        `;
+
+        for (let r = 1; r <= 10; r++) {
+            // RM 공식
+            let rmWeight = oneRM / (1 + (r - 1) * 0.0333);
+            html += `<tr><td>${r}RM</td><td>${rmWeight.toFixed(1)} kg</td></tr>`;
+        }
+
+        html += `</table>`;
+
+        document.getElementById("tableArea").innerHTML = html;
     }
 </script>
 
