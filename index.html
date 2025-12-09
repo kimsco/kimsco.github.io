@@ -16,83 +16,58 @@
         max-width: 340px;
         margin: auto;
     }
-
-    .subtitle {
-        font-size: 16px;
-        white-space: normal;
-        width: 100%;
-        display: block;
-        margin: 0 auto 12px auto;
-    }
-
     input, select, button {
         width: 100%;
-        box-sizing: border-box;
         padding: 14px;
         margin: 10px 0;
         font-size: 18px;
         border-radius: 10px;
         border: none;
-        text-align: center;
+        box-sizing: border-box;
     }
-
     select {
         text-align: center;
         text-align-last: center;
     }
-
     button {
         font-size: 20px;
         background: white;
         color: black;
         font-weight: bold;
-        margin-top: 15px;
     }
-
-    #result { 
-        margin-top: 20px; 
-        font-size: 22px; 
-    }
-
+    #result { margin-top: 20px; font-size: 22px; }
     table {
         width: 100%;
         margin-top: 25px;
         border-collapse: collapse;
         font-size: 17px;
     }
-    table, th, td {
-        border: 1px solid white;
-    }
-    th, td {
-        padding: 10px;
-    }
-
-    h2 {
-        white-space: nowrap;
-    }
-
-    /* 기록 리스트 */
-    #recordList {
-        margin-top: 30px;
-        text-align: left;
+    table, th, td { border: 1px solid white; }
+    th, td { padding: 10px; }
+    .subtitle {
         font-size: 16px;
-        padding-left: 10px;
+        margin-bottom: 12px;
     }
-    .record-item {
-        margin-bottom: 8px;
-        line-height: 1.4;
+    .login-area button {
+        background: #fff;
+        color: #000;
+        margin-top: 5px;
     }
 </style>
 </head>
 <body>
 
 <div class="container">
-
-    <div class="subtitle">
-        "대부분의 문제는 돈이 없어서, 그 외의 문제는 근육이 없어서 생긴다"
-    </div>
+    <div class="subtitle">"대부분의 문제는 돈이 없어서, 그 외의 문제는 근육이 없어서 생긴다"</div>
 
     <h2>조현성을 위한 1RM 계산기</h2>
+
+    <!-- 로그인 영역 -->
+    <div class="login-area">
+        <button onclick="login()">구글 로그인</button>
+        <button onclick="logout()">로그아웃</button>
+        <div id="userInfo"></div>
+    </div>
 
     <!-- 무게 선택 -->
     <select id="weight">
@@ -107,19 +82,68 @@
     <!-- GO 버튼 -->
     <button onclick="calculate1RM()">GO</button>
 
-    <!-- 수동 저장 버튼 -->
-    <button onclick="saveRecord()" style="background:#ffe680;">기록 저장</button>
+    <!-- 저장버튼 -->
+    <button onclick="saveRecord()">기록 저장</button>
 
     <div id="result"></div>
     <div id="tableArea"></div>
-
-    <h2>저장된 기록</h2>
-    <div id="recordList"></div>
-
 </div>
 
-<script>
-    // 무게 옵션
+<!-- Firebase -->
+<script type="module">
+    // Firebase SDK 임포트
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-analytics.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged }
+        from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc }
+        from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+
+    // Firebase 설정
+    const firebaseConfig = {
+        apiKey: "AIzaSyCXn174XsW6ndqaeUpVK6XAAf4MR0-q7_k",
+        authDomain: "rmpj-7ca13.firebaseapp.com",
+        projectId: "rmpj-7ca13",
+        storageBucket: "rmpj-7ca13.firebasestorage.app",
+        messagingSenderId: "983484366324",
+        appId: "1:983484366324:web:5fd58faba825ee39decda1",
+        measurementId: "G-MNGVMN6QCM"
+    };
+
+    // Firebase 초기화
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+
+    // Auth, Firestore
+    const auth = getAuth();
+    const provider = new GoogleAuthProvider();
+    const db = getFirestore();
+
+    // 로그인
+    function login() {
+        signInWithPopup(auth, provider)
+            .then(result => {
+                console.log("로그인 성공:", result.user);
+            })
+            .catch(error => console.error(error));
+    }
+
+    // 로그아웃
+    function logout() {
+        signOut(auth).then(() => console.log("로그아웃"));
+    }
+
+    // 로그인 상태 표시
+    onAuthStateChanged(auth, (user) => {
+        const info = document.getElementById("userInfo");
+        if (user) {
+            info.innerHTML = `로그인: <b>${user.displayName}</b>`;
+        } else {
+            info.innerHTML = "로그인 안됨";
+        }
+    });
+
+    // 무게 옵션 생성
     const weightSelect = document.getElementById("weight");
     for (let w = 0; w <= 250; w += 5) {
         let option = document.createElement("option");
@@ -128,7 +152,7 @@
         weightSelect.appendChild(option);
     }
 
-    // 반복수 옵션
+    // 반복수 옵션 생성
     const repsSelect = document.getElementById("reps");
     for (let r = 1; r <= 10; r++) {
         let option = document.createElement("option");
@@ -137,10 +161,8 @@
         repsSelect.appendChild(option);
     }
 
-    let lastOneRM = null;
-
-    // 1RM 계산
-    function calculate1RM() {
+    // 1RM 계산 함수
+    window.calculate1RM = function () {
         const weight = parseFloat(weightSelect.value);
         const reps = parseInt(repsSelect.value);
 
@@ -150,65 +172,45 @@
         }
 
         const oneRM = weight * (1 + reps * 0.0333);
-        lastOneRM = oneRM;
+        window.currentOneRM = oneRM; // 전역 저장
+        window.currentWeight = weight;
+        window.currentReps = reps;
 
         document.getElementById("result").innerHTML =
             `예상 1RM: <b>${oneRM.toFixed(1)} kg</b>`;
 
-        let html = `
-            <table>
-                <tr><th>RM</th><th>무게 (kg)</th></tr>
-        `;
+        let html = `<table><tr><th>RM</th><th>무게 (kg)</th></tr>`;
 
         for (let r = 1; r <= 10; r++) {
-            let rmWeight = oneRM / (1 + (r - 1) * 0.0333);
-            html += `<tr><td>${r}RM</td><td>${rmWeight.toFixed(1)} kg</td></tr>`;
+            let rmW = oneRM / (1 + (r - 1) * 0.0333);
+            html += `<tr><td>${r}RM</td><td>${rmW.toFixed(1)} kg</td></tr>`;
         }
 
         html += `</table>`;
         document.getElementById("tableArea").innerHTML = html;
-    }
+    };
 
     // 기록 저장
-    function saveRecord() {
-        if (lastOneRM === null) {
-            alert("먼저 GO 버튼을 눌러 계산하세요!");
-            return;
-        }
+    window.saveRecord = async function () {
+        const user = auth.currentUser;
+        if (!user) return alert("로그인 먼저 해줘!");
 
-        const weight = weightSelect.value;
-        const reps = repsSelect.value;
+        if (!window.currentOneRM) return alert("먼저 1RM 계산하고 저장해!");
 
         const record = {
-            time: new Date().toLocaleString(),
-            weight: weight,
-            reps: reps,
-            oneRM: lastOneRM.toFixed(1)
+            oneRM: window.currentOneRM,
+            weight: window.currentWeight,
+            reps: window.currentReps,
+            timestamp: Date.now()
         };
 
-        const records = JSON.parse(localStorage.getItem("records") || "[]");
-        records.push(record);
-        localStorage.setItem("records", JSON.stringify(records));
+        await setDoc(
+            doc(db, "users", user.uid, "records", String(Date.now())),
+            record
+        );
 
-        loadRecords();
-    }
-
-    // 기록 로드 및 표시
-    function loadRecords() {
-        const records = JSON.parse(localStorage.getItem("records") || "[]");
-        const list = document.getElementById("recordList");
-
-        list.innerHTML = "";
-
-        records.forEach(r => {
-            const div = document.createElement("div");
-            div.className = "record-item";
-            div.innerHTML = `${r.time} — ${r.weight}kg × ${r.reps}회 → <b>${r.oneRM} kg</b>`;
-            list.appendChild(div);
-        });
-    }
-
-    loadRecords();
+        alert("저장 완료!");
+    };
 </script>
 
 </body>
