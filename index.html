@@ -15,13 +15,12 @@ body {
 .container { max-width: 360px; margin: auto; }
 .subtitle { font-size:16px; margin-bottom:12px; }
 
-/* 로그인 버튼 왼쪽 위 고정 */
+/* 로그인 버튼 왼쪽 위 */
 #loginArea {
-    position: fixed;
+    position: absolute; /* 일반 문서 흐름 기준 */
     top: 10px;
     left: 10px;
-    z-index: 1000;
-    display: flex;
+    display: block;
     flex-direction: column;
     gap: 5px;
 }
@@ -50,18 +49,14 @@ th, td { padding:10px; }
 </div>
 <h2>조현성을 위한 1RM 계산기</h2>
 
-<!-- 무게 선택 -->
 <select id="weight"><option value="">무게 선택</option></select>
-<!-- 반복수 선택 -->
 <select id="reps"><option value="">반복수 선택</option></select>
 
-<!-- GO 버튼 -->
 <button onclick="calculate1RM()">GO</button>
 
 <div id="result"></div>
 <div id="tableArea"></div>
 
-<!-- 기록 저장 버튼 -->
 <button id="saveBtn" style="display:none;">기록 저장</button>
 <div id="saveResult" style="margin-top:20px; font-size:18px;"></div>
 </div>
@@ -73,7 +68,6 @@ th, td { padding:10px; }
     <div id="userInfo"></div>
 </div>
 
-<!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
@@ -132,19 +126,12 @@ function calculate1RM(){
 githubLoginBtn.onclick = () => {
     const provider = new firebase.auth.GithubAuthProvider();
     auth.signInWithPopup(provider)
-        .then(result=>{
-            console.log("로그인 성공:", result.user);
-        })
-        .catch(error=>{
-            console.error("로그인 오류:", error);
-            alert("로그인 실패: "+error.message);
-        });
+        .then(result=>{ console.log("로그인 성공:", result.user); })
+        .catch(error=>{ console.error("로그인 오류:", error); alert("로그인 실패: "+error.message); });
 };
 
 // 로그아웃
-logoutBtn.onclick = () => {
-    auth.signOut().then(()=>console.log("로그아웃 완료"));
-};
+logoutBtn.onclick = () => auth.signOut().then(()=>console.log("로그아웃 완료"));
 
 // 로그인 상태 확인
 auth.onAuthStateChanged(user=>{
@@ -153,7 +140,7 @@ auth.onAuthStateChanged(user=>{
         logoutBtn.style.display="block";
         saveBtn.style.display="block";
 
-        // displayName이 없으면 이메일 앞부분 사용
+        // displayName null 처리
         const name = user.displayName || user.email.split('@')[0];
         userInfo.textContent = `${name} 님`;
 
@@ -181,10 +168,7 @@ saveBtn.onclick = async ()=>{
             savedAt: new Date()
         });
         document.getElementById("saveResult").textContent="기록 저장 완료!";
-    }catch(error){
-        console.error(error);
-        alert("저장 실패: "+error.message);
-    }
+    }catch(error){ console.error(error); alert("저장 실패: "+error.message); }
 };
 
 // 마지막 기록 불러오기
@@ -200,6 +184,13 @@ async function loadLastRecord(){
         }
     }catch(error){ console.error(error); }
 }
+
+// 스크롤 시 로그인 버튼 숨기기
+window.addEventListener("scroll", ()=>{
+    const loginArea = document.getElementById("loginArea");
+    if(window.scrollY > 50){ loginArea.style.display="none"; }
+    else { loginArea.style.display="block"; }
+});
 </script>
 </body>
 </html>
