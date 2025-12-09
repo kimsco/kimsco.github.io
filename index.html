@@ -18,16 +18,13 @@
     }
 
     /* 작은 문구 스타일 */
-   .subtitle {
-    font-size: 16px; /* 네가 원한 크기 */
-    text-align: center;
-    white-space: normal;
-    width: 100%;
-    display: block;
-    margin: 0 auto 12px auto; /* 위아래만 간격 */
-
-    /*transform: translateX(-8px); /* ← 이거 추가 */
-}
+    .subtitle {
+        font-size: 16px;
+        white-space: nowrap;
+        width: 100%;
+        display: block;
+        margin: 0 auto 12px auto;
+    }
 
     /* 입력칸/선택칸/버튼 동일 가로폭 */
     input, select, button {
@@ -40,6 +37,12 @@
         border-radius: 10px;
         border: none;
         text-align: center;
+    }
+
+    /* 무게 선택 드롭다운 글씨 중앙 정렬 */
+    select {
+        text-align: center;
+        text-align-last: center;
     }
 
     /* 버튼 스타일 */
@@ -79,6 +82,7 @@
         padding: 10px;
     }
 
+    /* 제목 줄바꿈 금지 */
     h2 {
         white-space: nowrap;
     }
@@ -88,9 +92,9 @@
 
 <div class="container">
 
-    <!-- 새로 추가된 문구 -->
+    <!-- 새 문구 -->
     <div class="subtitle">
-        "대부분의 문제는 돈이 없어서,      그 외의 문제는 근육이 없어서 생긴다"
+        "대부분의 문제는 돈이 없어서, 그 외의 문제는 근육이 없어서 생긴다"
     </div>
 
     <h2>조현성을 위한 1RM 계산기</h2>
