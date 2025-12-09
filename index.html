@@ -5,55 +5,72 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>1RM 계산기 + GitHub 로그인</title>
 <style>
-    body {
-        background: black;
-        color: white;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
-        text-align: center;
-        padding: 40px;
-    }
-    .container { max-width: 360px; margin: auto; }
-    .subtitle { font-size:16px; margin-bottom:12px; }
-    select, button {
-        width:100%; padding:14px; margin:10px 0; font-size:18px;
-        border-radius:10px; border:none; text-align:center;
-    }
-    button { font-size:20px; background:white; color:black; font-weight:bold; }
-    #result { margin-top:20px; font-size:22px; }
-    table { width:100%; margin-top:25px; border-collapse:collapse; font-size:17px; }
-    table, th, td { border:1px solid white; }
-    th, td { padding:10px; }
-    #loginArea { margin-bottom:20px; }
+body {
+    background: black;
+    color: white;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
+    text-align: center;
+    padding: 40px;
+}
+.container { max-width: 360px; margin: auto; }
+.subtitle { font-size:16px; margin-bottom:12px; }
+
+/* 로그인 버튼 왼쪽 위 고정 */
+#loginArea {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+#githubLoginBtn, #logoutBtn {
+    padding: 6px 10px;
+    font-size: 12px;
+    width: auto;
+}
+#userInfo { font-size: 12px; color: white; margin-top: 2px; }
+
+select, button {
+    width:100%; padding:14px; margin:10px 0; font-size:18px;
+    border-radius:10px; border:none; text-align:center;
+}
+button { font-size:20px; background:white; color:black; font-weight:bold; }
+#result { margin-top:20px; font-size:22px; }
+table { width:100%; margin-top:25px; border-collapse:collapse; font-size:17px; }
+table, th, td { border:1px solid white; }
+th, td { padding:10px; }
 </style>
 </head>
 <body>
 <div class="container">
-    <div class="subtitle">
-        "대부분의 문제는 돈이 없어서, 그 외의 문제는 근육이 없어서 생긴다"
-    </div>
-    <h2>조현성을 위한 1RM 계산기</h2>
+<div class="subtitle">
+"대부분의 문제는 돈이 없어서, 그 외의 문제는 근육이 없어서 생긴다"
+</div>
+<h2>조현성을 위한 1RM 계산기</h2>
 
-    <!-- 로그인 영역 -->
-    <div id="loginArea">
-        <button id="githubLoginBtn">GitHub 로그인</button>
-        <button id="logoutBtn" style="display:none;">로그아웃</button>
-        <div id="userInfo" style="margin-top:10px; font-size:15px;"></div>
-    </div>
+<!-- 무게 선택 -->
+<select id="weight"><option value="">무게 선택</option></select>
+<!-- 반복수 선택 -->
+<select id="reps"><option value="">반복수 선택</option></select>
 
-    <!-- 무게 선택 -->
-    <select id="weight"><option value="">무게 선택</option></select>
-    <!-- 반복수 선택 -->
-    <select id="reps"><option value="">반복수 선택</option></select>
+<!-- GO 버튼 -->
+<button onclick="calculate1RM()">GO</button>
 
-    <!-- GO 버튼 -->
-    <button onclick="calculate1RM()">GO</button>
+<div id="result"></div>
+<div id="tableArea"></div>
 
-    <div id="result"></div>
-    <div id="tableArea"></div>
+<!-- 기록 저장 버튼 -->
+<button id="saveBtn" style="display:none;">기록 저장</button>
+<div id="saveResult" style="margin-top:20px; font-size:18px;"></div>
+</div>
 
-    <!-- 기록 저장 버튼 -->
-    <button id="saveBtn" style="display:none;">기록 저장</button>
-    <div id="saveResult" style="margin-top:20px; font-size:18px;"></div>
+<!-- 로그인 영역 -->
+<div id="loginArea">
+    <button id="githubLoginBtn">GitHub 로그인</button>
+    <button id="logoutBtn" style="display:none;">로그아웃</button>
+    <div id="userInfo"></div>
 </div>
 
 <!-- Firebase SDK -->
@@ -74,7 +91,7 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// 요소 가져오기
+// 요소
 const githubLoginBtn = document.getElementById("githubLoginBtn");
 const logoutBtn = document.getElementById("logoutBtn");
 const userInfo = document.getElementById("userInfo");
@@ -135,7 +152,11 @@ auth.onAuthStateChanged(user=>{
         githubLoginBtn.style.display="none";
         logoutBtn.style.display="block";
         saveBtn.style.display="block";
-        userInfo.textContent = `${user.displayName}님`;
+
+        // displayName이 없으면 이메일 앞부분 사용
+        const name = user.displayName || user.email.split('@')[0];
+        userInfo.textContent = `${name} 님`;
+
         loadLastRecord();
     }else{
         githubLoginBtn.style.display="block";
