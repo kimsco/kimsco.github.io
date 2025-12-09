@@ -17,7 +17,6 @@
         margin: auto;
     }
 
-    /* 작은 문구 스타일 */
     .subtitle {
         font-size: 16px;
         white-space: normal;
@@ -26,7 +25,7 @@
         margin: 0 auto 12px auto;
     }
 
-    /* 입력칸/선택칸/버튼 동일 가로폭 */
+    /* 입력칸/선택칸/버튼 동일 스타일 */
     input, select, button {
         width: 100%;
         display: block;
@@ -39,29 +38,18 @@
         text-align: center;
     }
 
-    /* 무게 선택 드롭다운 글씨 중앙 정렬 */
+    /* 드롭다운 가운데 정렬 */
     select {
         text-align: center;
         text-align-last: center;
     }
 
-    /* 버튼 스타일 */
     button {
         font-size: 20px;
         background: white;
         color: black;
         font-weight: bold;
         margin-top: 15px;
-    }
-
-    /* 숫자 입력칸 ↑↓ 제거 */
-    input[type=number]::-webkit-inner-spin-button, 
-    input[type=number]::-webkit-outer-spin-button {
-        -webkit-appearance: none;
-        margin: 0;
-    }
-    input[type=number] {
-        -moz-appearance: textfield;
     }
 
     #result { 
@@ -82,7 +70,6 @@
         padding: 10px;
     }
 
-    /* 제목 줄바꿈 금지 */
     h2 {
         white-space: nowrap;
     }
@@ -92,7 +79,6 @@
 
 <div class="container">
 
-    <!-- 새 문구 -->
     <div class="subtitle">
         "대부분의 문제는 돈이 없어서, 그 외의 문제는 근육이 없어서 생긴다"
     </div>
@@ -104,21 +90,20 @@
         <option value="">무게 선택</option>
     </select>
 
-    <!-- 반복수 입력 -->
-    <input type="number" id="reps" placeholder="반복수 (예: 5)" min="1" max="30">
+    <!-- 반복수 선택 (1~10) -->
+    <select id="reps">
+        <option value="">반복수 선택</option>
+    </select>
 
     <!-- GO 버튼 -->
     <button onclick="calculate1RM()">GO</button>
 
-    <!-- 예상 1RM -->
     <div id="result"></div>
-
-    <!-- 1RM~10RM 표 -->
     <div id="tableArea"></div>
 </div>
 
 <script>
-    // 무게 선택 옵션 (0~250kg, 5kg 단위)
+    // 무게 옵션 생성
     const weightSelect = document.getElementById("weight");
     for (let w = 0; w <= 250; w += 5) {
         let option = document.createElement("option");
@@ -127,7 +112,15 @@
         weightSelect.appendChild(option);
     }
 
-    // 계산 함수
+    // 반복수 옵션 생성 (1~10)
+    const repsSelect = document.getElementById("reps");
+    for (let r = 1; r <= 10; r++) {
+        let option = document.createElement("option");
+        option.value = r;
+        option.textContent = r + " 회";
+        repsSelect.appendChild(option);
+    }
+
     function calculate1RM() {
         const weight = parseFloat(document.getElementById("weight").value);
         const reps = parseInt(document.getElementById("reps").value);
@@ -140,11 +133,9 @@
         // Epley 공식
         const oneRM = weight * (1 + reps * 0.0333);
 
-        // 예상 1RM 표시
         document.getElementById("result").innerHTML =
             `예상 1RM: <b>${oneRM.toFixed(1)} kg</b>`;
 
-        // 1~10RM 표 생성
         let html = `
             <table>
                 <tr><th>RM</th><th>무게 (kg)</th></tr>
