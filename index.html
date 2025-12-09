@@ -139,7 +139,7 @@
 
     // Google 로그인
     loginBtn.onclick = (e) => {
-        e.preventDefault(); // 혹시 모를 기본 동작 방지
+        e.preventDefault();
         const provider = new firebase.auth.GoogleAuthProvider();
         auth.signInWithPopup(provider)
             .then(result => {
