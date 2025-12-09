@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>1RM 계산기 + GitHub 로그인</title>
+<title>1RM 계산기 + Google 로그인</title>
 <style>
 body {
     background: black;
@@ -17,14 +17,14 @@ body {
 
 /* 로그인 버튼 왼쪽 위 */
 #loginArea {
-    position: absolute; /* 일반 문서 흐름 기준 */
+    position: absolute;
     top: 10px;
     left: 10px;
     display: block;
     flex-direction: column;
     gap: 5px;
 }
-#githubLoginBtn, #logoutBtn {
+#googleLoginBtn, #logoutBtn {
     padding: 6px 10px;
     font-size: 12px;
     width: auto;
@@ -63,7 +63,7 @@ th, td { padding:10px; }
 
 <!-- 로그인 영역 -->
 <div id="loginArea">
-    <button id="githubLoginBtn">GitHub 로그인</button>
+    <button id="googleLoginBtn">Google 로그인</button>
     <button id="logoutBtn" style="display:none;">로그아웃</button>
     <div id="userInfo"></div>
 </div>
@@ -86,7 +86,7 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 
 // 요소
-const githubLoginBtn = document.getElementById("githubLoginBtn");
+const googleLoginBtn = document.getElementById("googleLoginBtn");
 const logoutBtn = document.getElementById("logoutBtn");
 const userInfo = document.getElementById("userInfo");
 const saveBtn = document.getElementById("saveBtn");
@@ -122,12 +122,12 @@ function calculate1RM(){
     document.getElementById("tableArea").innerHTML = html;
 }
 
-// GitHub 로그인
-githubLoginBtn.onclick = () => {
-    const provider = new firebase.auth.GithubAuthProvider();
+// Google 로그인
+googleLoginBtn.onclick = () => {
+    const provider = new firebase.auth.GoogleAuthProvider();
     auth.signInWithPopup(provider)
-        .then(result=>{ console.log("로그인 성공:", result.user); })
-        .catch(error=>{ console.error("로그인 오류:", error); alert("로그인 실패: "+error.message); });
+        .then(result => console.log("로그인 성공:", result.user))
+        .catch(error => alert("로그인 실패: " + error.message));
 };
 
 // 로그아웃
@@ -136,17 +136,15 @@ logoutBtn.onclick = () => auth.signOut().then(()=>console.log("로그아웃 완�
 // 로그인 상태 확인
 auth.onAuthStateChanged(user=>{
     if(user){
-        githubLoginBtn.style.display="none";
+        googleLoginBtn.style.display="none";
         logoutBtn.style.display="block";
         saveBtn.style.display="block";
 
-        // displayName null 처리
-        const name = user.displayName || user.email.split('@')[0];
-        userInfo.textContent = `${name} 님`;
+        userInfo.textContent = `${user.displayName} 님`;
 
         loadLastRecord();
     }else{
-        githubLoginBtn.style.display="block";
+        googleLoginBtn.style.display="block";
         logoutBtn.style.display="none";
         saveBtn.style.display="none";
         userInfo.textContent="";
