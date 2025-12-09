@@ -25,10 +25,8 @@
         margin: 0 auto 12px auto;
     }
 
-    /* 입력칸/선택칸/버튼 동일 스타일 */
     input, select, button {
         width: 100%;
-        display: block;
         box-sizing: border-box;
         padding: 14px;
         margin: 10px 0;
@@ -38,7 +36,6 @@
         text-align: center;
     }
 
-    /* 드롭다운 가운데 정렬 */
     select {
         text-align: center;
         text-align-last: center;
@@ -73,6 +70,18 @@
     h2 {
         white-space: nowrap;
     }
+
+    /* 기록 리스트 */
+    #recordList {
+        margin-top: 30px;
+        text-align: left;
+        font-size: 16px;
+        padding-left: 10px;
+    }
+    .record-item {
+        margin-bottom: 8px;
+        line-height: 1.4;
+    }
 </style>
 </head>
 <body>
@@ -90,7 +99,7 @@
         <option value="">무게 선택</option>
     </select>
 
-    <!-- 반복수 선택 (1~10) -->
+    <!-- 반복수 선택 -->
     <select id="reps">
         <option value="">반복수 선택</option>
     </select>
@@ -98,12 +107,19 @@
     <!-- GO 버튼 -->
     <button onclick="calculate1RM()">GO</button>
 
+    <!-- 수동 저장 버튼 -->
+    <button onclick="saveRecord()" style="background:#ffe680;">기록 저장</button>
+
     <div id="result"></div>
     <div id="tableArea"></div>
+
+    <h2>저장된 기록</h2>
+    <div id="recordList"></div>
+
 </div>
 
 <script>
-    // 무게 옵션 생성
+    // 무게 옵션
     const weightSelect = document.getElementById("weight");
     for (let w = 0; w <= 250; w += 5) {
         let option = document.createElement("option");
@@ -112,7 +128,7 @@
         weightSelect.appendChild(option);
     }
 
-    // 반복수 옵션 생성 (1~10)
+    // 반복수 옵션
     const repsSelect = document.getElementById("reps");
     for (let r = 1; r <= 10; r++) {
         let option = document.createElement("option");
@@ -121,17 +137,20 @@
         repsSelect.appendChild(option);
     }
 
+    let lastOneRM = null;
+
+    // 1RM 계산
     function calculate1RM() {
-        const weight = parseFloat(document.getElementById("weight").value);
-        const reps = parseInt(document.getElementById("reps").value);
+        const weight = parseFloat(weightSelect.value);
+        const reps = parseInt(repsSelect.value);
 
         if (!weight || !reps) {
             document.getElementById("result").innerHTML = "무게와 반복수를 입력하세요.";
             return;
         }
 
-        // Epley 공식
         const oneRM = weight * (1 + reps * 0.0333);
+        lastOneRM = oneRM;
 
         document.getElementById("result").innerHTML =
             `예상 1RM: <b>${oneRM.toFixed(1)} kg</b>`;
@@ -149,6 +168,47 @@
         html += `</table>`;
         document.getElementById("tableArea").innerHTML = html;
     }
+
+    // 기록 저장
+    function saveRecord() {
+        if (lastOneRM === null) {
+            alert("먼저 GO 버튼을 눌러 계산하세요!");
+            return;
+        }
+
+        const weight = weightSelect.value;
+        const reps = repsSelect.value;
+
+        const record = {
+            time: new Date().toLocaleString(),
+            weight: weight,
+            reps: reps,
+            oneRM: lastOneRM.toFixed(1)
+        };
+
+        const records = JSON.parse(localStorage.getItem("records") || "[]");
+        records.push(record);
+        localStorage.setItem("records", JSON.stringify(records));
+
+        loadRecords();
+    }
+
+    // 기록 로드 및 표시
+    function loadRecords() {
+        const records = JSON.parse(localStorage.getItem("records") || "[]");
+        const list = document.getElementById("recordList");
+
+        list.innerHTML = "";
+
+        records.forEach(r => {
+            const div = document.createElement("div");
+            div.className = "record-item";
+            div.innerHTML = `${r.time} — ${r.weight}kg × ${r.reps}회 → <b>${r.oneRM} kg</b>`;
+            list.appendChild(div);
+        });
+    }
+
+    loadRecords();
 </script>
 
 </body>
