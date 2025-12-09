@@ -3,47 +3,52 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>1RM 계산기 + Google 로그인</title>
+<title>1RM 계산기 + 3대 기록표 + Google 로그인</title>
 <style>
 body {
     background: black;
     color: white;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
     text-align: center;
-    padding: 70px;
+    padding: 70px 20px 20px 20px;
 }
-.container { max-width: 360px; margin: auto; }
+.container { max-width: 360px; margin:auto; }
 .subtitle { font-size:16px; margin-bottom: 20px; }
 
-/* 로그인 영역 왼쪽 위, 깔끔하게 개선 */
+/* 로그인 영역 왼쪽 위 */
 #loginArea {
     position: absolute;
     top: 10px;
     left: 10px;
     display: flex;
     flex-direction: column;
-    gap: 6px; /* 버튼 사이 간격 */
+    gap: 6px;
     padding: 8px;
-    background: rgba(0,0,0,0.5); /* 반투명 배경 */
+    background: rgba(0,0,0,0.5);
     border-radius: 8px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.3);
 }
-#loginArea button {
-    padding: 8px 12px;
-    font-size: 13px;
-    border-radius: 6px;
-}
-#userInfo { font-size: 12px; color: #fff; text-align: center; }
+#loginArea button { padding:8px 12px; font-size:13px; border-radius:6px; }
+#userInfo { font-size:12px; color:#fff; text-align:center; }
 
-select, button {
-    width:100%; padding:14px; margin:10px 0; font-size:18px;
-    border-radius:10px; border:none; text-align:center;
-}
+/* 탭 버튼 */
+#tabs { display:flex; justify-content:center; gap:10px; margin-bottom:15px; }
+#tabs button { padding:8px 12px; font-size:16px; border:none; border-radius:6px; cursor:pointer; }
+#tabs button.active { background:white; color:black; font-weight:bold; }
+
+/* 선택창, 버튼 */
+select, button { width:100%; padding:14px; margin:10px 0; font-size:18px; border-radius:10px; border:none; text-align:center; }
 button { font-size:20px; background:white; color:black; font-weight:bold; }
+
+/* 결과, 테이블 */
 #result { margin-top:20px; font-size:22px; }
 table { width:100%; margin-top:25px; border-collapse:collapse; font-size:17px; }
 table, th, td { border:1px solid white; }
 th, td { padding:10px; }
+
+/* 3대 기록표 테이블 */
+#threeRecords table { width:100%; margin-top:10px; border-collapse:collapse; }
+#threeRecords th, #threeRecords td { border:1px solid white; padding:8px; }
 </style>
 </head>
 <body>
@@ -53,16 +58,36 @@ th, td { padding:10px; }
 </div>
 <h2>조현성을 위한 1RM 계산기</h2>
 
-<select id="weight"><option value="">무게 선택</option></select>
-<select id="reps"><option value="">반복수 선택</option></select>
+<!-- 탭 버튼 -->
+<div id="tabs">
+    <button id="calcTabBtn" class="active" onclick="showTab('calculator')">1RM 계산기</button>
+    <button id="recordTabBtn" onclick="showTab('records')">내 3대 기록표</button>
+</div>
 
-<button onclick="calculate1RM()">GO</button>
+<!-- 1RM 계산기 -->
+<div id="calculatorTab">
+    <select id="weight"><option value="">무게 선택</option></select>
+    <select id="reps"><option value="">반복수 선택</option></select>
+    <button onclick="calculate1RM()">GO</button>
+    <div id="result"></div>
+    <div id="tableArea"></div>
+    <button id="saveBtn" style="display:none;">기록 저장</button>
+    <div id="saveResult" style="margin-top:20px; font-size:18px;"></div>
+</div>
 
-<div id="result"></div>
-<div id="tableArea"></div>
-
-<button id="saveBtn" style="display:none;">기록 저장</button>
-<div id="saveResult" style="margin-top:20px; font-size:18px;"></div>
+<!-- 3대 기록표 -->
+<div id="recordsTab" style="display:none;">
+    <h3>내 3대 기록표</h3>
+    <div id="threeRecords">
+        <table>
+            <tr><th>종목</th><th>무게 (kg)</th><th>반복수</th></tr>
+            <tr><td>벤치프레스</td><td id="benchWeight">-</td><td id="benchReps">-</td></tr>
+            <tr><td>스쿼트</td><td id="squatWeight">-</td><td id="squatReps">-</td></tr>
+            <tr><td>데드리프트</td><td id="deadWeight">-</td><td id="deadReps">-</td></tr>
+        </table>
+        <button onclick="saveThreeRecords()">3대 기록 저장</button>
+        <div id="threeSaveResult" style="margin-top:10px; font-size:16px;"></div>
+    </div>
 </div>
 
 <!-- 로그인 영역 -->
@@ -75,7 +100,6 @@ th, td { padding:10px; }
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-
 <script>
 const firebaseConfig = {
     apiKey: "AIzaSyCXn174XsW6ndqaeUpVK6XAAf4MR0-q7_k",
@@ -143,10 +167,9 @@ auth.onAuthStateChanged(user=>{
         googleLoginBtn.style.display="none";
         logoutBtn.style.display="block";
         saveBtn.style.display="block";
-
         userInfo.textContent = `${user.displayName} 님`;
-
         loadLastRecord();
+        loadThreeRecords();
     }else{
         googleLoginBtn.style.display="block";
         logoutBtn.style.display="none";
@@ -190,9 +213,56 @@ async function loadLastRecord(){
 // 스크롤 시 로그인 버튼 숨기기
 window.addEventListener("scroll", ()=>{
     const loginArea = document.getElementById("loginArea");
-    if(window.scrollY > 50){ loginArea.style.display="none"; }
-    else { loginArea.style.display="flex"; }
+    loginArea.style.display = (window.scrollY>50)?"none":"flex";
 });
+
+// 탭 전환
+function showTab(tab){
+    document.getElementById('calculatorTab').style.display = (tab==='calculator')?'block':'none';
+    document.getElementById('recordsTab').style.display = (tab==='records')?'block':'none';
+    document.getElementById('calcTabBtn').classList.toggle('active', tab==='calculator');
+    document.getElementById('recordTabBtn').classList.toggle('active', tab==='records');
+}
+
+// 3대 기록표 저장/불러오기
+async function saveThreeRecords(){
+    const user = auth.currentUser;
+    if(!user) return;
+    const benchW = prompt("벤치프레스 무게 입력 (kg):");
+    const benchR = prompt("벤치프레스 반복수 입력:");
+    const squatW = prompt("스쿼트 무게 입력 (kg):");
+    const squatR = prompt("스쿼트 반복수 입력:");
+    const deadW = prompt("데드리프트 무게 입력 (kg):");
+    const deadR = prompt("데드리프트 반복수 입력:");
+
+    try{
+        await db.collection("users").doc(user.uid).set({
+            benchWeight: benchW, benchReps: benchR,
+            squatWeight: squatW, squatReps: squatR,
+            deadWeight: deadW, deadReps: deadR,
+            updatedAt: new Date()
+        }, {merge:true});
+        loadThreeRecords();
+        document.getElementById("threeSaveResult").textContent="3대 기록 저장 완료!";
+    }catch(e){ console.error(e); alert("저장 실패: "+e.message); }
+}
+
+async function loadThreeRecords(){
+    const user = auth.currentUser;
+    if(!user) return;
+    try{
+        const doc = await db.collection("users").doc(user.uid).get();
+        if(doc.exists){
+            const data = doc.data();
+            document.getElementById("benchWeight").textContent = data.benchWeight || "-";
+            document.getElementById("benchReps").textContent = data.benchReps || "-";
+            document.getElementById("squatWeight").textContent = data.squatWeight || "-";
+            document.getElementById("squatReps").textContent = data.squatReps || "-";
+            document.getElementById("deadWeight").textContent = data.deadWeight || "-";
+            document.getElementById("deadReps").textContent = data.deadReps || "-";
+        }
+    }catch(e){ console.error(e); }
+}
 </script>
 </body>
 </html>
