@@ -3,19 +3,29 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>1RM 계산기 + 3대 기록 + Google 로그인</title>
+<title>1RM 계산기 + 3대 기록표</title>
 <style>
 body {
     background: black;
     color: white;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
-    padding: 70px 20px 20px 20px;
     text-align: center;
+    padding: 70px 20px 20px 20px;
 }
 .container { max-width: 400px; margin: auto; }
+
 .subtitle { font-size:16px; margin-bottom: 20px; }
 
-/* 로그인 영역 */
+select, button {
+    width:100%; padding:14px; margin:10px 0; font-size:18px;
+    border-radius:10px; border:none; text-align:center;
+}
+button { font-size:20px; background:white; color:black; font-weight:bold; }
+#result { margin-top:20px; font-size:22px; }
+table { width:100%; margin-top:15px; border-collapse: collapse; }
+table, td { border:1px solid white; }
+td { padding:8px; text-align:center; }
+
 #loginArea {
     position: absolute;
     top: 10px;
@@ -28,77 +38,59 @@ body {
     border-radius: 8px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.3);
 }
-#loginArea button { padding: 8px 12px; font-size: 13px; border-radius: 6px; }
-#userInfo { font-size: 12px; color: #fff; text-align: center; }
+#loginArea button { padding: 8px 12px; font-size: 13px; border-radius:6px; }
+#userInfo { font-size:12px; color:#fff; text-align:center; }
 
 /* 탭 스타일 */
-.tab {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 15px;
-    gap: 5px;
-}
-.tab button {
-    padding: 10px 15px;
-    border: none;
-    border-radius: 8px 8px 0 0;
-    background: #333;
-    color: white;
-    cursor: pointer;
-    font-weight: bold;
-}
-.tab button.active { background: #555; }
+.tab { display:flex; justify-content:center; gap:10px; margin-bottom:20px; }
+.tab button { padding:10px 20px; border:none; border-radius:8px; cursor:pointer; background:#333; color:white; font-weight:bold; }
+.tab button.active { background:#FFD700; color:black; }
 
-/* 탭 콘텐츠 */
-.tabContent { display: none; }
-.tabContent.active { display: block; }
+/* 탭 컨텐츠 숨기기 */
+.tabContent { display:none; }
+.tabContent.active { display:block; }
 
-/* 공통 */
-select, button, input[type=number] {
-    width:100%; padding:14px; margin:10px 0; font-size:18px; border-radius:10px; border:none; text-align:center;
-}
-button { font-size:20px; background:white; color:black; font-weight:bold; }
-table { width:100%; margin-top:15px; border-collapse:collapse; font-size:17px; }
-table, th, td { border:1px solid white; }
-th, td { padding:10px; text-align:center; }
-
-/* 토탈 강조 */
-#total3 { font-size: 24px; font-weight:bold; margin-top: 15px; color: #FFD700; }
+/* 3대 총합 강조 */
+#total3 { font-size:28px; font-weight:bold; margin-bottom:15px; color:#FFD700; }
+input.rmInput { width:80px; font-size:16px; text-align:center; }
 </style>
 </head>
 <body>
+
 <div class="container">
-<div class="subtitle">
-"대부분의 문제는 돈이 없어서, 그 외의 문제는 근육이 없어서 생긴다"
-</div>
-<h2>조현성을 위한 1RM 계산기</h2>
+    <div class="subtitle">"대부분의 문제는 돈이 없어서, 그 외의 문제는 근육이 없어서 생긴다"</div>
+    <h2>조현성을 위한 1RM 계산기 + 3대 기록표</h2>
 
-<!-- 탭 버튼 -->
-<div class="tab">
-    <button class="tabBtn active" onclick="openTab(0)">1RM 계산기</button>
-    <button class="tabBtn" onclick="openTab(1)">3대 기록표</button>
-</div>
+    <!-- 탭 -->
+    <div class="tab">
+        <button class="tabBtn active" data-target="tab1">1RM 계산기</button>
+        <button class="tabBtn" data-target="tab2">3대 기록표</button>
+    </div>
 
-<!-- 탭 콘텐츠 -->
-<div class="tabContent active">
-    <select id="weight"><option value="">무게 선택</option></select>
-    <select id="reps"><option value="">반복수 선택</option></select>
-    <button onclick="calculate1RM()">GO</button>
-    <div id="result"></div>
-    <div id="tableArea"></div>
-</div>
+    <!-- 1RM 계산기 -->
+    <div id="tab1" class="tabContent active">
+        <select id="weight"><option value="">무게 선택</option></select>
+        <select id="reps"><option value="">반복수 선택</option></select>
+        <button onclick="calculate1RM()">GO</button>
+        <div id="result"></div>
+        <div id="tableArea"></div>
+        <button id="saveBtn" style="display:none;">기록 저장</button>
+        <div id="saveResult" style="margin-top:20px; font-size:18px;"></div>
+    </div>
 
-<div class="tabContent">
-    <table>
-        <tr><th>종목</th><th>1RM(kg)</th></tr>
-        <tr><td>벤치프레스</td><td><input type="number" id="benchRM" min="0"></td></tr>
-        <tr><td>스쿼트</td><td><input type="number" id="squatRM" min="0"></td></tr>
-        <tr><td>데드리프트</td><td><input type="number" id="deadRM" min="0"></td></tr>
-    </table>
-    <div id="total3">토탈 3대 중량: 0 kg</div>
-    <button id="save3Btn" style="display:none;">3대 기록 저장</button>
-    <div id="saveResult" style="margin-top:20px; font-size:18px;"></div>
-</div>
+    <!-- 3대 기록표 -->
+    <div id="tab2" class="tabContent">
+        <div id="total3">3대: 0 kg</div>
+        <table>
+            <tr>
+                <td><input type="number" id="benchRM" class="rmInput" placeholder="벤치" min="0"></td>
+                <td><input type="number" id="squatRM" class="rmInput" placeholder="스쿼트" min="0"></td>
+                <td><input type="number" id="deadRM" class="rmInput" placeholder="데드" min="0"></td>
+            </tr>
+        </table>
+        <button id="save3Btn" style="display:none; margin-top:10px;">3대 기록 저장</button>
+        <div id="save3Result" style="margin-top:10px; font-size:16px;"></div>
+    </div>
 </div>
 
 <!-- 로그인 영역 -->
@@ -111,8 +103,8 @@ th, td { padding:10px; text-align:center; }
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
 <script>
-// Firebase 설정
 const firebaseConfig = {
     apiKey: "AIzaSyCXn174XsW6ndqaeUpVK6XAAf4MR0-q7_k",
     authDomain: "rmpj-7ca13.firebaseapp.com",
@@ -129,6 +121,7 @@ const db = firebase.firestore();
 const googleLoginBtn = document.getElementById("googleLoginBtn");
 const logoutBtn = document.getElementById("logoutBtn");
 const userInfo = document.getElementById("userInfo");
+const saveBtn = document.getElementById("saveBtn");
 const save3Btn = document.getElementById("save3Btn");
 
 // 무게 옵션
@@ -153,12 +146,12 @@ function calculate1RM(){
     if(!weight || !reps){ document.getElementById("result").innerHTML="무게와 반복수를 입력하세요."; return; }
     const oneRM = weight*(1+reps*0.0333);
     document.getElementById("result").innerHTML = `예상 1RM: <b>${oneRM.toFixed(1)} kg</b>`;
-    let html = `<table><tr><th>RM</th><th>무게 (kg)</th></tr>`;
+    let html = `<table><tr>`;
     for(let r=1;r<=10;r++){
         let rmWeight = oneRM/(1+(r-1)*0.0333);
-        html += `<tr><td>${r}RM</td><td>${rmWeight.toFixed(1)} kg</td></tr>`;
+        html += `<td>${r}RM: ${rmWeight.toFixed(1)} kg</td>`;
     }
-    html += `</table>`;
+    html += `</tr></table>`;
     document.getElementById("tableArea").innerHTML = html;
 }
 
@@ -178,71 +171,119 @@ auth.onAuthStateChanged(user=>{
     if(user){
         googleLoginBtn.style.display="none";
         logoutBtn.style.display="block";
+        saveBtn.style.display="block";
         save3Btn.style.display="block";
         userInfo.textContent = `${user.displayName} 님`;
-        load3Records();
+
+        loadLastRecord();
+        loadLast3Record();
     }else{
         googleLoginBtn.style.display="block";
         logoutBtn.style.display="none";
+        saveBtn.style.display="none";
         save3Btn.style.display="none";
         userInfo.textContent="";
         document.getElementById("saveResult").textContent="";
+        document.getElementById("save3Result").textContent="";
     }
 });
 
-// 3대 기록 저장
-save3Btn.onclick = async ()=>{
+// 기록 저장 1RM 계산기
+saveBtn.onclick = async ()=>{
     const user = auth.currentUser;
     if(!user) return;
-
-    const bench = parseInt(document.getElementById("benchRM").value) || 0;
-    const squat = parseInt(document.getElementById("squatRM").value) || 0;
-    const dead = parseInt(document.getElementById("deadRM").value) || 0;
-
-    const total3 = bench + squat + dead;
-    document.getElementById("total3").textContent = `토탈 3대 중량: ${total3} kg`;
-
+    const weight = weightSelect.value;
+    const reps = repsSelect.value;
+    if(!weight || !reps){ alert("무게와 반복수를 선택하세요!"); return; }
     try{
         await db.collection("users").doc(user.uid).set({
-            bench: bench,
-            squat: squat,
-            dead: dead,
-            total: total3,
-            savedAt: new Date()
+            weight, reps, savedAt:new Date()
         });
-        document.getElementById("saveResult").textContent = "3대 기록 저장 완료!";
-    }catch(error){ console.error(error); alert("저장 실패: "+error.message); }
+        document.getElementById("saveResult").textContent="기록 저장 완료!";
+    }catch(error){ console.error(error); alert("저장 실패: "+error.message);}
 };
 
-// 마지막 기록 불러오기
-async function load3Records(){
+// 마지막 기록 불러오기 1RM
+async function loadLastRecord(){
     const user = auth.currentUser;
     if(!user) return;
     try{
         const doc = await db.collection("users").doc(user.uid).get();
         if(doc.exists){
             const data = doc.data();
-            document.getElementById("benchRM").value = data.bench || 0;
-            document.getElementById("squatRM").value = data.squat || 0;
-            document.getElementById("deadRM").value = data.dead || 0;
-            document.getElementById("total3").textContent = `토탈 3대 중량: ${data.total || 0} kg`;
+            document.getElementById("saveResult").textContent=
+                `마지막 기록: ${data.weight}kg / ${data.reps}회`;
         }
-    }catch(error){ console.error(error); }
+    }catch(error){ console.error(error);}
 }
 
-// 스크롤 시 로그인 버튼 숨기기
-window.addEventListener("scroll", ()=>{
-    const loginArea = document.getElementById("loginArea");
-    loginArea.style.display = (window.scrollY > 50) ? "none" : "flex";
-});
+// 3대 기록 저장
+save3Btn.onclick = async ()=>{
+    const user = auth.currentUser;
+    if(!user) return;
+    const bench = parseInt(document.getElementById("benchRM").value)||0;
+    const squat = parseInt(document.getElementById("squatRM").value)||0;
+    const dead = parseInt(document.getElementById("deadRM").value)||0;
+    try{
+        await db.collection("users").doc(user.uid).collection("3RM").doc("record").set({
+            bench, squat, dead, savedAt:new Date()
+        });
+        document.getElementById("save3Result").textContent="3대 기록 저장 완료!";
+        updateTotal3();
+    }catch(error){ console.error(error);}
+};
+
+// 마지막 3대 기록 불러오기
+async function loadLast3Record(){
+    const user = auth.currentUser;
+    if(!user) return;
+    try{
+        const doc = await db.collection("users").doc(user.uid).collection("3RM").doc("record").get();
+        if(doc.exists){
+            const data = doc.data();
+            document.getElementById("benchRM").value = data.bench||0;
+            document.getElementById("squatRM").value = data.squat||0;
+            document.getElementById("deadRM").value = data.dead||0;
+            updateTotal3();
+        }
+    }catch(error){ console.error(error);}
+}
+
+// 3대 총합 업데이트
+function updateTotal3(){
+    const bench = parseInt(document.getElementById("benchRM").value)||0;
+    const squat = parseInt(document.getElementById("squatRM").value)||0;
+    const dead = parseInt(document.getElementById("deadRM").value)||0;
+    document.getElementById("total3").textContent = `3대: ${bench+squat+dead} kg`;
+}
+
+// 입력시 총합 자동 업데이트
+document.getElementById("benchRM").addEventListener("input", updateTotal3);
+document.getElementById("squatRM").addEventListener("input", updateTotal3);
+document.getElementById("deadRM").addEventListener("input", updateTotal3);
 
 // 탭 기능
 const tabBtns = document.querySelectorAll(".tabBtn");
 const tabContents = document.querySelectorAll(".tabContent");
-function openTab(index){
-    tabBtns.forEach((btn,i)=>btn.classList.toggle("active",i===index));
-    tabContents.forEach((content,i)=>content.classList.toggle("active",i===index));
-}
+tabBtns.forEach(btn=>{
+    btn.addEventListener("click",()=>{
+        tabBtns.forEach(b=>b.classList.remove("active"));
+        btn.classList.add("active");
+        const target = btn.dataset.target;
+        tabContents.forEach(tc=>{
+            if(tc.id===target) tc.classList.add("active");
+            else tc.classList.remove("active");
+        });
+    });
+});
+
+// 스크롤 시 로그인 숨기기
+window.addEventListener("scroll", ()=>{
+    const loginArea = document.getElementById("loginArea");
+    if(window.scrollY > 50) loginArea.style.display="none";
+    else loginArea.style.display="flex";
+});
 </script>
+
 </body>
 </html>
