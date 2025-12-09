@@ -1,109 +1,88 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>1RM 계산기</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        .container {
-            max-width: 500px;
-            margin: auto;
-        }
-        label {
-            font-size: 18px;
-            font-weight: bold;
-        }
-        input, select {
-            width: 100%;
-            padding: 10px;
-            margin-top: 10px;
-            margin-bottom: 20px;
-            font-size: 16px;
-        }
-        button {
-            width: 100%;
-            padding: 12px;
-            background: black;
-            color: white;
-            border: none;
-            font-size: 18px;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 30px;
-        }
-        table, th, td {
-            border: 1px solid #ddd;
-        }
-        th, td {
-            padding: 12px;
-            text-align: center;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>1RM 계산기</title>
+<style>
+    body {
+        background: black;
+        color: white;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
+        text-align: center;
+        padding: 40px;
+    }
+    .container {
+        max-width: 320px;
+        margin: auto;
+    }
+    input, select {
+        width: 100%;
+        padding: 14px;
+        margin: 10px 0;
+        font-size: 18px;
+        border-radius: 8px;
+        border: none;
+        text-align: center;
+    }
+    button {
+        width: 100%;
+        padding: 14px;
+        margin-top: 15px;
+        font-size: 18px;
+        background: white;
+        color: black;
+        border: none;
+        border-radius: 8px;
+        font-weight: bold;
+    }
+    #result { margin-top: 20px; font-size: 22px; }
+</style>
 </head>
 <body>
 
 <div class="container">
-    <h1>NSCA 1RM 계산기</h1>
-    <p>반복 횟수와 무게를 입력하면 1RM부터 10RM까지 계산합니다.</p>
+    <h2>1RM 계산기</h2>
 
-    <label>반복 횟수 (1~10)</label>
-    <input type="number" id="reps" min="1" max="10" placeholder="예: 5">
+    <!-- ★ 반복 입력칸 먼저 -->
+    <input type="number" id="reps" placeholder="반복수 (예: 5)" min="1" max="30">
 
-    <label>무게 (kg)</label>
-    <input type="number" id="weight" placeholder="예: 100">
+    <!-- ★ 무게 입력은 드롭다운 -->
+    <select id="weight">
+        <option value="">무게 선택</option>
+    </select>
 
-    <button onclick="calculate()">계산하기</button>
+    <button onclick="calculate1RM()">1RM 계산하기</button>
 
-    <table id="resultTable" style="display:none;">
-        <thead>
-            <tr>
-                <th>RM</th>
-                <th>무게(kg)</th>
-            </tr>
-        </thead>
-        <tbody id="resultBody"></tbody>
-    </table>
+    <div id="result"></div>
 </div>
 
 <script>
-function calculate() {
-    const reps = parseInt(document.getElementById("reps").value);
-    const weight = parseFloat(document.getElementById("weight").value);
-
-    if (!reps || !weight || reps < 1 || reps > 10) {
-        alert("정확한 값을 입력하세요 (반복 1~10회)");
-        return;
+    // ---------- 0~250kg / 5kg 단위 옵션 자동 생성 ----------
+    const weightSelect = document.getElementById("weight");
+    for (let w = 0; w <= 250; w += 5) {
+        let option = document.createElement("option");
+        option.value = w;
+        option.textContent = w + " kg";
+        weightSelect.appendChild(option);
     }
 
-    const table = document.getElementById("resultTable");
-    const body = document.getElementById("resultBody");
-    body.innerHTML = ""; 
+    // --------------------- 계산 함수 ---------------------
+    function calculate1RM() {
+        const weight = parseFloat(document.getElementById("weight").value);
+        const reps = parseInt(document.getElementById("reps").value);
 
-    // NSCA 공식: 1RM = 무게 × (1 + (0.0333 × 반복수))
-    const oneRM = weight * (1 + reps * 0.0333);
+        if (!weight || !reps) {
+            document.getElementById("result").innerHTML = "무게와 반복수를 입력하세요.";
+            return;
+        }
 
-    for (let i = 1; i <= 10; i++) {
-        let rmWeight = oneRM / (1 + 0.0333 * (i - 1));
-        rmWeight = Math.round(rmWeight * 10) / 10;
+        // Epley 공식: 1RM = 무게 × (1 + 반복수 × 0.0333)
+        const oneRM = weight * (1 + reps * 0.0333);
 
-        body.innerHTML += `
-            <tr>
-                <td>${i}RM</td>
-                <td>${rmWeight}</td>
-            </tr>
-        `;
+        document.getElementById("result").innerHTML =
+            `예상 1RM: <b>${oneRM.toFixed(1)} kg</b>`;
     }
-
-    table.style.display = "table";
-}
 </script>
 
 </body>
