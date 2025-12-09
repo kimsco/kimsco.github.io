@@ -117,7 +117,7 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <script>
-    // Firebase 설정값 (너 것 그대로)
+    // Firebase 설정
     const firebaseConfig = {
         apiKey: "AIzaSyCXn174XsW6ndqaeUpVK6XAAf4MR0-q7_k",
         authDomain: "rmpj-7ca13.firebaseapp.com",
@@ -127,8 +127,7 @@
         appId: "1:983484366324:web:5fd58faba825ee39decda1"
     };
 
-    // Firebase 초기화
-    const app = firebase.initializeApp(firebaseConfig);
+    firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
 
@@ -139,18 +138,24 @@
     const saveBtn = document.getElementById("saveBtn");
 
     // Google 로그인
-  loginBtn.onclick = () => {
-    const provider = new firebase.auth.GoogleAuthProvider();
-    auth.signInWithPopup(provider)
-        .then((result) => {
-            console.log("로그인 성공:", result.user);
-        })
-        .catch((error) => {
-            console.error("로그인 오류:", error);
-        });
-};
+    loginBtn.onclick = (e) => {
+        e.preventDefault(); // 혹시 모를 기본 동작 방지
+        const provider = new firebase.auth.GoogleAuthProvider();
+        auth.signInWithPopup(provider)
+            .then(result => {
+                console.log("로그인 성공:", result.user);
+            })
+            .catch(error => {
+                console.error("로그인 오류:", error);
+                alert("로그인 실패: " + error.message);
+            });
+    };
+
     // 로그아웃
-    logoutBtn.onclick = () => auth.signOut();
+    logoutBtn.onclick = (e) => {
+        e.preventDefault();
+        auth.signOut().then(() => console.log("로그아웃 완료"));
+    };
 
     // 로그인 상태 확인
     auth.onAuthStateChanged(user => {
@@ -159,8 +164,7 @@
             logoutBtn.style.display = "block";
             saveBtn.style.display = "block";
             userInfo.textContent = `${user.displayName} 님`;
-
-            loadLastRecord(); // 마지막 저장 기록 불러오기
+            loadLastRecord();
         } else {
             loginBtn.style.display = "block";
             logoutBtn.style.display = "none";
@@ -201,16 +205,11 @@
         const oneRM = weight * (1 + reps * 0.0333);
         document.getElementById("result").innerHTML = `예상 1RM: <b>${oneRM.toFixed(1)} kg</b>`;
 
-        let html = `
-            <table>
-                <tr><th>RM</th><th>무게 (kg)</th></tr>
-        `;
-
+        let html = `<table><tr><th>RM</th><th>무게 (kg)</th></tr>`;
         for (let r = 1; r <= 10; r++) {
             let rmWeight = oneRM / (1 + (r - 1) * 0.0333);
             html += `<tr><td>${r}RM</td><td>${rmWeight.toFixed(1)} kg</td></tr>`;
         }
-
         html += `</table>`;
         document.getElementById("tableArea").innerHTML = html;
     }
@@ -228,13 +227,17 @@
             return;
         }
 
-        await db.collection("users").doc(user.uid).set({
-            weight: weight,
-            reps: reps,
-            savedAt: new Date()
-        });
-
-        document.getElementById("saveResult").textContent = "기록 저장 완료!";
+        try {
+            await db.collection("users").doc(user.uid).set({
+                weight: weight,
+                reps: reps,
+                savedAt: new Date()
+            });
+            document.getElementById("saveResult").textContent = "기록 저장 완료!";
+        } catch (error) {
+            console.error(error);
+            alert("저장 실패: " + error.message);
+        }
     };
 
     // 마지막 기록 불러오기
@@ -242,11 +245,15 @@
         const user = auth.currentUser;
         if (!user) return;
 
-        const doc = await db.collection("users").doc(user.uid).get();
-        if (doc.exists) {
-            const data = doc.data();
-            document.getElementById("saveResult").textContent =
-                `마지막 기록: ${data.weight}kg / ${data.reps}회`;
+        try {
+            const doc = await db.collection("users").doc(user.uid).get();
+            if (doc.exists) {
+                const data = doc.data();
+                document.getElementById("saveResult").textContent =
+                    `마지막 기록: ${data.weight}kg / ${data.reps}회`;
+            }
+        } catch (error) {
+            console.error(error);
         }
     }
 </script>
