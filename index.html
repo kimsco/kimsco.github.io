@@ -139,11 +139,16 @@
     const saveBtn = document.getElementById("saveBtn");
 
     // Google 로그인
-    loginBtn.onclick = () => {
-        const provider = new firebase.auth.GoogleAuthProvider();
-        auth.signInWithPopup(provider);
-    };
-
+  loginBtn.onclick = () => {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    auth.signInWithPopup(provider)
+        .then((result) => {
+            console.log("로그인 성공:", result.user);
+        })
+        .catch((error) => {
+            console.error("로그인 오류:", error);
+        });
+};
     // 로그아웃
     logoutBtn.onclick = () => auth.signOut();
 
