@@ -70,10 +70,16 @@ input.rmInput { width:80px; height:40px; font-size:18px; text-align:center; }
     cursor:pointer;
 }
 
-/* 폴더 버튼 스타일 */
+/* 폴더 버튼 */
+#tab2 #recordFolders {
+    display: flex;
+    gap: 10px;
+    margin-top: 60px; /* 저장 버튼에서 충분히 아래 */
+}
 #tab2 #recordFolders button.folderBtn {
-    flex: 1; /* 3개 버튼이 가로폭 동일하게 */
+    flex: 1;
     padding: 12px;
+    min-height: 50px;
     border-radius: 8px;
     border: none;
     background-color: #888888; /* 회색 */
@@ -83,7 +89,13 @@ input.rmInput { width:80px; height:40px; font-size:18px; text-align:center; }
     font-size: 16px;
 }
 #tab2 #recordFolders button.folderBtn:hover {
-    background-color: #666666; /* 마우스 올리면 진한 회색 */
+    background-color: #AAAAAA; /* hover 효과 */
+}
+
+/* fade out 메시지 */
+.fadeMessage {
+    opacity: 1;
+    transition: opacity 1s ease-out;
 }
 </style>
 </head>
@@ -91,7 +103,7 @@ input.rmInput { width:80px; height:40px; font-size:18px; text-align:center; }
 
 <div class="container">
     <div class="subtitle">"대부분의 문제는 돈이 없어서, 그 외의 문제는 근육이 없어서 생긴다"</div>
-    <h2>1RM 계산기</h2>
+    <h2> 1RM 계산기</h2>
 
     <!-- 탭 -->
     <div class="tab">
@@ -125,16 +137,15 @@ input.rmInput { width:80px; height:40px; font-size:18px; text-align:center; }
             </tr>
         </table>
         <button id="save3Btn" style="display:none;">3대 기록 저장</button>
-        <div id="save3Result" style="margin-top:10px; font-size:16px;"></div>
 
-        <!-- 폴더 UI -->
-        <div id="recordFolders" style="display:flex; margin-top:30px; gap:10px;">
+        <!-- 폴더 버튼 -->
+        <div id="recordFolders">
             <button class="folderBtn" data-type="bench">벤치 기록</button>
             <button class="folderBtn" data-type="squat">스쿼트 기록</button>
             <button class="folderBtn" data-type="dead">데드 기록</button>
         </div>
 
-        <div id="folderDisplay" style="margin-top:15px; font-size:16px; min-height:30px;"></div>
+        <div id="save3Result" style="margin-top:10px; font-size:16px;"></div>
     </div>
 </div>
 
@@ -150,7 +161,6 @@ input.rmInput { width:80px; height:40px; font-size:18px; text-align:center; }
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <script>
-// Firebase 설정
 const firebaseConfig = {
     apiKey: "AIzaSyCXn174XsW6ndqaeUpVK6XAAf4MR0-q7_k",
     authDomain: "rmpj-7ca13.firebaseapp.com",
@@ -187,12 +197,14 @@ for (let r=1; r<=10; r++){
 function calculate1RM(){
     const weight = parseFloat(weightSelect.value);
     const reps = parseInt(repsSelect.value);
+    const resultDiv = document.getElementById("result");
     if(!weight || !reps){ 
-        document.getElementById("result").innerHTML="무게와 반복수를 입력하세요."; 
+        showFadeMessage(resultDiv, "무게와 반복수를 입력하세요."); 
         return; 
     }
     const oneRM = weight*(1+reps*0.0333);
-    document.getElementById("result").innerHTML = `예상 1RM: <b>${oneRM.toFixed(1)} kg</b>`;
+    resultDiv.innerHTML = `예상 1RM: <b>${oneRM.toFixed(1)} kg</b>`;
+
     let html = `<table><tr><th>RM</th><th>무게 (kg)</th></tr>`;
     for(let r=1;r<=10;r++){
         let rmWeight = oneRM/(1+(r-1)*0.0333);
@@ -202,6 +214,14 @@ function calculate1RM(){
     document.getElementById("tableArea").innerHTML = html;
 }
 
+// 페이드 메시지
+function showFadeMessage(elem, text){
+    elem.textContent = text;
+    elem.classList.add("fadeMessage");
+    setTimeout(()=>{ elem.style.opacity = 0; }, 1000); // 1초 뒤 서서히 사라짐
+    setTimeout(()=>{ elem.textContent=""; elem.style.opacity=1; elem.classList.remove("fadeMessage"); }, 2000);
+}
+
 // Google 로그인
 googleLoginBtn.onclick = () => {
     const provider = new firebase.auth.GoogleAuthProvider();
@@ -209,11 +229,9 @@ googleLoginBtn.onclick = () => {
         .then(result => console.log("로그인 성공:", result.user))
         .catch(error => alert("로그인 실패: " + error.message));
 };
-
-// 로그아웃
 logoutBtn.onclick = () => auth.signOut().then(()=>console.log("로그아웃 완료"));
 
-// 로그인 상태 확인
+// 로그인 상태
 auth.onAuthStateChanged(user=>{
     if(user){
         googleLoginBtn.style.display="none";
@@ -262,7 +280,7 @@ async function loadLast3Record(){
     }catch(error){ console.error(error);}
 }
 
-// 3대 총합 업데이트
+// 3대 총합
 function updateTotal3(){
     const bench = parseInt(document.getElementById("benchRM").value)||0;
     const squat = parseInt(document.getElementById("squatRM").value)||0;
@@ -270,7 +288,6 @@ function updateTotal3(){
     document.getElementById("total3").textContent = `3대: ${bench+squat+dead} kg`;
 }
 
-// 입력시 총합 자동 업데이트
 document.getElementById("benchRM").addEventListener("input", updateTotal3);
 document.getElementById("squatRM").addEventListener("input", updateTotal3);
 document.getElementById("deadRM").addEventListener("input", updateTotal3);
@@ -295,17 +312,6 @@ window.addEventListener("scroll", ()=>{
     const loginArea = document.getElementById("loginArea");
     if(window.scrollY > 50) loginArea.style.display="none";
     else loginArea.style.display="flex";
-});
-
-// 폴더 클릭 이벤트
-const folderBtns = document.querySelectorAll("#tab2 .folderBtn");
-const folderDisplay = document.getElementById("folderDisplay");
-
-folderBtns.forEach(btn => {
-    btn.addEventListener("click", () => {
-        const type = btn.dataset.type;
-        folderDisplay.textContent = `${type} 기록을 표시할 공간입니다.`;
-    });
 });
 </script>
 
