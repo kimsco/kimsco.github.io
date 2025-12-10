@@ -123,6 +123,20 @@ input.rmInput { width:80px; height:40px; font-size:18px; text-align:center; }
     </div>
 </div>
 
+
+    
+<!-- 3대 기록 저장 버튼 아래 -->
+<div id="recordFolders" style="margin-top:20px; display:flex; justify-content:space-around;">
+    <button class="folderBtn" data-target="bench">벤치 기록 폴더</button>
+    <button class="folderBtn" data-target="squat">스쿼트 기록 폴더</button>
+    <button class="folderBtn" data-target="dead">데드 기록 폴더</button>
+</div>
+
+<div id="folderContent" style="margin-top:15px; min-height:80px; border:1px solid white; padding:10px; color:black; background:white;">
+    <!-- 클릭 시 해당 기록 표시 -->
+</div>
+
+    
 <!-- 로그인 영역 -->
 <div id="loginArea">
     <button id="googleLoginBtn">Google 로그인</button>
@@ -135,6 +149,21 @@ input.rmInput { width:80px; height:40px; font-size:18px; text-align:center; }
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <script>
+
+    //폴더 3대
+
+    const folderBtns = document.querySelectorAll(".folderBtn");
+const folderContent = document.getElementById("folderContent");
+
+folderBtns.forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+        const target = btn.dataset.target;
+        folderContent.innerHTML = `${target} 기록 표시 영역`; 
+        // 실제 데이터 불러오는 건 나중에 연결
+    });
+});
+
+    
 const firebaseConfig = {
     apiKey: "AIzaSyCXn174XsW6ndqaeUpVK6XAAf4MR0-q7_k",
     authDomain: "rmpj-7ca13.firebaseapp.com",
