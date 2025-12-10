@@ -78,7 +78,7 @@ input.rmInput { width:80px; height:40px; font-size:18px; text-align:center; }
         <button onclick="calculate1RM()">GO</button>
         <div id="result"></div>
         <div id="tableArea"></div>
-      
+        <button id="saveBtn" style="display:none;">기록 저장</button>
         <div id="saveResult" style="margin-top:20px; font-size:18px;"></div>
     </div>
 
@@ -204,10 +204,33 @@ auth.onAuthStateChanged(user=>{
 });
 
 // 기록 저장 1RM 계산기
-
+saveBtn.onclick = async ()=>{
+    const user = auth.currentUser;
+    if(!user) return;
+    const weight = weightSelect.value;
+    const reps = repsSelect.value;
+    if(!weight || !reps){ alert("무게와 반복수를 선택하세요!"); return; }
+    try{
+        await db.collection("users").doc(user.uid).set({
+            weight, reps, savedAt:new Date()
+        });
+        document.getElementById("saveResult").textContent="기록 저장 완료!";
+    }catch(error){ console.error(error); alert("저장 실패: "+error.message);}
+};
 
 // 마지막 기록 불러오기 1RM
-
+async function loadLastRecord(){
+    const user = auth.currentUser;
+    if(!user) return;
+    try{
+        const doc = await db.collection("users").doc(user.uid).get();
+        if(doc.exists){
+            const data = doc.data();
+            document.getElementById("saveResult").textContent=
+                `마지막 기록: ${data.weight}kg / ${data.reps}회`;
+        }
+    }catch(error){ console.error(error);}
+}
 
 // 3대 기록 저장
 save3Btn.onclick = async ()=>{
@@ -226,7 +249,20 @@ save3Btn.onclick = async ()=>{
 };
 
 // 마지막 3대 기록 불러오기
-
+async function loadLast3Record(){
+    const user = auth.currentUser;
+    if(!user) return;
+    try{
+        const doc = await db.collection("users").doc(user.uid).collection("3RM").doc("record").get();
+        if(doc.exists){
+            const data = doc.data();
+            document.getElementById("benchRM").value = data.bench||0;
+            document.getElementById("squatRM").value = data.squat||0;
+            document.getElementById("deadRM").value = data.dead||0;
+            updateTotal3();
+        }
+    }catch(error){ console.error(error);}
+}
 
 // 3대 총합 업데이트
 function updateTotal3(){
