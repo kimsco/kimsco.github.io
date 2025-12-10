@@ -69,13 +69,22 @@ input.rmInput { width:80px; height:40px; font-size:18px; text-align:center; }
     font-weight:bold; 
     cursor:pointer;
 }
+
+/* fade 메시지 효과 */
+.fadeMessage {
+    opacity: 1;
+    transition: opacity 1s ease-out;
+}
+.fadeMessage.hide {
+    opacity: 0;
+}
 </style>
 </head>
 <body>
 
 <div class="container">
     <div class="subtitle">"대부분의 문제는 돈이 없어서, 그 외의 문제는 근육이 없어서 생긴다"</div>
-    <h2> 1RM 계산기</h2>
+    <h2>1RM 계산기</h2>
 
     <!-- 탭 -->
     <div class="tab">
@@ -159,16 +168,32 @@ for (let r=1; r<=10; r++){
     repsSelect.appendChild(option);
 }
 
+// fade 메시지 출력 함수
+function showTempMessage(element, text) {
+    element.textContent = text;
+    element.classList.add("fadeMessage");
+    // 1초 후 fade 시작
+    setTimeout(() => {
+        element.classList.add("hide");
+    }, 1000);
+    // 2초 후 완전히 제거
+    setTimeout(() => {
+        element.textContent = "";
+        element.classList.remove("fadeMessage", "hide");
+    }, 2000);
+}
+
 // 1RM 계산
 function calculate1RM(){
     const weight = parseFloat(weightSelect.value);
     const reps = parseInt(repsSelect.value);
+    const resultDiv = document.getElementById("result");
     if(!weight || !reps){ 
-        document.getElementById("result").innerHTML="무게와 반복수를 입력하세요."; 
+        showTempMessage(resultDiv, "무게와 반복수를 입력하세요."); 
         return; 
     }
     const oneRM = weight*(1+reps*0.0333);
-    document.getElementById("result").innerHTML = `예상 1RM: <b>${oneRM.toFixed(1)} kg</b>`;
+    resultDiv.innerHTML = `예상 1RM: <b>${oneRM.toFixed(1)} kg</b>`;
 
     let html = `<table><tr><th>RM</th><th>무게 (kg)</th></tr>`;
     for(let r=1;r<=10;r++){
@@ -219,7 +244,7 @@ save3Btn.onclick = async ()=>{
         await db.collection("users").doc(user.uid).collection("3RM").doc("record").set({
             bench, squat, dead, savedAt:new Date()
         });
-        document.getElementById("save3Result").textContent="3대 기록 저장 완료!";
+        showTempMessage(document.getElementById("save3Result"), "3대 기록 저장 완료!");
         updateTotal3();
     }catch(error){ console.error(error);}
 };
