@@ -13,7 +13,6 @@ body {
     padding: 70px 20px 20px 20px;
 }
 .container { max-width: 400px; margin: auto; }
-
 .subtitle { font-size:16px; margin-bottom: 20px; }
 
 select, button {
@@ -52,7 +51,12 @@ td { padding:8px; text-align:center; }
 
 /* 3대 총합 강조 */
 #total3 { font-size:28px; font-weight:bold; margin-bottom:15px; color:#FFD700; }
-input.rmInput { width:80px; font-size:16px; text-align:center; }
+
+/* 3대 기록표 개선 */
+table.ThreeRM { margin:auto; width:100%; max-width:380px; }
+table.ThreeRM td { padding:10px; width:33%; }
+input.rmInput { width:80px; height:40px; font-size:18px; text-align:center; }
+
 </style>
 </head>
 <body>
@@ -81,11 +85,16 @@ input.rmInput { width:80px; font-size:16px; text-align:center; }
     <!-- 3대 기록표 -->
     <div id="tab2" class="tabContent">
         <div id="total3">3대: 0 kg</div>
-        <table>
+        <table class="ThreeRM">
             <tr>
-                <td><input type="number" id="benchRM" class="rmInput" placeholder="벤치" min="0"></td>
-                <td><input type="number" id="squatRM" class="rmInput" placeholder="스쿼트" min="0"></td>
-                <td><input type="number" id="deadRM" class="rmInput" placeholder="데드" min="0"></td>
+                <td>벤치</td>
+                <td>스쿼트</td>
+                <td>데드</td>
+            </tr>
+            <tr>
+                <td><input type="number" id="benchRM" class="rmInput" placeholder="kg" min="0"></td>
+                <td><input type="number" id="squatRM" class="rmInput" placeholder="kg" min="0"></td>
+                <td><input type="number" id="deadRM" class="rmInput" placeholder="kg" min="0"></td>
             </tr>
         </table>
         <button id="save3Btn" style="display:none; margin-top:10px;">3대 기록 저장</button>
@@ -105,6 +114,7 @@ input.rmInput { width:80px; font-size:16px; text-align:center; }
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <script>
+// Firebase 설정
 const firebaseConfig = {
     apiKey: "AIzaSyCXn174XsW6ndqaeUpVK6XAAf4MR0-q7_k",
     authDomain: "rmpj-7ca13.firebaseapp.com",
@@ -150,7 +160,7 @@ function calculate1RM(){
     const oneRM = weight*(1+reps*0.0333);
     document.getElementById("result").innerHTML = `예상 1RM: <b>${oneRM.toFixed(1)} kg</b>`;
 
-    // 세로 표로 수정
+    // 세로 표
     let html = `<table><tr><th>RM</th><th>무게 (kg)</th></tr>`;
     for(let r=1;r<=10;r++){
         let rmWeight = oneRM/(1+(r-1)*0.0333);
@@ -159,7 +169,6 @@ function calculate1RM(){
     html += `</table>`;
     document.getElementById("tableArea").innerHTML = html;
 }
-
 
 // Google 로그인
 googleLoginBtn.onclick = () => {
