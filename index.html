@@ -70,32 +70,42 @@ input.rmInput { width:80px; height:40px; font-size:18px; text-align:center; }
     cursor:pointer;
 }
 
-/* 폴더 버튼 */
-#tab2 #recordFolders {
-    display: flex;
-    gap: 10px;
-    margin-top: 60px; /* 저장 버튼에서 충분히 아래 */
+/* 폴더 버튼 및 박스 */
+.recordFolders {
+    display:flex;
+    justify-content:space-between;
+    margin-top:30px;
 }
-#tab2 #recordFolders button.folderBtn {
-    flex: 1;
-    padding: 12px;
-    min-height: 50px;
-    border-radius: 8px;
-    border: none;
-    background-color: #888888; /* 회색 */
-    color: white;
-    font-weight: bold;
-    cursor: pointer;
-    font-size: 16px;
+.folderBtn {
+    flex:1;
+    margin:0 5px;
+    padding:10px;
+    border:none;
+    border-radius:8px;
+    background:#888; /* 비활성 회색 */
+    color:white;
+    font-weight:bold;
+    cursor:pointer;
 }
-#tab2 #recordFolders button.folderBtn:hover {
-    background-color: #AAAAAA; /* hover 효과 */
+.folderBtn.active {
+    background:#FFD700; /* 활성화 색상 */
+}
+.folderContent {
+    display:none;
+    margin-top:15px;
+    width:100%;
+    height:150px;
+    background:#555; /* 회색 박스 */
+    border-radius:8px;
+}
+.folderContent.active {
+    display:block;
 }
 
-/* fade out 메시지 */
+/* 페이드아웃 메시지 */
 .fadeMessage {
     opacity: 1;
-    transition: opacity 1s ease-out;
+    transition: opacity 0.8s ease-out;
 }
 </style>
 </head>
@@ -103,7 +113,7 @@ input.rmInput { width:80px; height:40px; font-size:18px; text-align:center; }
 
 <div class="container">
     <div class="subtitle">"대부분의 문제는 돈이 없어서, 그 외의 문제는 근육이 없어서 생긴다"</div>
-    <h2> 1RM 계산기</h2>
+    <h2>1RM 계산기</h2>
 
     <!-- 탭 -->
     <div class="tab">
@@ -136,16 +146,19 @@ input.rmInput { width:80px; height:40px; font-size:18px; text-align:center; }
                 <td><input type="number" id="deadRM" class="rmInput" placeholder="kg" min="0"></td>
             </tr>
         </table>
-        <button id="save3Btn" style="display:none;">3대 기록 저장</button>
+        <button id="save3Btn">3대 기록 저장</button>
+        <div id="save3Result" style="margin-top:10px; font-size:16px;"></div>
 
         <!-- 폴더 버튼 -->
-        <div id="recordFolders">
-            <button class="folderBtn" data-type="bench">벤치 기록</button>
-            <button class="folderBtn" data-type="squat">스쿼트 기록</button>
-            <button class="folderBtn" data-type="dead">데드 기록</button>
+        <div class="recordFolders">
+            <button class="folderBtn active" data-target="benchBox">벤치 기록</button>
+            <button class="folderBtn" data-target="squatBox">스쿼트 기록</button>
+            <button class="folderBtn" data-target="deadBox">데드 기록</button>
         </div>
-
-        <div id="save3Result" style="margin-top:10px; font-size:16px;"></div>
+        <!-- 폴더 박스 -->
+        <div id="benchBox" class="folderContent active"></div>
+        <div id="squatBox" class="folderContent"></div>
+        <div id="deadBox" class="folderContent"></div>
     </div>
 </div>
 
@@ -199,11 +212,13 @@ function calculate1RM(){
     const reps = parseInt(repsSelect.value);
     const resultDiv = document.getElementById("result");
     if(!weight || !reps){ 
-        showFadeMessage(resultDiv, "무게와 반복수를 입력하세요."); 
+        resultDiv.innerHTML="무게와 반복수를 입력하세요."; 
+        fadeOut(resultDiv);
         return; 
     }
     const oneRM = weight*(1+reps*0.0333);
     resultDiv.innerHTML = `예상 1RM: <b>${oneRM.toFixed(1)} kg</b>`;
+    fadeOut(resultDiv);
 
     let html = `<table><tr><th>RM</th><th>무게 (kg)</th></tr>`;
     for(let r=1;r<=10;r++){
@@ -214,12 +229,13 @@ function calculate1RM(){
     document.getElementById("tableArea").innerHTML = html;
 }
 
-// 페이드 메시지
-function showFadeMessage(elem, text){
-    elem.textContent = text;
-    elem.classList.add("fadeMessage");
-    setTimeout(()=>{ elem.style.opacity = 0; }, 1000); // 1초 뒤 서서히 사라짐
-    setTimeout(()=>{ elem.textContent=""; elem.style.opacity=1; elem.classList.remove("fadeMessage"); }, 2000);
+// 메시지 페이드아웃 함수
+function fadeOut(element){
+    element.classList.add("fadeMessage");
+    setTimeout(()=>{
+        element.style.opacity = 0;
+        setTimeout(()=>{ element.innerHTML=""; element.style.opacity=1; element.classList.remove("fadeMessage"); }, 800);
+    }, 1000);
 }
 
 // Google 로그인
@@ -229,15 +245,18 @@ googleLoginBtn.onclick = () => {
         .then(result => console.log("로그인 성공:", result.user))
         .catch(error => alert("로그인 실패: " + error.message));
 };
+
+// 로그아웃
 logoutBtn.onclick = () => auth.signOut().then(()=>console.log("로그아웃 완료"));
 
-// 로그인 상태
+// 로그인 상태 확인
 auth.onAuthStateChanged(user=>{
     if(user){
         googleLoginBtn.style.display="none";
         logoutBtn.style.display="block";
         save3Btn.style.display="block";
         userInfo.textContent = `${user.displayName} 님`;
+
         loadLast3Record();
     }else{
         googleLoginBtn.style.display="block";
@@ -280,7 +299,7 @@ async function loadLast3Record(){
     }catch(error){ console.error(error);}
 }
 
-// 3대 총합
+// 3대 총합 업데이트
 function updateTotal3(){
     const bench = parseInt(document.getElementById("benchRM").value)||0;
     const squat = parseInt(document.getElementById("squatRM").value)||0;
@@ -288,6 +307,7 @@ function updateTotal3(){
     document.getElementById("total3").textContent = `3대: ${bench+squat+dead} kg`;
 }
 
+// 입력시 총합 자동 업데이트
 document.getElementById("benchRM").addEventListener("input", updateTotal3);
 document.getElementById("squatRM").addEventListener("input", updateTotal3);
 document.getElementById("deadRM").addEventListener("input", updateTotal3);
@@ -303,6 +323,21 @@ tabBtns.forEach(btn=>{
         tabContents.forEach(tc=>{
             if(tc.id===target) tc.classList.add("active");
             else tc.classList.remove("active");
+        });
+    });
+});
+
+// 폴더 버튼 기능
+const folderBtns = document.querySelectorAll(".folderBtn");
+const folderContents = document.querySelectorAll(".folderContent");
+folderBtns.forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+        folderBtns.forEach(b=>b.classList.remove("active"));
+        btn.classList.add("active");
+        const target = btn.dataset.target;
+        folderContents.forEach(fc=>{
+            if(fc.id === target) fc.classList.add("active");
+            else fc.classList.remove("active");
         });
     });
 });
