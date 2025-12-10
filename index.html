@@ -219,18 +219,7 @@ saveBtn.onclick = async ()=>{
 };
 
 // 마지막 기록 불러오기 1RM
-async function loadLastRecord(){
-    const user = auth.currentUser;
-    if(!user) return;
-    try{
-        const doc = await db.collection("users").doc(user.uid).get();
-        if(doc.exists){
-            const data = doc.data();
-            document.getElementById("saveResult").textContent=
-                `마지막 기록: ${data.weight}kg / ${data.reps}회`;
-        }
-    }catch(error){ console.error(error);}
-}
+
 
 // 3대 기록 저장
 save3Btn.onclick = async ()=>{
@@ -249,20 +238,7 @@ save3Btn.onclick = async ()=>{
 };
 
 // 마지막 3대 기록 불러오기
-async function loadLast3Record(){
-    const user = auth.currentUser;
-    if(!user) return;
-    try{
-        const doc = await db.collection("users").doc(user.uid).collection("3RM").doc("record").get();
-        if(doc.exists){
-            const data = doc.data();
-            document.getElementById("benchRM").value = data.bench||0;
-            document.getElementById("squatRM").value = data.squat||0;
-            document.getElementById("deadRM").value = data.dead||0;
-            updateTotal3();
-        }
-    }catch(error){ console.error(error);}
-}
+
 
 // 3대 총합 업데이트
 function updateTotal3(){
