@@ -71,30 +71,19 @@ input.rmInput { width:80px; height:40px; font-size:18px; text-align:center; }
 }
 
 /* 폴더 버튼 스타일 */
-#recordFolders {
-    display:flex; 
-    justify-content:space-between; 
-    margin-top:20px; 
-    width:100%; 
-    max-width:380px; 
-    margin:auto;
+#tab2 #recordFolders button.folderBtn {
+    flex: 1; /* 3개 버튼이 가로폭 동일하게 */
+    padding: 12px;
+    border-radius: 8px;
+    border: none;
+    background-color: #888888; /* 회색 */
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 16px;
 }
-#recordFolders button.folderBtn {
-    flex:1;
-    margin:0 2px;
-    padding:10px 0;
-    font-size:16px;
-    cursor:pointer;
-}
-#folderContent {
-    margin-top:10px; 
-    min-height:80px; 
-    border:1px solid white; 
-    padding:10px; 
-    color:black; 
-    background:888888; 
-    max-width:380px; 
-    margin:auto;
+#tab2 #recordFolders button.folderBtn:hover {
+    background-color: #666666; /* 마우스 올리면 진한 회색 */
 }
 </style>
 </head>
@@ -102,7 +91,7 @@ input.rmInput { width:80px; height:40px; font-size:18px; text-align:center; }
 
 <div class="container">
     <div class="subtitle">"대부분의 문제는 돈이 없어서, 그 외의 문제는 근육이 없어서 생긴다"</div>
-    <h2> 1RM 계산기</h2>
+    <h2>1RM 계산기</h2>
 
     <!-- 탭 -->
     <div class="tab">
@@ -136,16 +125,16 @@ input.rmInput { width:80px; height:40px; font-size:18px; text-align:center; }
             </tr>
         </table>
         <button id="save3Btn" style="display:none;">3대 기록 저장</button>
+        <div id="save3Result" style="margin-top:10px; font-size:16px;"></div>
 
-        <!-- 폴더 버튼 영역 -->
-        <div id="recordFolders">
-            <button class="folderBtn" data-target="벤치">벤치 기록 폴더</button>
-            <button class="folderBtn" data-target="스쿼트">스쿼트 기록 폴더</button>
-            <button class="folderBtn" data-target="데드">데드 기록 폴더</button>
+        <!-- 폴더 UI -->
+        <div id="recordFolders" style="display:flex; margin-top:30px; gap:10px;">
+            <button class="folderBtn" data-type="bench">벤치 기록</button>
+            <button class="folderBtn" data-type="squat">스쿼트 기록</button>
+            <button class="folderBtn" data-type="dead">데드 기록</button>
         </div>
 
-        <!-- 클릭 시 기록 표시 -->
-        <div id="folderContent"></div>
+        <div id="folderDisplay" style="margin-top:15px; font-size:16px; min-height:30px;"></div>
     </div>
 </div>
 
@@ -161,6 +150,7 @@ input.rmInput { width:80px; height:40px; font-size:18px; text-align:center; }
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <script>
+// Firebase 설정
 const firebaseConfig = {
     apiKey: "AIzaSyCXn174XsW6ndqaeUpVK6XAAf4MR0-q7_k",
     authDomain: "rmpj-7ca13.firebaseapp.com",
@@ -203,7 +193,6 @@ function calculate1RM(){
     }
     const oneRM = weight*(1+reps*0.0333);
     document.getElementById("result").innerHTML = `예상 1RM: <b>${oneRM.toFixed(1)} kg</b>`;
-
     let html = `<table><tr><th>RM</th><th>무게 (kg)</th></tr>`;
     for(let r=1;r<=10;r++){
         let rmWeight = oneRM/(1+(r-1)*0.0333);
@@ -231,7 +220,6 @@ auth.onAuthStateChanged(user=>{
         logoutBtn.style.display="block";
         save3Btn.style.display="block";
         userInfo.textContent = `${user.displayName} 님`;
-
         loadLast3Record();
     }else{
         googleLoginBtn.style.display="block";
@@ -302,22 +290,22 @@ tabBtns.forEach(btn=>{
     });
 });
 
-// 폴더 버튼 클릭 시
-const folderBtns = document.querySelectorAll("#recordFolders .folderBtn");
-const folderContent = document.getElementById("folderContent");
-
-folderBtns.forEach(btn => {
-    btn.addEventListener("click", () => {
-        const target = btn.dataset.target;
-        folderContent.innerHTML = `${target} 기록 표시 영역`;
-    });
-});
-
 // 스크롤 시 로그인 숨기기
 window.addEventListener("scroll", ()=>{
     const loginArea = document.getElementById("loginArea");
     if(window.scrollY > 50) loginArea.style.display="none";
     else loginArea.style.display="flex";
+});
+
+// 폴더 클릭 이벤트
+const folderBtns = document.querySelectorAll("#tab2 .folderBtn");
+const folderDisplay = document.getElementById("folderDisplay");
+
+folderBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+        const type = btn.dataset.type;
+        folderDisplay.textContent = `${type} 기록을 표시할 공간입니다.`;
+    });
 });
 </script>
 
