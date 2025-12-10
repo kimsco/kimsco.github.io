@@ -70,13 +70,31 @@ input.rmInput { width:80px; height:40px; font-size:18px; text-align:center; }
     cursor:pointer;
 }
 
-/* fade 메시지 효과 */
-.fadeMessage {
-    opacity: 1;
-    transition: opacity 0.25s ease-out;
+/* 폴더 버튼 스타일 */
+#recordFolders {
+    display:flex; 
+    justify-content:space-between; 
+    margin-top:10px; 
+    width:100%; 
+    max-width:380px; 
+    margin:auto;
 }
-.fadeMessage.hide {
-    opacity: 0;
+#recordFolders button.folderBtn {
+    flex:1;
+    margin:0 2px;
+    padding:10px 0;
+    font-size:16px;
+    cursor:pointer;
+}
+#folderContent {
+    margin-top:10px; 
+    min-height:80px; 
+    border:1px solid white; 
+    padding:10px; 
+    color:black; 
+    background:white; 
+    max-width:380px; 
+    margin:auto;
 }
 </style>
 </head>
@@ -84,7 +102,7 @@ input.rmInput { width:80px; height:40px; font-size:18px; text-align:center; }
 
 <div class="container">
     <div class="subtitle">"대부분의 문제는 돈이 없어서, 그 외의 문제는 근육이 없어서 생긴다"</div>
-    <h2>1RM 계산기</h2>
+    <h2> 1RM 계산기</h2>
 
     <!-- 탭 -->
     <div class="tab">
@@ -99,7 +117,6 @@ input.rmInput { width:80px; height:40px; font-size:18px; text-align:center; }
         <button onclick="calculate1RM()">GO</button>
         <div id="result"></div>
         <div id="tableArea"></div>
-        <!-- 1RM 기록 저장 버튼 제거됨 -->
         <div id="saveResult" style="margin-top:20px; font-size:18px;"></div>
     </div>
 
@@ -119,24 +136,19 @@ input.rmInput { width:80px; height:40px; font-size:18px; text-align:center; }
             </tr>
         </table>
         <button id="save3Btn" style="display:none;">3대 기록 저장</button>
-        <div id="save3Result" style="margin-top:10px; font-size:16px;"></div>
+
+        <!-- 폴더 버튼 영역 -->
+        <div id="recordFolders">
+            <button class="folderBtn" data-target="벤치">벤치 기록 폴더</button>
+            <button class="folderBtn" data-target="스쿼트">스쿼트 기록 폴더</button>
+            <button class="folderBtn" data-target="데드">데드 기록 폴더</button>
+        </div>
+
+        <!-- 클릭 시 기록 표시 -->
+        <div id="folderContent"></div>
     </div>
 </div>
 
-
-    
-<!-- 3대 기록 저장 버튼 아래 -->
-<div id="recordFolders" style="margin-top:20px; display:flex; justify-content:space-around;">
-    <button class="folderBtn" data-target="bench">벤치 기록 폴더</button>
-    <button class="folderBtn" data-target="squat">스쿼트 기록 폴더</button>
-    <button class="folderBtn" data-target="dead">데드 기록 폴더</button>
-</div>
-
-<div id="folderContent" style="margin-top:15px; min-height:80px; border:1px solid white; padding:10px; color:black; background:white;">
-    <!-- 클릭 시 해당 기록 표시 -->
-</div>
-
-    
 <!-- 로그인 영역 -->
 <div id="loginArea">
     <button id="googleLoginBtn">Google 로그인</button>
@@ -149,21 +161,6 @@ input.rmInput { width:80px; height:40px; font-size:18px; text-align:center; }
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <script>
-
-    //폴더 3대
-
-    const folderBtns = document.querySelectorAll(".folderBtn");
-const folderContent = document.getElementById("folderContent");
-
-folderBtns.forEach(btn=>{
-    btn.addEventListener("click", ()=>{
-        const target = btn.dataset.target;
-        folderContent.innerHTML = `${target} 기록 표시 영역`; 
-        // 실제 데이터 불러오는 건 나중에 연결
-    });
-});
-
-    
 const firebaseConfig = {
     apiKey: "AIzaSyCXn174XsW6ndqaeUpVK6XAAf4MR0-q7_k",
     authDomain: "rmpj-7ca13.firebaseapp.com",
@@ -189,7 +186,6 @@ for (let w=0; w<=250; w+=5){
     option.value = w; option.textContent = w+" kg";
     weightSelect.appendChild(option);
 }
-// 반복수 옵션
 const repsSelect = document.getElementById("reps");
 for (let r=1; r<=10; r++){
     let option = document.createElement("option");
@@ -197,32 +193,16 @@ for (let r=1; r<=10; r++){
     repsSelect.appendChild(option);
 }
 
-// fade 메시지 출력 함수
-function showTempMessage(element, text) {
-    element.textContent = text;
-    element.classList.add("fadeMessage");
-    // 1초 후 fade 시작
-    setTimeout(() => {
-        element.classList.add("hide");
-    }, 1000);
-    // 2초 후 완전히 제거
-    setTimeout(() => {
-        element.textContent = "";
-        element.classList.remove("fadeMessage", "hide");
-    }, 2000);
-}
-
 // 1RM 계산
 function calculate1RM(){
     const weight = parseFloat(weightSelect.value);
     const reps = parseInt(repsSelect.value);
-    const resultDiv = document.getElementById("result");
     if(!weight || !reps){ 
-        showTempMessage(resultDiv, "무게와 반복수를 입력하세요."); 
+        document.getElementById("result").innerHTML="무게와 반복수를 입력하세요."; 
         return; 
     }
     const oneRM = weight*(1+reps*0.0333);
-    resultDiv.innerHTML = `예상 1RM: <b>${oneRM.toFixed(1)} kg</b>`;
+    document.getElementById("result").innerHTML = `예상 1RM: <b>${oneRM.toFixed(1)} kg</b>`;
 
     let html = `<table><tr><th>RM</th><th>무게 (kg)</th></tr>`;
     for(let r=1;r<=10;r++){
@@ -273,7 +253,7 @@ save3Btn.onclick = async ()=>{
         await db.collection("users").doc(user.uid).collection("3RM").doc("record").set({
             bench, squat, dead, savedAt:new Date()
         });
-        showTempMessage(document.getElementById("save3Result"), "3대 기록 저장 완료!");
+        document.getElementById("save3Result").textContent="3대 기록 저장 완료!";
         updateTotal3();
     }catch(error){ console.error(error);}
 };
@@ -319,6 +299,17 @@ tabBtns.forEach(btn=>{
             if(tc.id===target) tc.classList.add("active");
             else tc.classList.remove("active");
         });
+    });
+});
+
+// 폴더 버튼 클릭 시
+const folderBtns = document.querySelectorAll("#recordFolders .folderBtn");
+const folderContent = document.getElementById("folderContent");
+
+folderBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+        const target = btn.dataset.target;
+        folderContent.innerHTML = `${target} 기록 표시 영역`;
     });
 });
 
