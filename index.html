@@ -53,12 +53,6 @@ td { padding:8px; text-align:center; }
 /* 3대 총합 강조 */
 #total3 { font-size:28px; font-weight:bold; margin-bottom:15px; color:#FFD700; }
 input.rmInput { width:80px; font-size:16px; text-align:center; }
-
-/* 기록 폴더 */
-.recordFolder { margin-top:10px; text-align:left; cursor:pointer; background:#222; padding:6px 10px; border-radius:6px; }
-.recordFolder:hover { background:#444; }
-.recordList { display:none; margin-top:5px; margin-left:10px; font-size:14px; text-align:left; }
-.recordList div { margin-bottom:4px; }
 </style>
 </head>
 <body>
@@ -96,16 +90,6 @@ input.rmInput { width:80px; font-size:16px; text-align:center; }
         </table>
         <button id="save3Btn" style="display:none; margin-top:10px;">3대 기록 저장</button>
         <div id="save3Result" style="margin-top:10px; font-size:16px;"></div>
-
-        <!-- 기록 폴더 -->
-        <div class="recordFolder" data-type="bench">벤치 기록 ▼</div>
-        <div id="benchList" class="recordList"></div>
-
-        <div class="recordFolder" data-type="squat">스쿼트 기록 ▼</div>
-        <div id="squatList" class="recordList"></div>
-
-        <div class="recordFolder" data-type="dead">데드 기록 ▼</div>
-        <div id="deadList" class="recordList"></div>
     </div>
 </div>
 
@@ -147,6 +131,7 @@ for (let w=0; w<=250; w+=5){
     option.value = w; option.textContent = w+" kg";
     weightSelect.appendChild(option);
 }
+// 반복수 옵션
 const repsSelect = document.getElementById("reps");
 for (let r=1; r<=10; r++){
     let option = document.createElement("option");
@@ -164,6 +149,8 @@ function calculate1RM(){
     }
     const oneRM = weight*(1+reps*0.0333);
     document.getElementById("result").innerHTML = `예상 1RM: <b>${oneRM.toFixed(1)} kg</b>`;
+
+    // 세로 표로 수정
     let html = `<table><tr><th>RM</th><th>무게 (kg)</th></tr>`;
     for(let r=1;r<=10;r++){
         let rmWeight = oneRM/(1+(r-1)*0.0333);
@@ -172,6 +159,7 @@ function calculate1RM(){
     html += `</table>`;
     document.getElementById("tableArea").innerHTML = html;
 }
+
 
 // Google 로그인
 googleLoginBtn.onclick = () => {
@@ -195,7 +183,6 @@ auth.onAuthStateChanged(user=>{
 
         loadLastRecord();
         loadLast3Record();
-        loadAll3Records();
     }else{
         googleLoginBtn.style.display="block";
         logoutBtn.style.display="none";
@@ -207,7 +194,7 @@ auth.onAuthStateChanged(user=>{
     }
 });
 
-// 기록 저장 1RM 계산기 (기존 유지)
+// 기록 저장 1RM 계산기
 saveBtn.onclick = async ()=>{
     const user = auth.currentUser;
     if(!user) return;
@@ -222,6 +209,20 @@ saveBtn.onclick = async ()=>{
     }catch(error){ console.error(error); alert("저장 실패: "+error.message);}
 };
 
+// 마지막 기록 불러오기 1RM
+async function loadLastRecord(){
+    const user = auth.currentUser;
+    if(!user) return;
+    try{
+        const doc = await db.collection("users").doc(user.uid).get();
+        if(doc.exists){
+            const data = doc.data();
+            document.getElementById("saveResult").textContent=
+                `마지막 기록: ${data.weight}kg / ${data.reps}회`;
+        }
+    }catch(error){ console.error(error);}
+}
+
 // 3대 기록 저장
 save3Btn.onclick = async ()=>{
     const user = auth.currentUser;
@@ -229,20 +230,30 @@ save3Btn.onclick = async ()=>{
     const bench = parseInt(document.getElementById("benchRM").value)||0;
     const squat = parseInt(document.getElementById("squatRM").value)||0;
     const dead = parseInt(document.getElementById("deadRM").value)||0;
-    const today = new Date();
-    const dateStr = `${today.getFullYear().toString().slice(-2)}.${String(today.getMonth()+1).padStart(2,'0')}.${String(today.getDate()).padStart(2,'0')}`;
-
     try{
-        // 각 기록별로 저장
-        if(bench>0) await db.collection("users").doc(user.uid).collection("bench").add({ weight: bench, date: dateStr });
-        if(squat>0) await db.collection("users").doc(user.uid).collection("squat").add({ weight: squat, date: dateStr });
-        if(dead>0) await db.collection("users").doc(user.uid).collection("dead").add({ weight: dead, date: dateStr });
-
+        await db.collection("users").doc(user.uid).collection("3RM").doc("record").set({
+            bench, squat, dead, savedAt:new Date()
+        });
         document.getElementById("save3Result").textContent="3대 기록 저장 완료!";
         updateTotal3();
-        loadAll3Records();
     }catch(error){ console.error(error);}
 };
+
+// 마지막 3대 기록 불러오기
+async function loadLast3Record(){
+    const user = auth.currentUser;
+    if(!user) return;
+    try{
+        const doc = await db.collection("users").doc(user.uid).collection("3RM").doc("record").get();
+        if(doc.exists){
+            const data = doc.data();
+            document.getElementById("benchRM").value = data.bench||0;
+            document.getElementById("squatRM").value = data.squat||0;
+            document.getElementById("deadRM").value = data.dead||0;
+            updateTotal3();
+        }
+    }catch(error){ console.error(error);}
+}
 
 // 3대 총합 업데이트
 function updateTotal3(){
@@ -257,6 +268,28 @@ document.getElementById("benchRM").addEventListener("input", updateTotal3);
 document.getElementById("squatRM").addEventListener("input", updateTotal3);
 document.getElementById("deadRM").addEventListener("input", updateTotal3);
 
-// 마지막 3대 기록 불러오기
-async function loadLast3Record(){
-    const
+// 탭 기능
+const tabBtns = document.querySelectorAll(".tabBtn");
+const tabContents = document.querySelectorAll(".tabContent");
+tabBtns.forEach(btn=>{
+    btn.addEventListener("click",()=>{
+        tabBtns.forEach(b=>b.classList.remove("active"));
+        btn.classList.add("active");
+        const target = btn.dataset.target;
+        tabContents.forEach(tc=>{
+            if(tc.id===target) tc.classList.add("active");
+            else tc.classList.remove("active");
+        });
+    });
+});
+
+// 스크롤 시 로그인 숨기기
+window.addEventListener("scroll", ()=>{
+    const loginArea = document.getElementById("loginArea");
+    if(window.scrollY > 50) loginArea.style.display="none";
+    else loginArea.style.display="flex";
+});
+</script>
+
+</body>
+</html>
