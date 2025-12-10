@@ -331,27 +331,32 @@ tabBtns.forEach(btn=>{
     });
 });
 
-/* 1RM 계산 (원래 로직, 불필요한 변경 없음) */
+/* 1RM 계산 (페이드 제거 완전 수정본) */
 goBtn.addEventListener('click', ()=>{
     const weight = parseFloat(weightSelect.value);
     const reps = parseInt(repsSelect.value);
+
     if(!weight || !reps){
-        fadeTempMsg(resultDiv, "무게와 반복수를 입력하세요.");
+        resultDiv.innerHTML = "무게와 반복수를 입력하세요.";
         return;
     }
+
     const oneRM = weight * (1 + reps * 0.0333);
+
+    // 계산 결과 출력 (사라지지 않음)
     resultDiv.innerHTML = `예상 1RM: <b>${oneRM.toFixed(1)} kg</b>`;
-    // 세로 표
+
+    // 표 생성
     let html = `<table><tr><th>RM</th><th>무게 (kg)</th></tr>`;
     for (let r=1; r<=10; r++){
         let rmWeight = oneRM / (1 + (r-1)*0.0333);
         html += `<tr><td>${r}RM</td><td>${rmWeight.toFixed(1)} kg</td></tr>`;
     }
     html += `</table>`;
+
     tableArea.innerHTML = html;
-    // 잠깐 결과 보이고 페이드
-    setTimeout(()=>{ resultDiv.style.opacity = 0; setTimeout(()=>{ resultDiv.innerHTML=''; resultDiv.style.opacity=1; }, 700); }, 1500);
 });
+
 
 /* 페이드 텍스트 유틸 */
 function fadeOutElem(el, timeout=1000, fadeDur=800){
