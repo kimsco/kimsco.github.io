@@ -16,10 +16,13 @@ body {
 .subtitle { font-size:16px; margin-bottom: 20px; }
 
 select, button {
-    width:100%; padding:14px; margin:10px 0; font-size:18px;
-    border-radius:10px; border:none; text-align:center;
+    font-size:18px;
+    border-radius:10px;
+    border:none;
+    text-align:center;
 }
-button { font-size:20px; background:white; color:black; font-weight:bold; }
+button { background:white; color:black; font-weight:bold; }
+
 #result { margin-top:20px; font-size:22px; }
 table { width:100%; margin-top:15px; border-collapse: collapse; }
 table, td { border:1px solid white; }
@@ -52,18 +55,29 @@ td { padding:8px; text-align:center; }
 /* 3대 총합 강조 */
 #total3 { font-size:28px; font-weight:bold; margin-bottom:15px; color:#FFD700; }
 
-/* 3대 기록표 개선 */
 table.ThreeRM { margin:auto; width:100%; max-width:380px; }
 table.ThreeRM td { padding:10px; width:33%; }
 input.rmInput { width:80px; height:40px; font-size:18px; text-align:center; }
 
+/* 3대 기록 저장 버튼 스타일 */
+#save3Btn {
+    width: auto;
+    padding: 10px 20px;
+    font-size:16px;
+    background:white;
+    color:black;
+    border-radius:10px;
+    font-weight:bold;
+    cursor:pointer;
+    margin-top:10px;
+}
 </style>
 </head>
 <body>
 
 <div class="container">
     <div class="subtitle">"대부분의 문제는 돈이 없어서, 그 외의 문제는 근육이 없어서 생긴다"</div>
-    <h2>1RM 계산기</h2>
+    <h2> 1RM 계산기</h2>
 
     <!-- 탭 -->
     <div class="tab">
@@ -78,6 +92,7 @@ input.rmInput { width:80px; height:40px; font-size:18px; text-align:center; }
         <button onclick="calculate1RM()">GO</button>
         <div id="result"></div>
         <div id="tableArea"></div>
+        <!-- 1RM 기록 저장 버튼 제거 -->
     </div>
 
     <!-- 3대 기록표 -->
@@ -95,7 +110,7 @@ input.rmInput { width:80px; height:40px; font-size:18px; text-align:center; }
                 <td><input type="number" id="deadRM" class="rmInput" placeholder="kg" min="0"></td>
             </tr>
         </table>
-        <button id="save3Btn" style="display:none; margin-top:10px;">3대 기록 저장</button>
+        <button id="save3Btn">3대 기록 저장</button>
         <div id="save3Result" style="margin-top:10px; font-size:16px;"></div>
     </div>
 </div>
@@ -157,7 +172,6 @@ function calculate1RM(){
     const oneRM = weight*(1+reps*0.0333);
     document.getElementById("result").innerHTML = `예상 1RM: <b>${oneRM.toFixed(1)} kg</b>`;
 
-    // 세로 표
     let html = `<table><tr><th>RM</th><th>무게 (kg)</th></tr>`;
     for(let r=1;r<=10;r++){
         let rmWeight = oneRM/(1+(r-1)*0.0333);
@@ -185,7 +199,6 @@ auth.onAuthStateChanged(user=>{
         logoutBtn.style.display="block";
         save3Btn.style.display="block";
         userInfo.textContent = `${user.displayName} 님`;
-
         loadLast3Record();
     }else{
         googleLoginBtn.style.display="block";
