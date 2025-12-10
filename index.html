@@ -174,13 +174,13 @@ auth.onAuthStateChanged(user=>{
     if(user){
         googleLoginBtn.style.display="none";
         logoutBtn.style.display="block";
-        save3Btn.style.display="block";
+        //save3Btn.style.display="block";
         userInfo.textContent = `${user.displayName} 님`;
         loadLast3Record();
     }else{
         googleLoginBtn.style.display="block";
         logoutBtn.style.display="none";
-        save3Btn.style.display="none";
+       // save3Btn.style.display="none";
         userInfo.textContent="";
         document.getElementById("save3Result").textContent="";
     }
