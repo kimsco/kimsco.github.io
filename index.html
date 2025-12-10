@@ -57,6 +57,7 @@ table.ThreeRM { margin:auto; width:100%; max-width:380px; }
 table.ThreeRM td { padding:10px; width:33%; }
 input.rmInput { width:80px; height:40px; font-size:18px; text-align:center; }
 
+/* 3대 기록 저장 버튼 */
 #save3Btn { 
     width:100%; 
     padding:14px; 
@@ -70,50 +71,41 @@ input.rmInput { width:80px; height:40px; font-size:18px; text-align:center; }
     cursor:pointer;
 }
 
-/* 폴더 버튼 및 박스 */
-.recordFolders {
-    display:flex;
-    justify-content:space-between;
-    margin-top:30px;
-}
-.folderBtn {
-    flex:1;
-    margin:0 5px;
-    padding:10px;
-    border:none;
-    border-radius:8px;
-    background:#888; /* 비활성 회색 */
-    color:white;
-    font-weight:bold;
-    cursor:pointer;
-}
-.folderBtn.active {
-    background:#FFD700; /* 활성화 색상 */
-}
-.folderContent {
-    display:none;
-    margin-top:15px;
-    width:100%;
-    height:150px;
-    background:#555; /* 회색 박스 */
-    border-radius:8px;
-}
-.folderContent.active {
-    display:block;
+/* 회색 네모 박스 */
+.recordBox {
+    background: #555; /* 회색 */
+    width: 100%;
+    height: 120px;
+    margin-top: 20px;
+    border-radius: 8px;
+    padding: 10px;
+    box-sizing: border-box;
+    color: #fff;
+    text-align: left;
+    overflow-y: auto;
 }
 
-/* 페이드아웃 메시지 */
-.fadeMessage {
-    opacity: 1;
-    transition: opacity 0.8s ease-out;
+/* 메모 입력란 */
+.recordMemo {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    border-radius: 6px;
+    border: none;
+    font-size: 16px;
+    box-sizing: border-box;
 }
+
+/* 버튼 활성화 표시 */
+.recordBtn.active { background: #FFD700; color: black; }
+
 </style>
 </head>
 <body>
 
 <div class="container">
     <div class="subtitle">"대부분의 문제는 돈이 없어서, 그 외의 문제는 근육이 없어서 생긴다"</div>
-    <h2>1RM 계산기</h2>
+    <h2> 1RM 계산기</h2>
 
     <!-- 탭 -->
     <div class="tab">
@@ -147,18 +139,25 @@ input.rmInput { width:80px; height:40px; font-size:18px; text-align:center; }
             </tr>
         </table>
         <button id="save3Btn">3대 기록 저장</button>
-        <div id="save3Result" style="margin-top:10px; font-size:16px;"></div>
 
-        <!-- 폴더 버튼 -->
-        <div class="recordFolders">
-            <button class="folderBtn active" data-target="benchBox">벤치 기록</button>
-            <button class="folderBtn" data-target="squatBox">스쿼트 기록</button>
-            <button class="folderBtn" data-target="deadBox">데드 기록</button>
+        <!-- 벤치/스쿼트/데드 기록 버튼 -->
+        <div style="margin-top: 20px;">
+            <button class="recordBtn active" data-target="benchRecords">벤치 기록</button>
+            <button class="recordBtn" data-target="squatRecords">스쿼트 기록</button>
+            <button class="recordBtn" data-target="deadRecords">데드 기록</button>
         </div>
-        <!-- 폴더 박스 -->
-        <div id="benchBox" class="folderContent active"></div>
-        <div id="squatBox" class="folderContent"></div>
-        <div id="deadBox" class="folderContent"></div>
+
+        <!-- 회색 네모 박스 (항상 표시) -->
+        <div id="benchRecords" class="recordBox"></div>
+        <div id="squatRecords" class="recordBox"></div>
+        <div id="deadRecords" class="recordBox"></div>
+
+        <!-- 메모 입력란 -->
+        <input type="text" id="benchMemo" class="recordMemo" placeholder="벤치 메모 입력 (자동 날짜 표시)">
+        <input type="text" id="squatMemo" class="recordMemo" placeholder="스쿼트 메모 입력 (자동 날짜 표시)">
+        <input type="text" id="deadMemo" class="recordMemo" placeholder="데드 메모 입력 (자동 날짜 표시)">
+
+        <div id="save3Result" style="margin-top:10px; font-size:16px;"></div>
     </div>
 </div>
 
@@ -210,16 +209,12 @@ for (let r=1; r<=10; r++){
 function calculate1RM(){
     const weight = parseFloat(weightSelect.value);
     const reps = parseInt(repsSelect.value);
-    const resultDiv = document.getElementById("result");
     if(!weight || !reps){ 
-        resultDiv.innerHTML="무게와 반복수를 입력하세요."; 
-        fadeOut(resultDiv);
+        showFadeMessage1("무게와 반복수를 입력하세요."); 
         return; 
     }
     const oneRM = weight*(1+reps*0.0333);
-    resultDiv.innerHTML = `예상 1RM: <b>${oneRM.toFixed(1)} kg</b>`;
-    fadeOut(resultDiv);
-
+    document.getElementById("result").innerHTML = `예상 1RM: <b>${oneRM.toFixed(1)} kg</b>`;
     let html = `<table><tr><th>RM</th><th>무게 (kg)</th></tr>`;
     for(let r=1;r<=10;r++){
         let rmWeight = oneRM/(1+(r-1)*0.0333);
@@ -229,12 +224,40 @@ function calculate1RM(){
     document.getElementById("tableArea").innerHTML = html;
 }
 
-// 메시지 페이드아웃 함수
-function fadeOut(element){
-    element.classList.add("fadeMessage");
+// 페이드 아웃 메시지 함수
+function showFadeMessage(msg){
+    const el = document.getElementById("save3Result");
+    el.textContent = msg;
+    el.style.opacity = 1;
     setTimeout(()=>{
-        element.style.opacity = 0;
-        setTimeout(()=>{ element.innerHTML=""; element.style.opacity=1; element.classList.remove("fadeMessage"); }, 800);
+        let op = 1;
+        const fade = setInterval(()=>{
+            op -= 0.05;
+            if(op <= 0){
+                clearInterval(fade);
+                el.textContent = "";
+            } else {
+                el.style.opacity = op;
+            }
+        }, 30);
+    }, 1000);
+}
+
+function showFadeMessage1(msg){
+    const el = document.getElementById("result");
+    el.textContent = msg;
+    el.style.opacity = 1;
+    setTimeout(()=>{
+        let op = 1;
+        const fade = setInterval(()=>{
+            op -= 0.05;
+            if(op <=0){
+                clearInterval(fade);
+                el.textContent = "";
+            } else {
+                el.style.opacity = op;
+            }
+        }, 30);
     }, 1000);
 }
 
@@ -245,8 +268,6 @@ googleLoginBtn.onclick = () => {
         .then(result => console.log("로그인 성공:", result.user))
         .catch(error => alert("로그인 실패: " + error.message));
 };
-
-// 로그아웃
 logoutBtn.onclick = () => auth.signOut().then(()=>console.log("로그아웃 완료"));
 
 // 로그인 상태 확인
@@ -256,31 +277,30 @@ auth.onAuthStateChanged(user=>{
         logoutBtn.style.display="block";
         save3Btn.style.display="block";
         userInfo.textContent = `${user.displayName} 님`;
-
         loadLast3Record();
-    }else{
+    } else{
         googleLoginBtn.style.display="block";
         logoutBtn.style.display="none";
-        save3Btn.style.display="none";
+        save3Btn.style.display="block"; // 로그인 안해도 버튼 보이게
         userInfo.textContent="";
-        document.getElementById("save3Result").textContent="";
     }
 });
 
 // 3대 기록 저장
 save3Btn.onclick = async ()=>{
     const user = auth.currentUser;
-    if(!user) return;
     const bench = parseInt(document.getElementById("benchRM").value)||0;
     const squat = parseInt(document.getElementById("squatRM").value)||0;
     const dead = parseInt(document.getElementById("deadRM").value)||0;
     try{
-        await db.collection("users").doc(user.uid).collection("3RM").doc("record").set({
-            bench, squat, dead, savedAt:new Date()
-        });
-        document.getElementById("save3Result").textContent="3대 기록 저장 완료!";
+        if(user){
+            await db.collection("users").doc(user.uid).collection("3RM").doc("record").set({
+                bench, squat, dead, savedAt:new Date()
+            });
+        }
+        showFadeMessage("3대 기록 저장 완료!");
         updateTotal3();
-    }catch(error){ console.error(error);}
+    } catch(error){ console.error(error);}
 };
 
 // 마지막 3대 기록 불러오기
@@ -327,18 +347,12 @@ tabBtns.forEach(btn=>{
     });
 });
 
-// 폴더 버튼 기능
-const folderBtns = document.querySelectorAll(".folderBtn");
-const folderContents = document.querySelectorAll(".folderContent");
-folderBtns.forEach(btn=>{
-    btn.addEventListener("click", ()=>{
-        folderBtns.forEach(b=>b.classList.remove("active"));
+// 기록 버튼 클릭 시 활성화 표시
+const recordBtns = document.querySelectorAll(".recordBtn");
+recordBtns.forEach(btn=>{
+    btn.addEventListener("click",()=>{
+        recordBtns.forEach(b=>b.classList.remove("active"));
         btn.classList.add("active");
-        const target = btn.dataset.target;
-        folderContents.forEach(fc=>{
-            if(fc.id === target) fc.classList.add("active");
-            else fc.classList.remove("active");
-        });
     });
 });
 
