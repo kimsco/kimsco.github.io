@@ -74,7 +74,7 @@ input.rmInput { width:80px; font-size:16px; text-align:center; }
         <button onclick="calculate1RM()">GO</button>
         <div id="result"></div>
         <div id="tableArea"></div>
-        <button id="saveBtn" style="display:none;">기록 저장</button>
+        <!-- 기록 저장 버튼 제거 -->
         <div id="saveResult" style="margin-top:20px; font-size:18px;"></div>
     </div>
 
@@ -121,7 +121,6 @@ const db = firebase.firestore();
 const googleLoginBtn = document.getElementById("googleLoginBtn");
 const logoutBtn = document.getElementById("logoutBtn");
 const userInfo = document.getElementById("userInfo");
-const saveBtn = document.getElementById("saveBtn");
 const save3Btn = document.getElementById("save3Btn");
 
 // 무게 옵션
@@ -150,7 +149,6 @@ function calculate1RM(){
     const oneRM = weight*(1+reps*0.0333);
     document.getElementById("result").innerHTML = `예상 1RM: <b>${oneRM.toFixed(1)} kg</b>`;
 
-    // 세로 표로 수정
     let html = `<table><tr><th>RM</th><th>무게 (kg)</th></tr>`;
     for(let r=1;r<=10;r++){
         let rmWeight = oneRM/(1+(r-1)*0.0333);
@@ -159,7 +157,6 @@ function calculate1RM(){
     html += `</table>`;
     document.getElementById("tableArea").innerHTML = html;
 }
-
 
 // Google 로그인
 googleLoginBtn.onclick = () => {
@@ -177,51 +174,17 @@ auth.onAuthStateChanged(user=>{
     if(user){
         googleLoginBtn.style.display="none";
         logoutBtn.style.display="block";
-        saveBtn.style.display="block";
         save3Btn.style.display="block";
         userInfo.textContent = `${user.displayName} 님`;
-
-        loadLastRecord();
         loadLast3Record();
     }else{
         googleLoginBtn.style.display="block";
         logoutBtn.style.display="none";
-        saveBtn.style.display="none";
         save3Btn.style.display="none";
         userInfo.textContent="";
-        document.getElementById("saveResult").textContent="";
         document.getElementById("save3Result").textContent="";
     }
 });
-
-// 기록 저장 1RM 계산기
-saveBtn.onclick = async ()=>{
-    const user = auth.currentUser;
-    if(!user) return;
-    const weight = weightSelect.value;
-    const reps = repsSelect.value;
-    if(!weight || !reps){ alert("무게와 반복수를 선택하세요!"); return; }
-    try{
-        await db.collection("users").doc(user.uid).set({
-            weight, reps, savedAt:new Date()
-        });
-        document.getElementById("saveResult").textContent="기록 저장 완료!";
-    }catch(error){ console.error(error); alert("저장 실패: "+error.message);}
-};
-
-// 마지막 기록 불러오기 1RM
-async function loadLastRecord(){
-    const user = auth.currentUser;
-    if(!user) return;
-    try{
-        const doc = await db.collection("users").doc(user.uid).get();
-        if(doc.exists){
-            const data = doc.data();
-            document.getElementById("saveResult").textContent=
-                `마지막 기록: ${data.weight}kg / ${data.reps}회`;
-        }
-    }catch(error){ console.error(error);}
-}
 
 // 3대 기록 저장
 save3Btn.onclick = async ()=>{
