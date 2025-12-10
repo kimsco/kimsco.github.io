@@ -154,6 +154,24 @@ input.rmInput { width:100%; height:40px; font-size:18px; text-align:center; back
 #save3Result { margin-top:10px; font-size:16px; opacity:1; }
 #recordMessage { margin-top:8px; font-size:14px; opacity:1; color:#fff; }
 
+
+/* 숫자 입력창의 + - 버튼 제거 (크롬, 엣지) */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* 파이어폭스 */
+input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+
+
+
+
+    
 /* 로그인 area hide on scroll */
 </style>
 </head>
