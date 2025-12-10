@@ -204,19 +204,7 @@ auth.onAuthStateChanged(user=>{
 });
 
 // 기록 저장 1RM 계산기
-saveBtn.onclick = async ()=>{
-    const user = auth.currentUser;
-    if(!user) return;
-    const weight = weightSelect.value;
-    const reps = repsSelect.value;
-    if(!weight || !reps){ alert("무게와 반복수를 선택하세요!"); return; }
-    try{
-        await db.collection("users").doc(user.uid).set({
-            weight, reps, savedAt:new Date()
-        });
-        document.getElementById("saveResult").textContent="기록 저장 완료!";
-    }catch(error){ console.error(error); alert("저장 실패: "+error.message);}
-};
+
 
 // 마지막 기록 불러오기 1RM
 
