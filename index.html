@@ -20,6 +20,7 @@ select, button {
     border-radius:10px; border:none; text-align:center;
 }
 button { font-size:20px; background:white; color:black; font-weight:bold; cursor:pointer; }
+
 #result { margin-top:20px; font-size:22px; }
 table { width:100%; margin-top:15px; border-collapse: collapse; }
 table, td { border:1px solid white; }
@@ -57,6 +58,7 @@ table.ThreeRM { margin:auto; width:100%; max-width:380px; }
 table.ThreeRM td { padding:10px; width:33%; }
 input.rmInput { width:80px; height:40px; font-size:18px; text-align:center; }
 
+/* 3대 기록 저장 버튼 */
 #save3Btn { 
     width:100%; 
     padding:14px; 
@@ -70,42 +72,36 @@ input.rmInput { width:80px; height:40px; font-size:18px; text-align:center; }
     cursor:pointer;
 }
 
-/* 폴더 버튼 및 박스 */
-.recordFolders {
+/* 폴더 UI */
+.folderBtns {
     display:flex;
     justify-content:space-between;
     margin-top:30px;
 }
-.folderBtn {
-    flex:1;
-    margin:0 5px;
+.folderBtns button {
+    width:32%;
     padding:10px;
-    border:none;
-    border-radius:8px;
-    background:#888; /* 비활성 회색 */
+    background:#555;
     color:white;
     font-weight:bold;
+    border:none;
+    border-radius:6px;
     cursor:pointer;
 }
-.folderBtn.active {
-    background:#FFD700; /* 활성화 색상 */
-}
-.folderContent {
-    display:none;
-    margin-top:15px;
-    width:100%;
-    height:150px;
-    background:#555; /* 회색 박스 */
-    border-radius:8px;
-}
-.folderContent.active {
-    display:block;
-}
+.folderBtns button.active { background:#FFD700; color:black; }
 
-/* 페이드아웃 메시지 */
-.fadeMessage {
-    opacity: 1;
-    transition: opacity 0.8s ease-out;
+/* 폴더 내용 박스 */
+.folderContent {
+    margin-top:20px;
+    width:100%;
+    max-width:380px;
+    height:150px;
+    background:#777;
+    color:white;
+    display:none;
+    border-radius:6px;
+    padding:10px;
+    overflow:auto;
 }
 </style>
 </head>
@@ -146,19 +142,20 @@ input.rmInput { width:80px; height:40px; font-size:18px; text-align:center; }
                 <td><input type="number" id="deadRM" class="rmInput" placeholder="kg" min="0"></td>
             </tr>
         </table>
+
+        <!-- 3대 기록 저장 버튼 항상 표시 -->
         <button id="save3Btn">3대 기록 저장</button>
         <div id="save3Result" style="margin-top:10px; font-size:16px;"></div>
 
-        <!-- 폴더 버튼 -->
-        <div class="recordFolders">
-            <button class="folderBtn active" data-target="benchBox">벤치 기록</button>
-            <button class="folderBtn" data-target="squatBox">스쿼트 기록</button>
-            <button class="folderBtn" data-target="deadBox">데드 기록</button>
+        <!-- 폴더 UI -->
+        <div class="folderBtns">
+            <button id="benchFolderBtn">벤치 기록</button>
+            <button id="squatFolderBtn">스쿼트 기록</button>
+            <button id="deadFolderBtn">데드 기록</button>
         </div>
-        <!-- 폴더 박스 -->
-        <div id="benchBox" class="folderContent active"></div>
-        <div id="squatBox" class="folderContent"></div>
-        <div id="deadBox" class="folderContent"></div>
+        <div id="benchContent" class="folderContent">벤치 기록 내용</div>
+        <div id="squatContent" class="folderContent">스쿼트 기록 내용</div>
+        <div id="deadContent" class="folderContent">데드 기록 내용</div>
     </div>
 </div>
 
@@ -210,15 +207,15 @@ for (let r=1; r<=10; r++){
 function calculate1RM(){
     const weight = parseFloat(weightSelect.value);
     const reps = parseInt(repsSelect.value);
-    const resultDiv = document.getElementById("result");
     if(!weight || !reps){ 
-        resultDiv.innerHTML="무게와 반복수를 입력하세요."; 
-        fadeOut(resultDiv);
+        const res = document.getElementById("result");
+        res.innerHTML="무게와 반복수를 입력하세요."; 
+        res.style.opacity = 1;
+        setTimeout(()=>{ res.style.transition="opacity 1s"; res.style.opacity=0; }, 1000);
         return; 
     }
     const oneRM = weight*(1+reps*0.0333);
-    resultDiv.innerHTML = `예상 1RM: <b>${oneRM.toFixed(1)} kg</b>`;
-    fadeOut(resultDiv);
+    document.getElementById("result").innerHTML = `예상 1RM: <b>${oneRM.toFixed(1)} kg</b>`;
 
     let html = `<table><tr><th>RM</th><th>무게 (kg)</th></tr>`;
     for(let r=1;r<=10;r++){
@@ -227,15 +224,6 @@ function calculate1RM(){
     }
     html += `</table>`;
     document.getElementById("tableArea").innerHTML = html;
-}
-
-// 메시지 페이드아웃 함수
-function fadeOut(element){
-    element.classList.add("fadeMessage");
-    setTimeout(()=>{
-        element.style.opacity = 0;
-        setTimeout(()=>{ element.innerHTML=""; element.style.opacity=1; element.classList.remove("fadeMessage"); }, 800);
-    }, 1000);
 }
 
 // Google 로그인
@@ -254,14 +242,11 @@ auth.onAuthStateChanged(user=>{
     if(user){
         googleLoginBtn.style.display="none";
         logoutBtn.style.display="block";
-        save3Btn.style.display="block";
         userInfo.textContent = `${user.displayName} 님`;
-
         loadLast3Record();
     }else{
         googleLoginBtn.style.display="block";
         logoutBtn.style.display="none";
-        save3Btn.style.display="none";
         userInfo.textContent="";
         document.getElementById("save3Result").textContent="";
     }
@@ -270,7 +255,10 @@ auth.onAuthStateChanged(user=>{
 // 3대 기록 저장
 save3Btn.onclick = async ()=>{
     const user = auth.currentUser;
-    if(!user) return;
+    if(!user){
+        alert("로그인이 필요합니다!");
+        return;
+    }
     const bench = parseInt(document.getElementById("benchRM").value)||0;
     const squat = parseInt(document.getElementById("squatRM").value)||0;
     const dead = parseInt(document.getElementById("deadRM").value)||0;
@@ -327,19 +315,37 @@ tabBtns.forEach(btn=>{
     });
 });
 
-// 폴더 버튼 기능
-const folderBtns = document.querySelectorAll(".folderBtn");
-const folderContents = document.querySelectorAll(".folderContent");
-folderBtns.forEach(btn=>{
-    btn.addEventListener("click", ()=>{
-        folderBtns.forEach(b=>b.classList.remove("active"));
-        btn.classList.add("active");
-        const target = btn.dataset.target;
-        folderContents.forEach(fc=>{
-            if(fc.id === target) fc.classList.add("active");
-            else fc.classList.remove("active");
-        });
-    });
+// 폴더 버튼 이벤트
+const benchBtn = document.getElementById("benchFolderBtn");
+const squatBtn = document.getElementById("squatFolderBtn");
+const deadBtn = document.getElementById("deadFolderBtn");
+const benchContent = document.getElementById("benchContent");
+const squatContent = document.getElementById("squatContent");
+const deadContent = document.getElementById("deadContent");
+
+benchBtn.addEventListener("click",()=>{
+    benchContent.style.display="block";
+    squatContent.style.display="none";
+    deadContent.style.display="none";
+    benchBtn.classList.add("active");
+    squatBtn.classList.remove("active");
+    deadBtn.classList.remove("active");
+});
+squatBtn.addEventListener("click",()=>{
+    benchContent.style.display="none";
+    squatContent.style.display="block";
+    deadContent.style.display="none";
+    benchBtn.classList.remove("active");
+    squatBtn.classList.add("active");
+    deadBtn.classList.remove("active");
+});
+deadBtn.addEventListener("click",()=>{
+    benchContent.style.display="none";
+    squatContent.style.display="none";
+    deadContent.style.display="block";
+    benchBtn.classList.remove("active");
+    squatBtn.classList.remove("active");
+    deadBtn.classList.add("active");
 });
 
 // 스크롤 시 로그인 숨기기
