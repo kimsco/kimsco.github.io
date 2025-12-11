@@ -557,6 +557,60 @@ window.addEventListener("scroll", ()=>{
     if(window.scrollY > 50) loginArea.style.display="none";
     else loginArea.style.display="flex";
 });
+
+    /* ========== 3대 기록 저장 ========== */
+save3Btn.addEventListener("click", async () => {
+    const user = auth.currentUser;
+    if (!user) {
+        showSave3Message("로그인 후 저장해주세요.");
+        return;
+    }
+
+    const bench = parseInt(benchRM.value) || 0;
+    const squat = parseInt(squatRM.value) || 0;
+    const dead = parseInt(deadRM.value) || 0;
+    const total = bench + squat + dead;
+
+    if (total === 0) {
+        showSave3Message("값을 입력하세요.");
+        return;
+    }
+
+    try {
+        await db.collection("users")
+            .doc(user.uid)
+            .collection("ThreeTotal")
+            .add({
+                bench,
+                squat,
+                dead,
+                total,
+                date: new Date()
+            });
+
+        showSave3Message("3대 기록 저장 완료!");
+    } catch (e) {
+        showSave3Message("저장 오류 발생");
+        console.error(e);
+    }
+});
+
+/* 메시지 페이드아웃 */
+function showSave3Message(msg) {
+    save3Result.textContent = msg;
+    save3Result.style.opacity = 1;
+
+    setTimeout(() => {
+        save3Result.style.transition = "opacity 0.8s";
+        save3Result.style.opacity = 0;
+
+        setTimeout(() => {
+            save3Result.textContent = "";
+            save3Result.style.transition = "";
+            save3Result.style.opacity = 1;
+        }, 800);
+    }, 1000);
+}
 </script>
 </body>
 </html>
