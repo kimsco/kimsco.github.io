@@ -369,7 +369,7 @@ function fadeOutElem(el, timeout=1000, fadeDur=800){
 }
 function fadeTempMsg(el, msg, timeout=1000, fadeDur=800){
     el.innerHTML = msg;
-    el.style.opacity = 1;
+    el.style.opacity = 1; 
     setTimeout(()=>{
         el.style.transition = `opacity ${fadeDur}ms ease`;
         el.style.opacity = 0;
