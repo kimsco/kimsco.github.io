@@ -405,7 +405,7 @@ save3Btn.addEventListener('click', async ()=>{
     const dead = parseInt(deadRM.value)||0;
     try{
         if(user){
-            await db.collection('users').doc(user.uid).collection('3RM').doc('record').set({
+            await db.collection('users').doc(user.uid).collection('threeRM').doc('record').set({
                 bench, squat, dead, savedAt: new Date()
             });
         }
