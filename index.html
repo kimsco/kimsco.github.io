@@ -390,6 +390,7 @@ function updateTotal3(){
 
 /* save3Btn: 전체(3대) 저장 — 항상 보이지만 Firestore는 로그인 있을 때만 저장 */
 save3Btn.addEventListener('click', async ()=>{
+    alert('클릭됨'); // 👈 이거
     const user = auth.currentUser;
 
     if(!user){
