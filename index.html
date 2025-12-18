@@ -413,6 +413,7 @@ save3Btn.addEventListener('click', async ()=>{
           .collection('users')
           .doc(user.uid)
           .collection('threeRM') // 🔥 숫자 제거
+          .doc('record')  // 🔥 문서 지정
           .set({
               bench,
               squat,
