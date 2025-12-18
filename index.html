@@ -483,9 +483,12 @@ recordAdd.addEventListener('click', async ()=>{
 
 /* 날짜 토글 */
 dateToggleBtn.addEventListener('click', ()=>{
-    recordDate.style.display = recordDate.style.display==='none'?'block':'none';
+    if(recordDate.style.display === 'none' || recordDate.style.display === ''){
+        recordDate.style.display = 'inline-block'; // inline-block 으로 변경
+    } else {
+        recordDate.style.display = 'none';
+    }
 });
-
 /* 로그인/로그아웃 */
 googleLoginBtn.addEventListener('click', ()=>{ auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(e=>alert(e.message)); });
 logoutBtn.addEventListener('click', ()=> auth.signOut());
