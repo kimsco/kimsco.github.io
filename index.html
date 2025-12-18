@@ -400,19 +400,39 @@ function showSave3Message(msg){
 /* save3Btn: 전체(3대) 저장 — 항상 보이지만 Firestore는 로그인 있을 때만 저장 */
 save3Btn.addEventListener('click', async ()=>{
     const user = auth.currentUser;
+
+    if(!user){
+        showSave3Message('로그인 후 저장해주세요');
+        return;
+    }
+
     const bench = parseInt(benchRM.value)||0;
     const squat = parseInt(squatRM.value)||0;
     const dead = parseInt(deadRM.value)||0;
+    const total = bench + squat + dead;
+
+    if(total === 0){
+        showSave3Message('값을 입력하세요');
+        return;
+    }
+
     try{
-        if(user){
-            await db.collection('users').doc(user.uid).collection('threeRM').doc('record').set({
-                bench, squat, dead, savedAt: new Date()
-            });
-        }
+        await db
+          .collection('users')
+          .doc(user.uid)
+          .collection('threeRM') // 🔥 숫자 제거
+          .add({
+              bench,
+              squat,
+              dead,
+              total,
+              createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+
         showSave3Message('3대 기록 저장 완료!');
     }catch(e){
-        console.error(e);
-        fadeTempMsg(save3Result, '저장 실패');
+        console.error('3대 저장 에러:', e);
+        showSave3Message('저장 실패 (콘솔 확인)');
     }
 });
 
