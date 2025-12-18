@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -178,7 +179,30 @@ input[type="number"] {
     -moz-appearance: textfield;
 }
 
+/* 날짜 변경 버튼 */
+.dateToggleBtn {
+    background: none;
+    border: 1px solid #555;
+    color: #aaa;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    margin-bottom: 6px;
+}
 
+/* 날짜 선택 input */
+.recordDate {
+    width: 160px;
+    height: 36px;
+    padding: 0 6px;
+    border-radius: 6px;
+    border: none;
+    background: #333;
+    color: #fff;
+    font-size: 13px;
+    box-sizing: border-box;
+}
 
 
 
@@ -242,6 +266,11 @@ input[type="number"] {
 
         <!-- 입력폼 (가로 한줄) -->
         <div class="recordFormRow">
+            
+            <button type="button" id="dateToggleBtn" class="dateToggleBtn">
+    날짜 변경
+</button>
+            
             <input type="text" id="recordDate" class="r-date" readonly />
             <input type="number" id="recordWeight" placeholder="무게(kg)" />
             <input type="number" id="recordReps" placeholder="횟수" />
@@ -264,7 +293,7 @@ input[type="number"] {
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <script>
-/* Firebase 설정 (기존 값 유지) */
+/* Firebase 설정 */
 const firebaseConfig = {
     apiKey: "AIzaSyCXn174XsW6ndqaeUpVK6XAAf4MR0-q7_k",
     authDomain: "rmpj-7ca13.firebaseapp.com",
@@ -307,10 +336,14 @@ const recordWeight = document.getElementById('recordWeight');
 const recordReps = document.getElementById('recordReps');
 const recordAdd = document.getElementById('recordAdd');
 const recordMessage = document.getElementById('recordMessage');
+const dateToggleBtn = document.getElementById('dateToggleBtn');
 
 const googleLoginBtn = document.getElementById('googleLoginBtn');
 const logoutBtn = document.getElementById('logoutBtn');
 const userInfo = document.getElementById('userInfo');
+
+/* 날짜 초기값 */
+recordDate.valueAsDate = new Date();
 
 /* 무게/반복 옵션 채우기 (1RM 계산기) */
 for (let w=0; w<=250; w+=5){
@@ -324,25 +357,19 @@ for (let r=1; r<=10; r++){
     repsSelect.appendChild(option);
 }
 
-/* 탭 전환 (1RM / 3대) - 기존 동작 유지 */
+/* 탭 전환 */
 tabBtns.forEach(btn=>{
     btn.addEventListener('click', ()=>{
         tabBtns.forEach(b=>b.classList.remove('active'));
         btn.classList.add('active');
         const target = btn.dataset.target;
         tabContents.forEach(tc=>{
-            if(tc.id === target){
-                tc.classList.add('active');
-                tc.style.display = 'block';
-            } else {
-                tc.classList.remove('active');
-                tc.style.display = 'none';
-            }
+            tc.id === target ? tc.classList.add('active') : tc.classList.remove('active');
         });
     });
 });
 
-/* 1RM 계산 (페이드 제거 완전 수정본) */
+/* 1RM 계산 */
 goBtn.addEventListener('click', ()=>{
     const weight = parseFloat(weightSelect.value);
     const reps = parseInt(repsSelect.value);
@@ -353,40 +380,16 @@ goBtn.addEventListener('click', ()=>{
     }
 
     const oneRM = weight * (1 + reps * 0.0333);
-
-    // 계산 결과 출력 (사라지지 않음)
     resultDiv.innerHTML = `예상 1RM: <b>${oneRM.toFixed(1)} kg</b>`;
 
-    // 표 생성
     let html = `<table><tr><th>RM</th><th>무게 (kg)</th></tr>`;
     for (let r=1; r<=10; r++){
         let rmWeight = oneRM / (1 + (r-1)*0.0333);
         html += `<tr><td>${r}RM</td><td>${rmWeight.toFixed(1)} kg</td></tr>`;
     }
     html += `</table>`;
-
     tableArea.innerHTML = html;
 });
-
-
-/* 페이드 텍스트 유틸 */
-function fadeOutElem(el, timeout=1000, fadeDur=800){
-    el.style.opacity = 1;
-    setTimeout(()=>{
-        el.style.transition = `opacity ${fadeDur}ms ease`;
-        el.style.opacity = 0;
-        setTimeout(()=>{ el.innerHTML=''; el.style.opacity=1; el.style.transition=''; }, fadeDur);
-    }, timeout);
-}
-function fadeTempMsg(el, msg, timeout=1000, fadeDur=800){
-    el.innerHTML = msg;
-    el.style.opacity = 1; 
-    setTimeout(()=>{
-        el.style.transition = `opacity ${fadeDur}ms ease`;
-        el.style.opacity = 0;
-        setTimeout(()=>{ el.innerHTML=''; el.style.opacity=1; el.style.transition=''; }, fadeDur);
-    }, timeout);
-}
 
 /* 3대 총합 업데이트 */
 function updateTotal3(){
@@ -397,249 +400,141 @@ function updateTotal3(){
 }
 [benchRM, squatRM, deadRM].forEach(el => el.addEventListener('input', updateTotal3));
 
-
-
-/* save3Btn: 전체(3대) 저장 — 항상 보이지만 Firestore는 로그인 있을 때만 저장 */
+/* save3Btn */
 save3Btn.addEventListener('click', async ()=>{
-
     const user = auth.currentUser;
-
-    if(!user){
-        showSave3Message('로그인 후 저장해주세요');
-        return;
-    }
+    if(!user){ showSave3Message('로그인 후 저장해주세요'); return; }
 
     const bench = parseInt(benchRM.value)||0;
     const squat = parseInt(squatRM.value)||0;
     const dead = parseInt(deadRM.value)||0;
     const total = bench + squat + dead;
-
-    if(total === 0){
-        showSave3Message('값을 입력하세요');
-        return;
-    }
+    if(total === 0){ showSave3Message('값을 입력하세요'); return; }
 
     try{
-        await db
-          .collection('users')
-          .doc(user.uid)
-          .collection('threeRM') // 🔥 숫자 제거
-          .add({
-              bench,
-              squat,
-              dead,
-              total,
-              createdAt: firebase.firestore.FieldValue.serverTimestamp()
-          });
-
+        await db.collection('users').doc(user.uid).collection('threeRM').add({
+            bench, squat, dead, total,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
         showSave3Message('3대 기록 저장 완료!');
-    }catch(e){
-        console.error('3대 저장 에러:', e);
-        showSave3Message('저장 실패 (콘솔 확인)');
-    }
+    }catch(e){ console.error(e); showSave3Message('저장 실패'); }
 });
 
-/* 폴더 버튼 동작 (가로 버튼 → 하나의 박스만 active) */
+/* 폴더 버튼 */
 folderBtns.forEach(btn=>{
     btn.addEventListener('click', ()=>{
         folderBtns.forEach(b=>b.classList.remove('active'));
         btn.classList.add('active');
-        const target = btn.dataset.target;
         folderContents.forEach(fc=>{
-            if(fc.id === target) fc.classList.add('active');
-            else fc.classList.remove('active');
+            fc.id === btn.dataset.target ? fc.classList.add('active') : fc.classList.remove('active');
         });
+        setTimeout(renderActiveBox,0);
     });
 });
 
-/* 기록 박스 데이터 (로컬 mock) 및 렌더 함수 */
+/* 기록 박스 데이터 */
 const records = { bench: [], squat: [], dead: [] };
-
-// 포맷 날짜: '25.12.10'
 function formatTodayYYMMDD(d = new Date()){
     const yy = String(d.getFullYear()).slice(2);
     const mm = String(d.getMonth()+1).padStart(2,'0');
     const dd = String(d.getDate()).padStart(2,'0');
     return `${yy}.${mm}.${dd}`;
 }
-
-// 초기 날짜 표시
 recordDate.value = formatTodayYYMMDD();
 
-// 렌더 함수: 현재 active folder의 목록을 그려줌
+/* 렌더 함수 */
 function renderActiveBox(){
     const activeBtn = document.querySelector('.folderBtn.active');
     const target = activeBtn ? activeBtn.dataset.target : 'benchBox';
-    let arr = [];
-    if(target === 'benchBox') arr = records.bench;
-    else if(target === 'squatBox') arr = records.squat;
-    else if(target === 'deadBox') arr = records.dead;
-
+    let arr = target==='benchBox'?records.bench:target==='squatBox'?records.squat:records.dead;
     const boxEl = document.getElementById(target);
-    if(!arr || arr.length === 0){
-        boxEl.innerHTML = `<div style="color:#ddd">아직 기록이 없습니다. 아래에서 무게/횟수 입력 후 '저장' 버튼을 눌러 기록하세요.</div>`;
+    if(!arr || arr.length===0){
+        boxEl.innerHTML=`<div style="color:#ddd">아직 기록이 없습니다. 아래에서 무게/횟수 입력 후 '저장' 버튼을 눌러 기록하세요.</div>`;
         return;
     }
-    // 최신 위로
-    boxEl.innerHTML = arr.map(it=>{
-        return `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="color:#ddd">${it.date}</div><div>${it.weight}kg × ${it.reps}회</div></div>`;
-    }).join('');
+    boxEl.innerHTML = arr.map(it=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="color:#ddd">${it.date}</div><div>${it.weight}kg × ${it.reps}회</div></div>`).join('');
 }
 renderActiveBox();
 
-/* 기록 추가 (가로 폼에서 저장) */
+/* 기록 추가 */
 recordAdd.addEventListener('click', async ()=>{
     const weight = parseInt(recordWeight.value);
     const reps = parseInt(recordReps.value);
-    if(!weight || !reps){
-        fadeTempMsg(recordMessage, '무게와 횟수를 입력하세요', 900, 600);
-        return;
-    }
+    if(!weight || !reps){ fadeTempMsg(recordMessage,'무게와 횟수를 입력하세요',900,600); return; }
     const date = recordDate.value || formatTodayYYMMDD();
-    // 현재 active folder
     const activeBtn = document.querySelector('.folderBtn.active');
     const target = activeBtn ? activeBtn.dataset.target : 'benchBox';
-    // push into local records
     const item = { date, weight, reps };
-    if(target === 'benchBox') records.bench.unshift(item);
-    else if(target === 'squatBox') records.squat.unshift(item);
-    else if(target === 'deadBox') records.dead.unshift(item);
-
-    // clear inputs
-    recordWeight.value = '';
-    recordReps.value = '';
-
-    // show local feedback
-    fadeTempMsg(recordMessage, '기록 추가 완료', 700, 600);
+    target==='benchBox'?records.bench.unshift(item):target==='squatBox'?records.squat.unshift(item):records.dead.unshift(item);
+    recordWeight.value=''; recordReps.value='';
+    fadeTempMsg(recordMessage,'기록 추가 완료',700,600);
     renderActiveBox();
 
-    // if logged in, also push to Firestore collection 'records'
     const user = auth.currentUser;
     if(user){
         try{
             await db.collection('users').doc(user.uid).collection('records').add({
-                lift: target === 'benchBox' ? 'bench' : target === 'squatBox' ? 'squat' : 'dead',
-                date, weight, reps, createdAt: new Date()
+                lift: target==='benchBox'?'bench':target==='squatBox'?'squat':'dead',
+                date, weight, reps, createdAt:new Date()
             });
-        }catch(e){ console.error('Firestore add err', e); }
+        }catch(e){ console.error(e); }
     }
 });
 
-/* 로그인 (구글) */
-googleLoginBtn.addEventListener('click', ()=>{
-    const provider = new firebase.auth.GoogleAuthProvider();
-    auth.signInWithPopup(provider).catch(e=>alert('로그인 실패: '+e.message));
+/* 날짜 토글 */
+dateToggleBtn.addEventListener('click', ()=>{
+    recordDate.style.display = recordDate.style.display==='none'?'block':'none';
 });
+
+/* 로그인/로그아웃 */
+googleLoginBtn.addEventListener('click', ()=>{ auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(e=>alert(e.message)); });
 logoutBtn.addEventListener('click', ()=> auth.signOut());
 
-/* auth 상태 변화 */
 auth.onAuthStateChanged(async user=>{
     if(user){
-        googleLoginBtn.style.display = 'none';
-        logoutBtn.style.display = 'block';
-        userInfo.textContent = user.displayName || user.email || '';
-
-        /* 🔥 [추가] 3대 기록 최신값 불러오기 */
+        googleLoginBtn.style.display='none'; logoutBtn.style.display='block'; userInfo.textContent=user.displayName||user.email||'';
         try{
-            const threeSnap = await db
-              .collection('users')
-              .doc(user.uid)
-              .collection('threeRM')
-              .orderBy('createdAt', 'desc')
-              .limit(1)
-              .get();
-
+            const threeSnap = await db.collection('users').doc(user.uid).collection('threeRM').orderBy('createdAt','desc').limit(1).get();
             if(!threeSnap.empty){
                 const data = threeSnap.docs[0].data();
-                benchRM.value = data.bench || 0;
-                squatRM.value = data.squat || 0;
-                deadRM.value = data.dead || 0;
-                updateTotal3(); // 총합 갱신
+                benchRM.value=data.bench||0; squatRM.value=data.squat||0; deadRM.value=data.dead||0;
+                updateTotal3();
             }
-        }catch(e){
-            console.error('load threeRM err', e);
-        }
-
-        /* 기존 records 로드 (그대로 유지) */
-        try{
-            const snap = await db
-              .collection('users')
-              .doc(user.uid)
-              .collection('records')
-              .orderBy('createdAt','desc')
-              .limit(200)
-              .get();
-
-            records.bench = [];
-            records.squat = [];
-            records.dead = [];
-
+            const snap = await db.collection('users').doc(user.uid).collection('records').orderBy('createdAt','desc').limit(200).get();
+            records.bench=[]; records.squat=[]; records.dead=[];
             snap.forEach(doc=>{
                 const d = doc.data();
-                if(!d || !d.lift) return;
-
-                const item = {
-                    date: d.date || formatTodayYYMMDD(
-                        new Date(d.createdAt?.toDate?.() || new Date())
-                    ),
-                    weight: d.weight,
-                    reps: d.reps
-                };
-
-                if(d.lift === 'bench') records.bench.push(item);
-                if(d.lift === 'squat') records.squat.push(item);
-                if(d.lift === 'dead') records.dead.push(item);
+                if(!d||!d.lift) return;
+                const item={date:d.date||formatTodayYYMMDD(new Date(d.createdAt?.toDate?.()||new Date())), weight:d.weight, reps:d.reps};
+                if(d.lift==='bench') records.bench.push(item);
+                if(d.lift==='squat') records.squat.push(item);
+                if(d.lift==='dead') records.dead.push(item);
             });
-
-            records.bench.reverse();
-            records.squat.reverse();
-            records.dead.reverse();
+            records.bench.reverse(); records.squat.reverse(); records.dead.reverse();
             renderActiveBox();
-
-        }catch(e){
-            console.error('load records err', e);
-        }
-
-    } else {
-        googleLoginBtn.style.display = 'block';
-        logoutBtn.style.display = 'none';
-        userInfo.textContent = '';
-    }
+        }catch(e){ console.error(e); }
+    } else { googleLoginBtn.style.display='block'; logoutBtn.style.display='none'; userInfo.textContent=''; }
 });
 
-/* 초기 폴더 버튼(가로) behavior already set; ensure renderActiveBox is called on tab change */
-folderBtns.forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-        // renderActiveBox will be called by the earlier folderBtns listener (it toggles active class),
-        // but ensure we re-render for the selected folder:
-        setTimeout(renderActiveBox, 0);
-    });
-});
-
-/* 스크롤 시 로그인 숨기기 (원래 동작 유지) */
+/* 스크롤 시 로그인 숨기기 */
 window.addEventListener("scroll", ()=>{
-    const loginArea = document.getElementById("loginArea");
-    if(window.scrollY > 50) loginArea.style.display="none";
-    else loginArea.style.display="flex";
+    document.getElementById("loginArea").style.display = window.scrollY>50?'none':'flex';
 });
 
- 
-
-/* 메시지 페이드아웃 */
-function showSave3Message(msg) {
-    save3Result.textContent = msg;
-    save3Result.style.opacity = 1;
-
-    setTimeout(() => {
-        save3Result.style.transition = "opacity 0.8s";
-        save3Result.style.opacity = 0;
-
-        setTimeout(() => {
-            save3Result.textContent = "";
-            save3Result.style.transition = "";
-            save3Result.style.opacity = 1;
-        }, 800);
-    }, 1000);
+/* 페이드 메시지 */
+function showSave3Message(msg){
+    save3Result.textContent=msg; save3Result.style.opacity=1;
+    setTimeout(()=>{
+        save3Result.style.transition="opacity 0.8s"; save3Result.style.opacity=0;
+        setTimeout(()=>{ save3Result.textContent=''; save3Result.style.transition=''; save3Result.style.opacity=1; },800);
+    },1000);
+}
+function fadeTempMsg(el,msg,timeout=1000,fadeDur=800){
+    el.innerHTML=msg; el.style.opacity=1;
+    setTimeout(()=>{
+        el.style.transition=`opacity ${fadeDur}ms ease`; el.style.opacity=0;
+        setTimeout(()=>{ el.innerHTML=''; el.style.opacity=1; el.style.transition=''; },fadeDur);
+    },timeout);
 }
 </script>
 </body>
