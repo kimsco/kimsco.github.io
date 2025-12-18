@@ -4,591 +4,165 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>1RM 계산기 + 3대 기록표</title>
+
 <style>
 body {
     background: black;
     color: white;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
     text-align: center;
-    padding: 70px 20px 20px 20px;
+    padding: 70px 20px 20px;
 }
 .container { max-width: 400px; margin: auto; }
-.subtitle { font-size:16px;  margin-top: 40px; margin-bottom: 20px; }
+.subtitle { font-size:16px; margin:40px 0 20px; }
 
 select, button {
-    width:100%; padding:14px; margin:10px 0; font-size:18px;
-    border-radius:10px; border:none; text-align:center;
+    width:100%; padding:14px; margin:10px 0;
+    font-size:18px; border-radius:10px; border:none;
 }
-button { font-size:20px; background:white; color:black; font-weight:bold; cursor:pointer; }
-#result { margin-top:20px; font-size:22px; }
-table { width:100%; margin-top:15px; border-collapse: collapse; }
-table, td { border:1px solid white; }
-td { padding:8px; text-align:center; }
+button { background:white; color:black; font-weight:bold; cursor:pointer; }
 
-#loginArea {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    padding: 8px;
-    background: rgba(0,0,0,0.5);
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-}
-#loginArea button { padding: 8px 12px; font-size: 13px; border-radius:6px; }
-#userInfo { font-size:12px; color:#fff; text-align:center; }
-
-/* 탭 스타일 */
-.tab { display:flex; justify-content:center; gap:10px; margin-bottom:20px; }
-.tab button { padding:10px 20px; border:none; border-radius:8px; cursor:pointer; background:#333; color:white; font-weight:bold; }
+.tab { display:flex; gap:10px; justify-content:center; margin-bottom:20px; }
+.tab button { background:#333; color:white; }
 .tab button.active { background:#FFD700; color:black; }
 
-/* 탭 컨텐츠 숨기기 */
 .tabContent { display:none; }
 .tabContent.active { display:block; }
 
-/* 3대 총합 강조 */
-#total3 { font-size:28px; font-weight:bold; margin-bottom:15px; color:#FFD700; }
+#total3 { font-size:28px; font-weight:bold; color:#FFD700; margin-bottom:15px; }
 
-/* 3대 기록표 개선 */
-table.ThreeRM { margin:auto; width:100%; max-width:380px; }
-table.ThreeRM td { padding:10px; width:33%; }
-input.rmInput { width:100%; height:40px; font-size:18px; text-align:center; background:transparent; color:#fff; border-radius:6px; }
+table { width:100%; border-collapse:collapse; }
+td { border:1px solid white; padding:8px; }
 
-/* 3대 기록 저장 버튼 */
-#save3Btn { 
-    width:100%; 
-    padding:14px; 
-    font-size:18px; 
-    margin-top:10px; 
-    border-radius:10px; 
-    border:none; 
-    background:white; 
-    color:black; 
-    font-weight:bold; 
-    cursor:pointer;
+input.rmInput {
+    width:100%; height:40px; font-size:18px;
+    background:transparent; color:white; text-align:center;
 }
 
-/* 폴더 버튼 (가로 정렬) */
-.recordFolders {
-    display:flex;
-    justify-content:center;
-    gap:10px;
-    margin-top:20px;
+#loginArea {
+    position:fixed; top:10px; left:10px;
+    background:rgba(0,0,0,.6); padding:8px; border-radius:8px;
 }
-.folderBtn {
-    padding:10px 12px;
-    border:none;
-    border-radius:8px;
-    background:#333;
-    color:white;
-    font-weight:bold;
-    cursor:pointer;
-    min-width:100px;
-}
-.folderBtn.active {
-    background:#FFD700;
-    color:black;
-}
+#loginArea button { font-size:12px; padding:6px; }
+#userInfo { font-size:12px; margin-top:4px; }
 
-/* 하나의 박스(탭처럼 교체) */
-.folderContent {
-    display:none;
-    margin-top:15px;
-    width:100%;
-    height:150px;
-    background:#555;
-    border-radius:8px;
-    padding:10px;
-    box-sizing:border-box;
-    text-align:left;
-    overflow:auto;
-}
-.folderContent.active {
-    display:block;
-}
-
-/* 입력폼 한줄 가로배치 */
-.recordFormRow {
-    display:flex;
-    gap:8px;
-    margin-top:12px;
-    width:100%;
-    max-width:380px;
-    margin-left:auto;
-    margin-right:auto;
-}
-.recordFormRow .r-date {
-    width:30%;
-    padding:8px;
-    border-radius:6px;
-    border:none;
-    background:#333;
-    color:#fff;
-    text-align:center;
-}
-.recordFormRow input[type="number"] {
-    flex:1;
-    padding:8px;
-    border-radius:6px;
-    border:none;
-    font-size:16px;
-    box-sizing:border-box;
-}
-.recordFormRow button {
-    padding:8px 10px;
-    border-radius:6px;
-    border:none;
-    background:#fff;
-    color:#000;
-    font-weight:700;
-    cursor:pointer;
-}
-
-/* 페이드 메시지 */
-.fade {
-    transition: opacity 0.8s ease;
-}
-#save3Result { margin-top:10px; font-size:16px; opacity:1; }
-#recordMessage { margin-top:8px; font-size:14px; opacity:1; color:#fff; }
-
-
-/* 숫자 입력창의 + - 버튼 제거 (크롬, 엣지) */
-input[type="number"]::-webkit-inner-spin-button,
-input[type="number"]::-webkit-outer-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-}
-
-/* 파이어폭스 */
-input[type="number"] {
-    -moz-appearance: textfield;
-}
-
-
-
-
-
-    
-/* 로그인 area hide on scroll */
+.fade { transition:opacity .8s; }
 </style>
 </head>
-<body>
 
+<body>
 <div class="container">
     <div class="subtitle">"대부분의 문제는 돈이 없어서, 그 외의 문제는 근육이 없어서 생긴다"</div>
-    <h2>1RM 계산기</h2>
 
-    <!-- 탭 -->
     <div class="tab">
         <button class="tabBtn active" data-target="tab1">1RM 계산기</button>
         <button class="tabBtn" data-target="tab2">3대 기록표</button>
     </div>
 
-    <!-- 1RM 계산기 -->
     <div id="tab1" class="tabContent active">
-        <select id="weight"><option value="">무게 선택</option></select>
-        <select id="reps"><option value="">반복수 선택</option></select>
+        <select id="weight"><option value="">무게</option></select>
+        <select id="reps"><option value="">횟수</option></select>
         <button id="goBtn">GO</button>
         <div id="result"></div>
         <div id="tableArea"></div>
-        <div id="saveResult" style="margin-top:20px; font-size:18px;"></div>
     </div>
 
-    <!-- 3대 기록표 -->
     <div id="tab2" class="tabContent">
         <div id="total3">3대: 0 kg</div>
-        <table class="ThreeRM">
+
+        <table>
+            <tr><td>벤치</td><td>스쿼트</td><td>데드</td></tr>
             <tr>
-                <td>벤치</td>
-                <td>스쿼트</td>
-                <td>데드</td>
-            </tr>
-            <tr>
-                <td><input type="number" id="benchRM" class="rmInput" placeholder="kg" min="0"></td>
-                <td><input type="number" id="squatRM" class="rmInput" placeholder="kg" min="0"></td>
-                <td><input type="number" id="deadRM" class="rmInput" placeholder="kg" min="0"></td>
+                <td><input id="benchRM" class="rmInput" type="number"></td>
+                <td><input id="squatRM" class="rmInput" type="number"></td>
+                <td><input id="deadRM" class="rmInput" type="number"></td>
             </tr>
         </table>
 
-        <!-- 기존 3대 저장 버튼 (항상 보임) -->
         <button id="save3Btn">3대 기록 저장</button>
-        <div id="save3Result" class="fade" style="margin-top:8px;font-size:15px;"></div>
-
-        <!-- 폴더 버튼 (가로) -->
-        <div class="recordFolders" role="tablist" aria-label="기록 탭">
-            <button class="folderBtn active" data-target="benchBox">벤치 기록</button>
-            <button class="folderBtn" data-target="squatBox">스쿼트 기록</button>
-            <button class="folderBtn" data-target="deadBox">데드 기록</button>
-        </div>
-
-        <!-- 하나의 박스 영역 (버튼 누르면 내용 교체) -->
-        <div id="benchBox" class="folderContent active"></div>
-        <div id="squatBox" class="folderContent"></div>
-        <div id="deadBox" class="folderContent"></div>
-
-        <!-- 입력폼 (가로 한줄) -->
-        <div class="recordFormRow">
-            <input type="text" id="recordDate" class="r-date" readonly />
-            <input type="number" id="recordWeight" placeholder="무게(kg)" />
-            <input type="number" id="recordReps" placeholder="횟수" />
-            <button id="recordAdd">저장</button>
-        </div>
-        <div id="recordMessage" class="fade"></div>
+        <div id="save3Result" class="fade"></div>
     </div>
 </div>
 
-<!-- 로그인 영역 -->
 <div id="loginArea">
     <button id="googleLoginBtn">Google 로그인</button>
-    <button id="logoutBtn" style="display:none;">로그아웃</button>
+    <button id="logoutBtn" style="display:none">로그아웃</button>
     <div id="userInfo"></div>
 </div>
 
-<!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <script>
-/* Firebase 설정 (기존 값 유지) */
-const firebaseConfig = {
+firebase.initializeApp({
     apiKey: "AIzaSyCXn174XsW6ndqaeUpVK6XAAf4MR0-q7_k",
     authDomain: "rmpj-7ca13.firebaseapp.com",
-    projectId: "rmpj-7ca13",
-    storageBucket: "rmpj-7ca13.firebasestorage.app",
-    messagingSenderId: "983484366324",
-    appId: "1:983484366324:web:5fd58faba825ee39decda1"
-};
-firebase.initializeApp(firebaseConfig);
+    projectId: "rmpj-7ca13"
+});
+
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-/* 요소 참조 */
-const tabBtns = document.querySelectorAll('.tabBtn');
-const tabContents = document.querySelectorAll('.tabContent');
-
-const weightSelect = document.getElementById('weight');
-const repsSelect = document.getElementById('reps');
-const goBtn = document.getElementById('goBtn');
-const resultDiv = document.getElementById('result');
-const tableArea = document.getElementById('tableArea');
-
 const benchRM = document.getElementById('benchRM');
 const squatRM = document.getElementById('squatRM');
-const deadRM = document.getElementById('deadRM');
-const total3 = document.getElementById('total3');
-
+const deadRM  = document.getElementById('deadRM');
+const total3  = document.getElementById('total3');
 const save3Btn = document.getElementById('save3Btn');
 const save3Result = document.getElementById('save3Result');
 
-const folderBtns = document.querySelectorAll('.folderBtn');
-const folderContents = document.querySelectorAll('.folderContent');
+[benchRM, squatRM, deadRM].forEach(i =>
+    i.addEventListener('input', () => {
+        total3.textContent =
+            `3대: ${(benchRM.value|0)+(squatRM.value|0)+(deadRM.value|0)} kg`;
+    })
+);
 
-const benchBox = document.getElementById('benchBox');
-const squatBox = document.getElementById('squatBox');
-const deadBox = document.getElementById('deadBox');
-
-const recordDate = document.getElementById('recordDate');
-const recordWeight = document.getElementById('recordWeight');
-const recordReps = document.getElementById('recordReps');
-const recordAdd = document.getElementById('recordAdd');
-const recordMessage = document.getElementById('recordMessage');
-
-const googleLoginBtn = document.getElementById('googleLoginBtn');
-const logoutBtn = document.getElementById('logoutBtn');
-const userInfo = document.getElementById('userInfo');
-
-/* 무게/반복 옵션 채우기 (1RM 계산기) */
-for (let w=0; w<=250; w+=5){
-    let option = document.createElement("option");
-    option.value = w; option.textContent = w + " kg";
-    weightSelect.appendChild(option);
-}
-for (let r=1; r<=10; r++){
-    let option = document.createElement("option");
-    option.value = r; option.textContent = r + " 회";
-    repsSelect.appendChild(option);
-}
-
-/* 탭 전환 (1RM / 3대) - 기존 동작 유지 */
-tabBtns.forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-        tabBtns.forEach(b=>b.classList.remove('active'));
-        btn.classList.add('active');
-        const target = btn.dataset.target;
-        tabContents.forEach(tc=>{
-            if(tc.id === target){
-                tc.classList.add('active');
-                tc.style.display = 'block';
-            } else {
-                tc.classList.remove('active');
-                tc.style.display = 'none';
-            }
-        });
-    });
-});
-
-/* 1RM 계산 (페이드 제거 완전 수정본) */
-goBtn.addEventListener('click', ()=>{
-    const weight = parseFloat(weightSelect.value);
-    const reps = parseInt(repsSelect.value);
-
-    if(!weight || !reps){
-        resultDiv.innerHTML = "무게와 반복수를 입력하세요.";
-        return;
-    }
-
-    const oneRM = weight * (1 + reps * 0.0333);
-
-    // 계산 결과 출력 (사라지지 않음)
-    resultDiv.innerHTML = `예상 1RM: <b>${oneRM.toFixed(1)} kg</b>`;
-
-    // 표 생성
-    let html = `<table><tr><th>RM</th><th>무게 (kg)</th></tr>`;
-    for (let r=1; r<=10; r++){
-        let rmWeight = oneRM / (1 + (r-1)*0.0333);
-        html += `<tr><td>${r}RM</td><td>${rmWeight.toFixed(1)} kg</td></tr>`;
-    }
-    html += `</table>`;
-
-    tableArea.innerHTML = html;
-});
-
-
-/* 페이드 텍스트 유틸 */
-function fadeOutElem(el, timeout=1000, fadeDur=800){
-    el.style.opacity = 1;
-    setTimeout(()=>{
-        el.style.transition = `opacity ${fadeDur}ms ease`;
-        el.style.opacity = 0;
-        setTimeout(()=>{ el.innerHTML=''; el.style.opacity=1; el.style.transition=''; }, fadeDur);
-    }, timeout);
-}
-function fadeTempMsg(el, msg, timeout=1000, fadeDur=800){
-    el.innerHTML = msg;
-    el.style.opacity = 1;
-    setTimeout(()=>{
-        el.style.transition = `opacity ${fadeDur}ms ease`;
-        el.style.opacity = 0;
-        setTimeout(()=>{ el.innerHTML=''; el.style.opacity=1; el.style.transition=''; }, fadeDur);
-    }, timeout);
-}
-
-/* 3대 총합 업데이트 */
-function updateTotal3(){
-    const b = parseInt(benchRM.value)||0;
-    const s = parseInt(squatRM.value)||0;
-    const d = parseInt(deadRM.value)||0;
-    total3.textContent = `3대: ${b+s+d} kg`;
-}
-[benchRM, squatRM, deadRM].forEach(el => el.addEventListener('input', updateTotal3));
-
-
-
-/* save3Btn: 전체(3대) 저장 — 항상 보이지만 Firestore는 로그인 있을 때만 저장 */
-save3Btn.addEventListener('click', async ()=>{
-    alert('클릭됨'); // 👈 이거
+save3Btn.addEventListener('click', async () => {
     const user = auth.currentUser;
+    if (!user) return msg('로그인 후 저장하세요');
 
-    if(!user){
-        showSave3Message('로그인 후 저장해주세요');
-        return;
-    }
+    const data = {
+        bench: benchRM.value|0,
+        squat: squatRM.value|0,
+        dead: deadRM.value|0,
+        total: (benchRM.value|0)+(squatRM.value|0)+(deadRM.value|0),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
 
-    const bench = parseInt(benchRM.value)||0;
-    const squat = parseInt(squatRM.value)||0;
-    const dead = parseInt(deadRM.value)||0;
-    const total = bench + squat + dead;
+    if (data.total === 0) return msg('값을 입력하세요');
 
-    if(total === 0){
-        showSave3Message('값을 입력하세요');
-        return;
-    }
+    try {
+        await db
+          .collection('users')
+          .doc(user.uid)
+          .collection('threeRM')
+          .doc('current')
+          .set(data);
 
-    try{
-       await db
-  .collection('users')
-  .doc(user.uid)
-  .collection('threeRM')
-  .doc('current')   // 👈 문서 하나 고정
-  .set({
-      bench,
-      squat,
-      dead,
-      total,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
-  });
-
-        showSave3Message('3대 기록 저장 완료!');
-    }catch(e){
-        console.error('3대 저장 에러:', e);
-        showSave3Message('저장 실패 (콘솔 확인)');
+        msg('3대 기록 저장 완료!');
+    } catch (e) {
+        console.error(e);
+        msg('저장 실패');
     }
 });
 
-/* 폴더 버튼 동작 (가로 버튼 → 하나의 박스만 active) */
-folderBtns.forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-        folderBtns.forEach(b=>b.classList.remove('active'));
-        btn.classList.add('active');
-        const target = btn.dataset.target;
-        folderContents.forEach(fc=>{
-            if(fc.id === target) fc.classList.add('active');
-            else fc.classList.remove('active');
-        });
-    });
-});
-
-/* 기록 박스 데이터 (로컬 mock) 및 렌더 함수 */
-const records = { bench: [], squat: [], dead: [] };
-
-// 포맷 날짜: '25.12.10'
-function formatTodayYYMMDD(d = new Date()){
-    const yy = String(d.getFullYear()).slice(2);
-    const mm = String(d.getMonth()+1).padStart(2,'0');
-    const dd = String(d.getDate()).padStart(2,'0');
-    return `${yy}.${mm}.${dd}`;
-}
-
-// 초기 날짜 표시
-recordDate.value = formatTodayYYMMDD();
-
-// 렌더 함수: 현재 active folder의 목록을 그려줌
-function renderActiveBox(){
-    const activeBtn = document.querySelector('.folderBtn.active');
-    const target = activeBtn ? activeBtn.dataset.target : 'benchBox';
-    let arr = [];
-    if(target === 'benchBox') arr = records.bench;
-    else if(target === 'squatBox') arr = records.squat;
-    else if(target === 'deadBox') arr = records.dead;
-
-    const boxEl = document.getElementById(target);
-    if(!arr || arr.length === 0){
-        boxEl.innerHTML = `<div style="color:#ddd">아직 기록이 없습니다. 아래에서 무게/횟수 입력 후 '저장' 버튼을 눌러 기록하세요.</div>`;
-        return;
-    }
-    // 최신 위로
-    boxEl.innerHTML = arr.map(it=>{
-        return `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="color:#ddd">${it.date}</div><div>${it.weight}kg × ${it.reps}회</div></div>`;
-    }).join('');
-}
-renderActiveBox();
-
-/* 기록 추가 (가로 폼에서 저장) */
-recordAdd.addEventListener('click', async ()=>{
-    const weight = parseInt(recordWeight.value);
-    const reps = parseInt(recordReps.value);
-    if(!weight || !reps){
-        fadeTempMsg(recordMessage, '무게와 횟수를 입력하세요', 900, 600);
-        return;
-    }
-    const date = recordDate.value || formatTodayYYMMDD();
-    // 현재 active folder
-    const activeBtn = document.querySelector('.folderBtn.active');
-    const target = activeBtn ? activeBtn.dataset.target : 'benchBox';
-    // push into local records
-    const item = { date, weight, reps };
-    if(target === 'benchBox') records.bench.unshift(item);
-    else if(target === 'squatBox') records.squat.unshift(item);
-    else if(target === 'deadBox') records.dead.unshift(item);
-
-    // clear inputs
-    recordWeight.value = '';
-    recordReps.value = '';
-
-    // show local feedback
-    fadeTempMsg(recordMessage, '기록 추가 완료', 700, 600);
-    renderActiveBox();
-
-    // if logged in, also push to Firestore collection 'records'
-    const user = auth.currentUser;
-    if(user){
-        try{
-            await db.collection('users').doc(user.uid).collection('records').add({
-                lift: target === 'benchBox' ? 'bench' : target === 'squatBox' ? 'squat' : 'dead',
-                date, weight, reps, createdAt: new Date()
-            });
-        }catch(e){ console.error('Firestore add err', e); }
-    }
-});
-
-/* 로그인 (구글) */
-googleLoginBtn.addEventListener('click', ()=>{
-    const provider = new firebase.auth.GoogleAuthProvider();
-    auth.signInWithPopup(provider).catch(e=>alert('로그인 실패: '+e.message));
-});
-logoutBtn.addEventListener('click', ()=> auth.signOut());
-
-/* auth 상태 변화 */
-auth.onAuthStateChanged(async user=>{
-    if(user){
-        googleLoginBtn.style.display = 'none';
-        logoutBtn.style.display = 'block';
-        userInfo.textContent = user.displayName || user.email || '';
-        // 로드: Firestore에 있는 최근 records 가져와 덮어쓰자 (간단)
-        try{
-            const snap = await db.collection('users').doc(user.uid).collection('records').orderBy('createdAt','desc').limit(200).get();
-            // reset local
-            records.bench = []; records.squat = []; records.dead = [];
-            snap.forEach(doc=>{
-                const d = doc.data();
-                if(!d || !d.lift) return;
-                const item = { date: d.date || formatTodayYYMMDD(new Date(d.createdAt?.toDate?.() || new Date())), weight: d.weight, reps: d.reps };
-                if(d.lift === 'bench') records.bench.push(item);
-                if(d.lift === 'squat') records.squat.push(item);
-                if(d.lift === 'dead') records.dead.push(item);
-            });
-            // show latest on top
-            records.bench = records.bench.reverse();
-            records.squat = records.squat.reverse();
-            records.dead = records.dead.reverse();
-            renderActiveBox();
-        }catch(e){ console.error('load records err', e); }
-    } else {
-        googleLoginBtn.style.display = 'block';
-        logoutBtn.style.display = 'none';
-        userInfo.textContent = '';
-        // keep local records as-is (user might have local adds)
-    }
-});
-
-/* 초기 폴더 버튼(가로) behavior already set; ensure renderActiveBox is called on tab change */
-folderBtns.forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-        // renderActiveBox will be called by the earlier folderBtns listener (it toggles active class),
-        // but ensure we re-render for the selected folder:
-        setTimeout(renderActiveBox, 0);
-    });
-});
-
-/* 스크롤 시 로그인 숨기기 (원래 동작 유지) */
-window.addEventListener("scroll", ()=>{
-    const loginArea = document.getElementById("loginArea");
-    if(window.scrollY > 50) loginArea.style.display="none";
-    else loginArea.style.display="flex";
-});
-
- 
-
-/* 메시지 페이드아웃 */
-function showSave3Message(msg) {
-    save3Result.textContent = msg;
+function msg(t){
+    save3Result.textContent = t;
     save3Result.style.opacity = 1;
-
-    setTimeout(() => {
-        save3Result.style.transition = "opacity 0.8s";
-        save3Result.style.opacity = 0;
-
-        setTimeout(() => {
-            save3Result.textContent = "";
-            save3Result.style.transition = "";
-            save3Result.style.opacity = 1;
-        }, 800);
-    }, 1000);
+    setTimeout(()=>save3Result.style.opacity=0,1200);
 }
+
+document.getElementById('googleLoginBtn').onclick = () =>
+    auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+
+document.getElementById('logoutBtn').onclick = () => auth.signOut();
+
+auth.onAuthStateChanged(u=>{
+    document.getElementById('googleLoginBtn').style.display = u?'none':'block';
+    document.getElementById('logoutBtn').style.display = u?'block':'none';
+    document.getElementById('userInfo').textContent = u?u.displayName:'';
+});
 </script>
 </body>
 </html>
