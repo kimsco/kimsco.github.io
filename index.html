@@ -110,42 +110,52 @@ input.rmInput { width:100%; height:40px; font-size:18px; text-align:center; back
     display:block;
 }
 
-/* 입력폼 한줄 가로배치 */
+/* 입력폼 한줄 가로배치 (부모) */
 .recordFormRow {
-    display:flex;
-    gap:8px;
-    margin-top:12px;
-    width:100%;
-    max-width:380px;
-    margin-left:auto;
-    margin-right:auto;
+    display: flex;                 /* 가로 정렬 */
+    gap: 8px;                      /* 요소 사이 간격 */
+    margin-top: 12px;
+    width: 100%;
+    max-width: 380px;              /* 전체 줄 최대 폭 */
+    margin-left: auto;
+    margin-right: auto;
+    align-items: center;           /* 🔥 세로 높이 중앙정렬 */
 }
+
+/* 날짜 input */
 .recordFormRow .r-date {
-    width:30%;
-    padding:1px;
-    border-radius:6px;
-    border:none;
-    background:#333;
-    color:#fff;
-    text-align:center;
+    width: 90px;                   /* 🔥 고정 폭 */
+    height: 40px;                  /* 🔥 모든 칸과 동일 */
+    padding: 0 6px;                /* 좌우만 여백 */
+    border-radius: 6px;
+    border: none;
+    background: #333;
+    color: #fff;
+    text-align: center;
+    box-sizing: border-box;        /* padding 포함해서 width 유지 */
 }
+
+/* 숫자 입력 (무게, 횟수) */
 .recordFormRow input[type="number"] {
-    flex: none;
-    width: 90px;        /* 🔥 이게 핵심 */
-    height: 40px;
-    padding: 4px;
-    border-radius:6px;
-    border:none;
-    font-size:14px;
+    width: 90px;                   /* 🔥 전부 같은 폭 */
+    height: 40px;                  /* 🔥 전부 같은 높이 */
+    padding: 0 6px;
+    border-radius: 6px;
+    border: none;
+    font-size: 14px;
+    box-sizing: border-box;
 }
+
+/* 저장 버튼 */
 .recordFormRow button {
-    padding:8px 5px;
-    border-radius:6px;
-    border:none;
-    background:#fff;
-    color:#000;
-    font-weight:700;
-    cursor:pointer;
+    height: 40px;                  /* 🔥 입력칸과 동일 높이 */
+    padding: 0 12px;               /* 가로 여백만 */
+    border-radius: 6px;
+    border: none;
+    background: #fff;
+    color: #000;
+    font-weight: 700;
+    cursor: pointer;
 }
 
 /* 페이드 메시지 */
