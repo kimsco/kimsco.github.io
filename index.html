@@ -110,6 +110,15 @@ input.rmInput { width:100%; height:40px; font-size:18px; text-align:center; back
     display:block;
 }
 
+<!-- 날짜 변경 버튼 -->
+<button type="button" id="dateToggleBtn" class="dateToggleBtn">
+    날짜 변경
+</button>
+
+<!-- 날짜 선택 (기본 숨김) -->
+<input type="date" id="recordDate" class="recordDate" style="display:none;">
+
+    
 /* 입력폼 한줄 가로배치 (부모) */
 .recordFormRow {
     display: flex;                 /* 가로 정렬 */
@@ -157,7 +166,31 @@ input.rmInput { width:100%; height:40px; font-size:18px; text-align:center; back
     font-weight: 700;
     cursor: pointer;
 }
+/* 날짜 변경 버튼 */
+.dateToggleBtn {
+    background: none;
+    border: 1px solid #555;
+    color: #aaa;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    margin-bottom: 6px;
+}
 
+/* 날짜 선택 input */
+.recordDate {
+    width: 160px;
+    height: 36px;
+    padding: 0 6px;
+    border-radius: 6px;
+    border: none;
+    background: #333;
+    color: #fff;
+    font-size: 13px;
+    box-sizing: border-box;
+}
+    
 /* 페이드 메시지 */
 .fade {
     transition: opacity 0.8s ease;
@@ -641,6 +674,20 @@ function showSave3Message(msg) {
         }, 800);
     }, 1000);
 }
+
+    const dateToggleBtn = document.getElementById('dateToggleBtn');
+const recordDate = document.getElementById('recordDate');
+
+// 기본값 = 오늘 날짜
+recordDate.valueAsDate = new Date();
+
+// 버튼 누르면 날짜 input 토글
+dateToggleBtn.addEventListener('click', () => {
+    const isHidden = recordDate.style.display === 'none';
+    recordDate.style.display = isHidden ? 'block' : 'none';
+});
+const dateToSave = recordDate.value || formatTodayYYMMDD(new Date());
+    
 </script>
 </body>
 </html>
