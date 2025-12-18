@@ -130,11 +130,13 @@ input.rmInput { width:100%; height:40px; font-size:18px; text-align:center; back
     text-align:center;
 }
 .recordFormRow input[type="number"] {
-    flex:1;
-    padding:8px;
+    flex: none;
+    width: 90px;        /* 🔥 이게 핵심 */
+    height: 34px;
+    padding: 4px;
     border-radius:6px;
     border:none;
-    font-size:16px;
+    font-size:14px;
     box-sizing:border-box;
 }
 .recordFormRow button {
