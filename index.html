@@ -386,16 +386,7 @@ function updateTotal3(){
 }
 [benchRM, squatRM, deadRM].forEach(el => el.addEventListener('input', updateTotal3));
 
-/* 저장 완료 페이드 메시지 (3대 저장) */
-function showSave3Message(msg){
-    save3Result.textContent = msg;
-    save3Result.style.opacity = 1;
-    setTimeout(()=>{
-        save3Result.style.transition = 'opacity 800ms ease';
-        save3Result.style.opacity = 0;
-        setTimeout(()=>{ save3Result.textContent=''; save3Result.style.opacity=1; save3Result.style.transition=''; }, 800);
-    }, 1200);
-}
+
 
 /* save3Btn: 전체(3대) 저장 — 항상 보이지만 Firestore는 로그인 있을 때만 저장 */
 save3Btn.addEventListener('click', async ()=>{
