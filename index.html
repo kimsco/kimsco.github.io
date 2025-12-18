@@ -178,7 +178,30 @@ input[type="number"] {
     -moz-appearance: textfield;
 }
 
+/* 날짜 변경 버튼 */
+.dateToggleBtn {
+    background: none;
+    border: 1px solid #555;
+    color: #aaa;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    margin-bottom: 6px;
+}
 
+/* 날짜 선택 input */
+.recordDate {
+    width: 160px;
+    height: 36px;
+    padding: 0 6px;
+    border-radius: 6px;
+    border: none;
+    background: #333;
+    color: #fff;
+    font-size: 13px;
+    box-sizing: border-box;
+}
 
 
 
@@ -242,6 +265,11 @@ input[type="number"] {
 
         <!-- 입력폼 (가로 한줄) -->
         <div class="recordFormRow">
+            
+            <button type="button" id="dateToggleBtn" class="dateToggleBtn">
+    날짜 변경
+</button>
+            
             <input type="text" id="recordDate" class="r-date" readonly />
             <input type="number" id="recordWeight" placeholder="무게(kg)" />
             <input type="number" id="recordReps" placeholder="횟수" />
@@ -641,6 +669,19 @@ function showSave3Message(msg) {
         }, 800);
     }, 1000);
 }
+
+    const dateToggleBtn = document.getElementById('dateToggleBtn');
+const recordDate = document.getElementById('recordDate');
+
+// 기본값 = 오늘 날짜
+recordDate.valueAsDate = new Date();
+
+// 버튼 누르면 날짜 input 토글
+dateToggleBtn.addEventListener('click', () => {
+    const isHidden = recordDate.style.display === 'none';
+    recordDate.style.display = isHidden ? 'block' : 'none';
+});
+    
 </script>
 </body>
 </html>
