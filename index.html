@@ -527,30 +527,72 @@ auth.onAuthStateChanged(async user=>{
         googleLoginBtn.style.display = 'none';
         logoutBtn.style.display = 'block';
         userInfo.textContent = user.displayName || user.email || '';
-        // 로드: Firestore에 있는 최근 records 가져와 덮어쓰자 (간단)
+
+        /* 🔥 [추가] 3대 기록 최신값 불러오기 */
         try{
-            const snap = await db.collection('users').doc(user.uid).collection('records').orderBy('createdAt','desc').limit(200).get();
-            // reset local
-            records.bench = []; records.squat = []; records.dead = [];
+            const threeSnap = await db
+              .collection('users')
+              .doc(user.uid)
+              .collection('threeRM')
+              .orderBy('createdAt', 'desc')
+              .limit(1)
+              .get();
+
+            if(!threeSnap.empty){
+                const data = threeSnap.docs[0].data();
+                benchRM.value = data.bench || 0;
+                squatRM.value = data.squat || 0;
+                deadRM.value = data.dead || 0;
+                updateTotal3(); // 총합 갱신
+            }
+        }catch(e){
+            console.error('load threeRM err', e);
+        }
+
+        /* 기존 records 로드 (그대로 유지) */
+        try{
+            const snap = await db
+              .collection('users')
+              .doc(user.uid)
+              .collection('records')
+              .orderBy('createdAt','desc')
+              .limit(200)
+              .get();
+
+            records.bench = [];
+            records.squat = [];
+            records.dead = [];
+
             snap.forEach(doc=>{
                 const d = doc.data();
                 if(!d || !d.lift) return;
-                const item = { date: d.date || formatTodayYYMMDD(new Date(d.createdAt?.toDate?.() || new Date())), weight: d.weight, reps: d.reps };
+
+                const item = {
+                    date: d.date || formatTodayYYMMDD(
+                        new Date(d.createdAt?.toDate?.() || new Date())
+                    ),
+                    weight: d.weight,
+                    reps: d.reps
+                };
+
                 if(d.lift === 'bench') records.bench.push(item);
                 if(d.lift === 'squat') records.squat.push(item);
                 if(d.lift === 'dead') records.dead.push(item);
             });
-            // show latest on top
-            records.bench = records.bench.reverse();
-            records.squat = records.squat.reverse();
-            records.dead = records.dead.reverse();
+
+            records.bench.reverse();
+            records.squat.reverse();
+            records.dead.reverse();
             renderActiveBox();
-        }catch(e){ console.error('load records err', e); }
+
+        }catch(e){
+            console.error('load records err', e);
+        }
+
     } else {
         googleLoginBtn.style.display = 'block';
         logoutBtn.style.display = 'none';
         userInfo.textContent = '';
-        // keep local records as-is (user might have local adds)
     }
 });
 
