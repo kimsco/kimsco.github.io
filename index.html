@@ -413,7 +413,7 @@ save3Btn.addEventListener('click', async ()=>{
           .collection('users')
           .doc(user.uid)
           .collection('threeRM') // 🔥 숫자 제거
-          .add({
+          .set({
               bench,
               squat,
               dead,
