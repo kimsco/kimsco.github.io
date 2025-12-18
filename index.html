@@ -409,18 +409,18 @@ save3Btn.addEventListener('click', async ()=>{
     }
 
     try{
-        await db
-          .collection('users')
-          .doc(user.uid)
-          .collection('threeRM') // 🔥 숫자 제거
-          .doc('record')  // 🔥 문서 지정
-          .set({
-              bench,
-              squat,
-              dead,
-              total,
-              createdAt: firebase.firestore.FieldValue.serverTimestamp()
-          });
+       await db
+  .collection('users')
+  .doc(user.uid)
+  .collection('threeRM')
+  .doc('current')   // 👈 문서 하나 고정
+  .set({
+      bench,
+      squat,
+      dead,
+      total,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  });
 
         showSave3Message('3대 기록 저장 완료!');
     }catch(e){
