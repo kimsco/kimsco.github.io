@@ -264,6 +264,36 @@ input[type="number"] {
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <script>
+// --- 🔥 추가: 날짜 기본 숨김 + 선택 버튼 ---
+const dateInput = recordDate;
+dateInput.style.display = 'none'; // 기본 숨김
+
+// 날짜 선택 버튼 생성
+const dateBtn = document.createElement('button');
+dateBtn.textContent = '날짜 선택';
+dateBtn.style.height = '40px';
+dateBtn.style.padding = '0 12px';
+dateBtn.style.borderRadius = '6px';
+dateBtn.style.border = 'none';
+dateBtn.style.background = '#FFD700';
+dateBtn.style.color = '#000';
+dateBtn.style.fontWeight = '700';
+dateBtn.style.cursor = 'pointer';
+
+// recordFormRow에 날짜 버튼 추가 (무게/횟수/저장 버튼과 같은 줄)
+const recordRow = document.querySelector('.recordFormRow');
+recordRow.insertBefore(dateBtn, dateInput.nextSibling);
+
+// 버튼 클릭 시 input 표시
+dateBtn.addEventListener('click', () => {
+    if(dateInput.style.display === 'none'){
+        dateInput.style.display = 'block';
+        dateInput.focus();
+    } else {
+        dateInput.style.display = 'none';
+    }
+});
+    
 /* Firebase 설정 (기존 값 유지) */
 const firebaseConfig = {
     apiKey: "AIzaSyCXn174XsW6ndqaeUpVK6XAAf4MR0-q7_k",
