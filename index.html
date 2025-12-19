@@ -652,18 +652,7 @@ function showSave3Message(msg) {
 
     const dateToggleBtn = document.getElementById('dateToggleBtn');
 
-dateToggleBtn.addEventListener('click', () => {
-    if (recordDate.hasAttribute('readonly')) {
-        // 읽기 전용 해제 → 수정 가능
-        recordDate.removeAttribute('readonly');
-        recordDate.style.background = '#777'; // 수정 가능 표시
-        recordDate.focus();
-    } else {
-        // 다시 읽기 전용
-        recordDate.setAttribute('readonly', true);
-        recordDate.style.background = '#333';
-    }
-});
+
 
     const recordDate = document.getElementById('recordDate');
 const datePrev = document.getElementById('datePrev');
