@@ -187,7 +187,16 @@ input[type="number"] {
 </style>
 </head>
 <body>
-
+    
+<!-- 날짜 input 옆에 버튼 추가 -->
+<div class="recordFormRow">
+    <input type="text" id="recordDate" class="r-date" readonly />
+    <button id="dateToggleBtn">날짜 변경</button>
+    <input type="number" id="recordWeight" placeholder="무게(kg)" />
+    <input type="number" id="recordReps" placeholder="횟수" />
+    <button id="recordAdd">저장</button>
+</div>
+    
 <div class="container">
     <div class="subtitle">"대부분의 문제는 돈이 없어서, 그 외의 문제는 근육이 없어서 생긴다"</div>
     <h2>1RM 계산기</h2>
@@ -641,6 +650,21 @@ function showSave3Message(msg) {
         }, 800);
     }, 1000);
 }
+
+    const dateToggleBtn = document.getElementById('dateToggleBtn');
+
+dateToggleBtn.addEventListener('click', () => {
+    if (recordDate.hasAttribute('readonly')) {
+        // 읽기 전용 해제 → 수정 가능
+        recordDate.removeAttribute('readonly');
+        recordDate.style.background = '#777'; // 수정 가능 표시
+        recordDate.focus();
+    } else {
+        // 다시 읽기 전용
+        recordDate.setAttribute('readonly', true);
+        recordDate.style.background = '#333';
+    }
+});
 </script>
 </body>
 </html>
