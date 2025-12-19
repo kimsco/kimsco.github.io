@@ -244,8 +244,13 @@ input[type="number"] {
 
         <!-- 입력폼 (가로 한줄) -->
         <div class="recordFormRow">
-            <input type="text" id="recordDate" class="r-date" readonly />
-            <button id="dateToggleBtn">날짜 변경</button>
+            
+            <div class="dateControl">
+    <button type="button" id="datePrev">−</button>
+    <input type="text" id="recordDate" class="r-date" readonly />
+    <button type="button" id="dateNext">+</button>
+</div>
+            
             <input type="number" id="recordWeight" placeholder="무게(kg)" />
             <input type="number" id="recordReps" placeholder="횟수" />
             <button id="recordAdd">저장</button>
@@ -659,6 +664,29 @@ dateToggleBtn.addEventListener('click', () => {
         recordDate.style.background = '#333';
     }
 });
+
+    const recordDate = document.getElementById('recordDate');
+const datePrev = document.getElementById('datePrev');
+const dateNext = document.getElementById('dateNext');
+
+function formatDate(date) {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+}
+
+let currentDate = new Date();
+recordDate.value = formatDate(currentDate);
+
+function moveDate(days) {
+    currentDate.setDate(currentDate.getDate() + days);
+    recordDate.value = formatDate(currentDate);
+}
+
+datePrev.addEventListener('click', () => moveDate(-1));
+dateNext.addEventListener('click', () => moveDate(1));
+    
 </script>
 </body>
 </html>
