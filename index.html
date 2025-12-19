@@ -615,14 +615,7 @@ auth.onAuthStateChanged(async user=>{
     }
 });
 
-/* 초기 폴더 버튼(가로) behavior already set; ensure renderActiveBox is called on tab change */
-folderBtns.forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-        // renderActiveBox will be called by the earlier folderBtns listener (it toggles active class),
-        // but ensure we re-render for the selected folder:
-        setTimeout(renderActiveBox, 0);
-    });
-});
+
 
 /* 스크롤 시 로그인 숨기기 (원래 동작 유지) */
 window.addEventListener("scroll", ()=>{
