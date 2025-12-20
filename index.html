@@ -210,6 +210,40 @@ input[type="number"] {
     text-align: center;
 }
 
+/* ===== 달력 팝업 ===== */
+.popup {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.popup.hidden {
+  display: none;
+}
+
+.popup-box {
+  background: #111;
+  padding: 20px;
+  border-radius: 12px;
+  width: 80%;
+  max-width: 300px;
+}
+
+.muscles {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin: 15px 0;
+}
+
+.muscles button.active {
+  background: #8b0000;
+  color: white;
+}
 
 
     
@@ -403,6 +437,7 @@ for (let r=1; r<=10; r++){
 /* 탭 전환 (1RM / 3대) - 기존 동작 유지 */
 tabBtns.forEach(btn=>{
     btn.addEventListener('click', ()=>{
+        calPopup.classList.add("hidden");
         tabBtns.forEach(b=>b.classList.remove('active'));
         btn.classList.add('active');
         const target = btn.dataset.target;
