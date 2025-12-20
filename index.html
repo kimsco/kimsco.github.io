@@ -42,7 +42,7 @@ td { padding:8px; text-align:center; }
 
 /* 탭 스타일 */
 .tab { display:flex; justify-content:center; gap:10px; margin-bottom:20px; }
-.tab button { padding:10px 20px; border:none; border-radius:8px; cursor:pointer; background:#333; color:white; font-weight:bold;  font-size:18px;}
+.tab button { padding:10px 20px; border:none; border-radius:8px; cursor:pointer; background:#333; color:white; font-weight:bold;  font-size:17px;}
 .tab button.active { background:#FFD700; color:black; }
 
 /* 탭 컨텐츠 숨기기 */
@@ -245,7 +245,13 @@ input[type="number"] {
   color: white;
 }
 
-
+/* 요일 / 날짜 그리드 */
+.weekdays,
+.days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr); /* 🔥 핵심 */
+  gap: 6px;
+}
     
 /* 로그인 area hide on scroll */
 </style>
