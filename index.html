@@ -206,7 +206,7 @@ input[type="number"] {
     background: transparent;
     border: none;
     color: #fff;
-    font-size: 8px;
+    font-size: 13px;
     text-align: center;
 }
 
@@ -228,6 +228,7 @@ input[type="number"] {
     <div class="tab">
         <button class="tabBtn active" data-target="tab1">1RM 계산기</button>
         <button class="tabBtn" data-target="tab2">3대 기록표</button>
+        <button class="tabBtn" data-target="tab3">달력</button>
     </div>
 
     <!-- 1RM 계산기 -->
@@ -256,6 +257,40 @@ input[type="number"] {
             </tr>
         </table>
 
+<!-- 달력 탭 -->
+<div id="tab3" class="tabContent">
+  <div class="calendar">
+    <div class="header">
+      <button id="calPrev">&lt;</button>
+      <div id="calMonth"></div>
+      <button id="calNext">&gt;</button>
+    </div>
+
+    <div class="weekdays">
+      <div>월</div><div>화</div><div>수</div><div>목</div>
+      <div>금</div><div>토</div><div>일</div>
+    </div>
+
+    <div id="calDays" class="days"></div>
+  </div>
+</div>
+
+<!-- 팝업 -->
+<div id="calPopup" class="popup hidden">
+  <div class="popup-box">
+    <h3 id="calPopupDate"></h3>
+
+    <div class="muscles">
+      <button data-muscle="가슴">가슴</button>
+      <button data-muscle="등">등</button>
+      <button data-muscle="팔">팔</button>
+      <button data-muscle="하체">하체</button>
+    </div>
+
+    <button id="calSave">완료</button>
+  </div>
+</div>
+        
         <!-- 기존 3대 저장 버튼 (항상 보임) -->
         <button id="save3Btn">3대 기록 저장</button>
         <div id="save3Result" class="fade" style="margin-top:8px;font-size:15px;"></div>
@@ -694,6 +729,118 @@ function moveDate(days) {
 
 datePrev.addEventListener('click', () => moveDate(-1));
 dateNext.addEventListener('click', () => moveDate(1));
+
+/******** 달력 + long press 코드 여기 ********/
+/********************
+ * 📅 달력 로직 (tab3)
+ ********************/
+
+const calDaysEl = document.getElementById("calDays");
+const calMonthEl = document.getElementById("calMonth");
+const calPopup = document.getElementById("calPopup");
+const calPopupDate = document.getElementById("calPopupDate");
+const calSaveBtn = document.getElementById("calSave");
+const calMuscleBtns = calPopup.querySelectorAll(".muscles button");
+
+let calCurrent = new Date();
+let calData = JSON.parse(localStorage.getItem("workoutCalendar")) || {};
+let calSelectedDate = null;
+let calSelectedMuscles = [];
+
+function calRender() {
+  calDaysEl.innerHTML = "";
+
+  const y = calCurrent.getFullYear();
+  const m = calCurrent.getMonth();
+  calMonthEl.textContent = `${y}년 ${m + 1}월`;
+
+  const first = new Date(y, m, 1);
+  const start = (first.getDay() + 6) % 7;
+  const last = new Date(y, m + 1, 0).getDate();
+
+  for (let i = 0; i < start; i++) {
+    calDaysEl.appendChild(document.createElement("div"));
+  }
+
+  for (let d = 1; d <= last; d++) {
+    const cell = document.createElement("div");
+    const key = `${y}-${m + 1}-${d}`;
+    cell.textContent = d;
+
+    if (calData[key]?.muscles?.length) {
+      cell.classList.add("done");
+    }
+
+    let timer;
+    cell.addEventListener("touchstart", () => {
+      timer = setTimeout(() => calOpenPopup(key), 500);
+    });
+    cell.addEventListener("touchend", () => clearTimeout(timer));
+
+    cell.addEventListener("mousedown", () => {
+      timer = setTimeout(() => calOpenPopup(key), 500);
+    });
+    cell.addEventListener("mouseup", () => clearTimeout(timer));
+
+    calDaysEl.appendChild(cell);
+  }
+}
+
+function calOpenPopup(key) {
+  calSelectedDate = key;
+  calSelectedMuscles = calData[key]?.muscles || [];
+  calPopupDate.textContent = key;
+
+  calMuscleBtns.forEach(btn => {
+    btn.classList.toggle(
+      "active",
+      calSelectedMuscles.includes(btn.dataset.muscle)
+    );
+  });
+
+  calPopup.classList.remove("hidden");
+}
+
+calMuscleBtns.forEach(btn => {
+  btn.onclick = () => {
+    const m = btn.dataset.muscle;
+    if (calSelectedMuscles.includes(m)) {
+      calSelectedMuscles = calSelectedMuscles.filter(x => x !== m);
+    } else {
+      calSelectedMuscles.push(m);
+    }
+    btn.classList.toggle("active");
+  };
+});
+
+calSaveBtn.onclick = () => {
+  if (calSelectedMuscles.length === 0) {
+    delete calData[calSelectedDate];
+  } else {
+    calData[calSelectedDate] = { muscles: calSelectedMuscles };
+  }
+  localStorage.setItem("workoutCalendar", JSON.stringify(calData));
+  calPopup.classList.add("hidden");
+  calRender();
+};
+
+calPopup.onclick = e => {
+  if (e.target === calPopup) calPopup.classList.add("hidden");
+};
+
+document.getElementById("calPrev").onclick = () => {
+  calCurrent.setMonth(calCurrent.getMonth() - 1);
+  calRender();
+};
+
+document.getElementById("calNext").onclick = () => {
+  calCurrent.setMonth(calCurrent.getMonth() + 1);
+  calRender();
+};
+
+calRender();
+
+
     
 </script>
 </body>
