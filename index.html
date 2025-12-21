@@ -6,13 +6,25 @@
 <title>1RM 계산기 + 3대 기록표</title>
 <style> 
 body {
-    background: black;
-    color: white;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
-    text-align: center;
-    padding: 70px 20px 20px 20px;
+    margin: 0;
+    background: #000;
+    display: flex;
+    justify-content: center;
 }
-.container { max-width: 400px; margin: auto; }
+
+/* 📱 가짜 아이폰 화면 */
+.app {
+    width: 390px;              /* iPhone 14 기준 */
+    min-height: 100vh;
+    background: black;
+    box-shadow: 0 0 40px rgba(0,0,0,0.8);
+    overflow-x: hidden;
+}
+.container {
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 70px 16px 20px;
+}
 .subtitle { font-size:16px;  margin-top: 40px; margin-bottom: 20px; }
 
 select, button {
@@ -297,8 +309,7 @@ h2 {
 </style>
 </head>
 <body>
-    
-
+     <div class="app">
     
 <div class="container">
     <div class="subtitle">"대부분의 문제는 돈이 없어서, 그 외의 문제는 근육이 없어서 생긴다"</div>
