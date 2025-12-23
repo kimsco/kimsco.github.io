@@ -4,909 +4,279 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
 <title>1RM 계산기 + 3대 기록표</title>
-<style> 
+
+<style>
+/* ===== 기본 ===== */
 body {
+    margin: 0;
     background: black;
     color: white;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
-    text-align: center;
-    padding: 70px 20px 20px 20px;
-}
-.container { max-width: 400px; margin: auto; }
-.subtitle { font-size:16px;  margin-top: 40px; margin-bottom: 20px; }
-
-select, button {
-    width:100%; padding:14px; margin:10px 0; font-size:18px;
-    border-radius:10px; border:none; text-align:center;
-}
-button { font-size:20px; background:white; color:black; font-weight:bold; cursor:pointer; }
-#result { margin-top:20px; font-size:22px; }
-table { width:100%; margin-top:15px; border-collapse: collapse; }
-table, td { border:1px solid white; }
-td { padding:8px; text-align:center; }
-
-#loginArea {
-    position: absolute;
-    top: 10px;
-    left: 10px;
     display: flex;
-    flex-direction: column;
-    gap: 6px;
-    padding: 8px;
-    background: rgba(0,0,0,0.5);
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-}
-#loginArea button { padding: 8px 12px; font-size: 13px; border-radius:6px; }
-#userInfo { font-size:12px; color:#fff; text-align:center; }
-
-/* 탭 스타일 */
-.tab { display:flex; justify-content:center; gap:10px; margin-bottom:20px; }
-.tab button { padding:10px 20px; border:none; border-radius:8px; cursor:pointer; background:#333; color:white; font-weight:bold;  font-size:16px;}
-.tab button.active { background:#FFD700; color:black; }
-
-/* 탭 컨텐츠 숨기기 */
-.tabContent { display:none; }
-.tabContent.active { display:block; }
-
-/* 3대 총합 강조 */
-#total3 { font-size:28px; font-weight:bold; margin-bottom:15px; color:#FFD700; }
-
-/* 3대 기록표 개선 */
-table.ThreeRM { margin:auto; width:100%; max-width:380px; }
-table.ThreeRM td { padding:10px; width:33%; }
-input.rmInput { width:100%; height:40px; font-size:18px; text-align:center; background:transparent; color:#fff; border-radius:6px; }
-
-/* 3대 기록 저장 버튼 */
-#save3Btn { 
-    width:100%; 
-    padding:14px; 
-    font-size:18px; 
-    margin-top:10px; 
-    border-radius:10px; 
-    border:none; 
-    background:white; 
-    color:black; 
-    font-weight:bold; 
-    cursor:pointer;
+    justify-content: center;
 }
 
-/* 폴더 버튼 (가로 정렬) */
-.recordFolders {
-    display:flex;
-    justify-content:center;
-    gap:10px;
-    margin-top:20px;
-}
-.folderBtn {
-    padding:10px 12px;
-    border:none;
-    border-radius:8px;
-    background:#333;
-    color:white;
-    font-weight:bold;
-    cursor:pointer;
-    min-width:100px;
-}
-.folderBtn.active {
-    background:#FFD700;
-    color:black;
+/* 📱 폰 화면 프레임 */
+.app {
+    width: 390px;
+    min-height: 100vh;
+    background: black;
+    overflow-x: hidden;
 }
 
-/* 하나의 박스(탭처럼 교체) */
-.folderContent {
-    display:none;
-    margin-top:15px;
-    width:100%;
-    height:150px;
-    background:#555;
-    border-radius:8px;
-    padding:10px;
-    box-sizing:border-box;
-    text-align:left;
-    overflow:auto;
-}
-.folderContent.active {
-    display:block;
-}
-
-/* 입력폼 한줄 가로배치 (부모) */
-.recordFormRow {
-    display: flex;                 /* 가로 정렬 */
-    gap: 8px;                      /* 요소 사이 간격 */
-    margin-top: 12px;
+/* 컨텐츠 영역 */
+.container {
     width: 100%;
-    max-width: 400px;              /* 전체 줄 최대 폭 */
-    margin-left: auto;
-    margin-right: auto;
-    align-items: center;           /* 🔥 세로 높이 중앙정렬 */
-}
-
-/* 날짜 input */
-.recordFormRow .r-date {
-    width: 90px;                   /* 🔥 고정 폭 */
-    height: 40px;                  /* 🔥 모든 칸과 동일 */
-    padding: 0 6px;                /* 좌우만 여백 */
-    border-radius: 6px;
-    border: none;
-    background: #333;
-    color: #fff;
+    margin: 0 auto;
+    padding: 70px 16px 20px;
     text-align: center;
-    box-sizing: border-box;        /* padding 포함해서 width 유지 */
 }
 
-/* 숫자 입력 (무게, 횟수) */
-.recordFormRow input[type="number"] {
-    flex: 1;               /* 🔥 남은 공간 나눠씀 */
-    min-width: 80px;          /* 🔥 겹침 방지 핵심 */
-    height: 40px;
+.subtitle {
+    font-size: 16px;
+    margin: 40px 0 20px;
 }
 
-/* 저장 버튼 */
-.recordFormRow button {
-    height: 40px;                  /* 🔥 입력칸과 동일 높이 */
-    padding: 20px;               /* 가로 여백만 */
-    border-radius: 6px;
-    border: none;
-    background: #fff;
-    color: #000;
-    font-weight: 700;
-    cursor: pointer;
-}
-
-/* 페이드 메시지 */
-.fade {
-    transition: opacity 0.8s ease;
-}
-#save3Result { margin-top:10px; font-size:16px; opacity:1; }
-#recordMessage { margin-top:8px; font-size:14px; opacity:1; color:#fff; }
-
-
-/* 숫자 입력창의 + - 버튼 제거 (크롬, 엣지) */
-input[type="number"]::-webkit-inner-spin-button,
-input[type="number"]::-webkit-outer-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-}
-
-/* 파이어폭스 */
-input[type="number"] {
-    -moz-appearance: textfield;
-}
-
-.dateControl {
-    display: flex;
-    align-items: center;
-    height: 40px;
-    width: 136px;          /* 🔥 고정 */
-    flex-shrink: 0;        /* 🔥 절대 줄어들지 않음 */
-    border-radius: 6px;
-    background: #222;
-    overflow: hidden;
-}
-
-.dateBtn {
-    width: 28px;
-    height: 40px;
-    border: none;
-    background: #333;
-    color: #FFD700;
+/* ===== 공통 UI ===== */
+select, button {
+    width: 100%;
+    padding: 14px;
+    margin: 10px 0;
     font-size: 18px;
+    border-radius: 10px;
+    border: none;
+    text-align: center;
+}
+
+button {
+    background: white;
+    color: black;
     font-weight: bold;
     cursor: pointer;
 }
 
-.dateBtn:active {
-    background: #444;
+#result { margin-top: 20px; font-size: 22px; }
+
+table {
+    width: 100%;
+    margin-top: 15px;
+    border-collapse: collapse;
 }
 
-.dateControl .r-date {
-    width: 80px;
-    height: 40px;
-    background: transparent;
-    border: none;
-    color: #fff;
-    font-size: 13px;
+table, td {
+    border: 1px solid white;
+}
+
+td {
+    padding: 8px;
     text-align: center;
 }
 
-/* ===== 달력 팝업 ===== */
-.popup {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.7);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
+/* ===== 탭 ===== */
+.tab {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
 }
 
-.popup.hidden {
-  display: none;
+.tab button {
+    padding: 10px 14px;
+    border-radius: 8px;
+    background: #333;
+    color: white;
+    font-size: 15px;
 }
 
-.popup-box {
-  background: #111;
-  padding: 20px;
-  border-radius: 12px;
-  width: 80%;
-  max-width: 300px;
+.tab button.active {
+    background: #FFD700;
+    color: black;
 }
 
-.muscles {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-  margin: 15px 0;
+.tabContent { display: none; }
+.tabContent.active { display: block; }
+
+/* ===== 3대 ===== */
+#total3 {
+    font-size: 28px;
+    font-weight: bold;
+    margin-bottom: 15px;
+    color: #FFD700;
 }
 
-.muscles button.active {
-  background: #8b0000;
-  color: white;
+.rmInput {
+    width: 100%;
+    height: 40px;
+    font-size: 18px;
+    text-align: center;
+    background: transparent;
+    color: white;
+    border-radius: 6px;
 }
 
-/* 요일 / 날짜 그리드 */
-.weekdays,
-.days {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr); /* 🔥 핵심 */
-  gap: 6px;
+/* ===== 기록 폼 ===== */
+.recordFormRow {
+    display: grid;
+    grid-template-columns: 118px 1fr 1fr auto;
+    gap: 6px;
+    margin-top: 12px;
+    align-items: center;
 }
 
+/* 날짜 컨트롤 */
+.dateControl {
+    display: flex;
+    height: 40px;
+    background: #222;
+    border-radius: 6px;
+    overflow: hidden;
+}
 
-    /* ===== 달력 헤더 (월 이동 버튼 좌/우 정렬) ===== */
+.dateBtn {
+    width: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #333;
+    color: #FFD700;
+    font-size: 14px;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+}
+
+.r-date {
+    width: 74px;
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 12px;
+    text-align: center;
+}
+
+/* 숫자 입력 */
+.recordFormRow input[type="number"] {
+    height: 40px;
+    border-radius: 10px;
+    border: none;
+    background: #222;
+    color: white;
+    font-size: 15px;
+    min-width: 0;
+}
+
+/* 저장 버튼 */
+#recordAdd {
+    height: 40px;
+    padding: 0 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+/* ===== 달력 ===== */
+.weekdays, .days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+}
+
 .calendar .header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
 }
 
 .calendar .header button {
-  width: 36px;
-  height: 36px;
-  padding: 0;
-  border-radius: 50%;
-  background: #111;
-  color: #8b0000; /* 어두운 빨강 */
-  font-size: 18px;
-  font-weight: bold;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #111;
+    color: #8b0000;
+    font-size: 18px;
 }
 
-    
-/* 로그인 area hide on scroll */
+/* ===== 팝업 ===== */
+.popup {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.popup.hidden { display: none; }
+
+.popup-box {
+    background: #111;
+    padding: 20px;
+    border-radius: 12px;
+    width: 80%;
+    max-width: 300px;
+}
 </style>
 </head>
-<body>
-    
 
-    
+<body>
+<div class="app">
+
 <div class="container">
     <div class="subtitle">"대부분의 문제는 돈이 없어서, 그 외의 문제는 근육이 없어서 생긴다"</div>
     <h2>1RM 계산기</h2>
 
-    <!-- 탭 -->
     <div class="tab">
-        <button class="tabBtn active" data-target="tab1">1RM 계산기</button>
-        <button class="tabBtn" data-target="tab2">3대 기록표</button>
+        <button class="tabBtn active" data-target="tab1">1RM</button>
+        <button class="tabBtn" data-target="tab2">3대</button>
         <button class="tabBtn" data-target="tab3">달력</button>
     </div>
 
-    <!-- 1RM 계산기 -->
     <div id="tab1" class="tabContent active">
-        <select id="weight"><option value="">무게 선택</option></select>
-        <select id="reps"><option value="">반복수 선택</option></select>
-        <button id="goBtn">GO</button>
+        <select><option>무게</option></select>
+        <select><option>횟수</option></select>
+        <button>GO</button>
         <div id="result"></div>
-        <div id="tableArea"></div>
-        <div id="saveResult" style="margin-top:20px; font-size:18px;"></div>
     </div>
 
-    <!-- 3대 기록표 -->
     <div id="tab2" class="tabContent">
-        <div id="total3">3대: 0 kg</div>
-        <table class="ThreeRM">
+        <div id="total3">3대: 0kg</div>
+        <table>
+            <tr><td>벤치</td><td>스쿼트</td><td>데드</td></tr>
             <tr>
-                <td>벤치</td>
-                <td>스쿼트</td>
-                <td>데드</td>
-            </tr>
-            <tr>
-                <td><input type="number" id="benchRM" class="rmInput" placeholder="kg" min="0"></td>
-                <td><input type="number" id="squatRM" class="rmInput" placeholder="kg" min="0"></td>
-                <td><input type="number" id="deadRM" class="rmInput" placeholder="kg" min="0"></td>
+                <td><input class="rmInput" type="number"></td>
+                <td><input class="rmInput" type="number"></td>
+                <td><input class="rmInput" type="number"></td>
             </tr>
         </table>
 
-
-        <!-- 기존 3대 저장 버튼 (항상 보임) -->
-        <button id="save3Btn">3대 기록 저장</button>
-        <div id="save3Result" class="fade" style="margin-top:8px;font-size:15px;"></div>
-
-        <!-- 폴더 버튼 (가로) -->
-        <div class="recordFolders" role="tablist" aria-label="기록 탭">
-            <button class="folderBtn active" data-target="benchBox">벤치 기록</button>
-            <button class="folderBtn" data-target="squatBox">스쿼트 기록</button>
-            <button class="folderBtn" data-target="deadBox">데드 기록</button>
+        <div class="recordFormRow">
+            <div class="dateControl">
+                <button class="dateBtn">−</button>
+                <input class="r-date" value="25-09-22" readonly>
+                <button class="dateBtn">+</button>
+            </div>
+            <input type="number" placeholder="무게">
+            <input type="number" placeholder="횟수">
+            <button id="recordAdd">저장</button>
         </div>
-
-        <!-- 하나의 박스 영역 (버튼 누르면 내용 교체) -->
-        <div id="benchBox" class="folderContent active"></div>
-        <div id="squatBox" class="folderContent"></div>
-        <div id="deadBox" class="folderContent"></div>
-
-        <!-- 입력폼 (가로 한줄) -->
-       <div class="recordFormRow">
-
-    <div class="dateControl">
-        <button type="button" class="dateBtn" id="datePrev">−</button>
-        <input type="text" id="recordDate" class="r-date" readonly />
-        <button type="button" class="dateBtn" id="dateNext">+</button>
     </div>
 
-    <input type="number" id="recordWeight" placeholder="무게" />
-    <input type="number" id="recordReps" placeholder="횟수" />
-    <button id="recordAdd">저장</button>
-</div>
-        <div id="recordMessage" class="fade"></div>
+    <div id="tab3" class="tabContent">
+        <div class="calendar">
+            <div class="header">
+                <button>&lt;</button>
+                <div>2025년 9월</div>
+                <button>&gt;</button>
+            </div>
+            <div class="weekdays">
+                <div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div><div>일</div>
+            </div>
+            <div class="days"></div>
+        </div>
     </div>
 </div>
 
-<!-- 달력 탭 -->
-<div id="tab3" class="tabContent">
-  <div class="calendar">
-    <div class="header">
-      <button id="calPrev">&lt;</button>
-      <div id="calMonth"></div>
-      <button id="calNext">&gt;</button>
-    </div>
-
-    <div class="weekdays">
-      <div>월</div><div>화</div><div>수</div><div>목</div>
-      <div>금</div><div>토</div><div>일</div>
-    </div>
-
-    <div id="calDays" class="days"></div>
-  </div>
 </div>
-
-<!-- 팝업 -->
-<div id="calPopup" class="popup hidden">
-  <div class="popup-box">
-    <h3 id="calPopupDate"></h3>
-
-    <div class="muscles">
-      <button data-muscle="가슴">가슴</button>
-      <button data-muscle="등">등</button>
-      <button data-muscle="팔">팔</button>
-      <button data-muscle="하체">하체</button>
-    </div>
-
-    <button id="calSave">완료</button>
-  </div>
-</div>
-        
-
-    
-<!-- 로그인 영역 -->
-<div id="loginArea">
-    <button id="googleLoginBtn">Google 로그인</button>
-    <button id="logoutBtn" style="display:none;">로그아웃</button>
-    <div id="userInfo"></div>
-</div>
-
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-
-<script>
-/* Firebase 설정 (기존 값 유지) */
-const firebaseConfig = {
-    apiKey: "AIzaSyCXn174XsW6ndqaeUpVK6XAAf4MR0-q7_k",
-    authDomain: "rmpj-7ca13.firebaseapp.com",
-    projectId: "rmpj-7ca13",
-    storageBucket: "rmpj-7ca13.firebasestorage.app",
-    messagingSenderId: "983484366324",
-    appId: "1:983484366324:web:5fd58faba825ee39decda1"
-};
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
-
-/* 요소 참조 */
-const tabBtns = document.querySelectorAll('.tabBtn');
-const tabContents = document.querySelectorAll('.tabContent');
-
-const weightSelect = document.getElementById('weight');
-const repsSelect = document.getElementById('reps');
-const goBtn = document.getElementById('goBtn');
-const resultDiv = document.getElementById('result');
-const tableArea = document.getElementById('tableArea');
-
-const benchRM = document.getElementById('benchRM');
-const squatRM = document.getElementById('squatRM');
-const deadRM = document.getElementById('deadRM');
-const total3 = document.getElementById('total3');
-
-const save3Btn = document.getElementById('save3Btn');
-const save3Result = document.getElementById('save3Result');
-
-const folderBtns = document.querySelectorAll('.folderBtn');
-const folderContents = document.querySelectorAll('.folderContent');
-
-const benchBox = document.getElementById('benchBox');
-const squatBox = document.getElementById('squatBox');
-const deadBox = document.getElementById('deadBox');
-
-const recordDate = document.getElementById('recordDate');
-const recordWeight = document.getElementById('recordWeight');
-const recordReps = document.getElementById('recordReps');
-const recordAdd = document.getElementById('recordAdd');
-const recordMessage = document.getElementById('recordMessage');
-
-const googleLoginBtn = document.getElementById('googleLoginBtn');
-const logoutBtn = document.getElementById('logoutBtn');
-const userInfo = document.getElementById('userInfo');
-
-/* 무게/반복 옵션 채우기 (1RM 계산기) */
-for (let w=0; w<=250; w+=5){
-    let option = document.createElement("option");
-    option.value = w; option.textContent = w + " kg";
-    weightSelect.appendChild(option);
-}
-for (let r=1; r<=10; r++){
-    let option = document.createElement("option");
-    option.value = r; option.textContent = r + " 회";
-    repsSelect.appendChild(option);
-}
-
-/* 탭 전환 (1RM / 3대) - 기존 동작 유지 */
-tabBtns.forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-        calPopup.classList.add("hidden");
-        tabBtns.forEach(b=>b.classList.remove('active'));
-        btn.classList.add('active');
-        const target = btn.dataset.target;
-        tabContents.forEach(tc=>{
-            if(tc.id === target){
-                tc.classList.add('active');
-                tc.style.display = 'block';
-            } else {
-                tc.classList.remove('active');
-                tc.style.display = 'none';
-            }
-        });
-    });
-});
-
-/* 1RM 계산 (페이드 제거 완전 수정본) */
-goBtn.addEventListener('click', ()=>{
-    const weight = parseFloat(weightSelect.value);
-    const reps = parseInt(repsSelect.value);
-
-    if(!weight || !reps){
-        resultDiv.innerHTML = "무게와 반복수를 입력하세요.";
-        return;
-    }
-
-    const oneRM = weight * (1 + reps * 0.0333);
-
-    // 계산 결과 출력 (사라지지 않음)
-    resultDiv.innerHTML = `예상 1RM: <b>${oneRM.toFixed(1)} kg</b>`;
-
-    // 표 생성
-    let html = `<table><tr><th>RM</th><th>무게 (kg)</th></tr>`;
-    for (let r=1; r<=10; r++){
-        let rmWeight = oneRM / (1 + (r-1)*0.0333);
-        html += `<tr><td>${r}RM</td><td>${rmWeight.toFixed(1)} kg</td></tr>`;
-    }
-    html += `</table>`;
-
-    tableArea.innerHTML = html;
-});
-
-
-/* 페이드 텍스트 유틸 */
-function fadeOutElem(el, timeout=1000, fadeDur=800){
-    el.style.opacity = 1;
-    setTimeout(()=>{
-        el.style.transition = `opacity ${fadeDur}ms ease`;
-        el.style.opacity = 0;
-        setTimeout(()=>{ el.innerHTML=''; el.style.opacity=1; el.style.transition=''; }, fadeDur);
-    }, timeout);
-}
-function fadeTempMsg(el, msg, timeout=1000, fadeDur=800){
-    el.innerHTML = msg;
-    el.style.opacity = 1; 
-    setTimeout(()=>{
-        el.style.transition = `opacity ${fadeDur}ms ease`;
-        el.style.opacity = 0;
-        setTimeout(()=>{ el.innerHTML=''; el.style.opacity=1; el.style.transition=''; }, fadeDur);
-    }, timeout);
-}
-
-/* 3대 총합 업데이트 */
-function updateTotal3(){
-    const b = parseInt(benchRM.value)||0;
-    const s = parseInt(squatRM.value)||0;
-    const d = parseInt(deadRM.value)||0;
-    total3.textContent = `3대: ${b+s+d} kg`;
-}
-[benchRM, squatRM, deadRM].forEach(el => el.addEventListener('input', updateTotal3));
-
-
-
-/* save3Btn: 전체(3대) 저장 — 항상 보이지만 Firestore는 로그인 있을 때만 저장 */
-save3Btn.addEventListener('click', async ()=>{
-
-    const user = auth.currentUser;
-
-    if(!user){
-        showSave3Message('로그인 후 저장해주세요');
-        return;
-    }
-
-    const bench = parseInt(benchRM.value)||0;
-    const squat = parseInt(squatRM.value)||0;
-    const dead = parseInt(deadRM.value)||0;
-    const total = bench + squat + dead;
-
-    if(total === 0){
-        showSave3Message('값을 입력하세요');
-        return;
-    }
-
-    try{
-        await db
-          .collection('users')
-          .doc(user.uid)
-          .collection('threeRM') // 🔥 숫자 제거
-          .add({
-              bench,
-              squat,
-              dead,
-              total,
-              createdAt: firebase.firestore.FieldValue.serverTimestamp()
-          });
-
-        showSave3Message('3대 기록 저장 완료!');
-    }catch(e){
-        console.error('3대 저장 에러:', e);
-        showSave3Message('저장 실패 (콘솔 확인)');
-    }
-});
-
-/* 폴더 버튼 동작 (가로 버튼 → 하나의 박스만 active) */
-folderBtns.forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-        folderBtns.forEach(b=>b.classList.remove('active'));
-        btn.classList.add('active');
-        const target = btn.dataset.target;
-        folderContents.forEach(fc=>{
-            if(fc.id === target) fc.classList.add('active');
-            else fc.classList.remove('active');
-        });
-    });
-});
-
-/* 기록 박스 데이터 (로컬 mock) 및 렌더 함수 */
-const records = { bench: [], squat: [], dead: [] };
-
-// 포맷 날짜: '25.12.10'
-function formatTodayYYMMDD(d = new Date()){
-    const yy = String(d.getFullYear()).slice(2);
-    const mm = String(d.getMonth()+1).padStart(2,'0');
-    const dd = String(d.getDate()).padStart(2,'0');
-    return `${yy}.${mm}.${dd}`;
-}
-
-// 초기 날짜 표시
-recordDate.value = formatTodayYYMMDD();
-
-// 렌더 함수: 현재 active folder의 목록을 그려줌
-function renderActiveBox(){
-    const activeBtn = document.querySelector('.folderBtn.active');
-    const target = activeBtn ? activeBtn.dataset.target : 'benchBox';
-    let arr = [];
-    if(target === 'benchBox') arr = records.bench;
-    else if(target === 'squatBox') arr = records.squat;
-    else if(target === 'deadBox') arr = records.dead;
-
-    const boxEl = document.getElementById(target);
-    if(!arr || arr.length === 0){
-        boxEl.innerHTML = `<div style="color:#ddd">아직 기록이 없습니다. 아래에서 무게/횟수 입력 후 '저장' 버튼을 눌러 기록하세요.</div>`;
-        return;
-    }
-    // 최신 위로
-    boxEl.innerHTML = arr.map(it=>{
-        return `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="color:#ddd">${it.date}</div><div>${it.weight}kg × ${it.reps}회</div></div>`;
-    }).join('');
-}
-renderActiveBox();
-
-/* 기록 추가 (가로 폼에서 저장) */
-recordAdd.addEventListener('click', async ()=>{
-    const weight = parseInt(recordWeight.value);
-    const reps = parseInt(recordReps.value);
-    if(!weight || !reps){
-        fadeTempMsg(recordMessage, '무게와 횟수를 입력하세요', 900, 600);
-        return;
-    }
-    const date = recordDate.value || formatTodayYYMMDD();
-    // 현재 active folder
-    const activeBtn = document.querySelector('.folderBtn.active');
-    const target = activeBtn ? activeBtn.dataset.target : 'benchBox';
-    // push into local records
-    const item = { date, weight, reps };
-    if(target === 'benchBox') records.bench.unshift(item);
-    else if(target === 'squatBox') records.squat.unshift(item);
-    else if(target === 'deadBox') records.dead.unshift(item);
-
-    // clear inputs
-    recordWeight.value = '';
-    recordReps.value = '';
-
-    // show local feedback
-    fadeTempMsg(recordMessage, '기록 추가 완료', 700, 600);
-    renderActiveBox();
-
-    // if logged in, also push to Firestore collection 'records'
-    const user = auth.currentUser;
-    if(user){
-        try{
-            await db.collection('users').doc(user.uid).collection('records').add({
-                lift: target === 'benchBox' ? 'bench' : target === 'squatBox' ? 'squat' : 'dead',
-                date, weight, reps, createdAt: new Date()
-            });
-        }catch(e){ console.error('Firestore add err', e); }
-    }
-});
-
-/* 로그인 (구글) */
-googleLoginBtn.addEventListener('click', ()=>{
-    const provider = new firebase.auth.GoogleAuthProvider();
-    auth.signInWithPopup(provider).catch(e=>alert('로그인 실패: '+e.message));
-});
-logoutBtn.addEventListener('click', ()=> auth.signOut());
-
-/* auth 상태 변화 */
-auth.onAuthStateChanged(async user=>{
-    if(user){
-        googleLoginBtn.style.display = 'none';
-        logoutBtn.style.display = 'block';
-        userInfo.textContent = user.displayName || user.email || '';
-
-        /* 🔥 [추가] 3대 기록 최신값 불러오기 */
-        try{
-            const threeSnap = await db
-              .collection('users')
-              .doc(user.uid)
-              .collection('threeRM')
-              .orderBy('createdAt', 'desc')
-              .limit(1)
-              .get();
-
-            if(!threeSnap.empty){
-                const data = threeSnap.docs[0].data();
-                benchRM.value = data.bench || 0;
-                squatRM.value = data.squat || 0;
-                deadRM.value = data.dead || 0;
-                updateTotal3(); // 총합 갱신
-            }
-        }catch(e){
-            console.error('load threeRM err', e);
-        }
-
-        /* 기존 records 로드 (그대로 유지) */
-        try{
-            const snap = await db
-              .collection('users')
-              .doc(user.uid)
-              .collection('records')
-              .orderBy('createdAt','desc')
-              .limit(200)
-              .get();
-
-            records.bench = [];
-            records.squat = [];
-            records.dead = [];
-
-            snap.forEach(doc=>{
-                const d = doc.data();
-                if(!d || !d.lift) return;
-
-                const item = {
-                    date: d.date || formatTodayYYMMDD(
-                        new Date(d.createdAt?.toDate?.() || new Date())
-                    ),
-                    weight: d.weight,
-                    reps: d.reps
-                };
-
-                if(d.lift === 'bench') records.bench.push(item);
-                if(d.lift === 'squat') records.squat.push(item);
-                if(d.lift === 'dead') records.dead.push(item);
-            });
-
-            records.bench.reverse();
-            records.squat.reverse();
-            records.dead.reverse();
-            renderActiveBox();
-
-        }catch(e){
-            console.error('load records err', e);
-        }
-
-    } else {
-        googleLoginBtn.style.display = 'block';
-        logoutBtn.style.display = 'none';
-        userInfo.textContent = '';
-    }
-});
-
-
-
-/* 스크롤 시 로그인 숨기기 (원래 동작 유지) */
-window.addEventListener("scroll", ()=>{
-    const loginArea = document.getElementById("loginArea");
-    if(window.scrollY > 50) loginArea.style.display="none";
-    else loginArea.style.display="flex";
-});
-
- 
-
-/* 메시지 페이드아웃 */
-function showSave3Message(msg) {
-    save3Result.textContent = msg;
-    save3Result.style.opacity = 1;
-
-    setTimeout(() => {
-        save3Result.style.transition = "opacity 0.8s";
-        save3Result.style.opacity = 0;
-
-        setTimeout(() => {
-            save3Result.textContent = "";
-            save3Result.style.transition = "";
-            save3Result.style.opacity = 1;
-        }, 800);
-    }, 1000);
-}
-
-
-const datePrev = document.getElementById('datePrev');
-const dateNext = document.getElementById('dateNext');
-
-function formatDate(date) {
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, '0');
-    const d = String(date.getDate()).padStart(2, '0');
-    return `${y}-${m}-${d}`;
-}
-
-let currentDate = new Date();
-recordDate.value = formatDate(currentDate);
-
-function moveDate(days) {
-    currentDate.setDate(currentDate.getDate() + days);
-    recordDate.value = formatDate(currentDate);
-}
-
-datePrev.addEventListener('click', () => moveDate(-1));
-dateNext.addEventListener('click', () => moveDate(1));
-
-/******** 달력 + long press 코드 여기 ********/
-/********************
- * 📅 달력 로직 (tab3)
- ********************/
-
-const calDaysEl = document.getElementById("calDays");
-const calMonthEl = document.getElementById("calMonth");
-const calPopup = document.getElementById("calPopup");
-const calPopupDate = document.getElementById("calPopupDate");
-const calSaveBtn = document.getElementById("calSave");
-const calMuscleBtns = calPopup.querySelectorAll(".muscles button");
-
-let calCurrent = new Date();
-let calData = JSON.parse(localStorage.getItem("workoutCalendar")) || {};
-let calSelectedDate = null;
-let calSelectedMuscles = [];
-
-function calRender() {
-  calDaysEl.innerHTML = "";
-
-  const y = calCurrent.getFullYear();
-  const m = calCurrent.getMonth();
-  calMonthEl.textContent = `${y}년 ${m + 1}월`;
-
-  const first = new Date(y, m, 1);
-  const start = (first.getDay() + 6) % 7;
-  const last = new Date(y, m + 1, 0).getDate();
-
-  for (let i = 0; i < start; i++) {
-    calDaysEl.appendChild(document.createElement("div"));
-  }
-
-  for (let d = 1; d <= last; d++) {
-    const cell = document.createElement("div");
-    const key = `${y}-${m + 1}-${d}`;
-    cell.textContent = d;
-
-    if (calData[key]?.muscles?.length) {
-      cell.classList.add("done");
-    }
-
-    let timer;
-    cell.addEventListener("touchstart", () => {
-      timer = setTimeout(() => calOpenPopup(key), 500);
-    });
-    cell.addEventListener("touchend", () => clearTimeout(timer));
-
-    cell.addEventListener("mousedown", () => {
-      timer = setTimeout(() => calOpenPopup(key), 500);
-    });
-    cell.addEventListener("mouseup", () => clearTimeout(timer));
-
-    calDaysEl.appendChild(cell);
-  }
-}
-
-function calOpenPopup(key) {
-  calSelectedDate = key;
-  calSelectedMuscles = calData[key]?.muscles || [];
-  calPopupDate.textContent = key;
-
-  calMuscleBtns.forEach(btn => {
-    btn.classList.toggle(
-      "active",
-      calSelectedMuscles.includes(btn.dataset.muscle)
-    );
-  });
-
-  calPopup.classList.remove("hidden");
-}
-
-calMuscleBtns.forEach(btn => {
-  btn.onclick = () => {
-    const m = btn.dataset.muscle;
-    if (calSelectedMuscles.includes(m)) {
-      calSelectedMuscles = calSelectedMuscles.filter(x => x !== m);
-    } else {
-      calSelectedMuscles.push(m);
-    }
-    btn.classList.toggle("active");
-  };
-});
-
-calSaveBtn.onclick = () => {
-  if (calSelectedMuscles.length === 0) {
-    delete calData[calSelectedDate];
-  } else {
-    calData[calSelectedDate] = { muscles: calSelectedMuscles };
-  }
-  localStorage.setItem("workoutCalendar", JSON.stringify(calData));
-  calPopup.classList.add("hidden");
-  calRender();
-};
-
-calPopup.onclick = e => {
-  if (e.target === calPopup) calPopup.classList.add("hidden");
-};
-
-document.getElementById("calPrev").onclick = () => {
-  calCurrent.setMonth(calCurrent.getMonth() - 1);
-  calRender();
-};
-
-document.getElementById("calNext").onclick = () => {
-  calCurrent.setMonth(calCurrent.getMonth() + 1);
-  calRender();
-};
-
-calRender();
-
-
-    
-</script>
 </body>
 </html>
