@@ -6,25 +6,13 @@
 <title>1RM 계산기 + 3대 기록표</title>
 <style> 
 body {
-    margin: 0;
-    background: #000;
-    display: flex;
-    justify-content: center;
-}
-
-/* 📱 가짜 아이폰 화면 */
-.app {
-    width: 390px;              /* iPhone 14 기준 */
-    min-height: 100vh;
     background: black;
-    box-shadow: 0 0 40px rgba(0,0,0,0.8);
-    overflow-x: hidden;
+    color: white;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
+    text-align: center;
+    padding: 70px 20px 20px 20px;
 }
-.container {
-    max-width: 100%;
-    margin: 0 auto;
-    padding: 70px 16px 20px;
-}
+.container { max-width: 400px; margin: auto; }
 .subtitle { font-size:16px;  margin-top: 40px; margin-bottom: 20px; }
 
 select, button {
@@ -124,13 +112,11 @@ input.rmInput { width:100%; height:40px; font-size:18px; text-align:center; back
 
 /* 입력폼 한줄 가로배치 (부모) */
 .recordFormRow {
-    display: grid;                 /* 가로 정렬 */
-  grid-template-columns: 118px 1fr 1fr 56px;
-    gap: 6px;                    /* 요소 사이 간격 */
+    display: flex;                 /* 가로 정렬 */
+    gap: 8px;                      /* 요소 사이 간격 */
     margin-top: 12px;
     width: 100%;
     max-width: 400px;              /* 전체 줄 최대 폭 */
-     box-sizing: border-box;
     margin-left: auto;
     margin-right: auto;
     align-items: center;           /* 🔥 세로 높이 중앙정렬 */
@@ -151,24 +137,16 @@ input.rmInput { width:100%; height:40px; font-size:18px; text-align:center; back
 
 /* 숫자 입력 (무게, 횟수) */
 .recordFormRow input[type="number"] {
-    width: 100%;
+    flex: 1;               /* 🔥 남은 공간 나눠씀 */
+    min-width: 80px;          /* 🔥 겹침 방지 핵심 */
     height: 40px;
-    min-width: 0;
-    border-radius: 10px;   /* ← 둥글둥글 */
-    border: none;
-    background: #222;
-    color: #fff;
-    font-size: 15px;
 }
 
 /* 저장 버튼 */
 .recordFormRow button {
-    flex: 0 0 auto;   /* 🔥 절대 늘어나지 마 */
     height: 40px;                  /* 🔥 입력칸과 동일 높이 */
-    padding: 0 8px;               /* 가로 여백만 */
+    padding: 20px;               /* 가로 여백만 */
     border-radius: 6px;
-     font-size: 14px;
-      white-space: nowrap;
     border: none;
     background: #fff;
     color: #000;
@@ -200,7 +178,7 @@ input[type="number"] {
     display: flex;
     align-items: center;
     height: 40px;
-    width: 120px;          /* 🔥 고정 */
+    width: 136px;          /* 🔥 고정 */
     flex-shrink: 0;        /* 🔥 절대 줄어들지 않음 */
     border-radius: 6px;
     background: #222;
@@ -208,12 +186,12 @@ input[type="number"] {
 }
 
 .dateBtn {
-    width: 22px;
+    width: 28px;
     height: 40px;
     border: none;
     background: #333;
     color: #FFD700;
-    font-size: 14px;
+    font-size: 18px;
     font-weight: bold;
     cursor: pointer;
 }
@@ -228,7 +206,7 @@ input[type="number"] {
     background: transparent;
     border: none;
     color: #fff;
-    font-size: 12px;
+    font-size: 13px;
     text-align: center;
 }
 
@@ -294,22 +272,14 @@ input[type="number"] {
   font-size: 18px;
   font-weight: bold;
 }
+
     
-h2 {
-  font-size: clamp(18px, 5vw, 24px);
-  white-space: nowrap;
-}
-    @media (max-width: 480px) {
-  .tab button {
-    font-size: 14px;
-    padding: 8px 12px;
-  }
-}
 /* 로그인 area hide on scroll */
 </style>
 </head>
 <body>
-     <div class="app">
+    
+
     
 <div class="container">
     <div class="subtitle">"대부분의 문제는 돈이 없어서, 그 외의 문제는 근육이 없어서 생긴다"</div>
