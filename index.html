@@ -205,7 +205,7 @@ td, th {
 ================================ */
 .calendar .header {
     display: grid;
-    grid-template-columns: 40px 1fr 40px;
+    grid-template-columns: 48px 1fr 40px;
     align-items: center;
     margin-bottom: 14px;
 }
@@ -213,14 +213,15 @@ td, th {
     font-size: 16px;
     font-weight: 600;
     color: #eee;
-    letter-spacing: 0.5px;
+    white-space: nowrap;   /* 🔥 줄바꿈 방지 */
+    text-align: center;
 }
  .month-btn {
     background: transparent;
     border: none;
     color: #8b0000; /* 어두운 빨강 */
     font-size: 18px;
-    padding: 6px 10px;
+    padding: 8px 10px;
     cursor: pointer;
     opacity: 0.7;
 }
@@ -269,10 +270,7 @@ td, th {
     background:#8b0000;
     color:white;
 }
-   #calMonth {
-    text-align: center;
-    line-height: 1.2;
-}
+
 </style>
 </head>
 
@@ -800,10 +798,7 @@ function calRender() {
 
   const y = calCurrent.getFullYear();
   const m = calCurrent.getMonth();
-  calMonthEl.innerHTML = `
-  <div class="year">${y}년</div>
-  <div class="month">${m + 1}월</div>
-`;
+ calMonthEl.textContent = `${y}년 ${m + 1}월`;
 
 
   const first = new Date(y, m, 1);
