@@ -801,7 +801,10 @@ function calRender() {
 
   const y = calCurrent.getFullYear();
   const m = calCurrent.getMonth();
-  calMonthEl.innerHTML = `${y}년<br><span style="font-size:20px">${m + 1}월</span>`;
+  calMonthEl.innerHTML = `
+  <div class="year">${y}년</div>
+  <div class="month">${m + 1}월</div>
+`;
 
 
   const first = new Date(y, m, 1);
