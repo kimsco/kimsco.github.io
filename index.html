@@ -67,26 +67,33 @@ td, th {
 /* ===============================
    로그인 영역
 ================================ */
-#loginArea {
-    position: fixed;
-    top: 10px;
-    left: 10px;
-    z-index: 1000;
+.topBar {
+    position: relative;
     display: flex;
-    flex-direction: column;
+    justify-content: flex-end;
+    margin-bottom: 10px;
+}
+
+#loginArea {
+    position: static;
+    display: flex;
+    align-items: center;
     gap: 6px;
-    padding: 8px;
-    background: rgba(0,0,0,0.5);
-    border-radius: 8px;
+    padding: 0;
+    background: none;
 }
+
 #loginArea button {
-    padding: 8px 12px;
-    font-size: 13px;
+    padding: 6px 10px;
+    font-size: 12px;
+    border-radius: 6px;
 }
+
 #userInfo {
-    font-size:12px;
-    text-align:center;
+    font-size: 11px;
+    opacity: 0.8;
 }
+
 
 /* ===============================
    탭
@@ -420,6 +427,7 @@ td, th {
 </div>
 
 <!-- 로그인 -->
+    <div class="topBar">
 <div id="loginArea">
     <button id="googleLoginBtn">Google 로그인</button>
     <button id="logoutBtn" style="display:none;">로그아웃</button>
