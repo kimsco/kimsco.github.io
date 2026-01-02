@@ -863,17 +863,7 @@ function calRender() {
   const first = new Date(y, m, 1);
   const start = (first.getDay() + 6) % 7;
   const last = new Date(y, m + 1, 0).getDate();
-   
-const today = new Date();
-if (
-  y === today.getFullYear() &&
-  m === today.getMonth() &&
-  d === today.getDate()
-) {
-  cell.classList.add("today");
-}
 
-   
   for (let i = 0; i < start; i++) {
     calDaysEl.appendChild(document.createElement("div"));
   }
@@ -900,7 +890,6 @@ if (
 
     calDaysEl.appendChild(cell);
   }
-   
 }
 
 function calOpenPopup(key) {
