@@ -230,17 +230,74 @@ td, th {
     opacity: 1;
     transform: scale(0.95);
 }  
-.weekdays, .days {
-    display:grid;
+/* ===== 요일 ===== */
+.weekdays {
+    display: grid;
     grid-template-columns: repeat(7, 1fr);
-    gap:6px;
-}
-.days div {
-    padding:10px 0;
-    background:#222;
-    border-radius:6px;
+    margin-bottom: 8px;
 }
 
+.weekdays div {
+    text-align: center;
+    font-size: 12px;
+    color: #aaa;
+    letter-spacing: 0.5px;
+    padding-bottom: 6px;
+}
+
+/* 일요일 빨간 포인트 */
+.weekdays div:last-child {
+    color: #8b0000;
+}
+
+   /* ===== 날짜 그리드 ===== */
+.days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 10px;
+}
+
+/* 날짜 셀 */
+.days div {
+    aspect-ratio: 1 / 1;
+    background: #1a1a1a;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    font-weight: 500;
+    color: #eee;
+    cursor: pointer;
+    transition: all 0.18s ease;
+}
+
+/* hover (PC) */
+.days div:hover {
+    background: #2a2a2a;
+    transform: translateY(-1px);
+}
+
+/* 오늘 날짜 */
+.days div.today {
+    border: 1px solid #FFD700;
+    color: #FFD700;
+}
+
+/* 운동한 날 */
+.days div.done {
+    background: linear-gradient(135deg, #8b0000, #400000);
+    color: white;
+    font-weight: 600;
+}
+
+/* 빈칸 (월 시작 전) */
+.days div:empty {
+    background: transparent;
+    cursor: default;
+}
+
+   
 /* ===============================
    팝업
 ================================ */
@@ -794,6 +851,15 @@ let calSelectedDate = null;
 let calSelectedMuscles = [];
 
 function calRender() {
+   const today = new Date();
+if (
+  y === today.getFullYear() &&
+  m === today.getMonth() &&
+  d === today.getDate()
+) {
+  cell.classList.add("today");
+}
+   
   calDaysEl.innerHTML = "";
 
   const y = calCurrent.getFullYear();
