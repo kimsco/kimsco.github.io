@@ -270,6 +270,10 @@ td, th {
     background:#8b0000;
     color:white;
 }
+   #calMonth {
+    text-align: center;
+    line-height: 1.2;
+}
 </style>
 </head>
 
@@ -797,7 +801,8 @@ function calRender() {
 
   const y = calCurrent.getFullYear();
   const m = calCurrent.getMonth();
-  calMonthEl.textContent = `${y}년 ${m + 1}월`;
+  calMonthEl.innerHTML = `${y}년<br><span style="font-size:20px">${m + 1}월</span>`;
+
 
   const first = new Date(y, m, 1);
   const start = (first.getDay() + 6) % 7;
