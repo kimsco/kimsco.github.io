@@ -851,14 +851,7 @@ let calSelectedDate = null;
 let calSelectedMuscles = [];
 
 function calRender() {
-   const today = new Date();
-if (
-  y === today.getFullYear() &&
-  m === today.getMonth() &&
-  d === today.getDate()
-) {
-  cell.classList.add("today");
-}
+   
    
   calDaysEl.innerHTML = "";
 
