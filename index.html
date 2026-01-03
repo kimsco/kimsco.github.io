@@ -174,37 +174,27 @@ td, th {
 /* ===============================
    기록 입력 한 줄
 ================================ */
+/* 기록 입력 한 줄 비율 조정 */
 .recordFormRow {
-    display:flex;
-    gap:6px;
-    align-items:center;
-    margin-top:12px;
+    display: flex;
+    gap: 6px;
+    align-items: center;
 }
 
 .dateControl {
-    display:flex;
-    align-items:center;
-    background:#222;
-    border-radius:8px;
-    overflow:hidden;
+    flex: 1.2;   /* 🔥 날짜 영역 살림 */
 }
 
-.dateBtn {
-    width:28px;
-    height:40px;
-    background:#333;
-    color:#FFD700;
-    font-size:18px;
+.recordFormRow input[type="number"] {
+    flex: 0.66;  /* 🔥 kg / 횟수 = 2/3 */
 }
 
-.r-date {
-    width:80px;
-    height:40px;
-    background:transparent;
-    color:white;
-    text-align:center;
-    font-size:13px;
+#recordAdd {
+    flex: 0.5;   /* 🔥 저장 버튼 = 1/2 */
+    font-size: 14px;
+    padding: 10px 0;
 }
+
 
 .recordFormRow input[type="number"] {
     height:40px;
