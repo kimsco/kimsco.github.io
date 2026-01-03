@@ -872,8 +872,22 @@ function calRender() {
     const key = `${y}-${m + 1}-${d}`;
     cell.textContent = d;
 
+const today = new Date();
+const isToday =
+  d === today.getDate() &&
+  m === today.getMonth() &&
+  y === today.getFullYear();
+
+if (isToday) {
+  cell.classList.add("today");
+}
+
+
+     
     if (calData[key]?.muscles?.length) {
       cell.classList.add("done");
+
+       
     }
 
     let timer;
