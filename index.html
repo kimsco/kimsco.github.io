@@ -488,7 +488,13 @@ td, th {
         <button id="calSave">완료</button>
     </div>
 </div>
-
+   
+<div id="recordDatePopup" class="popup hidden">
+  <div class="popup-box">
+    <h3>날짜 선택</h3>
+    <div id="recordDateGrid" class="days"></div>
+  </div>
+</div>
 <!-- 로그인 -->
  <div class="topBar">
 <div id="loginArea">
@@ -1022,7 +1028,42 @@ document.getElementById('dateDisplay').onclick = () => {
 
 
 
+const recordDatePopup = document.getElementById('recordDatePopup');
+const recordDateGrid = document.getElementById('recordDateGrid');
 
+function openRecordDatePopup() {
+  renderRecordDateCalendar();
+  recordDatePopup.classList.remove('hidden');
+}
+
+function renderRecordDateCalendar() {
+  recordDateGrid.innerHTML = '';
+
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = now.getMonth();
+  const last = new Date(y, m + 1, 0).getDate();
+
+  for (let d = 1; d <= last; d++) {
+    const cell = document.createElement('div');
+    cell.textContent = d;
+
+    const key = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+
+    cell.onclick = () => {
+      recordDate.value = key;
+      updateDateDisplay(key);
+      recordDatePopup.classList.add('hidden');
+    };
+
+    recordDateGrid.appendChild(cell);
+  }
+}
+recordDatePopup.onclick = e => {
+  if (e.target === recordDatePopup) {
+    recordDatePopup.classList.add('hidden');
+  }
+};
 
 
 </script>
