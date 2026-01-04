@@ -354,12 +354,7 @@ td, th {
     text-align: center;
     line-height: 1.2;
 }
-/* 날짜 input 숨기기 (기능은 유지) */
-.r-date {
-    position: absolute;
-    opacity: 0;
-    pointer-events: none;
-}
+
 .dateDisplay {
     cursor: pointer;
 }
@@ -660,16 +655,7 @@ folderBtns.forEach(btn=>{
 /* 기록 박스 데이터 (로컬 mock) 및 렌더 함수 */
 const records = { bench: [], squat: [], dead: [] };
 
-// 포맷 날짜: '25.12.10'
-function formatTodayYYMMDD(d = new Date()){
-    const yy = String(d.getFullYear()).slice(2);
-    const mm = String(d.getMonth()+1).padStart(2,'0');
-    const dd = String(d.getDate()).padStart(2,'0');
-    return `${yy}.${mm}.${dd}`;
-}
 
-// 초기 날짜 표시
-recordDate.value = formatTodayYYMMDD();
 
 // 렌더 함수: 현재 active folder의 목록을 그려줌
 function renderActiveBox(){
@@ -968,56 +954,14 @@ document.getElementById("calNext").onclick = () => {
 
 calRender();
 
-const dateInput = document.querySelector('.r-date');
-const dateDisplay = document.querySelector('.dateDisplay');
-const prevBtn = document.getElementById('datePrev');
-const nextBtn = document.getElementById('dateNext');
 
-
-function updateDateDisplay(value) {
-    if (!value) {
-        dateDisplay.textContent = '';
-        return;
-    }
-
-    const [y, m, d] = value.split('-');
-    dateDisplay.textContent = `${y}\n${m}.${d}`;
-}
 
 // 초기 반영
 updateDateDisplay(dateInput.value);
 
-// 날짜 변경 시 반영
-dateInput.addEventListener('change', () => {
-    updateDateDisplay(dateInput.value);
-});
 
-    dateDisplay.addEventListener('click', () => {
-    dateInput.showPicker?.();   // 크롬 / 모바일 지원
-    dateInput.focus();
-});
-function changeDate(days) {
-    if (!dateInput.value) return;
 
-    const date = new Date(dateInput.value);
-    date.setDate(date.getDate() + days);
 
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, '0');
-    const d = String(date.getDate()).padStart(2, '0');
-
-    const newValue = `${y}-${m}-${d}`;
-    dateInput.value = newValue;
-
-    updateDateDisplay(newValue);
-}
-prevBtn.addEventListener('click', () => {
-    changeDate(-1);
-});
-
-nextBtn.addEventListener('click', () => {
-    changeDate(1);
-});
 
 </script>
 <!-- ⚠️ 여기 아래에 네가 쓰던 JS 그대로 유지 -->
