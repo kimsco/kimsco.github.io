@@ -1018,10 +1018,11 @@ updateDateDisplay(selectedDate);
     `${y}<br><span>${m} · ${d}</span>`;
 }
 
-
 document.getElementById('dateDisplay').onclick = () => {
-  calPopup.classList.remove('hidden');
+  // 달력 탭으로 이동만 시킴
+  document.querySelector('.tabBtn[data-target="tab3"]').click();
 };
+
 
 
 
