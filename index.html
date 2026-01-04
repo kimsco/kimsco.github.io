@@ -388,6 +388,9 @@ td, th {
   background: #222;
 }
 
+.calendar {
+  min-height: 360px;
+}
 
 </style>
 </head>
@@ -587,6 +590,11 @@ tabBtns.forEach(btn=>{
                 tc.style.display = 'none';
             }
         });
+
+        // 🔥 여기 추가
+        if (target === 'tab3') {
+            calRender();
+        }
     });
 });
 
