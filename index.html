@@ -986,6 +986,9 @@ calRender();
 
 const dateInput = document.querySelector('.r-date');
 const dateDisplay = document.querySelector('.dateDisplay');
+const prevBtn = document.getElementById('datePrev');
+const nextBtn = document.getElementById('dateNext');
+
 
 function updateDateDisplay(value) {
     if (!value) {
@@ -1008,6 +1011,28 @@ dateInput.addEventListener('change', () => {
     dateDisplay.addEventListener('click', () => {
     dateInput.showPicker?.();   // 크롬 / 모바일 지원
     dateInput.focus();
+});
+function changeDate(days) {
+    if (!dateInput.value) return;
+
+    const date = new Date(dateInput.value);
+    date.setDate(date.getDate() + days);
+
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+
+    const newValue = `${y}-${m}-${d}`;
+    dateInput.value = newValue;
+
+    updateDateDisplay(newValue);
+}
+prevBtn.addEventListener('click', () => {
+    changeDate(-1);
+});
+
+nextBtn.addEventListener('click', () => {
+    changeDate(1);
 });
 
 </script>
