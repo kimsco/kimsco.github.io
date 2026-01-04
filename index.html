@@ -355,10 +355,40 @@ td, th {
     line-height: 1.2;
 }
 
-.dateDisplay {
-    cursor: pointer;
+
+.recordFormRow input[type="number"] {
+  flex: 0.66;
 }
-   
+
+#recordAdd {
+  flex: 0.5;
+}
+
+   .dateDisplay {
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.15;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #1a1a1a;
+  color: #eee;
+  cursor: pointer;
+  transition: transform 0.12s ease, background 0.12s ease;
+}
+
+.dateDisplay span {
+  font-size: 18px;
+  font-weight: 800;
+  color: #FFD700;
+}
+
+.dateDisplay:active {
+  transform: scale(0.96);
+  background: #222;
+}
+
+
 </style>
 </head>
 
@@ -407,14 +437,23 @@ td, th {
     <div id="squatBox" class="folderContent"></div>
     <div id="deadBox" class="folderContent"></div>
 
-    <div class="recordFormRow">
-       <input id="recordDate" class="r-date" type="date">
+   
+   <div class="recordFormRow">
+  <!-- 🔥 간지 날짜 -->
+  <div id="dateDisplay" class="dateDisplay">
+    2026<br><span>01 · 02</span>
+  </div>
 
-        <input id="recordWeight" type="number" placeholder="kg">
-        <input id="recordReps" type="number" placeholder="회">
-        <button id="recordAdd">저장</button>
-    </div>
+  <!-- kg -->
+  <input id="recordWeight" type="number" placeholder="kg">
+
+  <!-- 횟수 -->
+  <input id="recordReps" type="number" placeholder="회">
+
+  <!-- 저장 -->
+  <button id="recordAdd">저장</button>
 </div>
+
 
 <!-- 달력 -->
 <div id="tab3" class="tabContent">
@@ -841,7 +880,7 @@ const calMuscleBtns = calPopup.querySelectorAll(".muscles button");
 
 let calCurrent = new Date();
 let calData = JSON.parse(localStorage.getItem("workoutCalendar")) || {};
-let calSelectedDate = null;
+let calSelectedDate = '2026-01-02';
 let calSelectedMuscles = [];
 
 function calRender() {
@@ -960,6 +999,27 @@ calRender();
 updateDateDisplay(dateInput.value);
 
 
+let selectedDate = formatDate(new Date()); // yyyy-mm-dd
+
+   function updateDateDisplay(value){
+  const [y, m, d] = value.split('-');
+  document.getElementById('dateDisplay').innerHTML =
+    `${y}<br><span>${m} · ${d}</span>`;
+}
+
+   recordDate.value = selectedDate;
+updateDateDisplay(selectedDate);
+
+document.getElementById('dateDisplay').onclick = () => {
+  calPopup.classList.remove('hidden');
+};
+
+   function calOpenPopup(key) {
+  selectedDate = key;
+  recordDate.value = key;        // 저장용
+  updateDateDisplay(key);        // 화면 갱신
+  calPopup.classList.add('hidden');
+}
 
 
 
