@@ -444,6 +444,9 @@ td, th {
     2026<br><span>01 · 02</span>
   </div>
 
+  <!-- 🔥 실제 저장용 날짜 (숨김) -->
+  <input id="recordDate" type="hidden">
+
   <!-- kg -->
   <input id="recordWeight" type="number" placeholder="kg">
 
@@ -938,8 +941,13 @@ if (isToday) {
     calDaysEl.appendChild(cell);
   }
 }
-
 function calOpenPopup(key) {
+  // 기록 날짜 반영
+  selectedDate = key;
+  recordDate.value = key;
+  updateDateDisplay(key);
+
+  // 기존 달력 팝업 로직
   calSelectedDate = key;
   calSelectedMuscles = calData[key]?.muscles || [];
   calPopupDate.textContent = key;
@@ -953,6 +961,7 @@ function calOpenPopup(key) {
 
   calPopup.classList.remove("hidden");
 }
+
 
 calMuscleBtns.forEach(btn => {
   btn.onclick = () => {
@@ -996,30 +1005,25 @@ calRender();
 
 
 // 초기 반영
-updateDateDisplay(dateInput.value);
-
 
 let selectedDate = formatDate(new Date()); // yyyy-mm-dd
 
+   recordDate.value = selectedDate;
+updateDateDisplay(selectedDate);
+
+   
    function updateDateDisplay(value){
   const [y, m, d] = value.split('-');
   document.getElementById('dateDisplay').innerHTML =
     `${y}<br><span>${m} · ${d}</span>`;
 }
 
-   recordDate.value = selectedDate;
-updateDateDisplay(selectedDate);
 
 document.getElementById('dateDisplay').onclick = () => {
   calPopup.classList.remove('hidden');
 };
 
-   function calOpenPopup(key) {
-  selectedDate = key;
-  recordDate.value = key;        // 저장용
-  updateDateDisplay(key);        // 화면 갱신
-  calPopup.classList.add('hidden');
-}
+
 
 
 
