@@ -352,7 +352,16 @@ td, th {
     text-align: center;
     line-height: 1.2;
 }
-
+/* 날짜 input 숨기기 (기능은 유지) */
+.r-date {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+.dateDisplay {
+    cursor: pointer;
+}
+   
 </style>
 </head>
 
@@ -996,7 +1005,11 @@ dateInput.addEventListener('change', () => {
     updateDateDisplay(dateInput.value);
 });
 
-    
+    dateDisplay.addEventListener('click', () => {
+    dateInput.showPicker?.();   // 크롬 / 모바일 지원
+    dateInput.focus();
+});
+
 </script>
 <!-- ⚠️ 여기 아래에 네가 쓰던 JS 그대로 유지 -->
 </body>
