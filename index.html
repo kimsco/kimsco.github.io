@@ -1046,6 +1046,7 @@ function renderRecordDateCalendar() {
 
   for (let d = 1; d <= last; d++) {
     const cell = document.createElement('div');
+     cell.className = 'day';
     cell.textContent = d;
 
     const key = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
