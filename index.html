@@ -346,6 +346,13 @@ td, th {
     flex: 0 0 70px;  /* flex 영향 차단 */
    font-size: 12px;
 }
+   .dateDisplay {
+    white-space: pre-line;
+    font-size: 12px;
+    text-align: center;
+    line-height: 1.2;
+}
+
 </style>
 </head>
 
@@ -399,6 +406,7 @@ td, th {
             <button id="datePrev" class="dateBtn">−</button>
             <input id="recordDate" class="r-date" readonly>
             <button id="dateNext" class="dateBtn">+</button>
+           <div class="dateDisplay"></div>
         </div>
         <input id="recordWeight" type="number" placeholder="kg">
         <input id="recordReps" type="number" placeholder="회">
@@ -967,6 +975,26 @@ document.getElementById("calNext").onclick = () => {
 
 calRender();
 
+const dateInput = document.querySelector('.r-date');
+const dateDisplay = document.querySelector('.dateDisplay');
+
+function updateDateDisplay(value) {
+    if (!value) {
+        dateDisplay.textContent = '';
+        return;
+    }
+
+    const [y, m, d] = value.split('-');
+    dateDisplay.textContent = `${y}\n${m}.${d}`;
+}
+
+// 초기 반영
+updateDateDisplay(dateInput.value);
+
+// 날짜 변경 시 반영
+dateInput.addEventListener('change', () => {
+    updateDateDisplay(dateInput.value);
+});
 
     
 </script>
