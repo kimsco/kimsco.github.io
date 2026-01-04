@@ -125,12 +125,9 @@ td, th {
    3대 기록
 ================================ */
 #total3 {
-    text-align: center;
-    font-size: 36px;
-    font-weight: 900;
-    color: #FFD700;
-    margin: 24px 0 20px;
-    letter-spacing: 1px;
+    font-size:26px;
+    color:#FFD700;
+    margin-bottom:15px;
 }
 
 .rmInput {
@@ -174,28 +171,37 @@ td, th {
 /* ===============================
    기록 입력 한 줄
 ================================ */
-/* 기록 입력 한 줄 비율 조정 */
 .recordFormRow {
-    display: flex;
-    gap: 6px;
-    align-items: center;
+    display:flex;
+    gap:6px;
+    align-items:center;
+    margin-top:12px;
 }
 
 .dateControl {
-   display: flex;
-    align-items: center; /* 🔥 이게 핵심 */
+    display:flex;
+    align-items:center;
+    background:#222;
+    border-radius:8px;
+    overflow:hidden;
 }
 
-.recordFormRow input[type="number"] {
-    flex: 0.66;  /* 🔥 kg / 횟수 = 2/3 */
+.dateBtn {
+    width:28px;
+    height:40px;
+    background:#333;
+    color:#FFD700;
+    font-size:18px;
 }
 
-#recordAdd {
-    flex: 0.5;   /* 🔥 저장 버튼 = 1/2 */
-    font-size: 14px;
-    padding: 10px 0;
+.r-date {
+    width:80px;
+    height:40px;
+    background:transparent;
+    color:white;
+    text-align:center;
+    font-size:13px;
 }
-
 
 .recordFormRow input[type="number"] {
     height:40px;
@@ -331,66 +337,6 @@ td, th {
     background:#8b0000;
     color:white;
 }
-.dateBtn {
-    width: 20px;
-    height: 40px;
-    padding: 0;
-    font-size: 14px;
-    flex: 0 0 auto;
-    margin: 0 4px;
-}
-   /* 날짜 input 폭 축소 */
-.r-date {
-    width: 70px;     /* 🔥 기존 80 → 축소 */
-    min-width: 70px;
-    background: #222;      /* 🔥 투명 금지 */
-    color: white;          /* 🔥 명시 */
-    flex: 0 0 70px;  /* flex 영향 차단 */
-   font-size: 12px;
-}
-   .dateDisplay {
-    white-space: pre-line;
-    font-size: 12px;
-    text-align: center;
-    line-height: 1.2;
-}
-
-
-.recordFormRow input[type="number"] {
-  flex: 0.66;
-}
-
-#recordAdd {
-  flex: 0.5;
-}
-
-   .dateDisplay {
-  text-align: center;
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 1.15;
-  padding: 8px 10px;
-  border-radius: 10px;
-  background: #1a1a1a;
-  color: #eee;
-  cursor: pointer;
-  transition: transform 0.12s ease, background 0.12s ease;
-}
-
-.dateDisplay span {
-  font-size: 18px;
-  font-weight: 800;
-  color: #FFD700;
-}
-
-.dateDisplay:active {
-  transform: scale(0.96);
-  background: #222;
-}
-
-.calendar {
-  min-height: 360px;
-}
 
 </style>
 </head>
@@ -429,8 +375,6 @@ td, th {
         </tr>
     </table>
     <button id="save3Btn">3대 기록 저장</button>
-<div id="save3Result" style="margin-top:6px;font-size:13px;opacity:0.8;"></div>
-
 
     <div class="recordFolders">
         <button class="folderBtn active" data-target="benchBox">벤치</button>
@@ -442,27 +386,18 @@ td, th {
     <div id="squatBox" class="folderContent"></div>
     <div id="deadBox" class="folderContent"></div>
 
-   
-   <div class="recordFormRow">
-  <!-- 🔥 간지 날짜 -->
-  <div id="dateDisplay" class="dateDisplay">
-    2026<br><span>01 · 02</span>
-  </div>
-
-  <!-- 🔥 실제 저장용 날짜 (숨김) -->
-  <input id="recordDate" type="hidden">
-
-  <!-- kg -->
-  <input id="recordWeight" type="number" placeholder="kg">
-
-  <!-- 횟수 -->
-  <input id="recordReps" type="number" placeholder="회">
-
-  <!-- 저장 -->
-  <button id="recordAdd">저장</button>
+    <div class="recordFormRow">
+        <div class="dateControl">
+            <button id="datePrev" class="dateBtn">−</button>
+            <input id="recordDate" class="r-date" readonly>
+            <button id="dateNext" class="dateBtn">+</button>
+        </div>
+        <input id="recordWeight" type="number" placeholder="kg">
+        <input id="recordReps" type="number" placeholder="회">
+        <button id="recordAdd">저장</button>
+    </div>
 </div>
 
-<div id="recordMessage" style="font-size:13px;margin-top:6px;opacity:0.8;"></div>
 <!-- 달력 -->
 <div id="tab3" class="tabContent">
     <div class="calendar">
@@ -493,13 +428,7 @@ td, th {
         <button id="calSave">완료</button>
     </div>
 </div>
-   
-<div id="recordDatePopup" class="popup hidden">
-  <div class="popup-box">
-    <h3>날짜 선택</h3>
-    <div id="recordDateGrid" class="days"></div>
-  </div>
-</div>
+
 <!-- 로그인 -->
  <div class="topBar">
 <div id="loginArea">
@@ -592,11 +521,6 @@ tabBtns.forEach(btn=>{
                 tc.style.display = 'none';
             }
         });
-
-        // 🔥 여기 추가
-        if (target === 'tab3') {
-            calRender();
-        }
     });
 });
 
@@ -713,7 +637,16 @@ folderBtns.forEach(btn=>{
 /* 기록 박스 데이터 (로컬 mock) 및 렌더 함수 */
 const records = { bench: [], squat: [], dead: [] };
 
+// 포맷 날짜: '25.12.10'
+function formatTodayYYMMDD(d = new Date()){
+    const yy = String(d.getFullYear()).slice(2);
+    const mm = String(d.getMonth()+1).padStart(2,'0');
+    const dd = String(d.getDate()).padStart(2,'0');
+    return `${yy}.${mm}.${dd}`;
+}
 
+// 초기 날짜 표시
+recordDate.value = formatTodayYYMMDD();
 
 // 렌더 함수: 현재 active folder의 목록을 그려줌
 function renderActiveBox(){
@@ -877,13 +810,27 @@ function showSave3Message(msg) {
     }, 1000);
 }
 
+
+const datePrev = document.getElementById('datePrev');
+const dateNext = document.getElementById('dateNext');
+
 function formatDate(date) {
     const y = date.getFullYear();
     const m = String(date.getMonth() + 1).padStart(2, '0');
     const d = String(date.getDate()).padStart(2, '0');
     return `${y}-${m}-${d}`;
 }
-recordDate.value = new Date().toISOString().slice(0, 10);
+
+let currentDate = new Date();
+recordDate.value = formatDate(currentDate);
+
+function moveDate(days) {
+    currentDate.setDate(currentDate.getDate() + days);
+    recordDate.value = formatDate(currentDate);
+}
+
+datePrev.addEventListener('click', () => moveDate(-1));
+dateNext.addEventListener('click', () => moveDate(1));
 
 /******** 달력 + long press 코드 여기 ********/
 /********************
@@ -899,7 +846,7 @@ const calMuscleBtns = calPopup.querySelectorAll(".muscles button");
 
 let calCurrent = new Date();
 let calData = JSON.parse(localStorage.getItem("workoutCalendar")) || {};
-let calSelectedDate = '2026-01-02';
+let calSelectedDate = null;
 let calSelectedMuscles = [];
 
 function calRender() {
@@ -957,10 +904,8 @@ if (isToday) {
     calDaysEl.appendChild(cell);
   }
 }
+
 function calOpenPopup(key) {
-
-
-  // 기존 달력 팝업 로직
   calSelectedDate = key;
   calSelectedMuscles = calData[key]?.muscles || [];
   calPopupDate.textContent = key;
@@ -974,7 +919,6 @@ function calOpenPopup(key) {
 
   calPopup.classList.remove("hidden");
 }
-
 
 calMuscleBtns.forEach(btn => {
   btn.onclick = () => {
@@ -1016,67 +960,7 @@ document.getElementById("calNext").onclick = () => {
 calRender();
 
 
-
-// 초기 반영
-
-let selectedDate = formatDate(new Date()); // yyyy-mm-dd
-
-   recordDate.value = selectedDate;
-updateDateDisplay(selectedDate);
-
-   
-   function updateDateDisplay(value){
-  const [y, m, d] = value.split('-');
-  document.getElementById('dateDisplay').innerHTML =
-    `${y}<br><span>${m} · ${d}</span>`;
-}
-
-document.getElementById('dateDisplay').onclick = () => {
-  openRecordDatePopup();
-};
-
-
-
-
-const recordDatePopup = document.getElementById('recordDatePopup');
-const recordDateGrid = document.getElementById('recordDateGrid');
-
-function openRecordDatePopup() {
-  renderRecordDateCalendar();
-  recordDatePopup.classList.remove('hidden');
-}
-
-function renderRecordDateCalendar() {
-  recordDateGrid.innerHTML = '';
-
-  const now = new Date();
-  const y = now.getFullYear();
-  const m = now.getMonth();
-  const last = new Date(y, m + 1, 0).getDate();
-
-  for (let d = 1; d <= last; d++) {
-    const cell = document.createElement('div');
-     cell.className = 'day';
-    cell.textContent = d;
-
-    const key = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-
-    cell.onclick = () => {
-      recordDate.value = key;
-      updateDateDisplay(key);
-      recordDatePopup.classList.add('hidden');
-    };
-
-    recordDateGrid.appendChild(cell);
-  }
-}
-recordDatePopup.onclick = e => {
-  if (e.target === recordDatePopup) {
-    recordDatePopup.classList.add('hidden');
-  }
-};
-
-
+    
 </script>
 <!-- ⚠️ 여기 아래에 네가 쓰던 JS 그대로 유지 -->
 </body>
