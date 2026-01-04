@@ -411,14 +411,8 @@ td, th {
     <div id="deadBox" class="folderContent"></div>
 
     <div class="recordFormRow">
-        <div class="dateControl">
-            <button id="datePrev" class="dateBtn">−</button>
-           
-           <div class="dateDisplay"></div>
-           
-            <input id="recordDate" class="r-date" readonly>
-            <button id="dateNext" class="dateBtn">+</button>
-        </div>
+       <input id="recordDate" class="r-date" type="date">
+
         <input id="recordWeight" type="number" placeholder="kg">
         <input id="recordReps" type="number" placeholder="회">
         <button id="recordAdd">저장</button>
@@ -837,27 +831,13 @@ function showSave3Message(msg) {
     }, 1000);
 }
 
-
-const datePrev = document.getElementById('datePrev');
-const dateNext = document.getElementById('dateNext');
-
 function formatDate(date) {
     const y = date.getFullYear();
     const m = String(date.getMonth() + 1).padStart(2, '0');
     const d = String(date.getDate()).padStart(2, '0');
     return `${y}-${m}-${d}`;
 }
-
-let currentDate = new Date();
-recordDate.value = formatDate(currentDate);
-
-function moveDate(days) {
-    currentDate.setDate(currentDate.getDate() + days);
-    recordDate.value = formatDate(currentDate);
-}
-
-datePrev.addEventListener('click', () => moveDate(-1));
-dateNext.addEventListener('click', () => moveDate(1));
+recordDate.value = new Date().toISOString().slice(0, 10);
 
 /******** 달력 + long press 코드 여기 ********/
 /********************
