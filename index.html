@@ -97,6 +97,26 @@ td, th {
     opacity: 0.8;
 }
 
+#recordDateBox {
+  width: 100px;
+  background: #222;
+  color: white;
+  border-radius: 8px;
+  text-align: center;
+  padding: 6px 0;
+  user-select: none; /* 클릭해도 선택 안됨 */
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
+}
+
+#recordYear {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+#recordMD {
+  font-size: 16px;
+  font-weight: bold;
+}
 
 /* ===============================
    탭
@@ -439,6 +459,12 @@ td, th {
 
 </div>
 
+<!-- 날짜 표시 -->
+<div id="recordDateBox">
+  <div id="recordYear">2026</div>
+  <div id="recordMD">01.03</div>
+</div>
+   
 <!-- 🔥 JS는 네 기존 그대로 붙이면 정상 작동 -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
@@ -964,6 +990,14 @@ document.getElementById("calNext").onclick = () => {
 
 calRender();
 
+// 오늘 날짜 자동 표시
+const today = new Date();
+const year = today.getFullYear();
+const month = String(today.getMonth() + 1).padStart(2, '0');
+const day = String(today.getDate()).padStart(2, '0');
+
+document.getElementById("recordYear").textContent = year;
+document.getElementById("recordMD").textContent = `${month}.${day}`;
 
 
     
