@@ -964,21 +964,7 @@ document.getElementById("calNext").onclick = () => {
 
 calRender();
 
-// ✅ recordDate 클릭 → 달력 열기
-recordDate.addEventListener("click", () => {
-  // 달력 탭을 강제로 열지 않고
-  // 달력만 팝업처럼 쓰기
 
-  calCurrent = new Date(); // 현재 달 기준
-  calRender();
-
-  // 팝업 모드처럼 보이게
-  document.getElementById("tab3").classList.add("active");
-  document.getElementById("tab3").style.display = "block";
-
-  // 배경 팝업처럼 처리
-  calPopup.classList.remove("hidden");
-});
 
     
 </script>
