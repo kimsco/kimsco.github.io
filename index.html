@@ -386,6 +386,7 @@ td, th {
     <div id="deadBox" class="folderContent"></div>
 
     <div class="recordFormRow">
+       <input type="hidden" id="recordDate">
        <div class="dateDisplay">
     <div class="dateYear" id="displayYear">[ 2026 ]</div>
     <div class="dateMD" id="displayMD">01.09</div>
@@ -396,7 +397,7 @@ td, th {
         <button id="recordAdd">저장</button>
     </div>
 </div>
-
+<div id="save3Result"></div>
 <!-- 달력 -->
 <div id="tab3" class="tabContent">
     <div class="calendar">
@@ -928,7 +929,6 @@ calSaveBtn.onclick = () => {
     calData[calSelectedDate] = { muscles: calSelectedMuscles };
   }
   localStorage.setItem("workoutCalendar", JSON.stringify(calData));
-  calPopup.classList.add("hidden");
   calRender();
 };
 
