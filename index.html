@@ -816,7 +816,7 @@ function setTodayDisplay() {
     const mm = String(now.getMonth() + 1).padStart(2, '0');
     const dd = String(now.getDate()).padStart(2, '0');
 
-    document.getElementById("displayYear").textContent = `[ ${year} ]`;
+    document.getElementById("displayYear").textContent = `${year}`;
     document.getElementById("displayMD").textContent = `${mm}.${dd}`;
 }
 
