@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
 <title>1RM 계산기 + 3대 기록표</title>
 
-<style> 
+<style>
 /* ===============================
    🔥 전체 레이아웃 (폰 비율 고정)
 ================================ */
@@ -97,27 +97,6 @@ td, th {
     opacity: 0.8;
 }
 
-#recordDateBox {
-  width:80px; /* 필요시 조정 */
-  background: #222;
-  color: white;
-  border-radius: 8px;
-  text-align: center;
-  padding:4px 0;
-  user-select: none;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
-}
-
-#recordYear {
-  font-size: 12px;
-  font-weight: bold;
-
-}
-
-#recordMD {
-  font-size: 14px;
-  font-weight: bold;
-}
 
 /* ===============================
    탭
@@ -408,14 +387,11 @@ td, th {
     <div id="deadBox" class="folderContent"></div>
 
     <div class="recordFormRow">
-
-<!-- 날짜 표시 -->
-<div id="recordDateBox">
-  <div id="recordYear">2026</div>
-  <div id="recordMD">01.03</div>
-</div>
-
-       
+        <div class="dateControl">
+            <button id="datePrev" class="dateBtn">−</button>
+            <input id="recordDate" class="r-date" readonly>
+            <button id="dateNext" class="dateBtn">+</button>
+        </div>
         <input id="recordWeight" type="number" placeholder="kg">
         <input id="recordReps" type="number" placeholder="회">
         <button id="recordAdd">저장</button>
@@ -463,8 +439,6 @@ td, th {
 
 </div>
 
-
-   
 <!-- 🔥 JS는 네 기존 그대로 붙이면 정상 작동 -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
@@ -837,7 +811,8 @@ function showSave3Message(msg) {
 }
 
 
-
+const datePrev = document.getElementById('datePrev');
+const dateNext = document.getElementById('dateNext');
 
 function formatDate(date) {
     const y = date.getFullYear();
@@ -849,6 +824,13 @@ function formatDate(date) {
 let currentDate = new Date();
 recordDate.value = formatDate(currentDate);
 
+function moveDate(days) {
+    currentDate.setDate(currentDate.getDate() + days);
+    recordDate.value = formatDate(currentDate);
+}
+
+datePrev.addEventListener('click', () => moveDate(-1));
+dateNext.addEventListener('click', () => moveDate(1));
 
 /******** 달력 + long press 코드 여기 ********/
 /********************
@@ -912,19 +894,6 @@ if (isToday) {
     cell.addEventListener("touchstart", () => {
       timer = setTimeout(() => calOpenPopup(key), 500);
     });
-
-// ⭐ 짧게 클릭 → 날짜 선택용
-cell.addEventListener("click", () => {
-   e.stopPropagation();   // ⭐ 팝업 충돌 방지
-  // recordDate에 날짜 반영
-  const [y, m, d] = key.split("-");
-  recordDate.value = `${y}.${String(m).padStart(2,'0')}.${String(d).padStart(2,'0')}`;
-
-  // 달력 닫기
-  calPopup.classList.add("hidden");
-});
-
-     
     cell.addEventListener("touchend", () => clearTimeout(timer));
 
     cell.addEventListener("mousedown", () => {
@@ -989,15 +958,6 @@ document.getElementById("calNext").onclick = () => {
 };
 
 calRender();
-
-// 오늘 날짜 자동 표시
-const today = new Date();
-const year = today.getFullYear();
-const month = String(today.getMonth() + 1).padStart(2, '0');
-const day = String(today.getDate()).padStart(2, '0');
-
-document.getElementById("recordYear").textContent = year;
-document.getElementById("recordMD").textContent = `${month}.${day}`;
 
 
     
