@@ -178,30 +178,6 @@ td, th {
     margin-top:12px;
 }
 
-.dateControl {
-    display:flex;
-    align-items:center;
-    background:#222;
-    border-radius:8px;
-    overflow:hidden;
-}
-
-.dateBtn {
-    width:28px;
-    height:40px;
-    background:#333;
-    color:#FFD700;
-    font-size:18px;
-}
-
-.r-date {
-    width:80px;
-    height:40px;
-    background:transparent;
-    color:white;
-    text-align:center;
-    font-size:13px;
-}
 
 .recordFormRow input[type="number"] {
     height:40px;
@@ -337,6 +313,29 @@ td, th {
     background:#8b0000;
     color:white;
 }
+.dateDisplay {
+    width: 80px;
+    height: 40px;
+    background: #222;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    line-height: 1.2;
+    color: #FFD700;
+}
+
+.dateYear {
+    font-size: 11px;
+    opacity: 0.9;
+}
+
+.dateMD {
+    font-size: 13px;
+    font-weight: bold;
+}
 
 </style>
 </head>
@@ -387,11 +386,11 @@ td, th {
     <div id="deadBox" class="folderContent"></div>
 
     <div class="recordFormRow">
-        <div class="dateControl">
-            <button id="datePrev" class="dateBtn">−</button>
-            <input id="recordDate" class="r-date" readonly>
-            <button id="dateNext" class="dateBtn">+</button>
-        </div>
+       <div class="dateDisplay">
+    <div class="dateYear" id="displayYear">[ 2026 ]</div>
+    <div class="dateMD" id="displayMD">01.09</div>
+</div>
+
         <input id="recordWeight" type="number" placeholder="kg">
         <input id="recordReps" type="number" placeholder="회">
         <button id="recordAdd">저장</button>
@@ -677,7 +676,7 @@ recordAdd.addEventListener('click', async ()=>{
         fadeTempMsg(recordMessage, '무게와 횟수를 입력하세요', 900, 600);
         return;
     }
-    const date = recordDate.value || formatTodayYYMMDD();
+    const date = formatTodayYYMMDD();
     // 현재 active folder
     const activeBtn = document.querySelector('.folderBtn.active');
     const target = activeBtn ? activeBtn.dataset.target : 'benchBox';
@@ -809,28 +808,18 @@ function showSave3Message(msg) {
         }, 800);
     }, 1000);
 }
+   
+function setTodayDisplay() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
 
-
-const datePrev = document.getElementById('datePrev');
-const dateNext = document.getElementById('dateNext');
-
-function formatDate(date) {
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, '0');
-    const d = String(date.getDate()).padStart(2, '0');
-    return `${y}-${m}-${d}`;
+    document.getElementById("displayYear").textContent = `[ ${year} ]`;
+    document.getElementById("displayMD").textContent = `${mm}.${dd}`;
 }
 
-let currentDate = new Date();
-recordDate.value = formatDate(currentDate);
-
-function moveDate(days) {
-    currentDate.setDate(currentDate.getDate() + days);
-    recordDate.value = formatDate(currentDate);
-}
-
-datePrev.addEventListener('click', () => moveDate(-1));
-dateNext.addEventListener('click', () => moveDate(1));
+setTodayDisplay();
 
 /******** 달력 + long press 코드 여기 ********/
 /********************
