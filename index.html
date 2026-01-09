@@ -68,13 +68,14 @@ td, th {
    로그인 영역
 ================================ */
    .app {
-    position: relative; /* 🔥 기준점 */
+   position: relative;
+    overflow-x: hidden; /* 🔥 혹시 모를 튐 방지 */
 }
 .topBar {
     position: absolute;
-    top: 10px;
-    right: 10px;
-    width: auto;
+    top: 12px;
+    right: 12px;
+    max-width: calc(100% - 24px); /* 🔥 안전장치 */
 }
 
 #loginArea {
