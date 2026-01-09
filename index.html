@@ -386,12 +386,18 @@ td, th {
     <div id="deadBox" class="folderContent"></div>
 
     <div class="recordFormRow">
-       <input type="hidden" id="recordDate">
-       <div class="dateDisplay">
-    <div class="dateYear" id="displayYear">2026</div>
-    <div class="dateMD" id="displayMD">01.09</div>
-</div>
+    <input type="hidden" id="recordDate">
 
+    <div class="dateDisplay">
+        <div class="dateYear" id="displayYear">2026</div>
+        <div class="dateMD" id="displayMD">01.09</div>
+    </div>
+
+    <!-- ✅ 여기 -->
+    <div id="recordMessage"
+         style="font-size:12px; color:#FFD700; margin-top:6px;">
+    </div>
+</div>
         <input id="recordWeight" type="number" placeholder="kg">
         <input id="recordReps" type="number" placeholder="회">
         <button id="recordAdd">저장</button>
@@ -658,10 +664,11 @@ function renderActiveBox(){
     else if(target === 'deadBox') arr = records.dead;
 
     const boxEl = document.getElementById(target);
-    if(!arr || arr.length === 0){
-        boxEl.innerHTML = `<div style="color:#ddd">아직 기록이 없습니다. 아래에서 무게/횟수 입력 후 '저장' 버튼을 눌러 기록하세요.</div>`;
-        return;
-    }
+if(!arr || arr.length === 0){
+    boxEl.innerHTML = `<div style="color:#777;font-size:13px;">기록이 여기에 쌓입니다</div>`;
+    return;
+}
+
     // 최신 위로
     boxEl.innerHTML = arr.map(it=>{
         return `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="color:#ddd">${it.date}</div><div>${it.weight}kg × ${it.reps}회</div></div>`;
