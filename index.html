@@ -686,7 +686,16 @@ if(!arr || arr.length === 0){
 
     // 최신 위로
     boxEl.innerHTML = arr.map(it=>{
-        return `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="color:#ddd">${it.date}</div><div>${it.weight}kg × ${it.reps}회</div></div>`;
+       return `
+<div class="recordItem"
+     data-id="${it.id}"
+     style="display:flex;justify-content:space-between;
+            padding:6px 0;
+            border-bottom:1px solid rgba(255,255,255,0.06)">
+    <div style="color:#ddd">${it.date}</div>
+    <div>${it.weight}kg × ${it.reps}회</div>
+</div>
+`;
     }).join('');
 }
 renderActiveBox();
@@ -704,7 +713,12 @@ recordAdd.addEventListener('click', async ()=>{
     const activeBtn = document.querySelector('.folderBtn.active');
     const target = activeBtn ? activeBtn.dataset.target : 'benchBox';
     // push into local records
-    const item = { date, weight, reps };
+   const item = {
+    id: Date.now().toString(), // 🔥 고유 id
+    date,
+    weight,
+    reps
+};
     if(target === 'benchBox') records.bench.unshift(item);
     else if(target === 'squatBox') records.squat.unshift(item);
     else if(target === 'deadBox') records.dead.unshift(item);
@@ -722,7 +736,7 @@ recordAdd.addEventListener('click', async ()=>{
     if(user){
         try{
             await db.collection('users').doc(user.uid).collection('records').add({
-                lift: target === 'benchBox' ? 'bench' : target === 'squatBox' ? 'squat' : 'dead',
+               id: item.id,  lift: target === 'benchBox' ? 'bench' : target === 'squatBox' ? 'squat' : 'dead',
                 date, weight, reps, createdAt: new Date()
             });
         }catch(e){ console.error('Firestore add err', e); }
@@ -783,6 +797,7 @@ auth.onAuthStateChanged(async user=>{
                 if(!d || !d.lift) return;
 
                 const item = {
+                    id: d.id, 
                     date: d.date || formatTodayYYMMDD(
                         new Date(d.createdAt?.toDate?.() || new Date())
                     ),
@@ -967,6 +982,56 @@ document.getElementById("calNext").onclick = () => {
 
 calRender();
 
+let pressTimer = null;
+
+document.addEventListener("mousedown", e => {
+    const item = e.target.closest(".recordItem");
+    if (!item) return;
+
+    pressTimer = setTimeout(() => {
+        deleteRecord(item.dataset.id);
+    }, 600);
+});
+
+document.addEventListener("mouseup", () => {
+    clearTimeout(pressTimer);
+});
+
+document.addEventListener("touchstart", e => {
+    const item = e.target.closest(".recordItem");
+    if (!item) return;
+
+    pressTimer = setTimeout(() => {
+        deleteRecord(item.dataset.id);
+    }, 600);
+});
+
+document.addEventListener("touchend", () => {
+    clearTimeout(pressTimer);
+});
+
+   async function deleteRecord(id){
+    if(!confirm("이 기록을 삭제할까요?")) return;
+
+    // 🔥 로컬 삭제
+    ["bench", "squat", "dead"].forEach(type=>{
+        records[type] = records[type].filter(r => r.id !== id);
+    });
+
+    renderActiveBox();
+
+    // 🔥 Firestore 삭제
+    const user = auth.currentUser;
+    if(user){
+        const snap = await db.collection('users')
+          .doc(user.uid)
+          .collection('records')
+          .where("id","==",id)
+          .get();
+
+        snap.forEach(doc => doc.ref.delete());
+    }
+}
 
     
 </script>
