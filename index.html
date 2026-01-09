@@ -385,24 +385,23 @@ td, th {
     <div id="squatBox" class="folderContent"></div>
     <div id="deadBox" class="folderContent"></div>
 
-    <div class="recordFormRow">
+   <div class="recordFormRow">
     <input type="hidden" id="recordDate">
 
     <div class="dateDisplay">
         <div class="dateYear" id="displayYear">2026</div>
-        <div class="dateMD" id="displayMD">01.09</div>
+        <div class="dateMD" id="displayMD">01.03</div>
     </div>
 
-    <!-- ✅ 여기 -->
-    <div id="recordMessage"
-         style="font-size:12px; color:#FFD700; margin-top:6px;">
-    </div>
+    <input type="number" id="weightInput" placeholder="kg">
+    <input type="number" id="repInput" placeholder="회">
+    <button onclick="save3Record()">저장</button>
+
+    <div id="recordMessage"></div>
 </div>
-        <input id="recordWeight" type="number" placeholder="kg">
-        <input id="recordReps" type="number" placeholder="회">
-        <button id="recordAdd">저장</button>
-    </div>
-</div>
+
+
+   
 <div id="save3Result"></div>
 <!-- 달력 -->
 <div id="tab3" class="tabContent">
