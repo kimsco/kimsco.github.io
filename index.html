@@ -343,7 +343,14 @@ td, th {
 
 <body>
 <div class="app">
+ <div class="topBar">
+<div id="loginArea">
+    <button id="googleLoginBtn">Google 로그인</button>
+    <button id="logoutBtn" style="display:none;">로그아웃</button>
+    <div id="userInfo"></div>
+</div>
 
+</div>
 <div class="container">
 <div class="subtitle">"대부분의 문제는 돈이 없어서, 그 외의 문제는 근육이 없어서 생긴다"</div>
 
@@ -440,14 +447,7 @@ td, th {
 </div>
 
 <!-- 로그인 -->
- <div class="topBar">
-<div id="loginArea">
-    <button id="googleLoginBtn">Google 로그인</button>
-    <button id="logoutBtn" style="display:none;">로그아웃</button>
-    <div id="userInfo"></div>
-</div>
 
-</div>
 
 <!-- 🔥 JS는 네 기존 그대로 붙이면 정상 작동 -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
