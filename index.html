@@ -795,9 +795,6 @@ auth.onAuthStateChanged(async user=>{
                 if(d.lift === 'dead') records.dead.push(item);
             });
 
-            records.bench.reverse();
-            records.squat.reverse();
-            records.dead.reverse();
             renderActiveBox();
 
         }catch(e){
