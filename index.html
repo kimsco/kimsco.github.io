@@ -797,7 +797,7 @@ auth.onAuthStateChanged(async user=>{
                 if(!d || !d.lift) return;
 
                 const item = {
-                    id: d.id, 
+                   id: d.id || doc.id,
                     date: d.date || formatTodayYYMMDD(
                         new Date(d.createdAt?.toDate?.() || new Date())
                     ),
