@@ -14,22 +14,18 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
 }
 html, body {
-    margin: 0;
     height: 100%;
-    overflow: hidden;  /* 외부 스크롤 제거 */
-    background: #111;
-    overscroll-behavior: none; /* 🔥 중요 */
+    overflow: hidden; /* 외부 스크롤 제거 */
+    overscroll-behavior: none; /* 바운스 제거 */
 }
 
 .app {
-    width: 100%;
-    max-width: 420px;
     height: 100%;
+    overflow-y: auto; 
+    overscroll-behavior: contain; /* 🔥 중요 */
+    -webkit-overflow-scrolling: auto; /* iOS 바운스 제거 */
     padding: 70px 20px 20px;
     box-sizing: border-box;
-  overflow-y: scroll;
-    overscroll-behavior: contain; /* 🔥 여기 핵심 */
-    -webkit-overflow-scrolling: auto; /* 반동
 }
 
 .app::-webkit-scrollbar {
@@ -346,6 +342,13 @@ td, th {
     font-size: 13px;
     font-weight: bold;
 }
+
+    .appInner {
+    padding: 70px 20px 20px;
+    min-height: 100%;
+    box-sizing: border-box;
+}
+
 /* 🔥 number input +/- 버튼 제거 */
 input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button {
@@ -376,6 +379,7 @@ input[type="number"] {
 
 <body>
 <div class="app">
+    <div class="appInner">
  <div class="topBar">
 <div id="loginArea">
     <button id="googleLoginBtn">Google 로그인</button>
@@ -462,7 +466,7 @@ input[type="number"] {
         <div id="calDays" class="days"></div>
     </div>
 </div>
-
+</div>
 </div>
 
 <!-- 팝업 -->
