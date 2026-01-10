@@ -572,7 +572,7 @@ goBtn.addEventListener('click', ()=>{
    // resultDiv.innerHTML = `예상 1RM: <b>${oneRM.toFixed(1)} kg</b>`;
 
     // 표 생성
-    let html = `<table><tr><th>RM</th><th>무게 (kg)</th></tr>`;
+    let html = `<table>`;
     for (let r=1; r<=10; r++){
         let rmWeight = oneRM / (1 + (r-1)*0.0333);
         html += `<tr><td>${r}RM</td><td>${rmWeight.toFixed(1)} kg</td></tr>`;
