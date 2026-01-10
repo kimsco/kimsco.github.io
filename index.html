@@ -687,8 +687,8 @@ if(!arr || arr.length === 0){
     // 최신 위로
     boxEl.innerHTML = arr.map(it=>{
        return `
-<div class="recordItem"
-     data-id="${it.id}"
+<div class="recordItem" data-id="${it.firestoreId}">
+
      style="display:flex;justify-content:space-between;
             padding:6px 0;
             border-bottom:1px solid rgba(255,255,255,0.06)">
@@ -715,6 +715,7 @@ recordAdd.addEventListener('click', async ()=>{
     // push into local records
    const item = {
     id: Date.now().toString(), // 🔥 고유 id
+    firestoreId: null,           // 🔥 추가
     date,
     weight,
     reps
@@ -735,10 +736,19 @@ recordAdd.addEventListener('click', async ()=>{
     const user = auth.currentUser;
     if(user){
         try{
-            await db.collection('users').doc(user.uid).collection('records').add({
-               id: item.id,  lift: target === 'benchBox' ? 'bench' : target === 'squatBox' ? 'squat' : 'dead',
-                date, weight, reps, createdAt: new Date()
-            });
+         const docRef = await db.collection('users')
+  .doc(user.uid)
+  .collection('records')
+  .add({
+    lift,
+    date,
+    weight,
+    reps,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  });
+
+item.firestoreId = docRef.id; // 🔥 이 줄 추가
+
         }catch(e){ console.error('Firestore add err', e); }
     }
 });
@@ -1013,26 +1023,24 @@ document.addEventListener("touchmove", () => {
     clearTimeout(pressTimer);
 });
    
-   async function deleteRecord(id){
+  async function deleteRecord(firestoreId){
     if(!confirm("이 기록을 삭제할까요?")) return;
 
     // 🔥 로컬 삭제
-    ["bench", "squat", "dead"].forEach(type=>{
-        records[type] = records[type].filter(r => r.id !== id);
+    ["bench","squat","dead"].forEach(type=>{
+        records[type] = records[type].filter(r => r.firestoreId !== firestoreId);
     });
 
     renderActiveBox();
 
-    // 🔥 Firestore 삭제
+    // 🔥 Firestore 삭제 (문서 ID로)
     const user = auth.currentUser;
-    if(user){
-        const snap = await db.collection('users')
+    if(user && firestoreId){
+        await db.collection('users')
           .doc(user.uid)
           .collection('records')
-          .where("id","==",id)
-          .get();
-
-        snap.forEach(doc => doc.ref.delete());
+          .doc(firestoreId)
+          .delete();
     }
 }
 
