@@ -27,9 +27,9 @@ html, body {
     height: 100%;
     padding: 70px 20px 20px;
     box-sizing: border-box;
-    overflow-y: auto;               /* 내부 스크롤 허용 */
-    -webkit-overflow-scrolling: touch;
-     overscroll-behavior: contain;
+  overflow-y: scroll;
+    overscroll-behavior: contain; /* 🔥 여기 핵심 */
+    -webkit-overflow-scrolling: auto; /* 반동
 }
 
 .app::-webkit-scrollbar {
@@ -1070,31 +1070,6 @@ document.addEventListener("touchmove", () => {
           .delete();
     }
 }
-
-    const app = document.querySelector('.app');
-
-let startY = 0;
-
-app.addEventListener('touchstart', (e) => {
-    startY = e.touches[0].clientY;
-}, { passive: true });
-
-app.addEventListener('touchmove', function(e) {
-    const scrollTop = app.scrollTop;
-    const scrollHeight = app.scrollHeight;
-    const offsetHeight = app.offsetHeight;
-    const currentY = e.touches[0].clientY;
-    const deltaY = currentY - startY;
-
-    const atTop = scrollTop === 0;
-    const atBottom = scrollTop + offsetHeight >= scrollHeight;
-
-    // 위에서 더 끌어올리거나 아래에서 더 끌어내리는 경우만 막음
-    if ((atTop && deltaY > 0) || (atBottom && deltaY < 0)) {
-        e.preventDefault();
-    }
-}, { passive: false });
-
 
 
 </script>
