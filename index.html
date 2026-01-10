@@ -704,54 +704,60 @@ renderActiveBox();
 recordAdd.addEventListener('click', async ()=>{
     const weight = parseInt(recordWeight.value);
     const reps = parseInt(recordReps.value);
+
     if(!weight || !reps){
         fadeTempMsg(recordMessage, '무게와 횟수를 입력하세요', 900, 600);
         return;
     }
+
     const date = formatTodayYYMMDD();
-    // 현재 active folder
+
     const activeBtn = document.querySelector('.folderBtn.active');
     const target = activeBtn ? activeBtn.dataset.target : 'benchBox';
-    // push into local records
-   const item = {
-    id: Date.now().toString(), // 🔥 고유 id
-    firestoreId: null,           // 🔥 추가
-    date,
-    weight,
-    reps
-};
-    if(target === 'benchBox') records.bench.unshift(item);
-    else if(target === 'squatBox') records.squat.unshift(item);
-    else if(target === 'deadBox') records.dead.unshift(item);
 
-    // clear inputs
+    const lift =
+      target === 'benchBox' ? 'bench' :
+      target === 'squatBox' ? 'squat' :
+      'dead';
+
+    const item = {
+        firestoreId: null,
+        date,
+        weight,
+        reps
+    };
+
+    if(lift === 'bench') records.bench.unshift(item);
+    if(lift === 'squat') records.squat.unshift(item);
+    if(lift === 'dead')  records.dead.unshift(item);
+
     recordWeight.value = '';
     recordReps.value = '';
-
-    // show local feedback
     fadeTempMsg(recordMessage, '기록 추가 완료', 700, 600);
     renderActiveBox();
 
-    // if logged in, also push to Firestore collection 'records'
     const user = auth.currentUser;
     if(user){
         try{
-         const docRef = await db.collection('users')
-  .doc(user.uid)
-  .collection('records')
-  .add({
-    lift,
-    date,
-    weight,
-    reps,
-    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-  });
+            const docRef = await db
+              .collection('users')
+              .doc(user.uid)
+              .collection('records')
+              .add({
+                lift,
+                date,
+                weight,
+                reps,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+              });
 
-item.firestoreId = docRef.id; // 🔥 이 줄 추가
-
-        }catch(e){ console.error('Firestore add err', e); }
+            item.firestoreId = docRef.id;
+        }catch(e){
+            console.error('Firestore add err', e);
+        }
     }
 });
+
 
 /* 로그인 (구글) */
 googleLoginBtn.addEventListener('click', ()=>{
@@ -1041,25 +1047,7 @@ document.addEventListener("touchmove", () => {
           .delete();
     }
 }
-const lift =
-  target === 'benchBox' ? 'bench' :
-  target === 'squatBox' ? 'squat' :
-  'dead';
 
-const docRef = await db
-  .collection('users')
-  .doc(user.uid)
-  .collection('records')
-  .add({
-    lift,
-    date,
-    weight,
-    reps,
-    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-  });
-
-item.firestoreId = docRef.id;
-    
 </script>
 <!-- ⚠️ 여기 아래에 네가 쓰던 JS 그대로 유지 -->
 </body>
