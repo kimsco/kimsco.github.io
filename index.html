@@ -9,9 +9,13 @@
 /* ===============================
    🔥 전체 레이아웃 (폰 비율 고정)
 ================================ */
-body {
+   html, body {
     margin: 0;
+    height: 100%;
+    overflow: hidden;   /* ⭐ 핵심 */
     background: #111;
+}
+body {
     display: flex;
     justify-content: center;
     color: white;
