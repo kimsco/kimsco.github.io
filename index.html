@@ -1009,7 +1009,10 @@ document.addEventListener("touchstart", e => {
 document.addEventListener("touchend", () => {
     clearTimeout(pressTimer);
 });
-
+document.addEventListener("touchmove", () => {
+    clearTimeout(pressTimer);
+});
+   
    async function deleteRecord(id){
     if(!confirm("이 기록을 삭제할까요?")) return;
 
