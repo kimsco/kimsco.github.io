@@ -571,14 +571,14 @@ goBtn.addEventListener('click', ()=> {
 
     const oneRM = weight * (1 + reps * 0.0333);
 
-    // 표 없이 그냥 1열로 텍스트 나열
+    // RM마다 세로 간격 넓게
     let html = '';
     for (let r=1; r<=10; r++){
         let rmWeight = oneRM / (1 + (r-1)*0.0333);
         html += `<div style="
                         text-align:center;
                         color:white;
-                        margin:6px 0;
+                        margin:12px 0;   /* 기존 6px → 12px로 간격 늘림 */
                         font-size:16px;
                         font-weight:600;
                    ">
@@ -588,6 +588,7 @@ goBtn.addEventListener('click', ()=> {
 
     tableArea.innerHTML = html;
 });
+
 
 
 /* 페이드 텍스트 유틸 */
