@@ -373,6 +373,15 @@ input[type="number"] {
     background: #111;
     -webkit-overflow-scrolling: touch;
 }
+/* 전체 스크롤바 숨김 */
+#app::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+}
+
+#app {
+    scrollbar-width: none; /* Firefox */
+}
 
 </style>
 </head>
