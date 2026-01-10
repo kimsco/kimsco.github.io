@@ -359,7 +359,7 @@ input[type="number"] {
     height: auto;        /* 높이 자동 */
     padding: 8px;        /* 적당히 줄임 */
     font-size: 16px;     /* 글자 크기 */
-    margin: 30px auto 10px auto;   /* 가운데 정렬 */
+    margin: 10px auto;   /* 가운데 정렬 */
     display: block;
     border-radius: 10px; /* 둥글게 유지 */
 }
@@ -1067,6 +1067,8 @@ document.addEventListener("touchmove", () => {
           .delete();
     }
 }
+// RM 결과를 감싸는 컨테이너 생성
+tableArea.innerHTML = `<div style="margin-top:40px;">${html}</div>`;
 
 </script>
 <!-- ⚠️ 여기 아래에 네가 쓰던 JS 그대로 유지 -->
