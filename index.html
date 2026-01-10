@@ -685,18 +685,18 @@ if(!arr || arr.length === 0){
 }
 
     // 최신 위로
-    boxEl.innerHTML = arr.map(it=>{
-       return `
-<div class="recordItem" data-id="${it.firestoreId}">
-
-     style="display:flex;justify-content:space-between;
-            padding:6px 0;
-            border-bottom:1px solid rgba(255,255,255,0.06)">
-    <div style="color:#ddd">${it.date}</div>
-    <div>${it.weight}kg × ${it.reps}회</div>
-</div>
-`;
-    }).join('');
+boxEl.innerHTML = arr.map(it => {
+  return `
+    <div class="recordItem"
+         data-id="${it.firestoreId}"
+         style="display:flex;justify-content:space-between;
+                padding:6px 0;
+                border-bottom:1px solid rgba(255,255,255,0.06)">
+      <div style="color:#ddd">${it.date}</div>
+      <div>${it.weight}kg × ${it.reps}회</div>
+    </div>
+  `;
+}).join('');
 }
 renderActiveBox();
 
@@ -806,14 +806,12 @@ auth.onAuthStateChanged(async user=>{
                 const d = doc.data();
                 if(!d || !d.lift) return;
 
-                const item = {
-                   id: d.id || doc.id,
-                    date: d.date || formatTodayYYMMDD(
-                        new Date(d.createdAt?.toDate?.() || new Date())
-                    ),
-                    weight: d.weight,
-                    reps: d.reps
-                };
+               const item = {
+  firestoreId: doc.id,
+  date: d.date,
+  weight: d.weight,
+  reps: d.reps
+};
 
                 if(d.lift === 'bench') records.bench.push(item);
                 if(d.lift === 'squat') records.squat.push(item);
@@ -1043,7 +1041,24 @@ document.addEventListener("touchmove", () => {
           .delete();
     }
 }
+const lift =
+  target === 'benchBox' ? 'bench' :
+  target === 'squatBox' ? 'squat' :
+  'dead';
 
+const docRef = await db
+  .collection('users')
+  .doc(user.uid)
+  .collection('records')
+  .add({
+    lift,
+    date,
+    weight,
+    reps,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  });
+
+item.firestoreId = docRef.id;
     
 </script>
 <!-- ⚠️ 여기 아래에 네가 쓰던 JS 그대로 유지 -->
