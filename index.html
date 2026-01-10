@@ -1071,19 +1071,6 @@ document.addEventListener("touchmove", () => {
     }
 }
 
-    const app = document.querySelector('.app');
-
-app.addEventListener('touchmove', function(e) {
-    const scrollTop = app.scrollTop;
-    const scrollHeight = app.scrollHeight;
-    const offsetHeight = app.offsetHeight;
-    const atTop = scrollTop === 0;
-    const atBottom = scrollTop + offsetHeight >= scrollHeight;
-
-    if ((atTop && e.touches[0].clientY > 0) || (atBottom && e.touches[0].clientY < 0)) {
-        e.preventDefault(); // 위나 아래로 더 이상 못 땡기게 막음
-    }
-}, { passive: false });
 
 
 </script>
