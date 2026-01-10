@@ -1,35 +1,29 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8" /> 
+<meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
 <title>1RM 계산기 + 3대 기록표</title>
 
 <style>
-
+/* ===============================
+   🔥 전체 레이아웃 (폰 비율 고정)
+================================ */
 body {
+    margin: 0;
+    background: #111;
     display: flex;
     justify-content: center;
     color: white;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
 }
-html, body {
-    height: 100%;
-    overflow: hidden; /* 외부 스크롤 제거 */
-    overscroll-behavior: none; /* 바운스 제거 */
-}
 
 .app {
-    height: 100%;
-    overflow-y: auto; 
-    overscroll-behavior: contain; /* 🔥 중요 */
-    -webkit-overflow-scrolling: auto; /* iOS 바운스 제거 */
+    width: 390px;          /* 아이폰 기준 */
+    min-height: 100vh;
+    background: black;
     padding: 70px 20px 20px;
     box-sizing: border-box;
-}
-
-.app::-webkit-scrollbar {
-    width: 0; height: 0;            /* 스크롤바 숨김 */
 }
 
 /* ===============================
@@ -73,8 +67,10 @@ td, th {
 /* ===============================
    로그인 영역
 ================================ */
-
-   
+   .app {
+   position: relative;
+    overflow-x: hidden; /* 🔥 혹시 모를 튐 방지 */
+}
 .topBar {
     position: absolute;
     top: 12px;
@@ -342,9 +338,6 @@ td, th {
     font-size: 13px;
     font-weight: bold;
 }
-
-  
-
 /* 🔥 number input +/- 버튼 제거 */
 input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button {
@@ -355,27 +348,21 @@ input[type="number"]::-webkit-inner-spin-button {
 input[type="number"] {
     -moz-appearance: textfield; /* Firefox */
 }
-
    /* ===============================
    1RM 입력 폭 2/3
 ================================ */
 #tab1 select,
 #tab1 button {
     width: 66%;
-   padding: 9px;          /* 기존 14px → 약 2/3 */
-    font-size: 14px;       /* 기존 18px → 약 2/3 */
     margin-left: auto;
     margin-right: auto;
     display: block;
 }
-
-
 </style>
 </head>
 
 <body>
 <div class="app">
-
  <div class="topBar">
 <div id="loginArea">
     <button id="googleLoginBtn">Google 로그인</button>
@@ -1070,7 +1057,6 @@ document.addEventListener("touchmove", () => {
           .delete();
     }
 }
-
 
 </script>
 <!-- ⚠️ 여기 아래에 네가 쓰던 JS 그대로 유지 -->
