@@ -6,28 +6,32 @@
 <title>1RM 계산기 + 3대 기록표</title>
 
 <style>
-/* ===============================
-   🔥 전체 레이아웃 (폰 비율 고정)
-================================ */
-   html, body {
-    margin: 0;
-    height: 100%;
-    overflow: hidden;   /* ⭐ 핵심 */
-    background: #111;
-}
+
 body {
     display: flex;
     justify-content: center;
     color: white;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
 }
+html, body {
+    margin: 0;
+    height: 100%;
+    overflow: hidden;  /* 외부 스크롤 제거 */
+    background: #111;
+}
 
 .app {
-    width: 390px;          /* 아이폰 기준 */
-    min-height: 100vh;
-    background: black;
+    width: 100%;
+    max-width: 420px;
+    height: 100%;
     padding: 70px 20px 20px;
     box-sizing: border-box;
+    overflow-y: auto;               /* 내부 스크롤 허용 */
+    -webkit-overflow-scrolling: touch;
+}
+
+.app::-webkit-scrollbar {
+    width: 0; height: 0;            /* 스크롤바 숨김 */
 }
 
 /* ===============================
@@ -71,10 +75,8 @@ td, th {
 /* ===============================
    로그인 영역
 ================================ */
-   .app {
-   position: relative;
-    overflow-x: hidden; /* 🔥 혹시 모를 튐 방지 */
-}
+
+   
 .topBar {
     position: absolute;
     top: 12px;
@@ -365,23 +367,7 @@ input[type="number"] {
     margin-right: auto;
     display: block;
 }
-   #app {
-    width: 100%;
-    max-width: 420px;   /* 폰 느낌 */
-    height: 100vh;
-    overflow-y: auto;
-    background: #111;
-    -webkit-overflow-scrolling: touch;
-}
-/* 전체 스크롤바 숨김 */
-#app::-webkit-scrollbar {
-    width: 0;
-    height: 0;
-}
 
-#app {
-    scrollbar-width: none; /* Firefox */
-}
 
 </style>
 </head>
