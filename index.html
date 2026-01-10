@@ -351,23 +351,19 @@ input[type="number"] {
    /* ===============================
    1RM 입력 폭 2/3
 ================================ */
-#tab1 select,
-#tab1 button {
-      width: 66%;
-    padding: 9px;          /* 기존 14px → 약 2/3 */
-    font-size: 14px;       /* 기존 18px → 약 2/3 */
-    margin-left: auto;
-    margin-right: auto;
-    display: block;
-}
-   #weight, #reps, #goBtn {
+#tab1 #weight,
+#tab1 #reps,
+#tab1 #goBtn {
     width: 66%;          /* 가로 2/3 */
-    height: 66%;         /* 세로 2/3 */
-    padding: 8px;        /* padding도 줄임 */
-    font-size: 16px;     /* 글자 크기도 적당히 */
+    height: auto;        /* 높이 자동 */
+    padding: 8px;        /* 적당히 줄임 */
+    font-size: 16px;     /* 글자 크기 */
     margin: 10px auto;   /* 가운데 정렬 */
     display: block;
+    border-radius: 10px; /* 둥글게 유지 */
 }
+
+
 </style>
 </head>
 
