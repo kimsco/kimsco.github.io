@@ -279,14 +279,14 @@ td, th {
 /* 날짜 셀 */
 .days div {
    display: flex;
-    flex-direction: column; /* 위-날짜 / 아래-종목 */
-    justify-content: space-between; /* 위와 아래로 배치 */
-    align-items: flex-start; /* 날짜 왼쪽, 종목 오른쪽 조정하려면 아래서 추가 */
-    aspect-ratio: 1 / 1;
-    padding: 4px; /* 셀 안쪽 여유 */
+    flex-direction: column;   /* 위: 날짜 / 아래: 종목 */
+    justify-content: flex-start; /* 위쪽부터 쌓기 */
+    align-items: flex-start; /* 기본 왼쪽 정렬 */
+    aspect-ratio: 1 / 1;     /* 원래 칸 크기 유지 */
     background: #1a1a1a;
     border-radius: 12px;
-    position: relative; /* 필요하면 */
+    position: relative;
+    padding: 2px;            /* 최소 여유 */
     cursor: pointer;
 }
 
@@ -417,11 +417,14 @@ td, th {
 .cal-date {
    font-size: 16px;
     font-weight: 600;
+    margin-bottom: auto;
 }
 
 .cal-muscle {
-  font-size: 6px; /* 날짜의 1/2 */
-    align-self: flex-end; /* 오른쪽 아래 정렬 */
+    font-size: 8px;          /* 날짜 대비 1/2 */
+    position: absolute;
+    bottom: 4px;             /* 아래쪽 살짝 띄우기 */
+    right: 4px;              /* 오른쪽 정렬 */
     opacity: 0.9;
     white-space: nowrap;
 }
