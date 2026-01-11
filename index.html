@@ -1065,6 +1065,8 @@ function calOpenPopup(key) {
   calSelectedMuscles = calData[key]?.muscles || [];
   calPopupDate.textContent = key;
 
+
+   
   calMuscleBtns.forEach(btn => {
     btn.classList.toggle("active", calSelectedMuscles.includes(btn.dataset.muscle));
   });
@@ -1073,36 +1075,58 @@ function calOpenPopup(key) {
 }
 
 
-function handleMuscleSelect(btn) {
-  const m = btn.dataset.muscle;
-  if (calSelectedMuscles.includes(m)) {
-    calSelectedMuscles = calSelectedMuscles.filter(x => x !== m);
-  } else {
-    calSelectedMuscles = [m]; // 한 번에 하나
-  }
-  calMuscleBtns.forEach(b => b.classList.remove("active"));
-  if (calSelectedMuscles.length) btn.classList.add("active");
-}
 
-function saveMuscleSelection() {
-  if (calSelectedMuscles.length === 0) {
-    delete calData[calSelectedDate];
-  } else {
-    calData[calSelectedDate] = { muscles: calSelectedMuscles };
-  }
-  localStorage.setItem("workoutCalendar", JSON.stringify(calData));
-  calRender();
-  calPopup.classList.add("hidden");
-}
+
+
 
 calPopup.addEventListener("click", e => {
   // 배경만 클릭하면 닫기, 내부 박스 클릭은 무시
   if (e.target === calPopup) calPopup.classList.add("hidden");
 });
 
-   calMuscleBtns.forEach(btn => {
-  btn.addEventListener("click", () => handleMuscleSelect(btn));
+
+calMuscleBtns.forEach(btn => {
+  let timer = null;
+
+  // 눌렀을 때 UI 효과
+  btn.addEventListener("mousedown", () => {
+    btn.classList.add("active");
+  });
+  btn.addEventListener("mouseup", () => {
+    // 선택 저장
+    const m = btn.dataset.muscle;
+    calSelectedMuscles = [m]; // 한 번에 하나
+    calData[calSelectedDate] = { muscles: calSelectedMuscles };
+    localStorage.setItem("workoutCalendar", JSON.stringify(calData));
+
+    // 달력 갱신
+    calRender();
+
+    // 팝업 닫기
+    calPopup.classList.add("hidden");
+  });
+
+  // 모바일 터치 대응
+  btn.addEventListener("touchstart", () => {
+    btn.classList.add("active");
+  });
+  btn.addEventListener("touchend", () => {
+    const m = btn.dataset.muscle;
+    calSelectedMuscles = [m];
+    calData[calSelectedDate] = { muscles: calSelectedMuscles };
+    localStorage.setItem("workoutCalendar", JSON.stringify(calData));
+    calRender();
+    calPopup.classList.add("hidden");
+  });
+
+  // 눌렀다 떼면 색 초기화 (선택한 버튼만 active 유지)
+  btn.addEventListener("mouseleave", () => {
+    btn.classList.remove("active");
+  });
 });
+
+
+   
 function handleMuscleSelect(btn) {
   const m = btn.dataset.muscle;
   // 한 번에 하나만 선택
