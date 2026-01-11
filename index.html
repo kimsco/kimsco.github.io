@@ -1060,66 +1060,41 @@ if (isToday) {
     calDaysEl.appendChild(cell);
   }
 }
-
 function calOpenPopup(key) {
   calSelectedDate = key;
   calSelectedMuscles = calData[key]?.muscles || [];
   calPopupDate.textContent = key;
 
-
-
-
-
-   calMuscleBtns.forEach(btn => {
-  btn.addEventListener("mousedown", e => {
-    e.stopPropagation(); // 상위 이벤트 차단
-    const m = btn.dataset.muscle;
-    if (calSelectedMuscles.includes(m)) {
-      calSelectedMuscles = calSelectedMuscles.filter(x => x !== m);
-    } else {
-      calSelectedMuscles = [m]; // 한 번에 하나만
-    }
-    calMuscleBtns.forEach(b => b.classList.remove("active"));
-    if (calSelectedMuscles.length) btn.classList.add("active");
+  calMuscleBtns.forEach(btn => {
+    btn.classList.toggle("active", calSelectedMuscles.includes(btn.dataset.muscle));
   });
 
-  btn.addEventListener("mouseup", e => {
-    e.stopPropagation(); // 상위 이벤트 차단
-    if (calSelectedMuscles.length === 0) {
-      delete calData[calSelectedDate];
-    } else {
-      calData[calSelectedDate] = { muscles: calSelectedMuscles };
-    }
-    localStorage.setItem("workoutCalendar", JSON.stringify(calData));
-    calRender();
-    calPopup.classList.add("hidden");
-  });
+  calPopup.classList.remove("hidden");
+}
 
-  // 터치 지원
-  btn.addEventListener("touchstart", e => {
-    e.stopPropagation();
-    const m = btn.dataset.muscle;
-    if (calSelectedMuscles.includes(m)) {
-      calSelectedMuscles = calSelectedMuscles.filter(x => x !== m);
-    } else {
-      calSelectedMuscles = [m];
-    }
-    calMuscleBtns.forEach(b => b.classList.remove("active"));
-    if (calSelectedMuscles.length) btn.classList.add("active");
-  });
 
-  btn.addEventListener("touchend", e => {
-    e.stopPropagation();
-    if (calSelectedMuscles.length === 0) {
-      delete calData[calSelectedDate];
-    } else {
-      calData[calSelectedDate] = { muscles: calSelectedMuscles };
-    }
-    localStorage.setItem("workoutCalendar", JSON.stringify(calData));
-    calRender();
-    calPopup.classList.add("hidden");
-  });
-});
+function handleMuscleSelect(btn) {
+  const m = btn.dataset.muscle;
+  if (calSelectedMuscles.includes(m)) {
+    calSelectedMuscles = calSelectedMuscles.filter(x => x !== m);
+  } else {
+    calSelectedMuscles = [m]; // 한 번에 하나
+  }
+  calMuscleBtns.forEach(b => b.classList.remove("active"));
+  if (calSelectedMuscles.length) btn.classList.add("active");
+}
+
+function saveMuscleSelection() {
+  if (calSelectedMuscles.length === 0) {
+    delete calData[calSelectedDate];
+  } else {
+    calData[calSelectedDate] = { muscles: calSelectedMuscles };
+  }
+  localStorage.setItem("workoutCalendar", JSON.stringify(calData));
+  calRender();
+  calPopup.classList.add("hidden");
+}
+
 
    
 
