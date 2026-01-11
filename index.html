@@ -1095,14 +1095,31 @@ function saveMuscleSelection() {
   calPopup.classList.add("hidden");
 }
 
-
-   
-
-
-
-calPopup.onclick = e => {
+calPopup.addEventListener("click", e => {
+  // 배경만 클릭하면 닫기, 내부 박스 클릭은 무시
   if (e.target === calPopup) calPopup.classList.add("hidden");
-};
+});
+
+   calMuscleBtns.forEach(btn => {
+  btn.addEventListener("click", () => handleMuscleSelect(btn));
+});
+
+const saveBtn = document.createElement("button");
+saveBtn.textContent = "저장";
+saveBtn.style.width = "100%";
+saveBtn.style.marginTop = "10px";
+saveBtn.style.padding = "10px";
+saveBtn.style.borderRadius = "8px";
+saveBtn.style.background = "#FFD700";
+saveBtn.style.color = "#111";
+saveBtn.style.fontWeight = "bold";
+saveBtn.style.cursor = "pointer";
+saveBtn.addEventListener("click", saveMuscleSelection);
+
+document.querySelector(".popup-box").appendChild(saveBtn);
+
+
+
 
 document.getElementById("calPrev").onclick = () => {
   calCurrent.setMonth(calCurrent.getMonth() - 1);
