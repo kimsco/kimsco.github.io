@@ -407,6 +407,23 @@ td, th {
   padding: 0;
 }
 
+.days div {
+    position: relative;
+}
+
+.cal-date {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.cal-muscle {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    font-size: 10px;
+    opacity: 0.85;
+    color: #fff;
+}
 
    
 /* 🔥 number input +/- 버튼 제거 */
@@ -1028,7 +1045,13 @@ function calRender() {
   for (let d = 1; d <= last; d++) {
     const cell = document.createElement("div");
     const key = `${y}-${m + 1}-${d}`;
-    cell.textContent = d;
+
+     cell.innerHTML = `
+  <div class="cal-date">${d}</div>
+  <div class="cal-muscle">
+    ${calData[key]?.muscles?.[0] || ""}
+  </div>
+`;
 
 const today = new Date();
 const isToday =
