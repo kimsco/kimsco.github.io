@@ -212,13 +212,6 @@ td, th {
 }
 
 
-.recordFormRow input[type="number"] {
-    height:40px;
-    border-radius:8px;
-    background:#222;
-    color:white;
-}
-
 /* ===============================
    달력
 ================================ */
@@ -350,40 +343,31 @@ td, th {
     background:#8b0000;
     color:white;
 }
-.recordFormRow .dateDisplay {
-    width: 80px;          /* 원래 고정 */
-    height: 40px;         /* input과 동일 높이 */
-    flex-shrink: 0;       /* flex로 줄어들거나 늘어나는 거 방지 */
-    display: flex;
-    flex-direction: column;
-    justify-content: center;  /* 내용 중앙 정렬 */
-    align-items: center;
-    font-size: 11px;      /* 날짜 글씨 작게 */
+.recordFormRow input[type="number"] {
+    height: 30px;        /* 기존 40px → 30px */
+    border-radius: 6px;  /* 조금 작게 */
+    font-size: 12px;     /* 글자도 줄임 */
+    padding: 0 6px;      /* 좌우 padding도 조금 줄임 */
     background: #222;
-    border-radius: 8px;
-    color: #FFD700;
-    padding: 0;           /* 여백 줄임 */
+    color: white;
     box-sizing: border-box;
 }
 
+.recordFormRow .dateDisplay {
+    width: 70px;         /* 기존 80px → 70px */
+    height: 30px;        /* 기존 40px → 30px */
+    font-size: 10px;     /* 글자 조금 작게 */
+    padding: 0;          /* 여백 제거 */
+    border-radius: 6px;  /* 모서리 작게 */
+}
+
 .recordFormRow .dateYear {
-    font-size: 11px;
-    line-height: 1;
-    opacity: 0.85;
+    font-size: 9px;      /* 기존 11px → 9px */
 }
 
 .recordFormRow .dateMD {
-    font-size: 13px;
+    font-size: 11px;     /* 기존 13px → 11px */
     font-weight: bold;
-    line-height: 1;
-}
-/* input 높이 맞춤 */
-.recordFormRow input[type="number"] {
-    height: 40px;
-    border-radius: 8px;
-    background: #222;
-    color: white;
-    padding: 0 8px;
 }
 
    
