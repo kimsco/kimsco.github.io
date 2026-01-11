@@ -31,6 +31,10 @@ body {
     padding: 0px 20px 20px;
     box-sizing: border-box;
     overflow-y: auto;   /* 🔥 내부만 스크롤 */
+   
+   position: relative;
+    overflow-x: hidden; /* 🔥 혹시 모를 튐 방지 */
+
 }
 
 /* ===============================
@@ -74,10 +78,7 @@ td, th {
 /* ===============================
    로그인 영역
 ================================ */
-   .app {
-   position: relative;
-    overflow-x: hidden; /* 🔥 혹시 모를 튐 방지 */
-}
+  
 .topBar {
   display: flex;
   justify-content: space-between;
