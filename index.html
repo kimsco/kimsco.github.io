@@ -1066,6 +1066,55 @@ if (isToday) {
 }
 
 
+let longPressTimer = null;
+let calPopupOpen = false;  // 팝업 열렸는지 체크
+let calPopupJustOpened = false; // 팝업 바로 열렸는지 체크
+
+function calOpenPopup(key) {
+    calSelectedDate = key;
+    calSelectedMuscles = calData[key]?.muscles || [];
+    calPopupDate.textContent = key;
+
+    calMuscleBtns.forEach(btn => {
+        btn.classList.toggle("active", calSelectedMuscles.includes(btn.dataset.muscle));
+    });
+
+    calPopup.classList.remove("hidden");
+    calPopupOpen = true;
+    calPopupJustOpened = true;
+
+    setTimeout(() => { calPopupJustOpened = false; }, 250);
+}
+
+// 날짜 long press
+document.addEventListener("mousedown", e => handleDatePressStart(e));
+document.addEventListener("touchstart", e => handleDatePressStart(e));
+
+function handleDatePressStart(e){
+    const cell = e.target.closest(".days div");
+    if(!cell || !cell.textContent) return;
+
+    const key = `${calCurrent.getFullYear()}-${calCurrent.getMonth()+1}-${cell.textContent}`;
+
+    longPressTimer = setTimeout(() => {
+        calOpenPopup(key);
+    }, 500);  // 500ms 이상 눌러야 팝업
+}
+
+document.addEventListener("mouseup", e => clearLongPress(e));
+document.addEventListener("touchend", e => clearLongPress(e));
+document.addEventListener("touchmove", e => clearLongPress(e));
+
+function clearLongPress(e){
+    if(calPopupOpen) {
+        // 팝업 열려있으면 long press 무시
+        longPressTimer && clearTimeout(longPressTimer);
+        longPressTimer = null;
+        return;
+    }
+    longPressTimer && clearTimeout(longPressTimer);
+    longPressTimer = null;
+}
 
 
 
