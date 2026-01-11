@@ -61,11 +61,16 @@ button {
 }
 
 #result { margin-top:20px; font-size:22px; }
-
+table input {
+    width: 100%;
+    box-sizing: border-box;
+      padding: 8px;
+}
 table {
     width:100%;
     margin-top:15px;
     border-collapse: collapse;
+    table-layout: fixed; /* 🔥 이거 중요 */
 }
 table, td, th {
     border:1px solid white;
