@@ -1094,23 +1094,7 @@ calMuscleBtns.forEach(btn => {
 });
 
 
-let calPopupOpen = false;
 
-function calOpenPopup(key) {
-  calSelectedDate = key;
-  calSelectedMuscles = calData[key]?.muscles || [];
-  calPopupDate.textContent = key;
-
-  calMuscleBtns.forEach(btn => {
-    btn.classList.toggle("active", calSelectedMuscles.includes(btn.dataset.muscle));
-  });
-
-  calPopup.classList.remove("hidden");
-  calPopupOpen = true;
-}
-
-
-let calPopupOpen = false;
 let calPopupJustOpened = false; // 팝업 바로 열렸는지 체크
 
 function calOpenPopup(key) {
@@ -1147,19 +1131,6 @@ calMuscleBtns.forEach(btn => {
 
 
 
-   
-
-// 버튼 클릭
-calMuscleBtns.forEach(btn => {
-  btn.addEventListener("mouseup", e => {
-    if (!calPopupOpen) return; // 팝업이 열린 상태에서만 실행
-    handleMuscleSelect(btn);
-  });
-  btn.addEventListener("touchend", e => {
-    if (!calPopupOpen) return;
-    handleMuscleSelect(btn);
-  });
-});
 
 
 
