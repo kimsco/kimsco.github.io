@@ -278,17 +278,11 @@ td, th {
 
 /* 날짜 셀 */
 .days div {
+    position: relative;
     aspect-ratio: 1 / 1;
     background: #1a1a1a;
     border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 15px;
-    font-weight: 500;
-    color: #eee;
     cursor: pointer;
-    transition: all 0.18s ease;
 }
 
 /* hover (PC) */
@@ -417,19 +411,20 @@ td, th {
 
 .cal-date {
    position: absolute;
-    top: 6px;
-    left: 8px;
+    top: 8px;
+    left: 10px;
     font-size: 16px;
     font-weight: 600;
+    line-height: 1;
 }
 
 .cal-muscle {
-    position: absolute;
-    bottom: 6px;   /* 🔽 아래 */
-    right: 6px;    /* ▶ 오른쪽 */
-    font-size: 8px; /* 🔥 날짜의 1/2 */
+ position: absolute;
+    bottom: 8px;
+    right: 10px;
+    font-size: 4px;   /* 날짜의 정확히 1/2 */
+    line-height: 1;
     opacity: 0.9;
-    color: #fff;
     white-space: nowrap;
 }
 
