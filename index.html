@@ -1070,21 +1070,7 @@ let longPressTimer = null;
 let calPopupOpen = false;  // 팝업 열렸는지 체크
 let calPopupJustOpened = false; // 팝업 바로 열렸는지 체크
 
-function calOpenPopup(key) {
-    calSelectedDate = key;
-    calSelectedMuscles = calData[key]?.muscles || [];
-    calPopupDate.textContent = key;
 
-    calMuscleBtns.forEach(btn => {
-        btn.classList.toggle("active", calSelectedMuscles.includes(btn.dataset.muscle));
-    });
-
-    calPopup.classList.remove("hidden");
-    calPopupOpen = true;
-    calPopupJustOpened = true;
-
-    setTimeout(() => { calPopupJustOpened = false; }, 250);
-}
 
 // 날짜 long press
 document.addEventListener("mousedown", e => handleDatePressStart(e));
@@ -1147,8 +1133,6 @@ calMuscleBtns.forEach(btn => {
 });
 
 
-
-let calPopupJustOpened = false; // 팝업 바로 열렸는지 체크
 
 function calOpenPopup(key) {
   calSelectedDate = key;
