@@ -994,111 +994,43 @@ setTodayDisplay();
 /********************
  * 📅 달력 로직 (tab3)
  ********************/
-/******** 달력 + 종목 즉시 저장 ********/
+
 const calDaysEl = document.getElementById("calDays");
 const calMonthEl = document.getElementById("calMonth");
 const calPopup = document.getElementById("calPopup");
 const calPopupDate = document.getElementById("calPopupDate");
+const calSaveBtn = document.getElementById("calSave");
 const calMuscleBtns = calPopup.querySelectorAll(".muscles button");
 
 let calCurrent = new Date();
 let calData = JSON.parse(localStorage.getItem("workoutCalendar")) || {};
 let calSelectedDate = null;
+let calSelectedMuscles = [];
 
 function calRender() {
-    calDaysEl.innerHTML = "";
-
-    const y = calCurrent.getFullYear();
-    const m = calCurrent.getMonth();
-    calMonthEl.textContent = `${y}년 ${m + 1}월`;
-
-    const first = new Date(y, m, 1);
-    const start = (first.getDay() + 6) % 7; // 월요일 시작
-    const last = new Date(y, m + 1, 0).getDate();
-
-    for (let i = 0; i < start; i++) calDaysEl.appendChild(document.createElement("div"));
-
-    for (let d = 1; d <= last; d++) {
-        const cell = document.createElement("div");
-        const key = `${y}-${m + 1}-${d}`;
-        cell.textContent = d;
-
-        const today = new Date();
-        if (d === today.getDate() && m === today.getMonth() && y === today.getFullYear()) {
-            cell.classList.add("today");
-        }
-
-        if (calData[key]?.muscles?.length) {
-            cell.classList.add("done");
-        }
-
-        let timer;
-        cell.addEventListener("touchstart", () => { timer = setTimeout(() => openPopup(key), 500); });
-        cell.addEventListener("touchend", () => clearTimeout(timer));
-        cell.addEventListener("mousedown", () => { timer = setTimeout(() => openPopup(key), 500); });
-        cell.addEventListener("mouseup", () => clearTimeout(timer));
-
-        calDaysEl.appendChild(cell);
-    }
-}
-
-function openPopup(key) {
-    calSelectedDate = key;
-
-    calMuscleBtns.forEach(btn => {
-        btn.classList.toggle("active", calData[key]?.muscles?.includes(btn.dataset.muscle));
-    });
-
-    calPopupDate.textContent = key;
-    calPopup.classList.remove("hidden");
-}
-
-// ✅ 종목 클릭: 바로 저장 + 잠깐 표시 후 팝업 닫기
-calMuscleBtns.forEach(btn => {
-    btn.onclick = () => {
-        const muscle = btn.dataset.muscle;
-        let muscles = calData[calSelectedDate]?.muscles || [];
-
-        if (muscles.includes(muscle)) {
-            muscles = muscles.filter(m => m !== muscle);
-        } else {
-            muscles.push(muscle);
-        }
-
-        // 버튼 색상 표시
-        btn.classList.toggle("active", muscles.includes(muscle));
-
-        // 데이터 저장
-        if (muscles.length === 0) {
-            delete calData[calSelectedDate];
-        } else {
-            calData[calSelectedDate] = { muscles };
-        }
-        localStorage.setItem("workoutCalendar", JSON.stringify(calData));
-
-        // 0.3초 후 팝업 닫기
-        setTimeout(() => {
-            calPopup.classList.add("hidden");
-            calRender(); // 달력 갱신
-        }, 300);
-    };
-});
-
-// 팝업 바깥 클릭 시 닫기
-calPopup.onclick = e => {
-    if (e.target === calPopup) calPopup.classList.add("hidden");
-};
-
-// 달력 이전/다음
-document.getElementById("calPrev").onclick = () => { calCurrent.setMonth(calCurrent.getMonth() - 1); calRender(); };
-document.getElementById("calNext").onclick = () => { calCurrent.setMonth(calCurrent.getMonth() + 1); calRender(); };
-
-calRender();
-
-
-
-
    
+   
+  calDaysEl.innerHTML = "";
+
+  const y = calCurrent.getFullYear();
+  const m = calCurrent.getMonth();
+ calMonthEl.textContent = `${y}년 ${m + 1}월`;
+
+
+  const first = new Date(y, m, 1);
+  const start = (first.getDay() + 6) % 7;
+  const last = new Date(y, m + 1, 0).getDate();
+
+  for (let i = 0; i < start; i++) {
+    calDaysEl.appendChild(document.createElement("div"));
+  }
+
+  for (let d = 1; d <= last; d++) {
+    const cell = document.createElement("div");
+    const key = `${y}-${m + 1}-${d}`;
+    cell.textContent = d;
+
+const today = new Date();
 const isToday =
   d === today.getDate() &&
   m === today.getMonth() &&
@@ -1116,11 +1048,47 @@ if (isToday) {
        
     }
 
-    
+    let timer;
+    cell.addEventListener("touchstart", () => {
+      timer = setTimeout(() => calOpenPopup(key), 500);
+    });
+    cell.addEventListener("touchend", () => clearTimeout(timer));
+
+    cell.addEventListener("mousedown", () => {
+      timer = setTimeout(() => calOpenPopup(key), 500);
+    });
+    cell.addEventListener("mouseup", () => clearTimeout(timer));
+
+    calDaysEl.appendChild(cell);
   }
 }
 
+function calOpenPopup(key) {
+  calSelectedDate = key;
+  calSelectedMuscles = calData[key]?.muscles || [];
+  calPopupDate.textContent = key;
 
+  calMuscleBtns.forEach(btn => {
+    btn.classList.toggle(
+      "active",
+      calSelectedMuscles.includes(btn.dataset.muscle)
+    );
+  });
+
+  calPopup.classList.remove("hidden");
+}
+
+calMuscleBtns.forEach(btn => {
+  btn.onclick = () => {
+    const m = btn.dataset.muscle;
+    if (calSelectedMuscles.includes(m)) {
+      calSelectedMuscles = calSelectedMuscles.filter(x => x !== m);
+    } else {
+      calSelectedMuscles.push(m);
+    }
+    btn.classList.toggle("active");
+  };
+});
 
 calSaveBtn.onclick = () => {
   if (calSelectedMuscles.length === 0) {
@@ -1132,7 +1100,21 @@ calSaveBtn.onclick = () => {
   calRender();
 };
 
+calPopup.onclick = e => {
+  if (e.target === calPopup) calPopup.classList.add("hidden");
+};
 
+document.getElementById("calPrev").onclick = () => {
+  calCurrent.setMonth(calCurrent.getMonth() - 1);
+  calRender();
+};
+
+document.getElementById("calNext").onclick = () => {
+  calCurrent.setMonth(calCurrent.getMonth() + 1);
+  calRender();
+};
+
+calRender();
 
 let pressTimer = null;
 
