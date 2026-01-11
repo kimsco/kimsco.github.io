@@ -205,12 +205,19 @@ td, th {
    기록 입력 한 줄
 ================================ */
 .recordFormRow {
-    display: flex;
-    gap: 6px;
-    align-items: center;  /* 세로 중앙 정렬 */
-    margin-top: 12px;
+    display:flex;
+    gap:6px;
+    align-items:center;
+    margin-top:12px;
 }
 
+
+.recordFormRow input[type="number"] {
+    height:40px;
+    border-radius:8px;
+    background:#222;
+    color:white;
+}
 
 /* ===============================
    달력
@@ -271,16 +278,17 @@ td, th {
 
 /* 날짜 셀 */
 .days div {
-   display: flex;
-    flex-direction: column;   /* 위: 날짜 / 아래: 종목 */
-    justify-content: flex-start; /* 위쪽부터 쌓기 */
-    align-items: flex-start; /* 기본 왼쪽 정렬 */
-    aspect-ratio: 1 / 1;     /* 원래 칸 크기 유지 */
+    aspect-ratio: 1 / 1;
     background: #1a1a1a;
     border-radius: 12px;
-    position: relative;
-    padding: 2px;            /* 최소 여유 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    font-weight: 500;
+    color: #eee;
     cursor: pointer;
+    transition: all 0.18s ease;
 }
 
 /* hover (PC) */
@@ -306,10 +314,6 @@ td, th {
 .days div:empty {
     background: transparent;
     cursor: default;
-}
-.cal-date,
-.cal-muscle {
-    background: transparent !important;
 }
 
 
@@ -343,34 +347,29 @@ td, th {
     background:#8b0000;
     color:white;
 }
-.recordFormRow input[type="number"] {
-    height: 30px;        /* 기존 40px → 30px */
-    border-radius: 6px;  /* 조금 작게 */
-    font-size: 12px;     /* 글자도 줄임 */
-    padding: 0 6px;      /* 좌우 padding도 조금 줄임 */
+.dateDisplay {
+    width: 80px;
+    height: 40px;
     background: #222;
-    color: white;
-    box-sizing: border-box;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    line-height: 1.2;
+    color: #FFD700;
 }
 
-.recordFormRow .dateDisplay {
-    width: 70px;         /* 기존 80px → 70px */
-    height: 30px;        /* 기존 40px → 30px */
-    font-size: 10px;     /* 글자 조금 작게 */
-    padding: 0;          /* 여백 제거 */
-    border-radius: 6px;  /* 모서리 작게 */
+.dateYear {
+    font-size: 11px;
+    opacity: 0.85;
 }
 
-.recordFormRow .dateYear {
-    font-size: 9px;      /* 기존 11px → 9px */
-}
-
-.recordFormRow .dateMD {
-    font-size: 11px;     /* 기존 13px → 11px */
+.dateMD {
+    font-size: 13px;
     font-weight: bold;
 }
-
-   
 .tabContent {
   display: none;
 }
@@ -408,24 +407,6 @@ td, th {
   padding: 0;
 }
 
-.days div {
-    position: relative;
-}
-
-.cal-date {
-   font-size: 16px;
-    font-weight: 600;
-    margin-bottom: auto;
-}
-
-.cal-muscle {
-    font-size: 8px;          /* 날짜 대비 1/2 */
-    position: absolute;
-    bottom: 4px;             /* 아래쪽 살짝 띄우기 */
-    right: 4px;              /* 오른쪽 정렬 */
-    opacity: 0.9;
-    white-space: nowrap;
-}
 
    
 /* 🔥 number input +/- 버튼 제거 */
@@ -1047,13 +1028,7 @@ function calRender() {
   for (let d = 1; d <= last; d++) {
     const cell = document.createElement("div");
     const key = `${y}-${m + 1}-${d}`;
-
-     cell.innerHTML = `
-  <div class="cal-date">${d}</div>
-  <div class="cal-muscle">
-    ${calData[key]?.muscles?.[0] || ""}
-  </div>
-`;
+    cell.textContent = d;
 
 const today = new Date();
 const isToday =
