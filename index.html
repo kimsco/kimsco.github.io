@@ -407,7 +407,10 @@ td, th {
   padding: 0;
 }
 
-
+.days div.done:hover {
+    background: linear-gradient(135deg, #8b0000, #400000); /* 기존 done 색 유지 */
+    transform: translateY(-1px); /* hover 효과는 유지 */
+}
    
 /* 🔥 number input +/- 버튼 제거 */
 input[type="number"]::-webkit-outer-spin-button,
