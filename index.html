@@ -17,8 +17,7 @@ html, body {
 
 body { 
     background: #111; 
-    display: flex;
-    justify-content: center; 
+   
     color: white;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
    overflow: hidden; /* 🔥 핵심 */
@@ -35,6 +34,8 @@ body {
     overflow-y: auto;
     overflow-x: hidden;
     position: relative;
+
+   -webkit-overflow-scrolling: touch; /* 🔥 모바일 필수 */
 }
 
 /* ===============================
