@@ -95,7 +95,9 @@ td, th {
     font-size: 11px;
     opacity: 0.8;
 }
-
+#tab4 {
+  display: none;
+}
 
 /* ===============================
    탭
@@ -389,6 +391,8 @@ input[type="number"] {
     <button class="tabBtn active" data-target="tab1">1RM</button>
     <button class="tabBtn" data-target="tab2">3대</button>
     <button class="tabBtn" data-target="tab3">달력</button>
+   <button onclick="openTab('tab4')">Tip</button>
+
 </div>
 
 <!-- 1RM -->
@@ -441,6 +445,21 @@ input[type="number"] {
 </div>
 
         
+</div>
+<div id="tab4" class="tab-content">
+  <div style="
+      color:white;
+      text-align:left;
+      line-height:1.6;
+      font-size:15px;
+  ">
+    <h3 style="margin-bottom:12px;">운동 Tip</h3>
+
+    <p>• 1RM은 컨디션 좋은 날 기준으로 참고용만 사용</p>
+    <p>• 5RM 이하 무게는 실패 지점까지 가지 말 것</p>
+    <p>• 볼륨 세트는 70~80% 1RM이 가장 효율적</p>
+    <p>• 관절 아프면 무게보다 자세 우선</p>
+  </div>
 </div>
 
    
