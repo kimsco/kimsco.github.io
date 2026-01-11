@@ -359,41 +359,36 @@ td, th {
 .tabContent.active {
   display: block;
 }
-.googleBtn {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+.loginBtn {
+  background: #1c1c1c;
+  color: #ddd;
 
-  background: #fff;
-  color: #555;
+  border: 1px solid #333;
+  border-radius: 10px;
 
-  border: none;
-  border-radius: 14px;
-  padding: 10px 16px;
-
-  font-size: 14px;
+  padding: 6px 12px;
+  font-size: 12px;
   font-weight: 500;
 
-  box-shadow: 0 4px 10px rgba(0,0,0,0.25);
   cursor: pointer;
-
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
 }
 
-.googleBtn img {
-  width: 18px;
-  height: 18px;
+.loginBtn:hover {
+  background: #222;
+  border-color: #444;
 }
 
-.googleBtn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 14px rgba(0,0,0,0.3);
+.loginBtn:active {
+  background: #111;
+}
+   .loginBtn.loggedIn {
+  background: none;
+  border: none;
+  color: #aaa;
+  padding: 0;
 }
 
-.googleBtn:active {
-  transform: translateY(0);
-  box-shadow: 0 3px 8px rgba(0,0,0,0.25);
-}
 
    
 /* 🔥 number input +/- 버튼 제거 */
@@ -439,11 +434,8 @@ input[type="number"] {
        </div>
     <!-- 오른쪽 로그인 영역 -->
        <div id="loginArea">
-         <button id="googleLoginBtn" class="googleBtn">
-              <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google">
-              <span>Google 로그인</span>
-            </button>
-         <button id="logoutBtn" style="display:none;">로그아웃</button>
+             <button id="googleLoginBtn" class="loginBtn">Google 로그인</button>
+            <button id="logoutBtn" class="loginBtn" style="display:none;">로그아웃</button>
        <div id="userInfo"></div>
     </div>
   </div>   
