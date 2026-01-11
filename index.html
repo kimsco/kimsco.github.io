@@ -95,9 +95,6 @@ td, th {
     font-size: 11px;
     opacity: 0.8;
 }
-#tab4 {
-  display: none;
-}
 
 /* ===============================
    탭
@@ -391,7 +388,8 @@ input[type="number"] {
     <button class="tabBtn active" data-target="tab1">1RM</button>
     <button class="tabBtn" data-target="tab2">3대</button>
     <button class="tabBtn" data-target="tab3">달력</button>
-   <button onclick="openTab('tab4')">Tip</button>
+  <button class="tabBtn" data-target="tab4">Tip</button>
+
 
 </div>
 
@@ -446,7 +444,7 @@ input[type="number"] {
 
         
 </div>
-<div id="tab4" class="tab-content">
+<div id="tab4" class="tabcontent">
   <div style="
       color:white;
       text-align:left;
@@ -1089,8 +1087,6 @@ document.addEventListener("touchmove", () => {
           .delete();
     }
 }
-// RM 결과를 감싸는 컨테이너 생성
-tableArea.innerHTML = `<div style="margin-top:80px;">${html}</div>`;
 
 </script>
 <!-- ⚠️ 여기 아래에 네가 쓰던 JS 그대로 유지 -->
