@@ -33,9 +33,13 @@ body {
 
     overflow-y: auto;       /* ✅ 얘만 스크롤 */
     overflow-x: hidden;
-
+-ms-overflow-style: none;  /* IE, Edge */
+    scrollbar-width: none;     /* Firefox */
 }
 
+.app::-webkit-scrollbar {
+    display: none;             /* Chrome, Safari */
+}
 
 /* ===============================
    공통
