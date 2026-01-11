@@ -205,10 +205,10 @@ td, th {
    기록 입력 한 줄
 ================================ */
 .recordFormRow {
-    display:flex;
-    gap:6px;
-    align-items:center;
-    margin-top:12px;
+    display: flex;
+    gap: 6px;
+    align-items: center;  /* 세로 중앙 정렬 */
+    margin-top: 12px;
 }
 
 
@@ -350,29 +350,43 @@ td, th {
     background:#8b0000;
     color:white;
 }
-.dateDisplay {
-    width: 80px;
-    height: 40px;
-    background: #222;
-    border-radius: 8px;
+.recordFormRow .dateDisplay {
+    width: 80px;          /* 원래 고정 */
+    height: 40px;         /* input과 동일 높이 */
+    flex-shrink: 0;       /* flex로 줄어들거나 늘어나는 거 방지 */
     display: flex;
     flex-direction: column;
+    justify-content: center;  /* 내용 중앙 정렬 */
     align-items: center;
-    justify-content: center;
-    font-size: 11px;
-    line-height: 1.2;
+    font-size: 11px;      /* 날짜 글씨 작게 */
+    background: #222;
+    border-radius: 8px;
     color: #FFD700;
+    padding: 0;           /* 여백 줄임 */
+    box-sizing: border-box;
 }
 
-.dateYear {
+.recordFormRow .dateYear {
     font-size: 11px;
+    line-height: 1;
     opacity: 0.85;
 }
 
-.dateMD {
+.recordFormRow .dateMD {
     font-size: 13px;
     font-weight: bold;
+    line-height: 1;
 }
+/* input 높이 맞춤 */
+.recordFormRow input[type="number"] {
+    height: 40px;
+    border-radius: 8px;
+    background: #222;
+    color: white;
+    padding: 0 8px;
+}
+
+   
 .tabContent {
   display: none;
 }
