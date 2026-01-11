@@ -72,10 +72,18 @@ td, th {
     overflow-x: hidden; /* 🔥 혹시 모를 튐 방지 */
 }
 .topBar {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    max-width: calc(100% - 24px); /* 🔥 안전장치 */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 12px 14px;
+}
+
+   .topText {
+  color: white;
+  font-size: 0.66em; /* 기존 subtitle 대비 2/3 */
+  line-height: 1.4;
+  opacity: 0.85;
 }
 
 #loginArea {
@@ -370,7 +378,7 @@ input[type="number"] {
     margin: 10px auto;   /* 가운데 정렬 */
     display: block;
     border-radius: 10px; /* 둥글게 유지 */
-}
+
 
 #tableArea {
     margin-top: 30px;   /* 기존에 없으면 추가 */
@@ -381,16 +389,25 @@ input[type="number"] {
 
 <body>
 <div class="app">
- <div class="topBar">
-<div id="loginArea">
-    <button id="googleLoginBtn">Google 로그인</button>
-    <button id="logoutBtn" style="display:none;">로그아웃</button>
-    <div id="userInfo"></div>
-</div>
+   
+    <div class="topBar">
+    <!-- 왼쪽 문구 -->
+       <div class="topText">
+         <div>대부분의 문제는 돈이 없어서,</div>
+         <div>그 외의 문제는 근육이 없어서 생긴다</div>
+       </div>
+    <!-- 오른쪽 로그인 영역 -->
+       <div id="loginArea">
+         <button id="googleLoginBtn">Google 로그인</button>
+         <button id="logoutBtn" style="display:none;">로그아웃</button>
+       <div id="userInfo"></div>
+    </div>
+  </div>   
 
-</div>
+
+   
 <div class="container">
-<div class="subtitle">"대부분의 문제는 돈이 없어서, 그 외의 문제는 근육이 없어서 생긴다"</div>
+
 
 <!-- 탭 -->
 <div class="tab">
