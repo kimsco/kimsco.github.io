@@ -1103,20 +1103,26 @@ calPopup.addEventListener("click", e => {
    calMuscleBtns.forEach(btn => {
   btn.addEventListener("click", () => handleMuscleSelect(btn));
 });
+function handleMuscleSelect(btn) {
+  const m = btn.dataset.muscle;
+  // 한 번에 하나만 선택
+  calSelectedMuscles = [m];
+  
+  // UI 업데이트
+  calMuscleBtns.forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
 
-const saveBtn = document.createElement("button");
-saveBtn.textContent = "저장";
-saveBtn.style.width = "100%";
-saveBtn.style.marginTop = "10px";
-saveBtn.style.padding = "10px";
-saveBtn.style.borderRadius = "8px";
-saveBtn.style.background = "#FFD700";
-saveBtn.style.color = "#111";
-saveBtn.style.fontWeight = "bold";
-saveBtn.style.cursor = "pointer";
-saveBtn.addEventListener("click", saveMuscleSelection);
+  // 바로 저장
+  calData[calSelectedDate] = { muscles: calSelectedMuscles };
+  localStorage.setItem("workoutCalendar", JSON.stringify(calData));
 
-document.querySelector(".popup-box").appendChild(saveBtn);
+  // 달력 갱신
+  calRender();
+
+  // 팝업 닫기
+  calPopup.classList.add("hidden");
+}
+
 
 
 
