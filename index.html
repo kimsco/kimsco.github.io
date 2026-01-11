@@ -1060,19 +1060,7 @@ if (isToday) {
     calDaysEl.appendChild(cell);
   }
 }
-function calOpenPopup(key) {
-  calSelectedDate = key;
-  calSelectedMuscles = calData[key]?.muscles || [];
-  calPopupDate.textContent = key;
 
-
-   
-  calMuscleBtns.forEach(btn => {
-    btn.classList.toggle("active", calSelectedMuscles.includes(btn.dataset.muscle));
-  });
-
-  calPopup.classList.remove("hidden");
-}
 
 
 
@@ -1120,6 +1108,46 @@ function calOpenPopup(key) {
   calPopup.classList.remove("hidden");
   calPopupOpen = true;
 }
+
+
+let calPopupOpen = false;
+let calPopupJustOpened = false; // 팝업 바로 열렸는지 체크
+
+function calOpenPopup(key) {
+  calSelectedDate = key;
+  calSelectedMuscles = calData[key]?.muscles || [];
+  calPopupDate.textContent = key;
+
+  calMuscleBtns.forEach(btn => {
+    btn.classList.toggle("active", calSelectedMuscles.includes(btn.dataset.muscle));
+  });
+
+  calPopup.classList.remove("hidden");
+  calPopupOpen = true;
+  calPopupJustOpened = true;
+
+  // 250ms 후에 바로 열림 상태 해제
+  setTimeout(() => {
+    calPopupJustOpened = false;
+  }, 250);
+}
+
+// 버튼 클릭
+calMuscleBtns.forEach(btn => {
+  btn.addEventListener("mouseup", e => {
+    if (!calPopupOpen || calPopupJustOpened) return;
+    handleMuscleSelect(btn);
+  });
+  btn.addEventListener("touchend", e => {
+    if (!calPopupOpen || calPopupJustOpened) return;
+    handleMuscleSelect(btn);
+  });
+});
+
+
+
+
+   
 
 // 버튼 클릭
 calMuscleBtns.forEach(btn => {
