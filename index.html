@@ -1069,23 +1069,22 @@ function calOpenPopup(key) {
 
 
 
-calMuscleBtns.forEach(btn => {
-  btn.addEventListener("mousedown", () => {
-    // 눌렀을 때 색상 토글
+
+   calMuscleBtns.forEach(btn => {
+  btn.addEventListener("mousedown", e => {
+    e.stopPropagation(); // 상위 이벤트 차단
     const m = btn.dataset.muscle;
     if (calSelectedMuscles.includes(m)) {
       calSelectedMuscles = calSelectedMuscles.filter(x => x !== m);
     } else {
       calSelectedMuscles = [m]; // 한 번에 하나만
     }
-
-    // 버튼 스타일 업데이트
     calMuscleBtns.forEach(b => b.classList.remove("active"));
     if (calSelectedMuscles.length) btn.classList.add("active");
   });
 
-  btn.addEventListener("mouseup", () => {
-    // 손 뗄 때 저장 + 팝업 닫기
+  btn.addEventListener("mouseup", e => {
+    e.stopPropagation(); // 상위 이벤트 차단
     if (calSelectedMuscles.length === 0) {
       delete calData[calSelectedDate];
     } else {
@@ -1097,7 +1096,8 @@ calMuscleBtns.forEach(btn => {
   });
 
   // 터치 지원
-  btn.addEventListener("touchstart", () => {
+  btn.addEventListener("touchstart", e => {
+    e.stopPropagation();
     const m = btn.dataset.muscle;
     if (calSelectedMuscles.includes(m)) {
       calSelectedMuscles = calSelectedMuscles.filter(x => x !== m);
@@ -1108,7 +1108,8 @@ calMuscleBtns.forEach(btn => {
     if (calSelectedMuscles.length) btn.classList.add("active");
   });
 
-  btn.addEventListener("touchend", () => {
+  btn.addEventListener("touchend", e => {
+    e.stopPropagation();
     if (calSelectedMuscles.length === 0) {
       delete calData[calSelectedDate];
     } else {
