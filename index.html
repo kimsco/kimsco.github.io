@@ -999,7 +999,6 @@ const calDaysEl = document.getElementById("calDays");
 const calMonthEl = document.getElementById("calMonth");
 const calPopup = document.getElementById("calPopup");
 const calPopupDate = document.getElementById("calPopupDate");
-const calSaveBtn = document.getElementById("calSave");
 const calMuscleBtns = calPopup.querySelectorAll(".muscles button");
 
 let calCurrent = new Date();
@@ -1081,24 +1080,34 @@ function calOpenPopup(key) {
 calMuscleBtns.forEach(btn => {
   btn.onclick = () => {
     const m = btn.dataset.muscle;
+
+    // 선택 토글
     if (calSelectedMuscles.includes(m)) {
       calSelectedMuscles = calSelectedMuscles.filter(x => x !== m);
     } else {
-      calSelectedMuscles.push(m);
+      calSelectedMuscles = [m]; // 🔥 한 번에 하나만 선택
     }
-    btn.classList.toggle("active");
+
+    // 버튼 스타일 업데이트
+    calMuscleBtns.forEach(b => b.classList.remove("active"));
+    if (calSelectedMuscles.length) btn.classList.add("active");
+
+    // 선택 즉시 저장
+    if (calSelectedMuscles.length === 0) {
+      delete calData[calSelectedDate];
+    } else {
+      calData[calSelectedDate] = { muscles: calSelectedMuscles };
+    }
+    localStorage.setItem("workoutCalendar", JSON.stringify(calData));
+
+    // 달력 다시 렌더 + 팝업 닫기
+    calRender();
+    calPopup.classList.add("hidden");
   };
 });
 
-calSaveBtn.onclick = () => {
-  if (calSelectedMuscles.length === 0) {
-    delete calData[calSelectedDate];
-  } else {
-    calData[calSelectedDate] = { muscles: calSelectedMuscles };
-  }
-  localStorage.setItem("workoutCalendar", JSON.stringify(calData));
-  calRender();
-};
+
+
 
 calPopup.onclick = e => {
   if (e.target === calPopup) calPopup.classList.add("hidden");
