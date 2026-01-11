@@ -1066,45 +1066,61 @@ function calOpenPopup(key) {
   calSelectedMuscles = calData[key]?.muscles || [];
   calPopupDate.textContent = key;
 
-  calMuscleBtns.forEach(btn => {
-    btn.classList.toggle(
-      "active",
-      calSelectedMuscles.includes(btn.dataset.muscle)
-    );
-  });
 
-  calPopup.classList.remove("hidden");
-}
+
 
 calMuscleBtns.forEach(btn => {
-  btn.onclick = () => {
+  btn.addEventListener("mousedown", () => {
+    // 눌렀을 때 색상 토글
     const m = btn.dataset.muscle;
-
-    // 선택 토글
     if (calSelectedMuscles.includes(m)) {
       calSelectedMuscles = calSelectedMuscles.filter(x => x !== m);
     } else {
-      calSelectedMuscles = [m]; // 🔥 한 번에 하나만 선택
+      calSelectedMuscles = [m]; // 한 번에 하나만
     }
 
     // 버튼 스타일 업데이트
     calMuscleBtns.forEach(b => b.classList.remove("active"));
     if (calSelectedMuscles.length) btn.classList.add("active");
+  });
 
-    // 선택 즉시 저장
+  btn.addEventListener("mouseup", () => {
+    // 손 뗄 때 저장 + 팝업 닫기
     if (calSelectedMuscles.length === 0) {
       delete calData[calSelectedDate];
     } else {
       calData[calSelectedDate] = { muscles: calSelectedMuscles };
     }
     localStorage.setItem("workoutCalendar", JSON.stringify(calData));
-
-    // 달력 다시 렌더 + 팝업 닫기
     calRender();
     calPopup.classList.add("hidden");
-  };
+  });
+
+  // 터치 지원
+  btn.addEventListener("touchstart", () => {
+    const m = btn.dataset.muscle;
+    if (calSelectedMuscles.includes(m)) {
+      calSelectedMuscles = calSelectedMuscles.filter(x => x !== m);
+    } else {
+      calSelectedMuscles = [m];
+    }
+    calMuscleBtns.forEach(b => b.classList.remove("active"));
+    if (calSelectedMuscles.length) btn.classList.add("active");
+  });
+
+  btn.addEventListener("touchend", () => {
+    if (calSelectedMuscles.length === 0) {
+      delete calData[calSelectedDate];
+    } else {
+      calData[calSelectedDate] = { muscles: calSelectedMuscles };
+    }
+    localStorage.setItem("workoutCalendar", JSON.stringify(calData));
+    calRender();
+    calPopup.classList.add("hidden");
+  });
 });
 
+   
 
 
 
