@@ -412,6 +412,21 @@ td, th {
     transform: translateY(-1px);
 }
 
+/* 🔒 모바일 long press 텍스트 선택 방지 */
+.days div,
+.popup,
+.popup * {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+
+  -webkit-touch-callout: none; /* iOS 복사 메뉴 차단 */
+}
+
+
+
+
    
 /* 🔥 number input +/- 버튼 제거 */
 input[type="number"]::-webkit-outer-spin-button,
