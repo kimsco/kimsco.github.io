@@ -1190,23 +1190,27 @@ calMuscleBtns.forEach(btn => {
    
 function handleMuscleSelect(btn) {
   const m = btn.dataset.muscle;
-  // 한 번에 하나만 선택
-  calSelectedMuscles = [m];
-  
-  // UI 업데이트
+  const alreadySelected = calSelectedMuscles.includes(m);
+
+  // 전부 비우기
   calMuscleBtns.forEach(b => b.classList.remove("active"));
-  btn.classList.add("active");
 
-  // 바로 저장
-  calData[calSelectedDate] = { muscles: calSelectedMuscles };
+  if (alreadySelected) {
+    // ✅ 선택 취소
+    delete calData[calSelectedDate];
+    calSelectedMuscles = [];
+  } else {
+    // ✅ 새로 선택
+    calSelectedMuscles = [m];
+    btn.classList.add("active");
+    calData[calSelectedDate] = { muscles: calSelectedMuscles };
+  }
+
   localStorage.setItem("workoutCalendar", JSON.stringify(calData));
-
-  // 달력 갱신
   calRender();
-
-  // 팝업 닫기
   calPopup.classList.add("hidden");
 }
+
 
 
 
