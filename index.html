@@ -966,26 +966,13 @@ auth.onAuthStateChanged(async user=>{
 
         }catch(e){
             console.error('load records err', e);
-        } else {
-        // 🔥 이거 꼭 필요
+        }
+
+    } else {
         googleLoginBtn.style.display = 'block';
         logoutBtn.style.display = 'none';
         userInfo.textContent = '';
-
-        // 로컬 데이터 초기화
-        records.bench = [];
-        records.squat = [];
-        records.dead = [];
-        calData = {};
-
-        renderActiveBox();
-        calRender();
     }
-});
-
-
-   
-
 });
 
 
@@ -1033,10 +1020,10 @@ const calPopupDate = document.getElementById("calPopupDate");
 const calMuscleBtns = calPopup.querySelectorAll(".muscles button");
 
 let calCurrent = new Date();
+let calData = JSON.parse(localStorage.getItem("workoutCalendar")) || {};
 let calSelectedDate = null;
 let calSelectedMuscles = [];
-let calData = {}; // ✅ 여기
-   
+
 function calRender() {
    
    
@@ -1078,7 +1065,16 @@ if (isToday) {
        
     }
 
+    let timer;
+    cell.addEventListener("touchstart", () => {
+      timer = setTimeout(() => calOpenPopup(key), 500);
+    });
+    cell.addEventListener("touchend", () => clearTimeout(timer));
 
+    cell.addEventListener("mousedown", () => {
+      timer = setTimeout(() => calOpenPopup(key), 500);
+    });
+    cell.addEventListener("mouseup", () => clearTimeout(timer));
 
     calDaysEl.appendChild(cell);
   }
@@ -1187,43 +1183,33 @@ calMuscleBtns.forEach(btn => {
 
 
 
-async function handleMuscleSelect(btn) {
+
+
+
+
+   
+function handleMuscleSelect(btn) {
   const m = btn.dataset.muscle;
   const alreadySelected = calSelectedMuscles.includes(m);
 
+  // 전부 비우기
   calMuscleBtns.forEach(b => b.classList.remove("active"));
 
   if (alreadySelected) {
+    // ✅ 선택 취소
     delete calData[calSelectedDate];
     calSelectedMuscles = [];
   } else {
+    // ✅ 새로 선택
     calSelectedMuscles = [m];
     btn.classList.add("active");
     calData[calSelectedDate] = { muscles: calSelectedMuscles };
   }
 
-  const user = auth.currentUser;
-  if(user){
-    const ref = db
-      .collection("users")
-      .doc(user.uid)
-      .collection("calendar")
-      .doc(calSelectedDate);
-
-    if(calSelectedMuscles.length === 0){
-      await ref.delete();
-    } else {
-      await ref.set({ muscles: calSelectedMuscles });
-    }
-  }
-
+  localStorage.setItem("workoutCalendar", JSON.stringify(calData));
   calRender();
   calPopup.classList.add("hidden");
-  calPopupOpen = false;
 }
-
-
-
 
 
 
