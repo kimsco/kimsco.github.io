@@ -907,9 +907,6 @@ logoutBtn.addEventListener('click', ()=> auth.signOut());
 /* auth 상태 변화 */
 auth.onAuthStateChanged(async user=>{
     if(user){
-
-       await loadCalendarFromFirestore(user);
-
         googleLoginBtn.style.display = 'none';
         logoutBtn.style.display = 'block';
         userInfo.textContent = user.displayName || user.email || '';
@@ -976,22 +973,6 @@ auth.onAuthStateChanged(async user=>{
         logoutBtn.style.display = 'none';
         userInfo.textContent = '';
     }
-
-   // 🔥 캘린더 Firestore 불러오기 (색깔 표시용)
-async function loadCalendarFromFirestore(user) {
-  const snap = await db
-    .collection("users")
-    .doc(user.uid)
-    .collection("calendar")
-    .get();
-
-  snap.forEach(doc => {
-    calData[doc.id] = doc.data();
-  });
-
-  calRender();
-}
-
 });
 
 
@@ -1207,7 +1188,7 @@ calMuscleBtns.forEach(btn => {
 
 
    
-async function handleMuscleSelect(btn) {
+function handleMuscleSelect(btn) {
   const m = btn.dataset.muscle;
   const alreadySelected = calSelectedMuscles.includes(m);
 
@@ -1225,8 +1206,7 @@ async function handleMuscleSelect(btn) {
     calData[calSelectedDate] = { muscles: calSelectedMuscles };
   }
 
-  await saveCalendarToFirestore(calSelectedDate, calSelectedMuscles);
-
+  localStorage.setItem("workoutCalendar", JSON.stringify(calData));
   calRender();
   calPopup.classList.add("hidden");
 }
@@ -1299,27 +1279,7 @@ document.addEventListener("touchmove", () => {
           .delete();
     }
 }
-async function saveCalendarToFirestore(dateKey, muscles) {
-  const user = auth.currentUser;
-  if (!user) return;
 
-  const ref = db
-    .collection("users")
-    .doc(user.uid)
-    .collection("calendar")
-    .doc(dateKey);
-
-  if (muscles.length === 0) {
-    // 선택 취소 → 문서 삭제
-    await ref.delete();
-  } else {
-    await ref.set({ muscles });
-  }
-}
-
-
-
-   
 </script>
 <!-- ⚠️ 여기 아래에 네가 쓰던 JS 그대로 유지 -->
 </body>
