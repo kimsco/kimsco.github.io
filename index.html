@@ -973,6 +973,26 @@ auth.onAuthStateChanged(async user=>{
         logoutBtn.style.display = 'none';
         userInfo.textContent = '';
     }
+/* 🔥 달력 데이터 로드 */
+try {
+  const snap = await db
+    .collection("users")
+    .doc(user.uid)
+    .collection("calendar")
+    .get();
+
+  calData = {};
+
+  snap.forEach(doc => {
+    calData[doc.id] = doc.data();
+  });
+
+  calRender();
+} catch (e) {
+  console.error("calendar load error", e);
+}
+
+   
 });
 
 
@@ -1020,7 +1040,8 @@ const calPopupDate = document.getElementById("calPopupDate");
 const calMuscleBtns = calPopup.querySelectorAll(".muscles button");
 
 let calCurrent = new Date();
-let calData = JSON.parse(localStorage.getItem("workoutCalendar")) || {};
+   let calData = {}; // 🔥 Firestore에서 채울 예정
+
 let calSelectedDate = null;
 let calSelectedMuscles = [];
 
@@ -1182,34 +1203,51 @@ calMuscleBtns.forEach(btn => {
 
 
 
-
-
-
-
-
    
-function handleMuscleSelect(btn) {
+async function handleMuscleSelect(btn) {
+  const user = auth.currentUser;
+  if (!user) return;
+
   const m = btn.dataset.muscle;
   const alreadySelected = calSelectedMuscles.includes(m);
 
-  // 전부 비우기
+  // 버튼 UI 초기화
   calMuscleBtns.forEach(b => b.classList.remove("active"));
 
   if (alreadySelected) {
-    // ✅ 선택 취소
+    // ❌ 선택 취소 → DB에서도 삭제
     delete calData[calSelectedDate];
     calSelectedMuscles = [];
+
+    await db
+      .collection("users")
+      .doc(user.uid)
+      .collection("calendar")
+      .doc(calSelectedDate)
+      .delete();
+
   } else {
-    // ✅ 새로 선택
+    // ✅ 새로 선택 → DB에 저장
     calSelectedMuscles = [m];
     btn.classList.add("active");
-    calData[calSelectedDate] = { muscles: calSelectedMuscles };
+
+    calData[calSelectedDate] = { muscles: [m] };
+
+    await db
+      .collection("users")
+      .doc(user.uid)
+      .collection("calendar")
+      .doc(calSelectedDate)
+      .set({
+        muscles: [m],
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
   }
 
-  localStorage.setItem("workoutCalendar", JSON.stringify(calData));
   calRender();
   calPopup.classList.add("hidden");
 }
+
 
 
 
