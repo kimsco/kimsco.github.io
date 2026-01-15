@@ -1190,15 +1190,16 @@ function calOpenPopup(key) {
 }
 
 // 버튼 클릭
-
 calMuscleBtns.forEach(btn => {
-  btn.addEventListener("click", () => {
+  btn.addEventListener("mouseup", e => {
+    if (!calPopupOpen || calPopupJustOpened) return;
+    handleMuscleSelect(btn);
+  });
+  btn.addEventListener("touchend", e => {
+    if (!calPopupOpen || calPopupJustOpened) return;
     handleMuscleSelect(btn);
   });
 });
-
-
-   
 
 
 
