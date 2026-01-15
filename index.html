@@ -1104,8 +1104,6 @@ if (isToday) {
 
 let longPressTimer = null;
 let calPopupOpen = false;  // 팝업 열렸는지 체크
-let calPopupJustOpened = false; // 팝업 바로 열렸는지 체크
-
 
 
 // 날짜 long press
@@ -1149,21 +1147,16 @@ calPopup.addEventListener("click", e => {
 
 
 calMuscleBtns.forEach(btn => {
-  let timer = null;
-
-  // 눌렀을 때 UI 효과
-  btn.addEventListener("mousedown", () => {
-    btn.classList.add("active");
+  btn.addEventListener("pointerdown", () => {
+    btn.classList.add("active"); // 눌림 효과
   });
 
-
-  // 모바일 터치 대응
-  btn.addEventListener("touchstart", () => {
-    btn.classList.add("active");
+  btn.addEventListener("pointerup", e => {
+    e.preventDefault();
+    handleMuscleSelect(btn); // 👉 한 번에 선택 + 저장 + 닫힘
   });
-  
-  // 눌렀다 떼면 색 초기화 (선택한 버튼만 active 유지)
-  btn.addEventListener("mouseleave", () => {
+
+  btn.addEventListener("pointerleave", () => {
     btn.classList.remove("active");
   });
 });
@@ -1181,25 +1174,9 @@ function calOpenPopup(key) {
 
   calPopup.classList.remove("hidden");
   calPopupOpen = true;
-  calPopupJustOpened = true;
 
-  // 250ms 후에 바로 열림 상태 해제
-  setTimeout(() => {
-    calPopupJustOpened = false;
-  }, 250);
-}
 
-// 버튼 클릭
-calMuscleBtns.forEach(btn => {
-  btn.addEventListener("mouseup", e => {
-    if (!calPopupOpen || calPopupJustOpened) return;
-    handleMuscleSelect(btn);
-  });
-  btn.addEventListener("touchend", e => {
-    if (!calPopupOpen || calPopupJustOpened) return;
-    handleMuscleSelect(btn);
-  });
-});
+
 
 
 
