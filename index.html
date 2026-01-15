@@ -1207,7 +1207,7 @@ calMuscleBtns.forEach(btn => {
 
 
    
-function handleMuscleSelect(btn) {
+async function handleMuscleSelect(btn) {
   const m = btn.dataset.muscle;
   const alreadySelected = calSelectedMuscles.includes(m);
 
@@ -1225,7 +1225,8 @@ function handleMuscleSelect(btn) {
     calData[calSelectedDate] = { muscles: calSelectedMuscles };
   }
 
-  localStorage.setItem("workoutCalendar", JSON.stringify(calData));
+  await saveCalendarToFirestore(calSelectedDate, calSelectedMuscles);
+
   calRender();
   calPopup.classList.add("hidden");
 }
@@ -1298,7 +1299,27 @@ document.addEventListener("touchmove", () => {
           .delete();
     }
 }
+async function saveCalendarToFirestore(dateKey, muscles) {
+  const user = auth.currentUser;
+  if (!user) return;
 
+  const ref = db
+    .collection("users")
+    .doc(user.uid)
+    .collection("calendar")
+    .doc(dateKey);
+
+  if (muscles.length === 0) {
+    // 선택 취소 → 문서 삭제
+    await ref.delete();
+  } else {
+    await ref.set({ muscles });
+  }
+}
+
+
+
+   
 </script>
 <!-- ⚠️ 여기 아래에 네가 쓰던 JS 그대로 유지 -->
 </body>
