@@ -966,7 +966,22 @@ auth.onAuthStateChanged(async user=>{
 
         }catch(e){
             console.error('load records err', e);
-        }
+        } else {
+        // 🔥 이거 꼭 필요
+        googleLoginBtn.style.display = 'block';
+        logoutBtn.style.display = 'none';
+        userInfo.textContent = '';
+
+        // 로컬 데이터 초기화
+        records.bench = [];
+        records.squat = [];
+        records.dead = [];
+        calData = {};
+
+        renderActiveBox();
+        calRender();
+    }
+});
 
 
    
