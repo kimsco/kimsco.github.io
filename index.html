@@ -968,29 +968,30 @@ auth.onAuthStateChanged(async user=>{
             console.error('load records err', e);
         }
 
-    } else {
-        googleLoginBtn.style.display = 'block';
-        logoutBtn.style.display = 'none';
-        userInfo.textContent = '';
-    }
+if(user){
+  // 🔥 달력 데이터 불러오기
+  try{
+    const calSnap = await db
+      .collection("users")
+      .doc(user.uid)
+      .collection("calendar")
+      .get();
 
-   // 🔥 달력 데이터 불러오기
-try{
-  const calSnap = await db
-    .collection("users")
-    .doc(user.uid)
-    .collection("calendar")
-    .get();
+    calData = {};
+    calSnap.forEach(doc=>{
+      calData[doc.id] = doc.data();
+    });
 
+    calRender();
+  }catch(e){
+    console.error("calendar load err", e);
+  }
+} else {
   calData = {};
-  calSnap.forEach(doc=>{
-    calData[doc.id] = doc.data(); // { muscles: [...] }
-  });
-
   calRender();
-}catch(e){
-  console.error("calendar load err", e);
 }
+
+   
 
 });
 
@@ -1202,29 +1203,6 @@ calMuscleBtns.forEach(btn => {
 
 
 
-
-
-
-
-   
-function handleMuscleSelect(btn) {
-  const m = btn.dataset.muscle;
-  const alreadySelected = calSelectedMuscles.includes(m);
-
-  // 전부 비우기
-  calMuscleBtns.forEach(b => b.classList.remove("active"));
-
-  if (alreadySelected) {
-    // ✅ 선택 취소
-    delete calData[calSelectedDate];
-    calSelectedMuscles = [];
-  } else {
-    // ✅ 새로 선택
-    calSelectedMuscles = [m];
-    btn.classList.add("active");
-    calData[calSelectedDate] = { muscles: calSelectedMuscles };
-  }
-
 async function handleMuscleSelect(btn) {
   const m = btn.dataset.muscle;
   const alreadySelected = calSelectedMuscles.includes(m);
@@ -1240,7 +1218,6 @@ async function handleMuscleSelect(btn) {
     calData[calSelectedDate] = { muscles: calSelectedMuscles };
   }
 
-  // 🔥 Firestore 저장
   const user = auth.currentUser;
   if(user){
     const ref = db
@@ -1252,20 +1229,17 @@ async function handleMuscleSelect(btn) {
     if(calSelectedMuscles.length === 0){
       await ref.delete();
     } else {
-      await ref.set({
-        muscles: calSelectedMuscles
-      });
+      await ref.set({ muscles: calSelectedMuscles });
     }
   }
 
   calRender();
   calPopup.classList.add("hidden");
+  calPopupOpen = false;
 }
 
 
-  calRender();
-  calPopup.classList.add("hidden");
-}
+
 
 
 
