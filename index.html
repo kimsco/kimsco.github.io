@@ -1145,7 +1145,48 @@ calPopup.addEventListener("click", e => {
   if (e.target === calPopup) calPopup.classList.add("hidden");
 });
 
+async function handleMuscleSelect(btn) {
+  const user = auth.currentUser;
+  if (!user) return;
 
+  const m = btn.dataset.muscle;
+  const alreadySelected = calSelectedMuscles.includes(m);
+
+  calMuscleBtns.forEach(b => b.classList.remove("active"));
+
+  if (alreadySelected) {
+    delete calData[calSelectedDate];
+    calSelectedMuscles = [];
+
+    await db
+      .collection("users")
+      .doc(user.uid)
+      .collection("calendar")
+      .doc(calSelectedDate)
+      .delete();
+  } else {
+    calSelectedMuscles = [m];
+    btn.classList.add("active");
+
+    calData[calSelectedDate] = { muscles: [m] };
+
+    await db
+      .collection("users")
+      .doc(user.uid)
+      .collection("calendar")
+      .doc(calSelectedDate)
+      .set({
+        muscles: [m],
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+  }
+
+  calRender();
+  calPopup.classList.add("hidden");
+  calPopupOpen = false;
+}
+
+   
 calMuscleBtns.forEach(btn => {
   btn.addEventListener("pointerdown", () => {
     btn.classList.add("active"); // 눌림 효과
@@ -1174,56 +1215,14 @@ function calOpenPopup(key) {
 
   calPopup.classList.remove("hidden");
   calPopupOpen = true;
-
+}
 
 
 
 
 
    
-async function handleMuscleSelect(btn) {
-  const user = auth.currentUser;
-  if (!user) return;
 
-  const m = btn.dataset.muscle;
-  const alreadySelected = calSelectedMuscles.includes(m);
-
-  // 버튼 UI 초기화
-  calMuscleBtns.forEach(b => b.classList.remove("active"));
-
-  if (alreadySelected) {
-    // ❌ 선택 취소 → DB에서도 삭제
-    delete calData[calSelectedDate];
-    calSelectedMuscles = [];
-
-    await db
-      .collection("users")
-      .doc(user.uid)
-      .collection("calendar")
-      .doc(calSelectedDate)
-      .delete();
-
-  } else {
-    // ✅ 새로 선택 → DB에 저장
-    calSelectedMuscles = [m];
-    btn.classList.add("active");
-
-    calData[calSelectedDate] = { muscles: [m] };
-
-    await db
-      .collection("users")
-      .doc(user.uid)
-      .collection("calendar")
-      .doc(calSelectedDate)
-      .set({
-        muscles: [m],
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
-  }
-
-  calRender();
-  calPopup.classList.add("hidden");
-}
 
 
 
