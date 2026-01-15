@@ -907,6 +907,9 @@ logoutBtn.addEventListener('click', ()=> auth.signOut());
 /* auth 상태 변화 */
 auth.onAuthStateChanged(async user=>{
     if(user){
+
+       await loadCalendarFromFirestore(user);
+
         googleLoginBtn.style.display = 'none';
         logoutBtn.style.display = 'block';
         userInfo.textContent = user.displayName || user.email || '';
@@ -973,6 +976,22 @@ auth.onAuthStateChanged(async user=>{
         logoutBtn.style.display = 'none';
         userInfo.textContent = '';
     }
+
+   // 🔥 캘린더 Firestore 불러오기 (색깔 표시용)
+async function loadCalendarFromFirestore(user) {
+  const snap = await db
+    .collection("users")
+    .doc(user.uid)
+    .collection("calendar")
+    .get();
+
+  snap.forEach(doc => {
+    calData[doc.id] = doc.data();
+  });
+
+  calRender();
+}
+
 });
 
 
