@@ -822,19 +822,34 @@ if(!arr || arr.length === 0){
     return;
 }
 
-    // 최신 위로
-boxEl.innerHTML = arr.map(it => {
+// 날짜별 그룹화
+const grouped = {};
+arr.forEach(it => {
+  if (!grouped[it.date]) grouped[it.date] = [];
+  grouped[it.date].push(it);
+});
+
+// 최신 날짜 먼저
+const dates = Object.keys(grouped);
+
+boxEl.innerHTML = dates.map(date => {
+  const rows = grouped[date]
+    .map(r => `
+      <div style="padding-left:12px; color:#eee;">
+        ${r.weight}kg × ${r.reps}회
+      </div>
+    `)
+    .join('');
+
   return `
-    <div class="recordItem"
-         data-id="${it.firestoreId}"
-         style="display:flex;justify-content:space-between;
-                padding:6px 0;
-                border-bottom:1px solid rgba(255,255,255,0.06)">
-      <div style="color:#ddd">${it.date}</div>
-      <div>${it.weight}kg × ${it.reps}회</div>
+    <div style="margin-bottom:8px;">
+      <div style="color:#bbb; font-size:13px;">${date}</div>
+      ${rows}
+      <div style="border-bottom:1px solid rgba(255,255,255,0.15); margin:6px 0;"></div>
     </div>
   `;
 }).join('');
+
 }
 renderActiveBox();
 
