@@ -831,24 +831,26 @@ arr.forEach(it => {
 
 // 최신 날짜 먼저
 const dates = Object.keys(grouped);
-
 boxEl.innerHTML = dates.map(date => {
-  const rows = grouped[date]
-    .map(r => `
-      <div style="padding-left:12px; color:#eee;">
-        ${r.weight}kg × ${r.reps}회
-      </div>
-    `)
-    .join('');
+  const records = grouped[date];
 
   return `
-    <div style="margin-bottom:8px;">
-      <div style="color:#bbb; font-size:13px;">${date}</div>
-      ${rows}
-      <div style="border-bottom:1px solid rgba(255,255,255,0.15); margin:6px 0;"></div>
+    <div style="margin-bottom:10px;">
+      ${records.map((r, idx) => `
+        <div style="display:flex; line-height:1.6;">
+          <div style="width:90px;">
+            ${idx === 0 ? date : ''}
+          </div>
+          <div>
+            ${r.weight}kg × ${r.reps}회
+          </div>
+        </div>
+      `).join('')}
+      <div style="border-bottom:1px solid rgba(255,255,255,0.25); margin-top:6px;"></div>
     </div>
   `;
 }).join('');
+
 
 }
 renderActiveBox();
