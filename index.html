@@ -831,6 +831,7 @@ arr.forEach(it => {
 
 // 최신 날짜 먼저
 const dates = Object.keys(grouped);
+
 boxEl.innerHTML = dates.map(date => {
   const records = grouped[date];
 
@@ -841,8 +842,7 @@ boxEl.innerHTML = dates.map(date => {
           <div style="width:90px;">
             ${idx === 0 ? date : ''}
           </div>
-          <div>
-           <div style="margin-left:auto; text-align:right;">
+          <div style="margin-left:auto; text-align:right;">
             ${r.weight}kg × ${r.reps}회
           </div>
         </div>
@@ -851,6 +851,7 @@ boxEl.innerHTML = dates.map(date => {
     </div>
   `;
 }).join('');
+
 
 
 }
