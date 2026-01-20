@@ -842,13 +842,13 @@ boxEl.innerHTML = dates.map(date => {
           <div style="width:90px;">
             ${idx === 0 ? date : ''}
           </div>
-             <div
-  class="record-line"
-  data-id="${r.id}"
-  style="margin-left:auto; text-align:right; cursor:pointer;"
->
-  ${r.weight}kg × ${r.reps}회
-</div>
+          <div
+                 class="record-line"
+                 data-id="${r.firestoreId}"
+                 style="margin-left:auto; text-align:right; cursor:pointer;"
+                  >
+                 ${r.weight}kg × ${r.reps}회
+            </div>
 
         </div>
       `).join('')}
@@ -861,27 +861,6 @@ boxEl.innerHTML = dates.map(date => {
 
 }
 renderActiveBox();
-let pressTimer = null;
-
-document.addEventListener("mousedown", e => {
-  const target = e.target.closest(".record-line");
-  if (!target) return;
-
-  pressTimer = setTimeout(() => {
-    const ok = confirm("이 기록을 삭제할까요?");
-    if (!ok) return;
-
-    deleteRecord(target.dataset.id);
-  }, 600); // 0.6초 꾹누르기
-});
-
-document.addEventListener("mouseup", () => {
-  clearTimeout(pressTimer);
-});
-
-document.addEventListener("mouseleave", () => {
-  clearTimeout(pressTimer);
-});
 
 /* 기록 추가 (가로 폼에서 저장) */
 recordAdd.addEventListener('click', async ()=>{
@@ -1041,20 +1020,6 @@ try {
 });
 
 
-async function deleteRecord(recordId) {
-  const user = auth.currentUser;
-  if (!user) return;
-
-  await db
-    .collection("users")
-    .doc(user.uid)
-    .collection("records")
-    .doc(recordId)
-    .delete();
-
-  // 화면 갱신
-  loadRecords(); // ← 기존에 쓰고 있는 재로딩 함수
-}
 
  
 
@@ -1301,57 +1266,67 @@ document.getElementById("calNext").onclick = () => {
 
 calRender();
 
-let pressTimer = null;
+   let recordPressTimer = null;
 
+// PC
 document.addEventListener("mousedown", e => {
-    const item = e.target.closest(".recordItem");
-    if (!item) return;
+  const line = e.target.closest(".record-line");
+  if (!line) return;
 
-    pressTimer = setTimeout(() => {
-        deleteRecord(item.dataset.id);
-    }, 600);
+  recordPressTimer = setTimeout(() => {
+    if (confirm("이 기록을 삭제할까요?")) {
+      deleteRecord(line.dataset.id);
+    }
+  }, 600);
 });
 
 document.addEventListener("mouseup", () => {
-    clearTimeout(pressTimer);
+  clearTimeout(recordPressTimer);
 });
 
+// 모바일
 document.addEventListener("touchstart", e => {
-    const item = e.target.closest(".recordItem");
-    if (!item) return;
+  const line = e.target.closest(".record-line");
+  if (!line) return;
 
-    pressTimer = setTimeout(() => {
-        deleteRecord(item.dataset.id);
-    }, 600);
+  recordPressTimer = setTimeout(() => {
+    if (confirm("이 기록을 삭제할까요?")) {
+      deleteRecord(line.dataset.id);
+    }
+  }, 600);
 });
 
 document.addEventListener("touchend", () => {
-    clearTimeout(pressTimer);
+  clearTimeout(recordPressTimer);
 });
+
 document.addEventListener("touchmove", () => {
-    clearTimeout(pressTimer);
+  clearTimeout(recordPressTimer);
 });
-   
-  async function deleteRecord(firestoreId){
-    if(!confirm("이 기록을 삭제할까요?")) return;
 
-    // 🔥 로컬 삭제
-    ["bench","squat","dead"].forEach(type=>{
-        records[type] = records[type].filter(r => r.firestoreId !== firestoreId);
-    });
+async function deleteRecord(firestoreId){
+  if(!firestoreId) return;
 
-    renderActiveBox();
+  // 🔥 로컬 삭제
+  ["bench","squat","dead"].forEach(type=>{
+    records[type] = records[type].filter(r => r.firestoreId !== firestoreId);
+  });
 
-    // 🔥 Firestore 삭제 (문서 ID로)
-    const user = auth.currentUser;
-    if(user && firestoreId){
-        await db.collection('users')
-          .doc(user.uid)
-          .collection('records')
-          .doc(firestoreId)
-          .delete();
-    }
+  renderActiveBox();
+
+  // 🔥 Firestore 삭제
+  const user = auth.currentUser;
+  if(user){
+    await db
+      .collection('users')
+      .doc(user.uid)
+      .collection('records')
+      .doc(firestoreId)
+      .delete();
+  }
 }
+
+
 
 </script>
 <!-- ⚠️ 여기 아래에 네가 쓰던 JS 그대로 유지 -->
