@@ -659,25 +659,30 @@ const logoutBtn = document.getElementById('logoutBtn');
 const userInfo = document.getElementById('userInfo');
    
 
+tabBtns.forEach(btn => {
+  btn.addEventListener('click', ()=>{
+    calPopup.classList.add("hidden");
 
+    tabBtns.forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
 
-
-   
-    btn.addEventListener('click', ()=>{
-        calPopup.classList.add("hidden");
-        tabBtns.forEach(b=>b.classList.remove('active'));
-        btn.classList.add('active');
-        const target = btn.dataset.target;
-        tabContents.forEach(tc=>{
-            if(tc.id === target){
-                tc.classList.add('active');
-                tc.style.display = 'block';
-            } else {
-                tc.classList.remove('active');
-                tc.style.display = 'none';
-            }
-        });
+    const target = btn.dataset.target;
+    tabContents.forEach(tc=>{
+      if(tc.id === target){
+        tc.classList.add('active');
+        tc.style.display = 'block';
+      } else {
+        tc.classList.remove('active');
+        tc.style.display = 'none';
+      }
     });
+
+    // 🔥 Tip 탭 초기화
+    if(target === 'tab4'){
+      partScreen.style.display = 'block';
+      exerciseScreen.style.display = 'none';
+    }
+  });
 });
 
 
@@ -736,6 +741,11 @@ function fadeTempMsg(el, msg, timeout=1000, fadeDur=800){
    /* ===============================
    🔥 보조운동(4번째 탭) 로직
 ================================ */
+let currentExercises = [];
+const exerciseListEl = document.getElementById('exercise-list');
+const addExerciseBtn = document.getElementById('add-exercise-btn');
+   
+addExerciseBtn.addEventListener('click', addExercise);
 
 function renderExercises(){
   if (!currentExercises.length) {
