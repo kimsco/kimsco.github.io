@@ -658,41 +658,7 @@ const googleLoginBtn = document.getElementById('googleLoginBtn');
 const logoutBtn = document.getElementById('logoutBtn');
 const userInfo = document.getElementById('userInfo');
    
-/* 🔥 4번째 탭 (보조운동) 요소 */
-const accPartBtns = document.querySelectorAll('#acc-part-buttons button');
-const exerciseArea = document.getElementById('exercise-area');
-const exerciseListEl = document.getElementById('exercise-list');
-const addExerciseBtn = document.getElementById('add-exercise-btn');
 
-let currentPart = null;
-let currentExercises = [];
-
-/* 무게/반복 옵션 채우기 (1RM 계산기) */
-
-for (let r=1; r<=10; r++){
-    let option = document.createElement("option");
-    option.value = r; option.textContent = r + " 회";
-    repsSelect.appendChild(option);
-}
-
-/* 탭 전환 (1RM / 3대) - 기존 동작 유지 */
-tabBtns.forEach(btn=>{
-/* 🔥 보조운동 탭 이벤트 */
-
-accPartBtns.forEach(btn => {
-  btn.addEventListener('click', async () => {
-    currentPart = btn.dataset.part;
-
-    // 버튼 강조
-    accPartBtns.forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-
-    exerciseArea.style.display = 'block';
-    await loadExercises(currentPart);
-  });
-});
-
-addExerciseBtn.addEventListener('click', addExercise);
 
 
 
