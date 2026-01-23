@@ -545,31 +545,26 @@ input[type="number"] {
 </div>
 <div id="tab4" class="tabContent">
 
-  <!-- 1단계: 부위 선택 -->
-  <div id="acc-part-buttons" style="display:grid; gap:10px;">
-    <button data-part="chest">chest</button>
-    <button data-part="back">back</button>
-    <button data-part="shoulder">shoulder</button>
-    <button data-part="leg">leg</button>
-    <button data-part="arm">arm</button>
+<div id="acc-part-screen">
+  <button class="part-btn" data-part="chest">chest</button>
+  <button class="part-btn" data-part="back">back</button>
+  <button class="part-btn" data-part="shoulder">shoulder</button>
+  <button class="part-btn" data-part="leg">leg</button>
+  <button class="part-btn" data-part="arm">arm</button>
+</div>
+
+<div id="exercise-screen" style="display:none;">
+  <div id="exercise-header" style="margin-bottom:10px; cursor:pointer;">
+    ← <span id="current-part-name"></span>
   </div>
 
-  <!-- 2단계: 운동 목록 화면 -->
-  <div id="exercise-area" style="display:none; margin-top:16px;">
+  <input id="exercise-search" placeholder="종목 검색" />
 
-    <input
-      id="exerciseSearch"
-      placeholder="종목 검색"
-      style="font-size:14px; padding:10px;"
-    />
+  <div id="exercise-list"></div>
 
-    <div id="exercise-list" style="margin-top:10px;"></div>
+  <button id="add-exercise-btn">+ 추가하기</button>
+</div>
 
-    <button id="add-exercise-btn" style="margin-top:12px;">
-      + 추가하기
-    </button>
-
-  </div>
 
 </div>
 
@@ -1430,7 +1425,31 @@ async function deleteRecord(firestoreId){
       .delete();
   }
 }
+const partScreen = document.getElementById('acc-part-screen');
+const exerciseScreen = document.getElementById('exercise-screen');
+const partTitle = document.getElementById('current-part-name');
+const partBtns = document.querySelectorAll('.part-btn');
 
+let currentPart = null;
+
+partBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentPart = btn.dataset.part;
+
+    partScreen.style.display = 'none';
+    exerciseScreen.style.display = 'block';
+    partTitle.textContent = currentPart;
+  });
+});
+
+document.getElementById('exercise-header').addEventListener('click', () => {
+  exerciseScreen.style.display = 'none';
+  partScreen.style.display = 'block';
+});
+
+
+
+   
 
 
 </script>
