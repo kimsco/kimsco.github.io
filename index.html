@@ -544,20 +544,35 @@ input[type="number"] {
         
 </div>
 <div id="tab4" class="tabContent">
-  <div style="
-      color:white;
-      text-align:left;
-      line-height:1.6;
-      font-size:15px;
-  ">
-    <h3 style="margin-bottom:12px;">운동 Tip</h3>
 
-    <p>• 1RM은 컨디션 좋은 날 기준으로 참고용만 사용</p>
-    <p>• 5RM 이하 무게는 실패 지점까지 가지 말 것</p>
-    <p>• 볼륨 세트는 70~80% 1RM이 가장 효율적</p>
-    <p>• 관절 아프면 무게보다 자세 우선</p>
+  <!-- 1단계: 부위 선택 -->
+  <div id="acc-part-buttons" style="display:grid; gap:10px;">
+    <button data-part="chest">chest</button>
+    <button data-part="back">back</button>
+    <button data-part="shoulder">shoulder</button>
+    <button data-part="leg">leg</button>
+    <button data-part="arm">arm</button>
   </div>
+
+  <!-- 2단계: 운동 목록 화면 -->
+  <div id="exercise-area" style="display:none; margin-top:16px;">
+
+    <input
+      id="exerciseSearch"
+      placeholder="종목 검색"
+      style="font-size:14px; padding:10px;"
+    />
+
+    <div id="exercise-list" style="margin-top:10px;"></div>
+
+    <button id="add-exercise-btn" style="margin-top:12px;">
+      + 추가하기
+    </button>
+
+  </div>
+
 </div>
+
 
    
 <div id="save3Result"></div>
@@ -647,6 +662,15 @@ const recordMessage = document.getElementById('recordMessage');
 const googleLoginBtn = document.getElementById('googleLoginBtn');
 const logoutBtn = document.getElementById('logoutBtn');
 const userInfo = document.getElementById('userInfo');
+   
+/* 🔥 4번째 탭 (보조운동) 요소 */
+const accPartBtns = document.querySelectorAll('#acc-part-buttons button');
+const exerciseArea = document.getElementById('exercise-area');
+const exerciseListEl = document.getElementById('exercise-list');
+const addExerciseBtn = document.getElementById('add-exercise-btn');
+
+let currentPart = null;
+let currentExercises = [];
 
 /* 무게/반복 옵션 채우기 (1RM 계산기) */
 
@@ -658,6 +682,26 @@ for (let r=1; r<=10; r++){
 
 /* 탭 전환 (1RM / 3대) - 기존 동작 유지 */
 tabBtns.forEach(btn=>{
+/* 🔥 보조운동 탭 이벤트 */
+
+accPartBtns.forEach(btn => {
+  btn.addEventListener('click', async () => {
+    currentPart = btn.dataset.part;
+
+    // 버튼 강조
+    accPartBtns.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    exerciseArea.style.display = 'block';
+    await loadExercises(currentPart);
+  });
+});
+
+addExerciseBtn.addEventListener('click', addExercise);
+
+
+
+   
     btn.addEventListener('click', ()=>{
         calPopup.classList.add("hidden");
         tabBtns.forEach(b=>b.classList.remove('active'));
@@ -727,6 +771,67 @@ function fadeTempMsg(el, msg, timeout=1000, fadeDur=800){
         setTimeout(()=>{ el.innerHTML=''; el.style.opacity=1; el.style.transition=''; }, fadeDur);
     }, timeout);
 }
+
+   /* ===============================
+   🔥 보조운동(4번째 탭) 로직
+================================ */
+
+function renderExercises(){
+  if (!currentExercises.length) {
+    exerciseListEl.innerHTML =
+      `<div style="color:#777;font-size:13px;">아직 추가된 종목이 없습니다</div>`;
+    return;
+  }
+
+  exerciseListEl.innerHTML = currentExercises.map(name => `
+    <div style="
+      padding:10px;
+      border-bottom:1px solid rgba(255,255,255,0.15);
+      font-size:15px;
+    ">
+      ▶ ${name}
+    </div>
+  `).join('');
+}
+
+async function loadExercises(part){
+  const user = auth.currentUser;
+  if (!user) {
+    currentExercises = [];
+    renderExercises();
+    return;
+  }
+
+  const ref = db
+    .collection('users')
+    .doc(user.uid)
+    .collection('accessories')
+    .doc(part);
+
+  const snap = await ref.get();
+
+  currentExercises = snap.exists ? snap.data().list || [] : [];
+  renderExercises();
+}
+
+async function addExercise(){
+  const name = prompt("운동 종목을 입력하시오");
+  if (!name) return;
+
+  currentExercises.unshift(name);
+  renderExercises();
+
+  const user = auth.currentUser;
+  if (!user) return;
+
+  await db
+    .collection('users')
+    .doc(user.uid)
+    .collection('accessories')
+    .doc(currentPart)
+    .set({ list: currentExercises });
+}
+
 
 /* 3대 총합 업데이트 */
 function updateTotal3(){
