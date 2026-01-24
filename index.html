@@ -1724,8 +1724,8 @@ async function deleteRecord(id){
   renderActiveBox();
 
   const user = auth.currentUser;
-  if (user && records.bench.concat(records.squat, records.dead)
-  .some(r => r.firestoreId === id)) {
+  if(user && String(id).length > 10){ // firestoreId일 때만
+
 
     await db
       .collection('users')
