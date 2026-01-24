@@ -776,6 +776,13 @@ const googleLoginBtn = document.getElementById('googleLoginBtn');
 const logoutBtn = document.getElementById('logoutBtn');
 const userInfo = document.getElementById('userInfo');
    
+// 🔥 1RM 횟수 옵션 초기화
+for (let i = 1; i <= 10; i++) {
+  const opt = document.createElement("option");
+  opt.value = i;
+  opt.textContent = `${i}회`;
+  repsSelect.appendChild(opt);
+}
 
 tabBtns.forEach(btn => {
   btn.addEventListener('click', ()=>{
