@@ -752,16 +752,27 @@ input[type="number"] {
 
 </div>
 
-<!-- 1RM -->
+<!-- 1RM ----------------------------------------------------------------->
 <div id="tab1" class="tabContent active">
+
+  <!-- 종목 선택 -->
+  <select id="liftSelect">
+    <option value="bench">벤치</option>
+    <option value="squat">스쿼트</option>
+    <option value="dead">데드</option>
+  </select>
+
   <input id="weight" type="number" placeholder="kg">
-    <select id="reps"></select>
-    <button id="goBtn">GO</button>
-    <div id="result"></div>
-    <div id="tableArea"></div>
+  <select id="reps"></select>
+  <button id="goBtn">GO</button>
+
+  <div id="result"></div>
+  <div id="tableArea"></div>
 </div>
 
-<!-- 3대 -->
+<!-- 1RM ----------------------------------------------------------------->
+
+<!-- 3대 ------------------------------------------------------------------>
 <div id="tab2" class="tabContent">
 
    
@@ -808,11 +819,14 @@ input[type="number"] {
     <!-- ✅ 여기 -->
     <div id="recordMessage"
          style="font-size:12px; color:#FFD700; margin-top:6px;">
-    </div>
-
-
-        
+    </div>        
 </div>
+<!-- 3대 ------------------------------------------------------------------>
+
+
+
+
+   
 <div id="tab4" class="tabContent">
 
 <div id="acc-part-screen">
