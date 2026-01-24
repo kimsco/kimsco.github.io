@@ -1998,6 +1998,29 @@ function openExerciseDetail(name) {
 
   renderAccessoryRecords(); // 🔥 해당 종목 카드만 렌더
 }
+
+function renderAccessorySets(exerciseName) {
+    const container = document.getElementById('acc-records');
+    const list = accRecordsByExercise[exerciseName] || [];
+    container.innerHTML = '';
+
+    if(list.length === 0){
+        container.innerHTML = `<div style="color:#777; font-size:13px;">기록 없음</div>`;
+        return;
+    }
+
+    list.forEach((set, index)=>{
+        const div = document.createElement('div');
+        div.className = 'record-day';
+        div.innerHTML = `
+            <div class="date">${set.date}</div>
+            <div class="set">${set.weight}kg × ${set.reps}회</div>
+        `;
+        container.appendChild(div);
+    });
+}
+
+   
 function renderAccessoryRecords() {
   const wrap = document.getElementById('acc-records');
   const list = accRecordsByExercise[currentExerciseName] || [];
