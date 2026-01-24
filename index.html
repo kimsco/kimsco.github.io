@@ -2161,8 +2161,11 @@ function renderExercises() {
 exerciseListEl.innerHTML = '';
 
 // 카드 생성 + 클릭 이벤트 연결
-currentExercises.forEach(name => {
+currentExercises.forEach(item => {
+  // item이 객체면 item.name, 아니면 item 그대로
+  const name = typeof item === 'string' ? item : item.name;
   const safeId = `card-${name.replace(/\s+/g, '-')}`;
+
   const card = document.createElement('div');
   card.className = 'exercise-card';
   card.id = safeId;
@@ -2196,6 +2199,7 @@ currentExercises.forEach(name => {
 
   exerciseListEl.appendChild(card);
 });
+
 
 
 
