@@ -1048,6 +1048,8 @@ tabBtns.forEach(btn => {
   });
 });
 
+const partScreen = document.getElementById('acc-part-screen');
+const exerciseScreen = document.getElementById('exercise-screen');
 
 goBtn.addEventListener('click', ()=> {
     const weight = parseFloat(weightSelect.value);
@@ -1988,6 +1990,17 @@ document.querySelectorAll(".part-btn").forEach(btn => {
     document.getElementById("current-part-name").textContent = currentPart;
     document.getElementById("acc-part-screen").style.display = "none";
     document.getElementById("exercise-screen").style.display = "block";
+
+    loadExercises(currentPart);
+  });
+});
+document.querySelectorAll(".part-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    currentPart = btn.dataset.part;
+
+    document.getElementById("current-part-name").textContent = currentPart;
+    partScreen.style.display = "none";
+    exerciseScreen.style.display = "block";
 
     loadExercises(currentPart);
   });
