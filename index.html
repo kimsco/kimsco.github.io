@@ -1194,14 +1194,16 @@ function renderExercises(){
     </div>
   `).join('');
 
- // 삭제 버튼 클릭 이벤트 연결
-  const deleteBtns = exerciseListEl.querySelectorAll('.delete-btn');
-  deleteBtns.forEach((btn, index) => {
-    btn.addEventListener('click', () => {
-      const removedExercise = currentExercises.splice(index, 1)[0]; // 배열에서 제거
-      renderExercises(); // 다시 렌더링
-      console.log(`${removedExercise} 삭제됨`);
-    });
+  // 카드 클릭 이벤트 연결
+  currentExercises.forEach(name => {
+    const card = document.getElementById(`card-${name}`);
+    card.onclick = () => openExerciseDetail(name);
+    // 휴지통 클릭 이벤트
+    const delBtn = card.querySelector('.delete-btn');
+    delBtn.onclick = (e) => {
+      e.stopPropagation(); // 카드 클릭 이벤트 방지
+      deleteExercise(name);
+    };
   });
 }
 
@@ -2183,6 +2185,54 @@ tabBtns.forEach(btn => {
   });
 });
 
+// 삭제 버튼 클릭 이벤트
+function addDeleteBtnEvents() {
+  const deleteBtns = document.querySelectorAll('.delete-btn');
+  deleteBtns.forEach(btn => {
+    btn.onclick = (e) => {
+      const cardEl = e.currentTarget.closest('.exercise-card');
+      const name = cardEl.querySelector('.exercise-name').textContent;
+
+      // 배열에서 제거
+      currentExercises = currentExercises.filter(n => n !== name);
+
+      // 기록도 같이 삭제
+      delete accRecordsByExercise[name];
+
+      // 화면에서 제거
+      cardEl.remove();
+    }
+  });
+}
+
+// renderExercises 마지막에 호출
+function renderExercises(){
+  if (!currentExercises.length) {
+    exerciseListEl.innerHTML =
+      `<div style="color:#777;font-size:13px;">아직 추가된 종목이 없습니다</div>`;
+    return;
+  }
+
+  exerciseListEl.innerHTML = currentExercises.map(name => `
+    <div class="exercise-card" id="card-${name}">
+      <div class="exercise-name">${name}</div>
+      <div class="exercise-sub">${getAccessorySummary(name)}</div>
+      <button class="delete-btn" aria-label="삭제">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="3" y1="4" x2="21" y2="4"></line>
+          <line x1="8" y1="4" x2="8" y2="2"></line>
+          <line x1="16" y1="4" x2="16" y2="2"></line>
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="8" y1="8" x2="8" y2="20"></line>
+          <line x1="16" y1="8" x2="16" y2="20"></line>
+        </svg>
+      </button>
+    </div>
+  `).join('');
+
+  // 삭제 이벤트 다시 붙이기
+  addDeleteBtnEvents();
+}
 
    
 
