@@ -634,6 +634,7 @@ td, th {
 
 
 
+
    
    
    
@@ -866,20 +867,28 @@ input[type="number"] {
 
 
   <div id="exercise-list"></div>
-
-
 </div>
-<div id="exercise-detail-screen" style="display:none;">
-  ← 체스트프레스
 
-  <!-- 기록 추가 버튼 -->
-  <button id="add-set-btn">+ 기록 추가</button>
+   <div id="exercise-detail-screen" style="display:none;">
+
+  <div style="margin-bottom:10px; cursor:pointer;"
+       onclick="closeExerciseDetail()">
+    ← <span id="detail-exercise-name"></span>
+  </div>
+
+  <!-- 기록 입력 -->
+  <div class="recordFormRow">
+    <input id="acc-weight" type="number" placeholder="kg">
+    <input id="acc-reps" type="number" placeholder="회">
+    <button onclick="addAccessorySet()">저장</button>
+  </div>
 
   <!-- 가로 기록 영역 -->
-  <div class="record-horizontal">
-    <!-- 날짜 컬럼들이 여기 들어감 -->
-  </div>
+  <div id="acc-records" class="record-horizontal"></div>
+
 </div>
+
+
 
 
 </div>
@@ -1092,7 +1101,7 @@ function renderExercises(){
   }
 
 exerciseListEl.innerHTML = currentExercises.map(name => `
-  <div class="exercise-card">
+ <div class="exercise-card" onclick="openExerciseDetail('${name}')">
     <div class="exercise-name">${name}</div>
     <div class="exercise-sub">기록 없음</div>
   </div>
@@ -1817,6 +1826,83 @@ threeToggleBtn.addEventListener("click", () => {
       ? "block"
       : "none";
 });
+// 🔥 종목별 기록 (로컬 전용)
+const accessoryRecords = {
+  // 예시 구조
+  // "체스트프레스": {
+  //   "2026.01.24": [
+  //     { weight: 20, reps: 5 },
+  //     { weight: 30, reps: 4 }
+  //   ]
+  // }
+};
+let currentExercise = null;
+
+function openExerciseDetail(name) {
+  currentExercise = name;
+
+  exerciseScreen.style.display = 'none';
+  document.getElementById('exercise-detail-screen').style.display = 'block';
+
+  document.getElementById('detail-exercise-name').textContent = name;
+
+  if (!accessoryRecords[name]) {
+    accessoryRecords[name] = {};
+  }
+
+  renderAccessoryRecords();
+}
+function closeExerciseDetail() {
+  document.getElementById('exercise-detail-screen').style.display = 'none';
+  exerciseScreen.style.display = 'block';
+}
+function getToday() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}.${m}.${day}`;
+}
+function addAccessorySet() {
+  const weight = parseInt(document.getElementById('acc-weight').value);
+  const reps = parseInt(document.getElementById('acc-reps').value);
+
+  if (!weight || !reps) return;
+
+  const date = getToday();
+
+  if (!accessoryRecords[currentExercise][date]) {
+    accessoryRecords[currentExercise][date] = [];
+  }
+
+  accessoryRecords[currentExercise][date].push({ weight, reps });
+
+  document.getElementById('acc-weight').value = '';
+  document.getElementById('acc-reps').value = '';
+
+  renderAccessoryRecords();
+}
+function renderAccessoryRecords() {
+  const wrap = document.getElementById('acc-records');
+  wrap.innerHTML = '';
+
+  const records = accessoryRecords[currentExercise];
+  const dates = Object.keys(records).sort().reverse(); // 최신 오른쪽
+
+  dates.forEach(date => {
+    const col = document.createElement('div');
+    col.className = 'record-day';
+
+    col.innerHTML = `
+      <div class="date">${date}</div>
+      ${records[date].map(
+        s => `<div class="set">${s.weight}kg × ${s.reps}회</div>`
+      ).join('')}
+    `;
+
+    wrap.appendChild(col);
+  });
+}
 
 
 
