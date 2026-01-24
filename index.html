@@ -1003,9 +1003,9 @@ tabBtns.forEach(btn => {
 
 
 goBtn.addEventListener('click', ()=> {
+   const lift = liftSelect.value;
     const weight = parseFloat(weightSelect.value);
     const reps = parseInt(repsSelect.value);
-    const liftSelect = document.getElementById("liftSelect");
 
 
     if(!weight || !reps){
