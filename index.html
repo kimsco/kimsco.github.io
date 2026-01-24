@@ -1113,6 +1113,15 @@ const addExerciseBtn = document.getElementById('add-exercise-btn');
    
 addExerciseBtn.addEventListener('click', addExercise);
 
+function getAccessorySummary(name){
+  const list = accRecordsByExercise[name];
+  if (!list || list.length === 0) return '기록 없음';
+
+  const latest = list[0];
+  return `${latest.weight}kg × ${latest.reps}회`;
+}
+
+   
 function renderExercises(){
   if (!currentExercises.length) {
     exerciseListEl.innerHTML =
@@ -1905,6 +1914,15 @@ function getToday() {
   const day = String(d.getDate()).padStart(2, '0');
   return `${y}.${m}.${day}`;
 }
+
+   function formatAccDate(){
+  const d = new Date();
+  const yy = String(d.getFullYear()).slice(2);
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  const dd = String(d.getDate()).padStart(2,'0');
+  return `${yy}.${mm}.${dd}`;
+}
+
    
 function addAccessorySet() {
   const weight = parseInt(document.getElementById('acc-weight').value);
@@ -1915,7 +1933,7 @@ function addAccessorySet() {
   const item = {
     weight,
     reps,
-    date: formatTodayYYMMDD()
+    date: formatAccDate()
   };
 
   accRecordsByExercise[currentExerciseName].unshift(item);
