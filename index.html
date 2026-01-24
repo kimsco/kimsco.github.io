@@ -654,24 +654,30 @@ cursor: pointer;
 
 .delete-btn {
    position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 24px;   /* 버튼 크기 최소화 */
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  font-size: 16px;
-  border: none;
-  background: transparent;
-  color: #ff5555;
-  cursor: pointer;
+   top: 6px;
+   right: 6px;
+   width: 22px;
+   height: 22px;
+
+   border: 1px solid #ff5555;
+   border-radius: 50%;
+   background: transparent;
+   color: #ff5555;
+   font-size: 12px;
+
+   display: flex;
+   align-items: center;
+   justify-content: center;
+
+   cursor: pointer;
+   transition: all 0.15s ease;
+}
+.delete-btn:hover {
+   background: #ff5555;
+   color: #111;
+   transform: scale(1.1);
 }
 
-.delete-btn:hover {
-  color: #ff0000;
-}
 
 
 
