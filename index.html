@@ -2253,13 +2253,18 @@ function renderExercises() {
   // 클릭 이벤트 연결
   currentExercises.forEach(name => {
     const card = document.getElementById(`card-${name}`);
-    card.onclick = () => openExerciseDetail(name);
+
+    // 카드 클릭
+    card.addEventListener('click', () => openExerciseDetail(name));
+
+    // 휴지통 클릭
     const delBtn = card.querySelector('.delete-btn');
-    delBtn.onclick = async (e) => {
-      e.stopPropagation();
-      await deleteExercise(name);
-    };
-  });
+    delBtn.addEventListener('click', (e) => {
+        e.stopPropagation(); // 카드 클릭 막기
+        deleteExercise(name);
+    });
+});
+
 }
 
 // 카드 추가
