@@ -936,6 +936,8 @@ const tabContents = document.querySelectorAll('.tabContent');
 const weightSelect = document.getElementById('weight');
 const repsSelect = document.getElementById('reps');
 const goBtn = document.getElementById('goBtn');
+const liftSelect = document.getElementById("liftSelect");
+
 const resultDiv = document.getElementById('result');
 const tableArea = document.getElementById('tableArea');
 
@@ -1002,6 +1004,8 @@ tabBtns.forEach(btn => {
 goBtn.addEventListener('click', ()=> {
     const weight = parseFloat(weightSelect.value);
     const reps = parseInt(repsSelect.value);
+    const liftSelect = document.getElementById("liftSelect");
+
 
     if(!weight || !reps){
         tableArea.innerHTML = `<div style="text-align:center;color:#ff5555;margin-top:10px;">
