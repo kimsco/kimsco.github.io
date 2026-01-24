@@ -1104,14 +1104,30 @@ function fadeTempMsg(el, msg, timeout=1000, fadeDur=800){
    /* ===============================
    🔥 보조운동(4번째 탭) 로직
 ================================ */
-   let accRecordsByExercise = {}; // 🔥 종목별 카드 저장소
+let accRecordsByExercise = {}; // 🔥 종목별 카드 저장소
 let currentExerciseName = null; // 🔥 지금 보고 있는 종목
+let currentPart = null;        // 🔥 지금 선택된 종목
 
-let currentExercises = [];
 const exerciseListEl = document.getElementById('exercise-list');
 const addExerciseBtn = document.getElementById('add-exercise-btn');
    
 addExerciseBtn.addEventListener('click', addExercise);
+const partButtons = document.querySelectorAll('.part-btn');
+const partScreen = document.getElementById('acc-part-screen');
+const exerciseScreen = document.getElementById('exercise-screen');
+const currentPartNameEl = document.getElementById('current-part-name');
+
+partButtons.forEach(btn => {
+  btn.addEventListener('click', async ()=>{
+    currentPart = btn.dataset.part;   // 🔥 현재 선택한 종목 저장
+    currentPartNameEl.textContent = currentPart;
+    partScreen.style.display = 'none';
+    exerciseScreen.style.display = 'block';
+
+    // Firestore에서 해당 종목 불러오기
+    await loadExercises(currentPart);
+  });
+});
 
 function getAccessorySummary(name){
   const list = accRecordsByExercise[name];
@@ -1142,7 +1158,8 @@ exerciseListEl.innerHTML = currentExercises.map(name => `
 async function loadExercises(part){
   const user = auth.currentUser;
   if (!user) {
-    currentExercises = [];
+    accRecordsByExercise[part] = [];
+    currentExercises = accRecordsByExercise[part];
     renderExercises();
     return;
   }
@@ -1154,16 +1171,23 @@ async function loadExercises(part){
     .doc(part);
 
   const snap = await ref.get();
-
-  currentExercises = snap.exists ? snap.data().list || [] : [];
+  accRecordsByExercise[part] = snap.exists ? snap.data().list || [] : [];
+  currentExercises = accRecordsByExercise[part]; // 현재 종목 리스트
   renderExercises();
 }
 
+
 async function addExercise(){
+  if(!currentPart) return alert("먼저 종목을 선택하세요.");
+
   const name = prompt("운동 종목을 입력하시오");
   if (!name) return;
 
-  currentExercises.unshift(name);
+  // 종목별 배열 초기화
+  if(!accRecordsByExercise[currentPart]) accRecordsByExercise[currentPart] = [];
+
+  accRecordsByExercise[currentPart].unshift(name);
+  currentExercises = accRecordsByExercise[currentPart];
   renderExercises();
 
   const user = auth.currentUser;
@@ -1176,6 +1200,7 @@ async function addExercise(){
     .doc(currentPart)
     .set({ list: currentExercises });
 }
+
 
 
 /* 3대 총합 업데이트 */
