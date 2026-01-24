@@ -1252,9 +1252,9 @@ recordAdd.addEventListener('click', async ()=>{
         reps
     };
 
-    if(lift === 'bench') records.bench.unshift(item);
-    if(lift === 'squat') records.squat.unshift(item);
-    if(lift === 'dead')  records.dead.unshift(item);
+    if(lift === 'bench') records.bench.push(item);
+   if(lift === 'squat') records.squat.push(item);
+   if(lift === 'dead')  records.dead.push(item);
 
     recordWeight.value = '';
     recordReps.value = '';
