@@ -456,7 +456,38 @@ td, th {
   margin-bottom: 12px;
 }
 
-   
+   .search-wrap {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.exercise-search {
+  flex: 1;
+  height: 36px;
+  background: #111;
+  color: #fff;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 0 12px;
+  font-size: 14px;
+}
+
+.add-btn {
+  width: 36px;
+  height: 36px;
+  background: #000;
+  color: #fff;
+  border: 1px solid #333;
+  border-radius: 8px;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.add-btn:active {
+  background: #222;
+}
+
 /* .css 붙여넣기 */
    
 
@@ -592,16 +623,19 @@ input[type="number"] {
     ← <span id="current-part-name"></span>
   </div>
 
- <input
-  id="exercise-search"
-  class="exercise-search"
-  placeholder="종목 검색"
-/>
+<div class="search-wrap">
+  <input
+    id="exercise-search"
+    class="exercise-search"
+    placeholder="종목 검색"
+  />
+  <button id="add-exercise-btn" class="add-btn">+</button>
+</div>
 
 
   <div id="exercise-list"></div>
 
-  <button id="add-exercise-btn">+ 추가하기</button>
+
 </div>
 
 
