@@ -2130,12 +2130,15 @@ function renderAccessoryRecords(){
 }
 
 
+cardEl.querySelector('.delete-btn').addEventListener('click', (e) => {
+    e.stopPropagation(); // ✅ 카드 클릭 이벤트 막기
+    currentExercises = currentExercises.filter(n => n !== name);
+    delete accRecordsByExercise[name];
+    renderExercises(); // 다시 그리기
+});
 
 
 
-function deleteExercise(name, e){
-  e.stopPropagation(); // 🔥 카드 클릭 이벤트 전파 차단
-  if(!confirm(`${name} 종목을 삭제하시겠습니까?`)) return;
 
   // 로컬 제거
   accRecordsByExercise[currentPart] = accRecordsByExercise[currentPart].filter(n => n !== name);
