@@ -1200,10 +1200,7 @@ function renderExercises(){
     card.onclick = () => openExerciseDetail(name);
     // 휴지통 클릭 이벤트
     const delBtn = card.querySelector('.delete-btn');
-    delBtn.onclick = (e) => {
-      e.stopPropagation(); // 카드 클릭 이벤트 방지
-      deleteExercise(name);
-    };
+    delBtn.onclick = (e) =>    deleteExercise(e, name);
   });
 }
 
@@ -2139,23 +2136,15 @@ function renderAccessoryRecords(){
 
 
 
-function deleteExercise(name, e){
-  e.stopPropagation(); // 🔥 카드 클릭 이벤트 전파 차단
-  if(!confirm(`${name} 종목을 삭제하시겠습니까?`)) return;
-
-  // 로컬 제거
-  accRecordsByExercise[currentPart] = accRecordsByExercise[currentPart].filter(n => n !== name);
-  currentExercises = accRecordsByExercise[currentPart];
-  renderExercises();
-
-  // Firestore 제거
-  const user = auth.currentUser;
-  if(user){
-    const ref = db.collection('users').doc(user.uid)
-                  .collection('accessories').doc(currentPart);
-    ref.set({ list: accRecordsByExercise[currentPart] }, { merge: true });
-  }
+function deleteExercise(e, name){
+    e.stopPropagation(); // 이제 에러 안남
+    currentExercises = currentExercises.filter(n => n !== name);
+    delete accRecordsByExercise[name];
+    renderExercises();
 }
+
+
+   
 tabBtns.forEach(btn => {
   btn.addEventListener('click', ()=>{
     calPopup.classList.add("hidden");
