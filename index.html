@@ -1164,17 +1164,21 @@ function renderExercises(){
     return;
   }
 
-exerciseListEl.innerHTML = currentExercises.map(name => `
-  <div class="exercise-card" id="card-${name}" >
-    <div class="exercise-name">${name}</div>
-    <div class="exercise-sub">${getAccessorySummary(name)}</div>
-    <button class="delete-btn" onclick="deleteExercise('${name}', event)">🗑️</button>
-  </div>
-`).join('');
+  exerciseListEl.innerHTML = currentExercises.map(name => `
+    <div class="exercise-card" id="card-${name}">
+      <div class="exercise-name">${name}</div>
+      <div class="exercise-sub">${getAccessorySummary(name)}</div>
+      <button class="delete-btn" onclick="deleteExercise('${name}', event)">🗑️</button>
+    </div>
+  `).join('');
 
-
-
+  // 클릭 이벤트 연결 (휴지통 제외)
+  currentExercises.forEach(name => {
+    const card = document.getElementById(`card-${name}`);
+    card.addEventListener('click', () => openExerciseDetail(name));
+  });
 }
+
 
 async function loadExercises(part){
   currentPart = part;
@@ -2095,18 +2099,19 @@ function openExerciseDetail(name){
   document.getElementById('exercise-detail-screen').style.display = 'block';
   document.getElementById('detail-exercise-name').textContent = name;
 
-  renderAccessoryRecords();
+  renderAccessoryRecords(name);
 }
+
 function deleteExercise(name, e){
-  e.stopPropagation(); // 카드 클릭 이벤트 막기
+  e.stopPropagation(); // 🔥 카드 클릭 이벤트 전파 차단
   if(!confirm(`${name} 종목을 삭제하시겠습니까?`)) return;
 
-  // 1️⃣ 로컬에서 제거
+  // 로컬 제거
   accRecordsByExercise[currentPart] = accRecordsByExercise[currentPart].filter(n => n !== name);
   currentExercises = accRecordsByExercise[currentPart];
   renderExercises();
 
-  // 2️⃣ Firestore에서도 제거
+  // Firestore 제거
   const user = auth.currentUser;
   if(user){
     const ref = db.collection('users').doc(user.uid)
@@ -2114,6 +2119,7 @@ function deleteExercise(name, e){
     ref.set({ list: accRecordsByExercise[currentPart] }, { merge: true });
   }
 }
+
 
    
 
