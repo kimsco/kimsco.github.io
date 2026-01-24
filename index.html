@@ -1218,20 +1218,18 @@ function closeExerciseDetail(){
 
 
 
-
 async function loadExercises(part) {
   try {
-    const snapshot = await db.collection("accessoryExercises")
-                          .doc(part)               // ex: "shoulder"
-                             .collection(exercise)    // ex: "벤치프레스"
-                          .add({ weight: 60, reps: 10, timestamp: firebase.firestore.FieldValue.serverTimestamp() })
+    const snapshot = await db
+      .collection("accessoryExercises")
+      .doc(part)                // ex: "shoulder"
+      .collection("exercises")  // 컬렉션 이름은 문자열로
+      .get();                   // 🔥 add() 아님, get()으로 불러오기
 
-
-    if (!snapshot.exists) {
-      currentExercises = [];
-    } else {
-      currentExercises = snapshot.data().list || [];
-    }
+    currentExercises = [];
+    snapshot.forEach(doc => {
+      currentExercises.push(doc.data().name);
+    });
 
     renderExercises();  // UI 갱신
   } catch (e) {
@@ -1240,8 +1238,6 @@ async function loadExercises(part) {
     renderExercises();
   }
 }
-
-
 
 
 
