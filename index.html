@@ -650,6 +650,39 @@ input[type="number"] {
     "Segoe UI",
     sans-serif;
 }
+/* ===============================
+   3대 접기 UI
+================================ */
+.three-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 20px 0 10px;
+}
+
+.three-toggle {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #333;
+  border: none;
+  cursor: pointer;
+}
+
+.three-toggle::after {
+  content: "";
+  width: 6px;
+  height: 6px;
+  background: #FFD700;
+  border-radius: 50%;
+  display: block;
+  margin: auto;
+}
+
+/* 접힌 상태 */
+#threeDetail {
+  display: none;
+}
 
 
 
@@ -702,7 +735,16 @@ input[type="number"] {
 
 <!-- 3대 -->
 <div id="tab2" class="tabContent">
+
+   
+     <!-- 🔥 헤더 -->
+  <div class="three-header">
     <div id="total3">3대: 0 kg</div>
+    <button id="threeToggleBtn" class="three-toggle"></button>
+  </div>
+
+  <!-- 🔽 접히는 영역 -->
+  <div id="threeDetail">
     <table>
         <tr><th>벤치</th><th>스쿼트</th><th>데드</th></tr>
         <tr>
@@ -711,6 +753,7 @@ input[type="number"] {
             <td><input id="deadRM" class="rmInput" type="number"></td>
         </tr>
     </table>
+
     <button id="save3Btn">3대 기록 저장</button>
 
     <div class="recordFolders">
@@ -1688,6 +1731,15 @@ partBtns.forEach(btn => {
 document.getElementById('exercise-header').addEventListener('click', () => {
   exerciseScreen.style.display = 'none';
   partScreen.style.display = 'block';
+});
+const threeToggleBtn = document.getElementById("threeToggleBtn");
+const threeDetail = document.getElementById("threeDetail");
+
+threeToggleBtn.addEventListener("click", () => {
+  threeDetail.style.display =
+    threeDetail.style.display === "none" || !threeDetail.style.display
+      ? "block"
+      : "none";
 });
 
 
