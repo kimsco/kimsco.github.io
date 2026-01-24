@@ -1158,6 +1158,7 @@ function getAccessorySummary(name){
 }
 
    
+// 카드 렌더링
 function renderExercises(){
   if (!currentExercises.length) {
     exerciseListEl.innerHTML =
@@ -1165,30 +1166,41 @@ function renderExercises(){
     return;
   }
 
+  // 기존 클릭 이벤트 모두 제거
   exerciseListEl.innerHTML = currentExercises.map(name => `
     <div class="exercise-card" id="card-${name}">
       <div class="exercise-name">${name}</div>
       <div class="exercise-sub">${getAccessorySummary(name)}</div>
-      <button class="delete-btn" onclick="deleteExercise('${name}', event)">🗑️</button>
+      <button class="delete-btn" data-name="${name}">🗑️</button>
     </div>
   `).join('');
 
-  // 클릭 이벤트 연결 (휴지통 제외)
+  // 카드 클릭 이벤트 연결
   currentExercises.forEach(name => {
     const card = document.getElementById(`card-${name}`);
-    card.onclick = () => {
-      // ❌ appendChild 제거
-      currentExerciseName = name;
-      document.getElementById('detail-exercise-name').textContent = name;
-      document.getElementById('exercise-detail-screen').style.display = 'block';
+    card.onclick = () => openExerciseDetail(name);
+    // 휴지통 클릭 이벤트
+    const delBtn = card.querySelector('.delete-btn');
+    delBtn.onclick = (e) => {
+      e.stopPropagation(); // 카드 클릭 이벤트 방지
+      deleteExercise(name);
     };
   });
 }
 
-// 닫기
+// 카드 클릭 → 입력창 보여주기
+function openExerciseDetail(name){
+  currentExerciseName = name;
+  document.getElementById('detail-exercise-name').textContent = name;
+  // 항상 최상위 입력창 표시
+  document.getElementById('exercise-detail-screen').style.display = 'block';
+}
+
+// 입력창 닫기
 function closeExerciseDetail(){
   document.getElementById('exercise-detail-screen').style.display = 'none';
 }
+
 
 
 
@@ -2104,12 +2116,7 @@ function renderAccessoryRecords(){
   `;
 }
 
-function openExerciseDetail(name){
-    currentExerciseName = name;
-    // 입력창 DOM은 항상 최상위 위치에 고정
-    document.getElementById('detail-exercise-name').textContent = name;
-    document.getElementById('exercise-detail-screen').style.display = 'block';
-}
+
 
 
 
