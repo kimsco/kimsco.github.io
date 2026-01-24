@@ -283,41 +283,43 @@ td, th {
   background: #1a1a1a;
   border-radius: 12px;
 
-  position: relative;          /* 🔥 중요 */
   display: flex;
-  flex-direction: column;
   align-items: center;
+  justify-content: center;
 
   font-size: 15px;
   font-weight: 500;
   color: #eee;
+
   cursor: pointer;
+  transition: all 0.18s ease;
 }
 
-/* 날짜 숫자 */
-.day-number {
-  position: absolute;
-  top: 33%;                    /* 🔥 1/3 지점 */
-  transform: translateY(-50%);
-  font-size: 15px;
-  font-weight: 600;
+/* hover (PC) */
+.days div:hover {
+  background: #2a2a2a;
+  transform: translateY(-1px);
 }
 
-/* 운동 종목 텍스트 */
-.day-muscle {
-  position: absolute;
-  top: 75%;                    /* 🔥 3/4 지점 */
-  transform: translateY(-50%);
-  font-size: 11px;
-  opacity: 0.85;
-  white-space: nowrap;
+/* 오늘 날짜 */
+.days div.today {
+  border: 1px solid #FFD700;
+  color: #FFD700;
 }
 
 /* 운동한 날 */
 .days div.done {
   background: linear-gradient(135deg, #8b0000, #400000);
-  color: #fff;
+  color: #ffffff;
+  font-weight: 600;
 }
+
+/* 빈칸 (월 시작 전) */
+.days div:empty {
+  background: transparent;
+  cursor: default;
+}
+
 
 
 
@@ -410,7 +412,7 @@ td, th {
   color: #aaa;
   padding: 0;
 }
-
+.days div.done:hover { background: linear-gradient(135deg, #8b0000, #400000) !important; transform: translateY(-1px); }
 
 /* 🔒 모바일 long press 텍스트 선택 방지 */
 .days div,
@@ -1289,7 +1291,7 @@ function calRender() {
   for (let d = 1; d <= last; d++) {
     const cell = document.createElement("div");
     const key = `${y}-${m + 1}-${d}`;
-    cell.innerHTML = `<div class="day-number">${d}</div>`;
+    cell.textContent = d;
 
 
 const today = new Date();
@@ -1303,11 +1305,8 @@ if (isToday) {
 }
 
 
-     if (calData[key]?.muscles?.length) {
+ if (calData[key]?.muscles?.length) {
   cell.classList.add("done");
-
-  const muscleText = calData[key].muscles.join(", ");
-  cell.innerHTML += `<div class="day-muscle">${muscleText}</div>`;
 }
 
 
