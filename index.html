@@ -501,17 +501,14 @@ td, th {
   transform: scale(0.96);
 }
 .exercise-card {
-  background: #111;
-  border: 1px solid #222;
-  border-radius: 14px;
+cursor: pointer;
   padding: 14px 16px;
-  margin-bottom: 10px;
-
   display: flex;
   flex-direction: column;
   gap: 6px;
-
-  cursor: pointer;
+  border-radius: 14px;
+  background: #111;
+  border: 1px solid #222;
   transition: all 0.15s ease;
 }
 
@@ -656,21 +653,25 @@ td, th {
 }
 
 .delete-btn {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  background: transparent;
+   position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 24px;   /* 버튼 크기 최소화 */
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  font-size: 16px;
   border: none;
+  background: transparent;
   color: #ff5555;
-  font-size: 14px;
   cursor: pointer;
-  padding: 2px 4px;
 }
 
 .delete-btn:hover {
   color: #ff0000;
 }
-
 
 
 
