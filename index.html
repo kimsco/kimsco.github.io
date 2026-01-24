@@ -2003,6 +2003,10 @@ function getAccessorySummary(name) {
   return `${latest.date} → ${latest.weight}kg × ${latest.reps}회`;
 }
 
+function renderAccessorySets(name) {
+    currentExerciseName = name;
+    renderAccessoryRecords();
+}
 
    
 function addAccessorySet() {
