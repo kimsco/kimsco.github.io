@@ -1159,54 +1159,37 @@ function getAccessorySummary(name){
   return `${latest.weight}kg × ${latest.reps}회`;
 }
 
-   
-// 카드 렌더링
-function renderExercises(){
+   function renderExercises(){
   if (!currentExercises.length) {
     exerciseListEl.innerHTML =
       `<div style="color:#777;font-size:13px;">아직 추가된 종목이 없습니다</div>`;
     return;
   }
 
-  // 기존 클릭 이벤트 모두 제거
-  exerciseListEl.innerHTML = currentExercises.map(name => `
-    <div class="exercise-card" id="card-${name}">
+  // ❌ 기존 innerHTML 방식 지움
+
+  // ✅ 대신 currentExercises.forEach(...) 코드 붙임
+  currentExercises.forEach(name => {
+    const cardEl = document.createElement('div');
+    cardEl.className = 'exercise-card';
+    cardEl.id = `card-${name}`;
+    cardEl.innerHTML = `
       <div class="exercise-name">${name}</div>
       <div class="exercise-sub">${getAccessorySummary(name)}</div>
-      <button class="delete-btn" aria-label="삭제">
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <!-- 뚜껑 -->
-    <line x1="3" y1="4" x2="21" y2="4"></line>
-    <line x1="8" y1="4" x2="8" y2="2"></line>
-    <line x1="16" y1="4" x2="16" y2="2"></line>
+      <button class="delete-btn">삭제</button>
+    `;
 
-    <!-- 휴지통 몸통 -->
-    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+    exerciseListEl.appendChild(cardEl);
 
-    <!-- 안쪽 세로선 -->
-    <line x1="8" y1="8" x2="8" y2="20"></line>
-    <line x1="12" y1="8" x2="12" y2="20"></line>
-    <line x1="16" y1="8" x2="16" y2="20"></line>
-  </svg>
-</button>
-
-
-    </div>
-  `).join('');
- // 이벤트 연결 (이벤트 위임 안전 처리)
-  exerciseListEl.querySelectorAll('.exercise-card').forEach(card => {
-    const name = card.querySelector('.exercise-name').textContent;
-
-    card.onclick = () => openExerciseDetail(name);
-
-    const delBtn = card.querySelector('.delete-btn');
-    delBtn.onclick = (e) => {
-      e.stopPropagation();
-      deleteExercise(name);
-    };
+    cardEl.querySelector('.delete-btn').addEventListener('click', () => {
+      currentExercises = currentExercises.filter(n => n !== name);
+      delete accRecordsByExercise[name];
+      renderExercises();
+    });
   });
- 
 }
+
+
 
 // 카드 클릭 → 입력창 보여주기
 function openExerciseDetail(name){
