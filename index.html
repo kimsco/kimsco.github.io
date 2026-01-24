@@ -1438,16 +1438,23 @@ function calRender() {
       }
     }
 
-    // long press
-    let timer;
-    cell.addEventListener("mousedown", () => {
-      timer = setTimeout(() => calOpenPopup(key), 500);
-    });
-    cell.addEventListener("mouseup", () => clearTimeout(timer));
-    cell.addEventListener("touchstart", () => {
-      timer = setTimeout(() => calOpenPopup(key), 500);
-    });
-    cell.addEventListener("touchend", () => clearTimeout(timer));
+ // long press (날짜 모드에서만)
+let timer;
+
+cell.addEventListener("mousedown", () => {
+  if (calendarMode !== "date") return;
+  timer = setTimeout(() => calOpenPopup(key), 500);
+});
+
+cell.addEventListener("mouseup", () => clearTimeout(timer));
+
+cell.addEventListener("touchstart", () => {
+  if (calendarMode !== "date") return;
+  timer = setTimeout(() => calOpenPopup(key), 500);
+});
+
+cell.addEventListener("touchend", () => clearTimeout(timer));
+
 
     calDaysEl.appendChild(cell);
   }
