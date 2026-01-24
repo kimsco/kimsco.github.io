@@ -2153,7 +2153,7 @@ cardEl.querySelector('.delete-btn').addEventListener('click', (e) => {
                   .collection('accessories').doc(currentPart);
     ref.set({ list: accRecordsByExercise[currentPart] }, { merge: true });
   }
-}
+
 tabBtns.forEach(btn => {
   btn.addEventListener('click', ()=>{
     calPopup.classList.add("hidden");
