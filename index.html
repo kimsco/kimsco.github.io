@@ -1,213 +1,1955 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
-  />
-  <title>1RM 계산기 + 3대 기록표</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>1RM 계산기 + 3대 기록표</title>
 
-  <style>
-    /* ===============================
-       🔥 전체 레이아웃
-    =============================== */
-    html, body {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-    }
+<style>
+/* ===============================
+   🔥 전체 레이아웃 (폰 비율 고정)
+================================ */
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
 
-    body {
-      background: #111;
-      color: white;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
-    }
+   
+    height: 100%;
+    overflow: hidden;
+}
 
-    .app {
-      width: 390px;
-      height: 100vh;
-      margin: 0 auto;
-      background: black;
-      padding: 0 20px 20px;
-      box-sizing: border-box;
-      overflow-y: auto;
-      overflow-x: hidden;
-      -webkit-overflow-scrolling: touch;
-    }
+body { 
+    background: #111; 
+   
+    color: white;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
+}
 
-    .app::-webkit-scrollbar {
-      display: none;
-    }
+.app {
+    width: 390px;
+    height: 100vh;          /* 🔥 min-height ❌ */
+    margin: 0 auto;
 
-    /* ===============================
-       공통
-    =============================== */
-    .container {
-      max-width: 100%;
-      margin: auto;
-    }
+    background: black;
+    padding: 0 20px 20px;
+    box-sizing: border-box;
 
-    select, button, input {
-      width: 100%;
-      padding: 14px;
-      margin: 10px 0;
-      font-size: 18px;
-      border-radius: 10px;
-      border: none;
-      box-sizing: border-box;
-    }
+    overflow-y: auto;       /* ✅ 얘만 스크롤 */
+    overflow-x: hidden;
+-ms-overflow-style: none;  /* IE, Edge */
+    scrollbar-width: none;     /* Firefox */
+   
+    -webkit-overflow-scrolling: touch;
 
-    button {
-      background: white;
-      color: black;
-      font-weight: bold;
-      cursor: pointer;
-    }
+}
 
-    /* ===============================
-       상단 로그인
-    =============================== */
-    .topBar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 14px;
-    }
+.app::-webkit-scrollbar {
+    display: none;             /* Chrome, Safari */
+}
 
-    .topText {
-      font-size: 0.66em;
-      line-height: 1.4;
-      opacity: 0.85;
-    }
+/* ===============================
+   공통
+================================ */
+.container { max-width: 100%; margin: auto; }
+.subtitle { font-size:16px; margin-bottom:20px; }
+ 
+select, button, input {
+    width:100%;
+    padding:14px;
+    margin:10px 0;
+    font-size:18px;
+    border-radius:10px;
+    border:none;
+    box-sizing: border-box;
+}
 
-    #loginArea {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
+button {
+    background:white;
+    color:black;
+    font-weight:bold;
+    cursor:pointer;
+}
 
-    .loginBtn {
-      background: #1c1c1c;
-      color: #ddd;
-      border: 1px solid #333;
-      border-radius: 10px;
-      padding: 6px 12px;
-      font-size: 12px;
-      cursor: pointer;
-    }
+#result { margin-top:20px; font-size:22px; }
+table input {
+    width: 100%;
+    box-sizing: border-box;
+      padding: 8px;
+}
+table {
+    width:100%;
+    margin-top:15px;
+    border-collapse: collapse;
+    table-layout: fixed; /* 🔥 이거 중요 */
+}
+table, td, th {
+    border:1px solid white;
+}
+td, th {
+    padding:8px;
+    text-align:center;
+}
 
-    /* ===============================
-       탭
-    =============================== */
-    .tab {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
+/* ===============================
+   로그인 영역
+================================ */
+  
+.topBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 
-    .tab button {
-      background: #333;
-      color: white;
-      font-size: 15px;
-      padding: 8px 12px;
-    }
+  padding: 12px 14px;
+}
 
-    .tab button.active {
-      background: #FFD700;
-      color: black;
-    }
+   .topText {
+  color: white;
+  font-size: 0.66em; /* 기존 subtitle 대비 2/3 */
+  line-height: 1.4;
+  opacity: 0.85;
+}
 
-    .tabContent {
-      display: none;
-    }
+#loginArea {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
 
-    .tabContent.active {
-      display: block;
-    }
+#loginArea button {
+    padding: 6px 10px;
+    font-size: 12px;
+    border-radius: 6px;
+    white-space: nowrap;
+}
 
-    /* ===============================
-       3대
-    =============================== */
-    #total3 {
-      text-align: center;
-      font-size: 28px;
-      font-weight: 800;
-      margin: 20px 0;
-      color: #FFD700;
-    }
+#userInfo {
+    font-size: 11px;
+    opacity: 0.8;
+}
 
-    .rmInput {
-      background: #222;
-      color: white;
-      border-radius: 8px;
-      text-align: center;
-    }
-  </style>
+/* ===============================
+   탭
+================================ */
+.tab {
+    display:flex;
+    justify-content:center;
+    gap:10px;
+    margin-bottom:20px;
+}
+.tab button {
+    background:#333;
+    color:white;
+    font-size:15px;
+    padding:8px 12px;
+}
+.tab button.active {
+    background:#FFD700;
+    color:black;
+}
+
+.tabContent { display:none; }
+.tabContent.active { display:block; }
+
+/* ===============================
+   3대 기록
+================================ */
+#total3 {
+      text-align: center;        /* 가운데 */
+    font-size: 28px;           /* 큼직 */
+    font-weight: 800;          /* 굵게 */
+    letter-spacing: 0.5px;     /* 살짝 고급 */
+    margin: 20px 0 16px;
+    color: #FFD700;
+}
+
+.rmInput {
+    height:40px;
+    text-align:center;
+    background:#222;
+    color:white;
+    border-radius:8px;
+}
+
+/* ===============================
+   기록 폴더
+================================ */
+.recordFolders {
+    display:flex;
+    gap:8px;
+    margin-top:15px;
+}
+.folderBtn {
+    flex:1;
+    background:#333;
+    color:white;
+    padding:10px;
+}
+.folderBtn.active {
+    background:#FFD700;
+    color:black;
+}
+
+.folderContent {
+    display:none;
+    margin-top:10px;
+    background:#444;
+    border-radius:8px;
+    padding:10px;
+    height:150px;
+    overflow:auto;
+}
+.folderContent.active { display:block; }
+
+/* ===============================
+   기록 입력 한 줄
+================================ */
+.recordFormRow {
+    display:flex;
+    gap:6px;
+    align-items:center;
+    margin-top:12px;
+}
+
+
+.recordFormRow input[type="number"] {
+    height:40px;
+    border-radius:8px;
+    background:#222;
+    color:white;
+}
+
+/* ===============================
+   달력
+================================ */
+.calendar .header {
+    display: grid;
+    grid-template-columns: 48px 1fr 40px;
+    align-items: center;
+    margin-bottom: 14px;
+}
+   .month-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #eee;
+    white-space: nowrap;   /* 🔥 줄바꿈 방지 */
+    text-align: center;
+}
+ .month-btn {
+    background: transparent;
+    border: none;
+    color: #8b0000; /* 어두운 빨강 */
+    font-size: 18px;
+    padding: 8px 10px;
+    cursor: pointer;
+    opacity: 0.7;
+}
+
+.month-btn:active {
+    opacity: 1;
+    transform: scale(0.95);
+}  
+/* ===== 요일 ===== */
+.weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    margin-bottom: 8px;
+}
+
+.weekdays div {
+    text-align: center;
+    font-size: 12px;
+    color: #aaa;
+    letter-spacing: 0.5px;
+    padding-bottom: 6px;
+}
+
+/* 일요일 빨간 포인트 */
+.weekdays div:last-child {
+    color: #8b0000;
+}
+
+   /* ===== 날짜 그리드 ===== */
+.days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 10px;
+}
+
+/* 날짜 셀 */
+/* 날짜 셀 */
+.days div {
+  aspect-ratio: 1 / 1;
+  background: #1a1a1a;
+  border-radius: 12px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 15px;
+  font-weight: 500;
+  color: #eee;
+
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+/* hover (PC) */
+.days div:hover {
+  background: #2a2a2a;
+  transform: translateY(-1px);
+}
+
+/* 오늘 날짜 */
+.days div.today {
+  border: 1px solid #FFD700;
+  color: #FFD700;
+}
+
+/* 운동한 날 */
+.days div.done {
+  background: linear-gradient(135deg, #8b0000, #400000);
+  color: white;
+  font-weight: 600;
+}
+
+
+
+/* 월 시작 전 진짜 빈칸만 */
+.days div.empty {
+  background: transparent;
+  cursor: default;
+}
+
+
+
+
+
+/* ===============================
+   팝업
+================================ */
+.popup {
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.7);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    z-index:9999;
+}
+.popup.hidden { display:none; }
+.popup-box {
+    background:#111;
+    padding:20px;
+    border-radius:12px;
+    width:80%;
+}
+.muscles {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin:15px 0;
+}
+.muscles button.active {
+    background:#8b0000;
+    color:white;
+}
+.dateDisplay {
+    width: 80px;
+    height: 40px;
+    background: #222;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    line-height: 1.2;
+    color: #FFD700;
+}
+
+.dateYear {
+    font-size: 11px;
+    opacity: 0.85;
+}
+
+.dateMD {
+    font-size: 13px;
+    font-weight: bold;
+}
+.tabContent {
+  display: none;
+}
+
+.tabContent.active {
+  display: block;
+}
+.loginBtn {
+  background: #1c1c1c;
+  color: #ddd;
+
+  border: 1px solid #333;
+  border-radius: 10px;
+
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.loginBtn:hover {
+  background: #222;
+  border-color: #444;
+}
+
+.loginBtn:active {
+  background: #111;
+}
+   .loginBtn.loggedIn {
+  background: none;
+  border: none;
+  color: #aaa;
+  padding: 0;
+}
+.days div.done:hover { background: linear-gradient(135deg, #8b0000, #400000) !important; transform: translateY(-1px); }
+
+/* 🔒 모바일 long press 텍스트 선택 방지 */
+.days div,
+.popup,
+.popup * {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+
+  -webkit-touch-callout: none; /* iOS 복사 메뉴 차단 */
+}
+
+.part-btn {
+  background: #111;
+  color: #eee;
+  border: 1px solid #2a2a2a;
+  border-radius: 14px;
+  padding: 14px;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+.exercise-search {
+  width: 100%;
+  height: 36px;          /* ← 핵심 (보통 52~56px에서 줄임) */
+  background: #111;      /* 완전 블랙 ❌ 살짝 밝은 블랙 */
+  color: #fff;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 0 12px;
+  font-size: 14px;
+}
+
+.exercise-search::placeholder {
+  color: #777;
+}
+
+.exercise-search:focus {
+  outline: none;
+  border-color: #fff;
+}
+.search-wrap {
+  margin-bottom: 12px;
+}
+
+   .search-wrap {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.exercise-search {
+  flex: 1;
+  height: 36px;
+  background: #111;
+  color: #fff;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 0 12px;
+  font-size: 14px;
+}
+
+.add-btn {
+  width: 36px;
+  height: 36px;
+  background: #000;
+  color: #fff;
+  border: 1px solid #333;
+  border-radius: 8px;
+  font-size: 20px;
+  cursor: pointer;
+
+  /* 🔥 이 3줄이 핵심 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  line-height: 1; /* 글자 흔들림 방지 */
+}
+.add-btn:active {
+  background: #222;
+  transform: scale(0.96);
+}
+.exercise-card {
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.exercise-card:hover {
+  background: #161616;
+  border-color: #333;
+}
+
+.exercise-card:active {
+  transform: scale(0.985);
+}
+
+.exercise-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  letter-spacing: 0.3px;
+}
+
+.exercise-sub {
+  font-size: 13px;
+  color: #777;
+}
+
+.calendar-toggle {
+  margin-top: 12px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: #2a2a2a;
+  color: #eee;
+  font-size: 13px;
+  border: none;
+  cursor: pointer;
+}
+
+.calendar-toggle.active {
+  background: #8b0000;
+  color: #fff;
+}
+/* 토글 감싸는 영역 */
+.calendar-toggle-wrap {
+  margin-top: 10px;
+  display: flex;
+  justify-content: flex-start; /* 왼쪽 정렬 */
+}
+
+/* 알약 스위치 */
+.toggle-switch {
+  width: 48px;          /* ← 거의 1/7 느낌 */
+  height: 26px;
+  background: #3a3a3a;
+  border-radius: 999px;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.25s ease;
+}
+
+/* 안에 구슬 */
+.toggle-switch::after {
+  content: "";
+  width: 20px;
+  height: 20px;
+  background: #ddd;
+  border-radius: 50%;
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  transition: transform 0.25s ease;
+}
+
+/* ON 상태 */
+.toggle-switch.active {
+  background: linear-gradient(135deg, #8b0000, #400000);
+}
+
+.toggle-switch.active::after {
+  transform: translateX(22px);
+}
+
+/* 종목 모드 전용 */
+.calendar.muscle-mode .days div {
+  font-weight: 400;        /* 얇게 */
+  font-size: 14px;         /* 날짜보다 살짝 작게 */
+  letter-spacing: 0.2px;
+}
+
+/* 운동한 날 배경은 유지 */
+.calendar.muscle-mode .days div.done {
+  font-weight: 400;
+}
+
+/* 날짜 모드는 절대 영향 안 받음 */
+.record-horizontal {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 10px 0;
+}
+
+.record-day {
+  min-width: 120px;
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 12px;
+  padding: 10px;
+}
+
+.record-day .date {
+  font-size: 12px;
+  color: #FFD700;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.record-day .set {
+  font-size: 13px;
+  color: #eee;
+  line-height: 1.6;
+}
+/* recordAdd 버튼만 작게 */
+#recordAdd {
+  height: 40px;        /* kg / 회 보다 2/3 */
+  padding: 0 12px;
+  font-size: 14px;
+  border-radius: 8px;
+  font-weight: 500;
+}
+.recordAddBtn {
+  height: 40px;
+  padding: 0 14px;
+  font-size: 13px;
+  border-radius: 999px;   /* 알약형 */
+  font-weight: 500;
+  letter-spacing: 0.5px;
+
+  background: #000;
+  color: #fff;
+  border: 1px solid #fff;
+}
+
+
+
+
+   
+   
+   
+/* .css ㅊㄴㄴ 붙여넣기 */
+   
+
+
+   
+/* 🔥 number input +/- 버튼 제거 */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type="number"] {
+    -moz-appearance: textfield; /* Firefox */
+}
+   /* ===============================
+   1RM 입력 폭 2/3
+================================ */
+#tab1 #weight,
+#tab1 #reps,
+#tab1 #goBtn {
+    width: 70%;
+    padding: 10px;
+    font-size: 16px;
+    margin: 10px auto;
+    display: block;
+    border-radius: 14px;
+
+    background: #111;
+    color: #eee;
+    border: 1px solid #2a2a2a;
+}
+
+
+
+#tableArea {
+    margin-top: 30px;   /* 기존에 없으면 추가 */
+    /* 또는 padding-top: 30px; */
+}
+/* 종목 모드 글씨체 */
+.calendar.muscle-mode .days div {
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "SF Pro Text",
+    "Apple SD Gothic Neo",
+    "Noto Sans KR",
+    "Segoe UI",
+    sans-serif;
+}
+/* ===============================
+   3대 접기 UI
+================================ */
+.three-header {
+  position: relative;
+  margin: 20px 0 10px;
+  text-align: center;
+}
+
+/* 3대 텍스트 */
+#total3 {
+      text-align: center;        /* 가운데 */
+    font-size: 28px;           /* 큼직 */
+    font-weight: 800;          /* 굵게 */
+    letter-spacing: 0.5px;     /* 살짝 고급 */
+    margin: 20px 0 16px;
+    color: #FFD700;
+}
+
+/* 오른쪽 버튼 */
+.three-toggle {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+
+.three-toggle {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #333;
+  border: none;
+  cursor: pointer;
+}
+
+.three-toggle::after {
+  content: "";
+  width: 6px;
+  height: 6px;
+  background: #FFD700;
+  border-radius: 50%;
+  display: block;
+  margin: auto;
+}
+
+/* 접힌 상태 */
+#threeDetail {
+  display: none;
+}
+
+
+
+   
+
+    /* 스타일 맨밑 */
+</style>
 </head>
 
 <body>
-  <div class="app">
+<div class="app">
+   
     <div class="topBar">
-      <div class="topText">
-        <div>대부분의 문제는 돈이 없어서,</div>
-        <div>그 외의 문제는 근육이 없어서 생긴다</div>
-      </div>
-
-      <div id="loginArea">
-        <button id="googleLoginBtn" class="loginBtn">Google 로그인</button>
-        <button id="logoutBtn" class="loginBtn" style="display:none;">로그아웃</button>
-        <div id="userInfo"></div>
-      </div>
+    <!-- 왼쪽 문구 -->
+       <div class="topText">
+         <div>대부분의 문제는 돈이 없어서,</div>
+         <div>그 외의 문제는 근육이 없어서 생긴다</div>
+       </div>
+    <!-- 오른쪽 로그인 영역 -->
+       <div id="loginArea">
+             <button id="googleLoginBtn" class="loginBtn">Google 로그인</button>
+            <button id="logoutBtn" class="loginBtn" style="display:none;">로그아웃</button>
+       <div id="userInfo"></div>
     </div>
+  </div>   
 
-    <div class="container">
-      <!-- 탭 -->
-      <div class="tab">
-        <button class="tabBtn active" data-target="tab1">1RM</button>
-        <button class="tabBtn" data-target="tab2">3대</button>
-        <button class="tabBtn" data-target="tab3">달력</button>
-        <button class="tabBtn" data-target="tab4">Tip</button>
-      </div>
 
-      <!-- 1RM -->
-      <div id="tab1" class="tabContent active">
-        <input id="weight" type="number" placeholder="kg">
-        <select id="reps"></select>
-        <button id="goBtn">GO</button>
-        <div id="result"></div>
-        <div id="tableArea"></div>
-      </div>
+   
+<div class="container">
 
-      <!-- 3대 -->
-      <div id="tab2" class="tabContent">
-        <div id="total3">3대: 0 kg</div>
-        <table>
-          <tr>
-            <th>벤치</th>
-            <th>스쿼트</th>
-            <th>데드</th>
-          </tr>
-          <tr>
+
+<!-- 탭 -->
+<div class="tab">
+    <button class="tabBtn active" data-target="tab1">1RM</button>
+    <button class="tabBtn" data-target="tab2">3대</button>
+    <button class="tabBtn" data-target="tab3">달력</button>
+  <button class="tabBtn" data-target="tab4">Tip</button>
+
+
+</div>
+
+<!-- 1RM -->
+<div id="tab1" class="tabContent active">
+  <input id="weight" type="number" placeholder="kg">
+    <select id="reps"></select>
+    <button id="goBtn">GO</button>
+    <div id="result"></div>
+    <div id="tableArea"></div>
+</div>
+
+<!-- 3대 -->
+<div id="tab2" class="tabContent">
+
+   
+     <!-- 🔥 헤더 -->
+  <div class="three-header">
+    <div id="total3">3대: 0 kg</div>
+    <button id="threeToggleBtn" class="three-toggle"></button>
+  </div>
+
+  <!-- 🔽 접히는 영역 -->
+  <div id="threeDetail">
+    <table>
+        <tr><th>벤치</th><th>스쿼트</th><th>데드</th></tr>
+        <tr>
             <td><input id="benchRM" class="rmInput" type="number"></td>
             <td><input id="squatRM" class="rmInput" type="number"></td>
             <td><input id="deadRM" class="rmInput" type="number"></td>
-          </tr>
-        </table>
-        <button id="save3Btn">3대 기록 저장</button>
-        <div id="save3Result"></div>
-      </div>
+        </tr>
+    </table>
+
+    <button id="save3Btn">3대 기록 저장</button>
+</div>
+    <div class="recordFolders">
+        <button class="folderBtn active" data-target="benchBox">벤치</button>
+        <button class="folderBtn" data-target="squatBox">스쿼트</button>
+        <button class="folderBtn" data-target="deadBox">데드</button>
     </div>
+
+    <div id="benchBox" class="folderContent active"></div>
+    <div id="squatBox" class="folderContent"></div>
+    <div id="deadBox" class="folderContent"></div>
+
+  <div class="recordFormRow">
+    <input type="hidden" id="recordDate">
+
+    <div class="dateDisplay">
+        <div class="dateYear" id="displayYear">2026</div>
+        <div class="dateMD" id="displayMD">01.09</div>
+    </div>
+<input id="recordWeight" type="number" placeholder="kg">
+        <input id="recordReps" type="number" placeholder="회">
+        <button id="recordAdd">저장</button>
+    </div>
+    <!-- ✅ 여기 -->
+    <div id="recordMessage"
+         style="font-size:12px; color:#FFD700; margin-top:6px;">
+    </div>
+
+
+        
+</div>
+<div id="tab4" class="tabContent">
+
+<div id="acc-part-screen">
+  <button class="part-btn" data-part="chest">chest</button>
+  <button class="part-btn" data-part="back">back</button>
+  <button class="part-btn" data-part="shoulder">shoulder</button>
+  <button class="part-btn" data-part="leg">leg</button>
+  <button class="part-btn" data-part="arm">arm</button>
+</div>
+
+<div id="exercise-screen" style="display:none;">
+  <div id="exercise-header" style="margin-bottom:10px; cursor:pointer;">
+    ← <span id="current-part-name"></span>
   </div>
 
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+<div class="search-wrap">
+  <input
+    id="exercise-search"
+    class="exercise-search"
+    placeholder="종목 검색"
+  />
+  <button id="add-exercise-btn" class="add-btn">+</button>
+</div>
 
-  <!-- 🔥 여기 아래에 네 JS 그대로 붙이면 됨 -->
+
+  <div id="exercise-list"></div>
+</div>
+
+   <div id="exercise-detail-screen" style="display:none;">
+
+  <div style="margin-bottom:10px; cursor:pointer;"
+       onclick="closeExerciseDetail()">
+    ← <span id="detail-exercise-name"></span>
+  </div>
+
+  <!-- 기록 입력 -->
+  <div class="recordFormRow">
+    <input id="acc-weight" type="number" placeholder="kg">
+    <input id="acc-reps" type="number" placeholder="회">
+    <button class="recordAddBtn" onclick="addAccessorySet()">저장</button>
+
+  </div>
+
+  <!-- 가로 기록 영역 -->
+  <div id="acc-records" class="record-horizontal"></div>
+
+</div>
+</div>
+
+
+
+   
+<div id="save3Result"></div>
+<!-- 달력 -->
+<div id="tab3" class="tabContent">
+    <div class="calendar">
+        <div class="header">
+    <button id="calPrev" class="month-btn">&lt;</button>
+    <div id="calMonth" class="month-title"></div>
+    <button id="calNext" class="month-btn">&gt;</button>
+</div>
+        <div class="weekdays">
+           <div>일</div>
+           <div>월</div>
+           <div>화</div>
+           <div>수</div>
+           <div>목</div>
+           <div>금</div>
+           <div>토</div>
+        </div>
+        <div id="calDays" class="days"></div>
+    
+      <div class="calendar-toggle-wrap">
+  <div id="calendarToggle" class="toggle-switch"></div>
+</div>
+
+
+    </div>
+</div>
+
+</div>
+
+<!-- 팝업 -->
+<div id="calPopup" class="popup hidden">
+    <div class="popup-box">
+        <h3 id="calPopupDate"></h3>
+        <div class="muscles">
+            <button data-muscle="가슴">가슴</button>
+            <button data-muscle="등">등</button>
+            <button data-muscle="팔">팔</button>
+            <button data-muscle="하체">하체</button>
+            <button data-muscle="어깨">어깨</button>
+        </div>
+    </div>
+</div>
+
+<!-- 로그인 -->
+
+
+<!-- 🔥 JS는 네 기존 그대로 붙이면 정상 작동 -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+<script>
+/* Firebase 설정 (기존 값 유지) */
+const firebaseConfig = {
+    apiKey: "AIzaSyCXn174XsW6ndqaeUpVK6XAAf4MR0-q7_k",
+    authDomain: "rmpj-7ca13.firebaseapp.com",
+    projectId: "rmpj-7ca13",
+    storageBucket: "rmpj-7ca13.firebasestorage.app",
+    messagingSenderId: "983484366324",
+    appId: "1:983484366324:web:5fd58faba825ee39decda1"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+/* 요소 참조 */
+const tabBtns = document.querySelectorAll('.tabBtn');
+const tabContents = document.querySelectorAll('.tabContent');
+
+const weightSelect = document.getElementById('weight');
+const repsSelect = document.getElementById('reps');
+const goBtn = document.getElementById('goBtn');
+const resultDiv = document.getElementById('result');
+const tableArea = document.getElementById('tableArea');
+
+const benchRM = document.getElementById('benchRM');
+const squatRM = document.getElementById('squatRM');
+const deadRM = document.getElementById('deadRM');
+const total3 = document.getElementById('total3');
+
+const save3Btn = document.getElementById('save3Btn');
+const save3Result = document.getElementById('save3Result');
+
+const folderBtns = document.querySelectorAll('.folderBtn');
+const folderContents = document.querySelectorAll('.folderContent');
+
+const benchBox = document.getElementById('benchBox');
+const squatBox = document.getElementById('squatBox');
+const deadBox = document.getElementById('deadBox');
+
+const recordDate = document.getElementById('recordDate');
+const recordWeight = document.getElementById('recordWeight');
+const recordReps = document.getElementById('recordReps');
+const recordAdd = document.getElementById('recordAdd');
+const recordMessage = document.getElementById('recordMessage');
+
+const googleLoginBtn = document.getElementById('googleLoginBtn');
+const logoutBtn = document.getElementById('logoutBtn');
+const userInfo = document.getElementById('userInfo');
+   
+// 🔥 1RM 횟수 옵션 초기화
+for (let i = 1; i <= 10; i++) {
+  const opt = document.createElement("option");
+  opt.value = i;
+  opt.textContent = `${i}회`;
+  repsSelect.appendChild(opt);
+}
+
+tabBtns.forEach(btn => {
+  btn.addEventListener('click', ()=>{
+    calPopup.classList.add("hidden");
+
+    tabBtns.forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+
+    const target = btn.dataset.target;
+    tabContents.forEach(tc=>{
+      if(tc.id === target){
+        tc.classList.add('active');
+        tc.style.display = 'block';
+      } else {
+        tc.classList.remove('active');
+        tc.style.display = 'none';
+      }
+    });
+
+    // 🔥 Tip 탭 초기화
+    if(target === 'tab4'){
+      partScreen.style.display = 'block';
+      exerciseScreen.style.display = 'none';
+    }
+  });
+});
+
+
+goBtn.addEventListener('click', ()=> {
+    const weight = parseFloat(weightSelect.value);
+    const reps = parseInt(repsSelect.value);
+
+    if(!weight || !reps){
+        tableArea.innerHTML = `<div style="text-align:center;color:#ff5555;margin-top:10px;">
+                                   무게와 반복수를 입력하세요
+                               </div>`;
+        return;
+    }
+
+    const oneRM = weight * (1 + reps * 0.0333);
+
+    // RM마다 세로 간격 넓게
+    let html = '';
+    for (let r=1; r<=10; r++){
+        let rmWeight = oneRM / (1 + (r-1)*0.0333);
+        html += `<div style="
+                        text-align:center;
+                        color:white;
+                        margin:12px 0;   /* 기존 6px → 12px로 간격 늘림 */
+                        font-size:16px;
+                        font-weight:600;
+                   ">
+                        ${r}RM&nbsp;&nbsp;&nbsp;${rmWeight.toFixed(1)}kg
+                 </div>`;
+    }
+
+    tableArea.innerHTML = html;
+});
+
+
+
+/* 페이드 텍스트 유틸 */
+function fadeOutElem(el, timeout=1000, fadeDur=800){
+    el.style.opacity = 1;
+    setTimeout(()=>{
+        el.style.transition = `opacity ${fadeDur}ms ease`;
+        el.style.opacity = 0;
+        setTimeout(()=>{ el.innerHTML=''; el.style.opacity=1; el.style.transition=''; }, fadeDur);
+    }, timeout);
+}
+function fadeTempMsg(el, msg, timeout=1000, fadeDur=800){
+    el.innerHTML = msg;
+    el.style.opacity = 1; 
+    setTimeout(()=>{
+        el.style.transition = `opacity ${fadeDur}ms ease`;
+        el.style.opacity = 0;
+        setTimeout(()=>{ el.innerHTML=''; el.style.opacity=1; el.style.transition=''; }, fadeDur);
+    }, timeout);
+}
+
+   /* ===============================
+   🔥 보조운동(4번째 탭) 로직
+================================ */
+let currentExercises = [];
+const exerciseListEl = document.getElementById('exercise-list');
+const addExerciseBtn = document.getElementById('add-exercise-btn');
+   
+addExerciseBtn.addEventListener('click', addExercise);
+
+function renderExercises(){
+  if (!currentExercises.length) {
+    exerciseListEl.innerHTML =
+      `<div style="color:#777;font-size:13px;">아직 추가된 종목이 없습니다</div>`;
+    return;
+  }
+
+exerciseListEl.innerHTML = currentExercises.map(name => `
+ <div class="exercise-card" onclick="openExerciseDetail('${name}')">
+    <div class="exercise-name">${name}</div>
+    <div class="exercise-sub">${getAccessorySummary(name)}</div>
+  </div>
+`).join('');
+
+
+}
+
+async function loadExercises(part){
+  const user = auth.currentUser;
+  if (!user) {
+    currentExercises = [];
+    renderExercises();
+    return;
+  }
+
+  const ref = db
+    .collection('users')
+    .doc(user.uid)
+    .collection('accessories')
+    .doc(part);
+
+  const snap = await ref.get();
+
+  currentExercises = snap.exists ? snap.data().list || [] : [];
+  renderExercises();
+}
+
+async function addExercise(){
+  const name = prompt("운동 종목을 입력하시오");
+  if (!name) return;
+
+  currentExercises.unshift(name);
+  renderExercises();
+
+  const user = auth.currentUser;
+  if (!user) return;
+
+  await db
+    .collection('users')
+    .doc(user.uid)
+    .collection('accessories')
+    .doc(currentPart)
+    .set({ list: currentExercises });
+}
+
+
+/* 3대 총합 업데이트 */
+function updateTotal3(){
+    const b = parseInt(benchRM.value)||0;
+    const s = parseInt(squatRM.value)||0;
+    const d = parseInt(deadRM.value)||0;
+    total3.textContent = `3대: ${b+s+d} kg`;
+}
+[benchRM, squatRM, deadRM].forEach(el => el.addEventListener('input', updateTotal3));
+
+
+
+/* save3Btn: 전체(3대) 저장 — 항상 보이지만 Firestore는 로그인 있을 때만 저장 */
+save3Btn.addEventListener('click', async ()=>{
+
+    const user = auth.currentUser;
+
+    if(!user){
+        showSave3Message('로그인 후 저장해주세요');
+        return;
+    }
+
+    const bench = parseInt(benchRM.value)||0;
+    const squat = parseInt(squatRM.value)||0;
+    const dead = parseInt(deadRM.value)||0;
+    const total = bench + squat + dead;
+
+    if(total === 0){
+        showSave3Message('값을 입력하세요');
+        return;
+    }
+
+    try{
+        await db
+          .collection('users')
+          .doc(user.uid)
+          .collection('threeRM') // 🔥 숫자 제거
+          .add({
+              bench,
+              squat,
+              dead,
+              total,
+              createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+
+        showSave3Message('3대 기록 저장 완료!');
+    }catch(e){
+        console.error('3대 저장 에러:', e);
+        showSave3Message('저장 실패 (콘솔 확인)');
+    }
+});
+
+/* 폴더 버튼 동작 (가로 버튼 → 하나의 박스만 active) */
+folderBtns.forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+        folderBtns.forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        const target = btn.dataset.target;
+        folderContents.forEach(fc=>{
+            if(fc.id === target) fc.classList.add('active');
+            else fc.classList.remove('active');
+        });
+       renderActiveBox();
+    });
+});
+
+/* 기록 박스 데이터 (로컬 mock) 및 렌더 함수 */
+const records = { bench: [], squat: [], dead: [] };
+
+// 포맷 날짜: '25.12.10'
+function formatTodayYYMMDD(d = new Date()){
+    const yy = String(d.getFullYear()).slice(2);
+    const mm = String(d.getMonth()+1).padStart(2,'0');
+    const dd = String(d.getDate()).padStart(2,'0');
+    return `${yy}.${mm}.${dd}`;
+}
+
+// 초기 날짜 표시
+recordDate.value = formatTodayYYMMDD();
+
+// 렌더 함수: 현재 active folder의 목록을 그려줌
+function renderActiveBox(){
+    const activeBtn = document.querySelector('.folderBtn.active');
+    const target = activeBtn ? activeBtn.dataset.target : 'benchBox';
+    let arr = [];
+    if(target === 'benchBox') arr = records.bench;
+    else if(target === 'squatBox') arr = records.squat;
+    else if(target === 'deadBox') arr = records.dead;
+
+    const boxEl = document.getElementById(target);
+if(!arr || arr.length === 0){
+    boxEl.innerHTML = `<div style="color:#777;font-size:13px;">기록이 여기에 쌓입니다</div>`;
+    return;
+}
+
+// 날짜별 그룹화
+const grouped = {};
+arr.forEach(it => {
+  if (!grouped[it.date]) grouped[it.date] = [];
+  grouped[it.date].push(it);
+});
+
+// 최신 날짜 먼저
+const dates = Object.keys(grouped)
+  .sort((a, b) => b.localeCompare(a)); // 🔥 최신 날짜 먼저
+
+
+boxEl.innerHTML = dates.map(date => {
+ const records = grouped[date]
+  .slice()
+  .reverse(); // 🔥 배열순서 역순 = 최신이 아래
+
+
+
+  return `
+    <div style="margin-bottom:10px;">
+      ${records.map((r, idx) => `
+        <div style="display:flex; line-height:1.6;">
+          <div style="width:90px;">
+            ${idx === 0 ? date : ''}
+          </div>
+          <div
+                 class="record-line"
+                 
+                 data-id="${r.firestoreId || r.localId}"
+                 style="margin-left:auto; text-align:right; cursor:pointer;"
+                  >
+                 ${r.weight}kg × ${r.reps}회
+            </div>
+
+        </div>
+      `).join('')}
+      <div style="border-bottom:1px solid rgba(255,255,255,0.25); margin-top:6px;"></div>
+    </div>
+  `;
+}).join('');
+
+
+
+}
+renderActiveBox();
+
+/* 기록 추가 (가로 폼에서 저장) */
+recordAdd.addEventListener('click', async ()=>{
+    const weight = parseInt(recordWeight.value);
+    const reps = parseInt(recordReps.value);
+
+    if(!weight || !reps){
+        fadeTempMsg(recordMessage, '무게와 횟수를 입력하세요', 900, 600);
+        return;
+    }
+
+    const date = formatTodayYYMMDD();
+
+    const activeBtn = document.querySelector('.folderBtn.active');
+    const target = activeBtn ? activeBtn.dataset.target : 'benchBox';
+
+    const lift =
+      target === 'benchBox' ? 'bench' :
+      target === 'squatBox' ? 'squat' :
+      'dead';
+
+    const item = {
+        firestoreId: null,
+       localId: Date.now() + Math.random(), // 🔥 추가
+        date,
+        weight,
+        reps
+    };
+
+if(lift === 'bench') records.bench.unshift(item);
+if(lift === 'squat') records.squat.unshift(item);
+if(lift === 'dead')  records.dead.unshift(item);
+
+    recordWeight.value = '';
+    recordReps.value = '';
+    fadeTempMsg(recordMessage, '기록 추가 완료', 700, 600);
+    renderActiveBox();
+
+    const user = auth.currentUser;
+    if(user){
+        try{
+            const docRef = await db
+              .collection('users')
+              .doc(user.uid)
+              .collection('records')
+              .add({
+                lift,
+                date,
+                weight,
+                reps,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+              });
+
+            item.firestoreId = docRef.id;
+           
+        }catch(e){
+            console.error('Firestore add err', e);
+        }
+    }
+});
+
+
+/* 로그인 (구글) */
+googleLoginBtn.addEventListener('click', ()=>{
+    const provider = new firebase.auth.GoogleAuthProvider();
+    auth.signInWithPopup(provider).catch(e=>alert('로그인 실패: '+e.message));
+});
+logoutBtn.addEventListener('click', ()=> auth.signOut());
+
+/* auth 상태 변화 */
+auth.onAuthStateChanged(async user=>{
+    if(user){
+        googleLoginBtn.style.display = 'none';
+        logoutBtn.style.display = 'block';
+        userInfo.textContent = user.displayName || user.email || '';
+
+        /* 🔥 [추가] 3대 기록 최신값 불러오기 */
+        try{
+            const threeSnap = await db
+              .collection('users')
+              .doc(user.uid)
+              .collection('threeRM')
+              .orderBy('createdAt', 'desc')
+              .limit(1)
+              .get();
+
+            if(!threeSnap.empty){
+                const data = threeSnap.docs[0].data();
+                benchRM.value = data.bench || 0;
+                squatRM.value = data.squat || 0;
+                deadRM.value = data.dead || 0;
+                updateTotal3(); // 총합 갱신
+            }
+        }catch(e){
+            console.error('load threeRM err', e);
+        }
+
+        /* 기존 records 로드 (그대로 유지) */
+        try{
+            const snap = await db
+              .collection('users')
+              .doc(user.uid)
+              .collection('records')
+              .orderBy('createdAt','desc')
+              .limit(200)
+              .get();
+
+            records.bench = [];
+            records.squat = [];
+            records.dead = [];
+
+            snap.forEach(doc=>{
+                const d = doc.data();
+                if(!d || !d.lift) return;
+
+               const item = {
+               
+  firestoreId: doc.id,
+  date: d.date,
+  weight: d.weight,
+  reps: d.reps,
+    createdAt: d.createdAt?.toMillis?.() || 0
+};
+
+                if(d.lift === 'bench') records.bench.push(item);
+                if(d.lift === 'squat') records.squat.push(item);
+                if(d.lift === 'dead') records.dead.push(item);
+            });
+
+            renderActiveBox();
+
+        }catch(e){
+            console.error('load records err', e);
+        }
+
+    } else {
+        googleLoginBtn.style.display = 'block';
+        logoutBtn.style.display = 'none';
+        userInfo.textContent = '';
+    }
+/* 🔥 달력 데이터 로드 */
+try {
+  const snap = await db
+    .collection("users")
+    .doc(user.uid)
+    .collection("calendar")
+    .get();
+
+  calData = {};
+
+  snap.forEach(doc => {
+    calData[doc.id] = doc.data();
+  });
+
+  calRender();
+} catch (e) {
+  console.error("calendar load error", e);
+}
+
+   
+});
+
+
+
+ 
+
+/* 메시지 페이드아웃 */
+function showSave3Message(msg) {
+    save3Result.textContent = msg;
+    save3Result.style.opacity = 1;
+
+    setTimeout(() => {
+        save3Result.style.transition = "opacity 0.8s";
+        save3Result.style.opacity = 0;
+
+        setTimeout(() => {
+            save3Result.textContent = "";
+            save3Result.style.transition = "";
+            save3Result.style.opacity = 1;
+        }, 800);
+    }, 1000);
+}
+   
+function setTodayDisplay() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+
+    document.getElementById("displayYear").textContent = `${year}`;
+    document.getElementById("displayMD").textContent = `${mm}.${dd}`;
+}
+
+setTodayDisplay();
+
+/******** 달력 + long press 코드 여기 ********/
+/********************
+ * 📅 달력 로직 (tab3)
+ ********************/
+
+const calDaysEl = document.getElementById("calDays");
+const calMonthEl = document.getElementById("calMonth");
+const calendarToggleBtn = document.getElementById("calendarToggle");
+
+const calendarToggle = document.getElementById("calendarToggle");
+
+calendarToggle.addEventListener("click", () => {
+  calendarMode = calendarMode === "date" ? "muscle" : "date";
+  calendarToggle.classList.toggle("active");
+
+  document.querySelector(".calendar")
+    .classList.toggle("muscle-mode", calendarMode === "muscle");
+
+  calRender();
+});
+
+
+   
+const calPopup = document.getElementById("calPopup");
+const calPopupDate = document.getElementById("calPopupDate");
+const calMuscleBtns = calPopup.querySelectorAll(".muscles button");
+
+let calCurrent = new Date();
+   let calData = {}; // 🔥 Firestore에서 채울 예정
+let calendarMode = "date"; 
+// "date" | "muscle"
+
+let calSelectedDate = null;
+let calSelectedMuscles = [];
+
+
+function calRender() {
+  calDaysEl.innerHTML = "";
+
+  const y = calCurrent.getFullYear();
+  const m = calCurrent.getMonth();
+  calMonthEl.textContent = `${y}년 ${m + 1}월`;
+
+  const first = new Date(y, m, 1);
+  const start = first.getDay();
+  const last = new Date(y, m + 1, 0).getDate();
+
+  // 빈칸
+ for (let i = 0; i < start; i++) {
+  const empty = document.createElement("div");
+  empty.classList.add("empty");
+  calDaysEl.appendChild(empty);
+}
+
+  const today = new Date();
+
+  for (let d = 1; d <= last; d++) {
+    const cell = document.createElement("div");
+    const key = `${y}-${m + 1}-${d}`;
+
+    // 오늘 표시
+    if (
+      d === today.getDate() &&
+      m === today.getMonth() &&
+      y === today.getFullYear()
+    ) {
+      cell.classList.add("today");
+    }
+
+    // 운동한 날
+    if (calData[key]?.muscles?.length) {
+      cell.classList.add("done");
+    }
+
+    if (calendarMode === "date") {
+      cell.textContent = d;
+    } else {
+      if (calData[key]?.muscles?.length) {
+        cell.textContent = calData[key].muscles[0];
+      } else {
+        cell.textContent = "";
+      }
+    }
+
+ // long press (날짜 모드에서만)
+let timer;
+
+
+
+cell.addEventListener("mouseup", () => clearTimeout(timer));
+
+
+
+cell.addEventListener("touchend", () => clearTimeout(timer));
+
+
+    calDaysEl.appendChild(cell);
+  }
+}
+
+
+   
+
+
+
+let longPressTimer = null;
+let calPopupOpen = false;  // 팝업 열렸는지 체크
+
+
+// 날짜 long press
+document.addEventListener("mousedown", e => handleDatePressStart(e));
+document.addEventListener("touchstart", e => handleDatePressStart(e));
+
+function handleDatePressStart(e){
+    // ❌ 종목 모드에서는 long press 자체 차단
+    if (calendarMode === "muscle") return;
+
+    const cell = e.target.closest(".days div");
+    if(!cell || !cell.textContent) return;
+
+    const key = `${calCurrent.getFullYear()}-${calCurrent.getMonth()+1}-${cell.textContent}`;
+
+    longPressTimer = setTimeout(() => {
+        calOpenPopup(key);
+    }, 500);
+}
+
+
+document.addEventListener("mouseup", e => clearLongPress(e));
+document.addEventListener("touchend", e => clearLongPress(e));
+document.addEventListener("touchmove", e => clearLongPress(e));
+
+function clearLongPress(e){
+    if(calPopupOpen) {
+        // 팝업 열려있으면 long press 무시
+        longPressTimer && clearTimeout(longPressTimer);
+        longPressTimer = null;
+        return;
+    }
+    longPressTimer && clearTimeout(longPressTimer);
+    longPressTimer = null;
+}
+
+
+
+
+
+calPopup.addEventListener("click", e => {
+  // 배경만 클릭하면 닫기, 내부 박스 클릭은 무시
+  if (e.target === calPopup) calPopup.classList.add("hidden");
+});
+
+async function handleMuscleSelect(btn) {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const m = btn.dataset.muscle;
+  const alreadySelected = calSelectedMuscles.includes(m);
+
+  calMuscleBtns.forEach(b => b.classList.remove("active"));
+
+  if (alreadySelected) {
+    delete calData[calSelectedDate];
+    calSelectedMuscles = [];
+
+    await db
+      .collection("users")
+      .doc(user.uid)
+      .collection("calendar")
+      .doc(calSelectedDate)
+      .delete();
+  } else {
+    calSelectedMuscles = [m];
+    btn.classList.add("active");
+
+    calData[calSelectedDate] = { muscles: [m] };
+
+    await db
+      .collection("users")
+      .doc(user.uid)
+      .collection("calendar")
+      .doc(calSelectedDate)
+      .set({
+        muscles: [m],
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+  }
+
+  calRender();
+  calPopup.classList.add("hidden");
+  calPopupOpen = false;
+}
+
+   
+calMuscleBtns.forEach(btn => {
+  btn.addEventListener("pointerdown", () => {
+    btn.classList.add("active"); // 눌림 효과
+  });
+
+  btn.addEventListener("pointerup", e => {
+    e.preventDefault();
+    handleMuscleSelect(btn); // 👉 한 번에 선택 + 저장 + 닫힘
+  });
+
+  btn.addEventListener("pointerleave", () => {
+    btn.classList.remove("active");
+  });
+});
+
+
+
+function calOpenPopup(key) {
+  calSelectedDate = key;
+  calSelectedMuscles = calData[key]?.muscles || [];
+  calPopupDate.textContent = key;
+
+  calMuscleBtns.forEach(btn => {
+    btn.classList.toggle("active", calSelectedMuscles.includes(btn.dataset.muscle));
+  });
+
+  calPopup.classList.remove("hidden");
+  calPopupOpen = true;
+}
+
+
+
+
+
+   
+
+
+
+
+
+
+
+
+document.getElementById("calPrev").onclick = () => {
+  calCurrent.setMonth(calCurrent.getMonth() - 1);
+  calRender();
+};
+
+document.getElementById("calNext").onclick = () => {
+  calCurrent.setMonth(calCurrent.getMonth() + 1);
+  calRender();
+};
+
+calRender();
+
+   let recordPressTimer = null;
+
+// PC
+document.addEventListener("mousedown", e => {
+  const line = e.target.closest(".record-line");
+  if (!line) return;
+
+  recordPressTimer = setTimeout(() => {
+    if (confirm("이 기록을 삭제할까요?")) {
+      deleteRecord(line.dataset.id);
+    }
+  }, 600);
+});
+
+document.addEventListener("mouseup", () => {
+  clearTimeout(recordPressTimer);
+});
+
+// 모바일
+document.addEventListener("touchstart", e => {
+  const line = e.target.closest(".record-line");
+  if (!line) return;
+
+  recordPressTimer = setTimeout(() => {
+    if (confirm("이 기록을 삭제할까요?")) {
+      deleteRecord(line.dataset.id);
+    }
+  }, 600);
+});
+
+document.addEventListener("touchend", () => {
+  clearTimeout(recordPressTimer);
+});
+
+document.addEventListener("touchmove", () => {
+  clearTimeout(recordPressTimer);
+});
+
+async function deleteRecord(id){
+  if(!id) return;
+
+  ["bench","squat","dead"].forEach(type=>{
+    records[type] = records[type].filter(r =>
+      r.firestoreId !== id && r.localId !== id
+    );
+  });
+
+  renderActiveBox();
+
+  const user = auth.currentUser;
+  if(user && String(id).length > 10){ // firestoreId일 때만
+
+
+    await db
+      .collection('users')
+      .doc(user.uid)
+      .collection('records')
+      .doc(id)
+      .delete();
+  }
+}
+
+
+
+const partScreen = document.getElementById('acc-part-screen');
+const exerciseScreen = document.getElementById('exercise-screen');
+const partTitle = document.getElementById('current-part-name');
+const partBtns = document.querySelectorAll('.part-btn');
+
+let currentPart = null;
+
+partBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentPart = btn.dataset.part;
+
+    partScreen.style.display = 'none';
+    exerciseScreen.style.display = 'block';
+    partTitle.textContent = currentPart;
+  });
+});
+
+document.getElementById('exercise-header').addEventListener('click', () => {
+  exerciseScreen.style.display = 'none';
+  partScreen.style.display = 'block';
+});
+const threeToggleBtn = document.getElementById("threeToggleBtn");
+const threeDetail = document.getElementById("threeDetail");
+
+threeToggleBtn.addEventListener("click", () => {
+  threeDetail.style.display =
+    threeDetail.style.display === "none" || !threeDetail.style.display
+      ? "block"
+      : "none";
+});
+// 🔥 종목별 기록 (로컬 전용)
+const accessoryRecords = {
+  // 예시 구조
+  // "체스트프레스": {
+  //   "2026.01.24": [
+  //     { weight: 20, reps: 5 },
+  //     { weight: 30, reps: 4 }
+  //   ]
+  // }
+};
+let currentExercise = null;
+
+function openExerciseDetail(name) {
+  currentExercise = name;
+
+  exerciseScreen.style.display = 'none';
+  document.getElementById('exercise-detail-screen').style.display = 'block';
+
+  document.getElementById('detail-exercise-name').textContent = name;
+
+  if (!accessoryRecords[name]) {
+    accessoryRecords[name] = {};
+  }
+
+  renderAccessoryRecords();
+}
+function closeExerciseDetail() {
+  document.getElementById('exercise-detail-screen').style.display = 'none';
+  exerciseScreen.style.display = 'block';
+
+  renderExercises(); // 🔥 카드 다시 그림
+}
+
+function getToday() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}.${m}.${day}`;
+}
+function addAccessorySet() {
+  const weight = parseInt(document.getElementById('acc-weight').value);
+  const reps = parseInt(document.getElementById('acc-reps').value);
+
+  if (!weight || !reps) return;
+
+  const date = getToday();
+
+  if (!accessoryRecords[currentExercise][date]) {
+    accessoryRecords[currentExercise][date] = [];
+  }
+
+  accessoryRecords[currentExercise][date].push({ weight, reps });
+
+  document.getElementById('acc-weight').value = '';
+  document.getElementById('acc-reps').value = '';
+
+  renderAccessoryRecords();
+}
+function renderAccessoryRecords() {
+  const wrap = document.getElementById('acc-records');
+  wrap.innerHTML = '';
+
+  const records = accessoryRecords[currentExercise];
+  const dates = Object.keys(records).sort().reverse(); // 최신 오른쪽
+
+  dates.forEach(date => {
+    const col = document.createElement('div');
+    col.className = 'record-day';
+
+    col.innerHTML = `
+      <div class="date">${date}</div>
+      ${records[date].map(
+        s => `<div class="set">${s.weight}kg × ${s.reps}회</div>`
+      ).join('')}
+    `;
+
+    wrap.appendChild(col);
+  });
+}
+function getAccessorySummary(name) {
+  const data = accessoryRecords[name];
+  if (!data) return '기록 없음';
+
+  const dates = Object.keys(data);
+  if (dates.length === 0) return '기록 없음';
+
+  // 가장 최근 날짜
+  const latestDate = dates.sort().reverse()[0];
+  const sets = data[latestDate];
+
+  if (!sets || sets.length === 0) return '기록 없음';
+
+  const lastSet = sets[sets.length - 1];
+
+  return `${latestDate} · ${lastSet.weight}kg × ${lastSet.reps}회`;
+}
+
+
+   
+
+
+   
+
+
+</script>
+<!-- ⚠️ 여기 아래에 네가 쓰던 JS 그대로 유지 -->
 </body>
 </html>
