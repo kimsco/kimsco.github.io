@@ -2176,12 +2176,31 @@ async function deleteExerciseFromDB(exerciseName) {
 }
 
 // 카드 삭제 버튼 연결
-exerciseListEl.addEventListener('click', async e => {
-    if (e.target.closest('.delete-btn')) {
-        const card = e.target.closest('.exercise-card');
-        const name = card.id.replace('card-', '');
-        await deleteExerciseFromDB(name);
-    }
+// 카드 삭제
+exerciseListEl.addEventListener('click', async (e) => {
+  if (!e.target.closest('.delete-btn')) return;
+
+  const card = e.target.closest('.exercise-card');
+  const name = card.id.replace('card-', '');
+
+  try {
+    // 1️⃣ Firestore에서 삭제
+    await db.collection('accessoryExercises')
+            .doc(name)
+            .delete();
+
+    // 2️⃣ currentExercises 배열에서 제거
+    currentExercises = currentExercises.filter(n => n !== name);
+
+    // 3️⃣ UI 갱신
+    renderExercises();
+
+    // 4️⃣ optional: 삭제 메시지
+    fadeTempMsg(recordMessage, `${name} 삭제 완료!`);
+  } catch(err) {
+    console.error(err);
+    fadeTempMsg(recordMessage, `삭제 실패: ${err.message}`);
+  }
 });
 
 
