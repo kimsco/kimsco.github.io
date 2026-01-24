@@ -2157,17 +2157,19 @@ function renderExercises() {
     return;
   }
 
+  // 기존 내용 초기화
+  exerciseListEl.innerHTML = '';
+
+  // 카드 생성 + 클릭 이벤트 연결
+  currentExercises.forEach(item => {
+    const name = typeof item === 'string' ? item : (item.name || 'unknown');
+const safeId = `card-${name.replace(/\s+/g, '-')}`;
 currentExercises = currentExercises.filter(item => item && (typeof item === 'string' || item.name));
-currentExercises.forEach(item => {
-  const name = typeof item === 'string' ? item : (item.name || 'unknown');
-  const safeId = `card-${name.replace(/\s+/g, '-')}`;
 
-  const card = document.createElement('div');
-  card.className = 'exercise-card';
-  card.id = safeId;
 
-  // ... 나머지 카드 생성 코드
-});
+    const card = document.createElement('div');
+    card.className = 'exercise-card';
+    card.id = safeId;
 
     card.innerHTML = `
       <div class="exercise-name">${name}</div>
