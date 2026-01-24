@@ -1103,9 +1103,10 @@ function renderExercises(){
 exerciseListEl.innerHTML = currentExercises.map(name => `
  <div class="exercise-card" onclick="openExerciseDetail('${name}')">
     <div class="exercise-name">${name}</div>
-    <div class="exercise-sub">기록 없음</div>
+    <div class="exercise-sub">${getAccessorySummary(name)}</div>
   </div>
 `).join('');
+
 
 }
 
@@ -1855,7 +1856,10 @@ function openExerciseDetail(name) {
 function closeExerciseDetail() {
   document.getElementById('exercise-detail-screen').style.display = 'none';
   exerciseScreen.style.display = 'block';
+
+  renderExercises(); // 🔥 카드 다시 그림
 }
+
 function getToday() {
   const d = new Date();
   const y = d.getFullYear();
@@ -1903,7 +1907,26 @@ function renderAccessoryRecords() {
     wrap.appendChild(col);
   });
 }
+function getAccessorySummary(name) {
+  const data = accessoryRecords[name];
+  if (!data) return '기록 없음';
 
+  const dates = Object.keys(data);
+  if (dates.length === 0) return '기록 없음';
+
+  // 가장 최근 날짜
+  const latestDate = dates.sort().reverse()[0];
+  const sets = data[latestDate];
+
+  if (!sets || sets.length === 0) return '기록 없음';
+
+  const lastSet = sets[sets.length - 1];
+
+  return `${latestDate} · ${lastSet.weight}kg × ${lastSet.reps}회`;
+}
+
+
+   
 
 
    
