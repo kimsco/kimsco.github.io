@@ -2176,13 +2176,14 @@ async function deleteExerciseFromDB(exerciseName) {
 }
 
 // 카드 삭제 버튼 연결
-exerciseListEl.addEventListener('click', e => {
+exerciseListEl.addEventListener('click', async e => {
     if (e.target.closest('.delete-btn')) {
         const card = e.target.closest('.exercise-card');
         const name = card.id.replace('card-', '');
-        deleteExerciseFromDB(name);
+        await deleteExerciseFromDB(name);
     }
 });
+
 
 
 
