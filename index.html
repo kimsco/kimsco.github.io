@@ -1193,7 +1193,9 @@ arr.forEach(it => {
 });
 
 // 최신 날짜 먼저
-const dates = Object.keys(grouped);
+const dates = Object.keys(grouped)
+  .sort((a, b) => b.localeCompare(a)); // 🔥 최신 날짜 먼저
+
 
 boxEl.innerHTML = dates.map(date => {
   const records = grouped[date]
