@@ -1198,9 +1198,10 @@ const dates = Object.keys(grouped)
 
 
 boxEl.innerHTML = dates.map(date => {
-  const records = grouped[date]
+ const records = grouped[date]
   .slice()
-  .sort((a, b) => a.createdAt - b.createdAt); // 오래된 → 최신
+  .reverse(); // 🔥 배열순서 역순 = 최신이 아래
+
 
 
   return `
