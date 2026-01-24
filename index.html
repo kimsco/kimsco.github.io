@@ -2021,22 +2021,7 @@ function renderAccessorySets(exerciseName) {
 }
 
    
-function renderAccessoryRecords() {
-  const wrap = document.getElementById('acc-records');
-  const list = accRecordsByExercise[currentExerciseName] || [];
 
-  if (list.length === 0) {
-    wrap.innerHTML = `<div style="color:#777;font-size:13px;">아직 기록이 없습니다</div>`;
-    return;
-  }
-
-  wrap.innerHTML = list.map(r => `
-    <div class="record-day">
-      <div class="date">${r.date}</div>
-      <div class="set">${r.weight}kg × ${r.reps}회</div>
-    </div>
-  `).join('');
-}
 
    
 function closeExerciseDetail() {
@@ -2109,6 +2094,11 @@ function renderAccessoryRecords() {
     wrap.appendChild(col);
   });
 }
+
+
+
+
+   
 function getAccessorySummary(name){
   const list = accRecordsByExercise[name];
   if (!list || list.length === 0) return '기록 없음';
@@ -2260,6 +2250,134 @@ window.addEventListener('load', ()=>{
     saveAccessoryRecords(); // 🔥 여기서 localStorage에 저장
 }
 
+// ===============================
+// 🔥 카드 기록 동기화 (Firestore)
+// ===============================
+async function saveAccessoryRecords() {
+  const user = auth.currentUser;
+  if (!user || !currentPart) return;
+
+  try {
+    await db.collection('users')
+      .doc(user.uid)
+      .collection('accessories')
+      .doc(currentPart)
+      .set({ list: accRecordsByExercise[currentPart] });
+    console.log('Accessory Records 저장 완료');
+  } catch (err) {
+    console.error('Accessory Records 저장 실패:', err);
+  }
+}
+
+// 카드 렌더링
+function renderExercises() {
+  if (!currentExercises.length) {
+    exerciseListEl.innerHTML =
+      `<div style="color:#777;font-size:13px;">아직 추가된 종목이 없습니다</div>`;
+    return;
+  }
+
+  exerciseListEl.innerHTML = currentExercises.map(name => `
+    <div class="exercise-card" id="card-${name}">
+      <div class="exercise-name">${name}</div>
+      <div class="exercise-sub">${getAccessorySummary(name)}</div>
+      <button class="delete-btn" aria-label="삭제">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="3" y1="4" x2="21" y2="4"></line>
+          <line x1="8" y1="4" x2="8" y2="2"></line>
+          <line x1="16" y1="4" x2="16" y2="2"></line>
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="8" y1="8" x2="8" y2="20"></line>
+          <line x1="12" y1="8" x2="12" y2="20"></line>
+          <line x1="16" y1="8" x2="16" y2="20"></line>
+        </svg>
+      </button>
+    </div>
+  `).join('');
+
+  // 클릭 이벤트 연결
+  currentExercises.forEach(name => {
+    const card = document.getElementById(`card-${name}`);
+    card.onclick = () => openExerciseDetail(name);
+    const delBtn = card.querySelector('.delete-btn');
+    delBtn.onclick = async (e) => {
+      e.stopPropagation();
+      await deleteExercise(name);
+    };
+  });
+}
+
+// 카드 추가
+async function addExercise() {
+  if (!currentPart) return alert("먼저 종목을 선택하세요.");
+  const name = prompt("운동 종목을 입력하시오");
+  if (!name) return;
+
+  if (!accRecordsByExercise[currentPart]) accRecordsByExercise[currentPart] = [];
+  accRecordsByExercise[currentPart].unshift(name);
+
+  currentExercises = accRecordsByExercise[currentPart];
+  renderExercises();
+
+  await saveAccessoryRecords(); // 🔥 Firestore 저장
+}
+
+// 카드 삭제
+async function deleteExercise(name) {
+  if (!currentPart) return;
+  accRecordsByExercise[currentPart] = accRecordsByExercise[currentPart].filter(n => n !== name);
+  currentExercises = accRecordsByExercise[currentPart];
+  renderExercises();
+
+  await saveAccessoryRecords(); // 🔥 Firestore 저장
+}
+
+// 카드 입력창 열기
+function openExerciseDetail(name) {
+  currentExerciseName = name;
+  document.getElementById('detail-exercise-name').textContent = name;
+  document.getElementById('exercise-detail-screen').style.display = 'block';
+}
+
+// 카드 입력창 닫기
+function closeExerciseDetail() {
+  document.getElementById('exercise-detail-screen').style.display = 'none';
+}
+
+// Firestore에서 기록 불러오기
+async function loadExercises(part) {
+  currentPart = part;
+
+  // 로컬 캐시가 있으면 먼저 렌더
+  if (accRecordsByExercise[part]) {
+    currentExercises = accRecordsByExercise[part];
+    renderExercises();
+  } else {
+    currentExercises = [];
+    renderExercises();
+  }
+
+  // Firestore fetch
+  const user = auth.currentUser;
+  if (user) {
+    const ref = db.collection('users').doc(user.uid).collection('accessories').doc(part);
+    const snap = await ref.get();
+    accRecordsByExercise[part] = snap.exists ? snap.data().list || [] : [];
+    currentExercises = accRecordsByExercise[part];
+    renderExercises();
+  }
+}
+
+// 종목 버튼 클릭 시 Firestore 불러오기
+partButtons.forEach(btn => {
+  btn.addEventListener('click', async () => {
+    currentPart = btn.dataset.part;
+    currentPartNameEl.textContent = currentPart;
+    partScreen.style.display = 'none';
+    exerciseScreen.style.display = 'block';
+    await loadExercises(currentPart); // 🔥 여기서 동기화
+  });
+});
 
 
 
