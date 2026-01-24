@@ -1206,18 +1206,20 @@ function renderExercises(){
     };
   });
 
-    // 🔥 삭제 버튼 이벤트 연결
+ // 🔥 삭제 버튼 클릭 시 확인 후 삭제
   document.querySelectorAll('.delete-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const card = e.currentTarget.closest('.exercise-card');
-      const name = card.querySelector('.exercise-name').textContent;
+    btn.addEventListener('click', ()=>{
+      const card = btn.closest('.exercise-card');
+      const exName = card.querySelector('.exercise-name').textContent;
 
-      // 배열에서 제거
-      currentExercises = currentExercises.filter(n => n !== name);
-      delete accRecordsByExercise[name]; // 기록 삭제
+      if(confirm(`정말 '${exName}' 종목을 삭제하시겠습니까?`)){
+        // 배열에서도 제거
+        currentExercises = currentExercises.filter(n => n !== exName);
+        delete accRecordsByExercise[exName];
 
-      // 화면에서 제거
-      renderExercises();
+        // 화면에서 제거
+        card.remove();
+      }
     });
   });
 }
