@@ -2137,6 +2137,34 @@ function deleteExercise(name, e){
     ref.set({ list: accRecordsByExercise[currentPart] }, { merge: true });
   }
 }
+tabBtns.forEach(btn => {
+  btn.addEventListener('click', ()=>{
+    calPopup.classList.add("hidden");
+
+    tabBtns.forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+
+    const target = btn.dataset.target;
+    tabContents.forEach(tc=>{
+      if(tc.id === target){
+        tc.classList.add('active');
+        tc.style.display = 'block';
+      } else {
+        tc.classList.remove('active');
+        tc.style.display = 'none';
+      }
+    });
+
+    // 🔥 Tip 탭 초기화
+    if(target === 'tab4'){
+      partScreen.style.display = 'block';
+      exerciseScreen.style.display = 'none';
+    } else {
+      // ✅ 탭4가 아닌 경우 보조운동 상세 화면 숨기기
+      document.getElementById('exercise-detail-screen').style.display = 'none';
+    }
+  });
+});
 
 
    
