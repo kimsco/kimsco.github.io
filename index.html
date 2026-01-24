@@ -2186,15 +2186,20 @@ tabBtns.forEach(btn => {
   });
 });
 
+// exerciseListEl에 이벤트 위임
 exerciseListEl.addEventListener('click', e => {
-  if(e.target.closest('.delete-btn')) {
-    const cardEl = e.target.closest('.exercise-card');
-    const name = cardEl.id.replace('card-', '');
-    // 배열에서 제거
-    currentExercises = currentExercises.filter(n => n !== name);
-    delete accRecordsByExercise[name];
-    renderExercises();
-  }
+  const deleteBtn = e.target.closest('.delete-btn');
+  if (!deleteBtn) return;
+
+  const cardEl = deleteBtn.closest('.exercise-card');
+  const name = cardEl.id.replace('card-', '');
+
+  // 배열에서 제거
+  currentExercises = currentExercises.filter(n => n !== name);
+  delete accRecordsByExercise[name];
+
+  // 다시 렌더
+  renderExercises();
 });
 
    
