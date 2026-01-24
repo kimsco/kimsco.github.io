@@ -651,6 +651,25 @@ td, th {
   color: #fff;
   border: 1px solid #fff;
 }
+.exercise-card {
+  position: relative;  /* 버튼 위치 지정 위해 필요 */
+}
+
+.delete-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: transparent;
+  border: none;
+  color: #ff5555;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 2px 4px;
+}
+
+.delete-btn:hover {
+  color: #ff0000;
+}
 
 
 
@@ -1146,11 +1165,13 @@ function renderExercises(){
   }
 
 exerciseListEl.innerHTML = currentExercises.map(name => `
- <div class="exercise-card" onclick="openExerciseDetail('${name}')">
+  <div class="exercise-card" id="card-${name}" >
     <div class="exercise-name">${name}</div>
     <div class="exercise-sub">${getAccessorySummary(name)}</div>
+    <button class="delete-btn" onclick="deleteExercise('${name}', event)">🗑️</button>
   </div>
 `).join('');
+
 
 
 }
@@ -2076,6 +2097,23 @@ function openExerciseDetail(name){
 
   renderAccessoryRecords();
 }
+function deleteExercise(name, e){
+  e.stopPropagation(); // 카드 클릭 이벤트 막기
+  if(!confirm(`${name} 종목을 삭제하시겠습니까?`)) return;
+
+  // 1️⃣ 로컬에서 제거
+  accRecordsByExercise[currentPart] = accRecordsByExercise[currentPart].filter(n => n !== name);
+  currentExercises = accRecordsByExercise[currentPart];
+  renderExercises();
+
+  // 2️⃣ Firestore에서도 제거
+  const user = auth.currentUser;
+  if(user){
+    const ref = db.collection('users').doc(user.uid)
+                  .collection('accessories').doc(currentPart);
+    ref.set({ list: accRecordsByExercise[currentPart] }, { merge: true });
+  }
+}
 
    
 
@@ -2084,6 +2122,6 @@ function openExerciseDetail(name){
 
 
 </script>
-<!-- ⚠️ 여기 아래에 네가 쓰던 JS 그대로 유지 -->
+<!-- ⚠️ 여기 아래에 네가 쓰던 JS ㅓㄴ 그대로 유지 -->
 </body>
 </html>
