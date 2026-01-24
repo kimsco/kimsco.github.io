@@ -2139,23 +2139,29 @@ function renderAccessoryRecords(){
 
 
 
-function deleteExercise(name, e){
-  e.stopPropagation(); // 🔥 카드 클릭 이벤트 전파 차단
-  if(!confirm(`${name} 종목을 삭제하시겠습니까?`)) return;
+function deleteExercise(name, event) {
+    if (event) event.stopPropagation(); // 이벤트가 있으면 막기
 
-  // 로컬 제거
-  accRecordsByExercise[currentPart] = accRecordsByExercise[currentPart].filter(n => n !== name);
-  currentExercises = accRecordsByExercise[currentPart];
-  renderExercises();
+    const user = auth.currentUser;
+    if (!user) return fadeTempMsg(exerciseListEl, "로그인 후 사용 가능", 1000);
 
-  // Firestore 제거
-  const user = auth.currentUser;
-  if(user){
-    const ref = db.collection('users').doc(user.uid)
-                  .collection('accessories').doc(currentPart);
-    ref.set({ list: accRecordsByExercise[currentPart] }, { merge: true });
-  }
+    currentExercises = currentExercises.filter(n => n !== name);
+    renderExercises();
+
+    try {
+        db.collection('users')
+          .doc(user.uid)
+          .collection('accessory')
+          .doc(currentPart)
+          .set({ exercises: currentExercises }, { merge: true });
+    } catch (err) {
+        console.error("Firestore 삭제 실패:", err);
+        fadeTempMsg(exerciseListEl, "삭제 실패: " + err.message, 1500);
+    }
 }
+
+
+   
 tabBtns.forEach(btn => {
   btn.addEventListener('click', ()=>{
     calPopup.classList.add("hidden");
@@ -2182,6 +2188,12 @@ tabBtns.forEach(btn => {
       // ✅ 탭4가 아닌 경우 보조운동 상세 화면 숨기기
       document.getElementById('exercise-detail-screen').style.display = 'none';
     }
+  });
+});
+document.querySelectorAll('.delete-btn').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    const name = btn.closest('.exercise-card').id.replace('card-', '');
+    deleteExercise(name, e);
   });
 });
 
