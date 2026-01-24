@@ -1104,6 +1104,9 @@ function fadeTempMsg(el, msg, timeout=1000, fadeDur=800){
    /* ===============================
    🔥 보조운동(4번째 탭) 로직
 ================================ */
+   let accRecordsByExercise = {}; // 🔥 종목별 카드 저장소
+let currentExerciseName = null; // 🔥 지금 보고 있는 종목
+
 let currentExercises = [];
 const exerciseListEl = document.getElementById('exercise-list');
 const addExerciseBtn = document.getElementById('add-exercise-btn');
@@ -1857,25 +1860,43 @@ const accessoryRecords = {
 let currentExercise = null;
 
 function openExerciseDetail(name) {
-  currentExercise = name;
+  currentExerciseName = name; // ✅ 현재 종목 저장
 
-  exerciseScreen.style.display = 'none';
+  // 종목별 기록 배열 없으면 생성
+  if (!accRecordsByExercise[name]) {
+    accRecordsByExercise[name] = [];
+  }
+
+  document.getElementById('exercise-screen').style.display = 'none';
   document.getElementById('exercise-detail-screen').style.display = 'block';
 
   document.getElementById('detail-exercise-name').textContent = name;
 
-  if (!accessoryRecords[name]) {
-    accessoryRecords[name] = {};
+  renderAccessoryRecords(); // 🔥 해당 종목 카드만 렌더
+}
+function renderAccessoryRecords() {
+  const wrap = document.getElementById('acc-records');
+  const list = accRecordsByExercise[currentExerciseName] || [];
+
+  if (list.length === 0) {
+    wrap.innerHTML = `<div style="color:#777;font-size:13px;">아직 기록이 없습니다</div>`;
+    return;
   }
 
-  renderAccessoryRecords();
+  wrap.innerHTML = list.map(r => `
+    <div class="record-day">
+      <div class="date">${r.date}</div>
+      <div class="set">${r.weight}kg × ${r.reps}회</div>
+    </div>
+  `).join('');
 }
+
+   
 function closeExerciseDetail() {
   document.getElementById('exercise-detail-screen').style.display = 'none';
-  exerciseScreen.style.display = 'block';
-
-  renderExercises(); // 🔥 카드 다시 그림
+  document.getElementById('exercise-screen').style.display = 'block';
 }
+
 
 function getToday() {
   const d = new Date();
@@ -1884,25 +1905,27 @@ function getToday() {
   const day = String(d.getDate()).padStart(2, '0');
   return `${y}.${m}.${day}`;
 }
+   
 function addAccessorySet() {
   const weight = parseInt(document.getElementById('acc-weight').value);
   const reps = parseInt(document.getElementById('acc-reps').value);
 
-  if (!weight || !reps) return;
+  if (!weight || !reps || !currentExerciseName) return;
 
-  const date = getToday();
+  const item = {
+    weight,
+    reps,
+    date: formatTodayYYMMDD()
+  };
 
-  if (!accessoryRecords[currentExercise][date]) {
-    accessoryRecords[currentExercise][date] = [];
-  }
-
-  accessoryRecords[currentExercise][date].push({ weight, reps });
+  accRecordsByExercise[currentExerciseName].unshift(item);
 
   document.getElementById('acc-weight').value = '';
   document.getElementById('acc-reps').value = '';
 
-  renderAccessoryRecords();
+  renderAccessoryRecords(); // 🔥 현재 종목만 다시 그림
 }
+
 function renderAccessoryRecords() {
   const wrap = document.getElementById('acc-records');
   wrap.innerHTML = '';
