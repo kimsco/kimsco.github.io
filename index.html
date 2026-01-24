@@ -2094,14 +2094,18 @@ function renderAccessoryRecords(){
 }
 
 function openExerciseDetail(name){
-  currentExerciseName = name;
+    currentExerciseName = name;
 
-  document.getElementById('exercise-screen').style.display = 'none';
-  document.getElementById('exercise-detail-screen').style.display = 'block';
-  document.getElementById('detail-exercise-name').textContent = name;
+    // DOM 이동 X, 그냥 내용 업데이트
+    document.getElementById('detail-exercise-name').textContent = name;
+    document.getElementById('acc-weight').value = '';
+    document.getElementById('acc-reps').value = '';
 
-  renderAccessoryRecords(name);
+    // exercise-detail-screen 고정으로 표시
+    exerciseScreen.style.display = 'none';
+    document.getElementById('exercise-detail-screen').style.display = 'block';
 }
+
 
 function deleteExercise(name, e){
   e.stopPropagation(); // 🔥 카드 클릭 이벤트 전파 차단
