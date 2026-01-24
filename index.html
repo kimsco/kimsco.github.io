@@ -633,11 +633,23 @@ td, th {
 }
 /* recordAdd 버튼만 작게 */
 #recordAdd {
-  height: 45px;        /* kg / 회 보다 2/3 */
+  height: 40px;        /* kg / 회 보다 2/3 */
   padding: 0 12px;
   font-size: 14px;
   border-radius: 8px;
   font-weight: 500;
+}
+.recordAddBtn {
+  height: 40px;
+  padding: 0 14px;
+  font-size: 13px;
+  border-radius: 999px;   /* 알약형 */
+  font-weight: 500;
+  letter-spacing: 0.5px;
+
+  background: #000;
+  color: #fff;
+  border: 1px solid #fff;
 }
 
 
@@ -888,17 +900,14 @@ input[type="number"] {
   <div class="recordFormRow">
     <input id="acc-weight" type="number" placeholder="kg">
     <input id="acc-reps" type="number" placeholder="회">
-    <button onclick="addAccessorySet()">저장</button>
+    <button class="recordAddBtn" onclick="addAccessorySet()">저장</button>
+
   </div>
 
   <!-- 가로 기록 영역 -->
   <div id="acc-records" class="record-horizontal"></div>
 
 </div>
-
-
-
-
 </div>
 
 
