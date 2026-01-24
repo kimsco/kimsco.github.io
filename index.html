@@ -494,7 +494,44 @@ td, th {
   background: #222;
   transform: scale(0.96);
 }
+.exercise-card {
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
 
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.exercise-card:hover {
+  background: #161616;
+  border-color: #333;
+}
+
+.exercise-card:active {
+  transform: scale(0.985);
+}
+
+.exercise-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  letter-spacing: 0.3px;
+}
+
+.exercise-sub {
+  font-size: 13px;
+  color: #777;
+}
+
+
+   
 /* .css 붙여넣기 */
    
 
@@ -648,6 +685,10 @@ input[type="number"] {
 
 </div>
 
+<div class="exercise-card">
+  <div class="exercise-name">인클라인 덤벨 프레스</div>
+  <div class="exercise-sub">기록 없음</div>
+</div>
 
    
 <div id="save3Result"></div>
@@ -834,15 +875,13 @@ function renderExercises(){
     return;
   }
 
-  exerciseListEl.innerHTML = currentExercises.map(name => `
-    <div style="
-      padding:10px;
-      border-bottom:1px solid rgba(255,255,255,0.15);
-      font-size:15px;
-    ">
-      ▶ ${name}
-    </div>
-  `).join('');
+exerciseListEl.innerHTML = currentExercises.map(name => `
+  <div class="exercise-card">
+    <div class="exercise-name">${name}</div>
+    <div class="exercise-sub">기록 없음</div>
+  </div>
+`).join('');
+
 }
 
 async function loadExercises(part){
