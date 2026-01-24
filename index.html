@@ -1159,16 +1159,15 @@ function getAccessorySummary(name){
   return `${latest.weight}kg × ${latest.reps}회`;
 }
 
-   function renderExercises(){
+function renderExercises(){
+  exerciseListEl.innerHTML = ''; // 🔥 기존 카드 초기화
+
   if (!currentExercises.length) {
     exerciseListEl.innerHTML =
       `<div style="color:#777;font-size:13px;">아직 추가된 종목이 없습니다</div>`;
     return;
   }
 
-  // ❌ 기존 innerHTML 방식 지움
-
-  // ✅ 대신 currentExercises.forEach(...) 코드 붙임
   currentExercises.forEach(name => {
     const cardEl = document.createElement('div');
     cardEl.className = 'exercise-card';
@@ -1184,10 +1183,14 @@ function getAccessorySummary(name){
     cardEl.querySelector('.delete-btn').addEventListener('click', () => {
       currentExercises = currentExercises.filter(n => n !== name);
       delete accRecordsByExercise[name];
-      renderExercises();
+      renderExercises(); // 🔁 다시 그리기
     });
+
+    // 카드 클릭 이벤트
+    cardEl.addEventListener('click', () => openExerciseDetail(name));
   });
 }
+
 
 
 
