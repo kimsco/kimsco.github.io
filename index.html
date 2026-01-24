@@ -2321,7 +2321,9 @@ partButtons.forEach(btn => {
 });
 
 const backBtn = document.getElementById('exercise-back-btn'); // 뒤로가기 버튼 ID
-backBtn.addEventListener('click', closeExerciseDetail);
+if (backBtn) {
+    backBtn.addEventListener('click', closeExerciseDetail);
+}
 
 function closeExerciseDetail() {
   const detail = document.getElementById('exercise-detail-screen');
