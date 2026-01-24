@@ -653,25 +653,26 @@ cursor: pointer;
 }
 
 .delete-btn {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 28px;      /* 조금 키움 */
-  height: 28px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
+   position: absolute;
+   top: 8px;
+   right: 8px;
+   width: 24px;
+   height: 24px;
+
+   background: none;      /* 배경 없음 */
+   border: none;          /* 테두리 없음 */
+   color: #888;           /* 무채색 회색 */
+   font-size: 20px;       /* 아이콘 크기 */
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   cursor: pointer;
+   transition: color 0.2s ease;
 }
 
-.delete-btn:hover svg {
-  stroke: #ff5555; /* 호버 시 빨강 */
+.delete-btn:hover {
+   color: #fff;           /* 호버 시 하이라이트 */
 }
-
-
 
 
 
@@ -1043,9 +1044,6 @@ for (let i = 1; i <= 10; i++) {
   opt.textContent = `${i}회`;
   repsSelect.appendChild(opt);
 }
-// ✅ 상단에 추가
-const partScreen = document.getElementById('acc-part-screen');
-const exerciseScreen = document.getElementById('exercise-screen');
 
 tabBtns.forEach(btn => {
   btn.addEventListener('click', ()=>{
@@ -1164,7 +1162,6 @@ function getAccessorySummary(name){
 
    
 // 카드 렌더링
-// ✅ 기존 renderExercises() HTML 그대로 사용
 function renderExercises(){
   if (!currentExercises.length) {
     exerciseListEl.innerHTML =
@@ -1172,57 +1169,27 @@ function renderExercises(){
     return;
   }
 
+  // 기존 클릭 이벤트 모두 제거
   exerciseListEl.innerHTML = currentExercises.map(name => `
     <div class="exercise-card" id="card-${name}">
       <div class="exercise-name">${name}</div>
       <div class="exercise-sub">${getAccessorySummary(name)}</div>
-      <button class="delete-btn" aria-label="삭제">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="3" y1="4" x2="21" y2="4"></line>
-          <line x1="8" y1="4" x2="8" y2="2"></line>
-          <line x1="16" y1="4" x2="16" y2="2"></line>
-          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-          <line x1="8" y1="8" x2="8" y2="20"></line>
-          <line x1="12" y1="8" x2="12" y2="20"></line>
-          <line x1="16" y1="8" x2="16" y2="20"></line>
-        </svg>
-      </button>
+      <button class="delete-btn" data-name="${name}">🗑️</button>
     </div>
   `).join('');
+
+  // 카드 클릭 이벤트 연결
+  currentExercises.forEach(name => {
+    const card = document.getElementById(`card-${name}`);
+    card.onclick = () => openExerciseDetail(name);
+    // 휴지통 클릭 이벤트
+    const delBtn = card.querySelector('.delete-btn');
+    delBtn.onclick = (e) => {
+      e.stopPropagation(); // 카드 클릭 이벤트 방지
+      deleteExercise(name);
+    };
+  });
 }
-
-// ✅ 삭제 버튼 이벤트 (render 밖에서 한 번만 붙임)
-exerciseListEl.addEventListener('click', async (e) => {
-  const deleteBtn = e.target.closest('.delete-btn');
-  if(!deleteBtn) return;
-
-  const cardEl = deleteBtn.closest('.exercise-card');
-  const name = cardEl.id.replace('card-', '');
-
-  // 1️⃣ UI에서 제거
-  currentExercises = currentExercises.filter(n => n !== name);
-  renderExercises();
-
-  // 2️⃣ localStorage 제거
-  if(currentPart && accRecordsByExercise[currentPart]){
-    accRecordsByExercise[currentPart] = accRecordsByExercise[currentPart].filter(r => r.name !== name);
-    localStorage.setItem(currentPart, JSON.stringify(accRecordsByExercise[currentPart]));
-  }
-
-  // 3️⃣ Firestore 제거
-  try {
-    await db.collection('accessories')
-            .doc(currentPart)
-            .collection('exercises')
-            .doc(name)
-            .delete();
-    fadeTempMsg(recordMessage, `${name} 삭제 완료`);
-  } catch(err){
-    console.error(err);
-    fadeTempMsg(recordMessage, `삭제 실패: ${name}`);
-  }
-});
-
 
 // 카드 클릭 → 입력창 보여주기
 function openExerciseDetail(name){
@@ -2202,57 +2169,6 @@ tabBtns.forEach(btn => {
   });
 });
 
-function deleteAccessorySet(exName, setId, card){
-  if(confirm('이 기록을 삭제하시겠습니까?')){
-    db.collection('accessories')
-      .doc(currentPart)
-      .collection('exercises')
-      .doc(exName)
-      .collection('sets')
-      .doc(setId)
-      .delete()
-      .then(()=>{
-          // 화면에서 제거
-          card.remove();
-
-          // 로컬 변수에서도 제거
-          accRecordsByExercise[exName] = accRecordsByExercise[exName].filter(s => s.id !== setId);
-      })
-      .catch(err => console.error(err));
-  }
-}
-function deleteCardLocally(exName, setId, card){
-    accRecordsByExercise[exName] = accRecordsByExercise[exName].filter(s => s.id !== setId);
-    card.remove();
-    localStorage.setItem('accRecords', JSON.stringify(accRecordsByExercise));
-}
-
-// 카드 삭제
-exerciseListEl.addEventListener('click', async (e)=>{
-  if(e.target.closest('.delete-btn')){
-    const cardEl = e.target.closest('.exercise-card');
-    const name = cardEl.id.replace('card-', '');
-
-    // 1️⃣ UI에서 제거
-    currentExercises = currentExercises.filter(n => n !== name);
-    renderExercises();
-
-    // 2️⃣ localStorage 업데이트
-    if(currentPart){
-      accRecordsByExercise[currentPart] = accRecordsByExercise[currentPart].filter(r => r.name !== name);
-      localStorage.setItem(currentPart, JSON.stringify(accRecordsByExercise[currentPart]));
-    }
-
-    // 3️⃣ Firestore 삭제
-    try{
-      await db.collection('accessories').doc(currentPart).collection('exercises').doc(name).delete();
-      console.log(`${name} 삭제 완료`);
-    }catch(err){
-      console.error('Firestore 삭제 실패', err);
-    }
-
-  }
-});
 
    
 
