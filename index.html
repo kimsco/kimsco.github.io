@@ -54,22 +54,49 @@ body {
 .container { max-width: 100%; margin: auto; }
 .subtitle { font-size:16px; margin-bottom:20px; }
  
-select, button, input {
-    width:100%;
-    padding:14px;
-    margin:10px 0;
-    font-size:18px;
-    border-radius:10px;
-    border:none;
-    box-sizing: border-box;
+/* ===============================
+   🔥 1RM 탭 전용 스타일
+================================ */
+#tab1 input,
+#tab1 select {
+  background: #111;
+  border: 1px solid #333;
+  color: #eee;
+
+  width: 70%;
+  margin: 10px auto;
+  display: block;
+
+  padding: 10px 12px;
+  font-size: 16px;
+  border-radius: 10px;
+  text-align: center;
 }
 
-button {
-    background:white;
-    color:black;
-    font-weight:bold;
-    cursor:pointer;
+#tab1 select {
+  appearance: none;
 }
+
+/* GO 버튼 */
+#tab1 #goBtn {
+  width: 70%;
+  margin: 14px auto 0;
+  display: block;
+
+  background: #FFD700;
+  color: #111;
+  font-size: 16px;
+  font-weight: 700;
+
+  padding: 12px 0;
+  border-radius: 12px;
+}
+
+/* 눌림감 */
+#tab1 #goBtn:active {
+  transform: scale(0.97);
+}
+
 
 #result { margin-top:20px; font-size:22px; }
 table input {
