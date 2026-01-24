@@ -2155,18 +2155,35 @@ function deleteExercise(e){
     deleteExerciseFromDB(currentPart, name);
 }
 
-async function deleteExerciseFromDB(part, exerciseName){
+async function deleteExerciseFromDB(exerciseName) {
     try {
         await db.collection('users')
           .doc(auth.currentUser.uid)
           .collection('accessoryExercises')
           .doc(exerciseName)
-          .delete();   // ← delete()로 실제 삭제
+          .delete();
+
+        // ✅ 화면 반영
+        // 배열에서 제거
+        currentExercises = currentExercises.filter(name => name !== exerciseName);
+        // 재렌더링
+        renderExercises();
+
         console.log('삭제 완료:', exerciseName);
-    } catch(err){
+    } catch(err) {
         console.error('삭제 실패:', err);
     }
 }
+
+// 카드 삭제 버튼 연결
+exerciseListEl.addEventListener('click', e => {
+    if (e.target.closest('.delete-btn')) {
+        const card = e.target.closest('.exercise-card');
+        const name = card.id.replace('card-', '');
+        deleteExerciseFromDB(name);
+    }
+});
+
 
 
    
