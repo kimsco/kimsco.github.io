@@ -2342,6 +2342,14 @@ function closeExerciseDetail() {
 document.addEventListener('keydown', (e) => {
   if(e.key === "Escape") closeExerciseDetail();
 });
+window.addEventListener('load', ()=>{
+    const savedAcc = localStorage.getItem('accRecordsByExercise');
+    if(savedAcc){
+        accRecordsByExercise = JSON.parse(savedAcc);
+        // 화면에 렌더링
+        if(currentExerciseName) renderAccessoryRecords(currentExerciseName); // ✅ 변경
+    }
+});
 
 
    
