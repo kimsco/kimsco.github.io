@@ -547,7 +547,47 @@ td, th {
   background: #8b0000;
   color: #fff;
 }
+/* 토글 감싸는 영역 */
+.calendar-toggle-wrap {
+  margin-top: 10px;
+  display: flex;
+  justify-content: flex-start; /* 왼쪽 정렬 */
+}
 
+/* 알약 스위치 */
+.toggle-switch {
+  width: 48px;          /* ← 거의 1/7 느낌 */
+  height: 26px;
+  background: #3a3a3a;
+  border-radius: 999px;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.25s ease;
+}
+
+/* 안에 구슬 */
+.toggle-switch::after {
+  content: "";
+  width: 20px;
+  height: 20px;
+  background: #ddd;
+  border-radius: 50%;
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  transition: transform 0.25s ease;
+}
+
+/* ON 상태 */
+.toggle-switch.active {
+  background: linear-gradient(135deg, #8b0000, #400000);
+}
+
+.toggle-switch.active::after {
+  transform: translateX(22px);
+}
+
+   
    
 /* .css 붙여넣기 */
    
@@ -725,9 +765,10 @@ input[type="number"] {
         </div>
         <div id="calDays" class="days"></div>
     
-       <button id="calendarToggle" class="calendar-toggle">
-  종목 보기
-</button>
+      <div class="calendar-toggle-wrap">
+  <div id="calendarToggle" class="toggle-switch"></div>
+</div>
+
 
     </div>
 </div>
@@ -1288,14 +1329,12 @@ const calDaysEl = document.getElementById("calDays");
 const calMonthEl = document.getElementById("calMonth");
 const calendarToggleBtn = document.getElementById("calendarToggle");
 
-calendarToggleBtn.addEventListener("click", () => {
+const calendarToggle = document.getElementById("calendarToggle");
+
+calendarToggle.addEventListener("click", () => {
   calendarMode = calendarMode === "date" ? "muscle" : "date";
-
-  calendarToggleBtn.classList.toggle("active");
-  calendarToggleBtn.textContent =
-    calendarMode === "date" ? "종목 보기" : "날짜 보기";
-
-  calRender(); // 🔥 달력 다시 그림
+  calendarToggle.classList.toggle("active");
+  calRender();
 });
 
    
