@@ -653,25 +653,27 @@ cursor: pointer;
 }
 
 .delete-btn {
-   position: absolute;
+  position: absolute;
   top: 8px;
   right: 8px;
-  width: 24px;   /* 버튼 크기 최소화 */
-  height: 24px;
+  width: 28px;      /* 조금 키움 */
+  height: 28px;
+  background: none;
+  border: none;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 0;
-  font-size: 16px;
-  border: none;
-  background: transparent;
-  color: #ff5555;
-  cursor: pointer;
 }
 
-.delete-btn:hover {
-  color: #ff0000;
+.delete-btn:hover svg {
+  stroke: #ff5555; /* 호버 시 빨강 */
 }
+
+
+
+
 
 
 
@@ -1171,7 +1173,24 @@ function renderExercises(){
     <div class="exercise-card" id="card-${name}">
       <div class="exercise-name">${name}</div>
       <div class="exercise-sub">${getAccessorySummary(name)}</div>
-      <button class="delete-btn" data-name="${name}">🗑️</button>
+      <button class="delete-btn" aria-label="삭제">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <!-- 뚜껑 -->
+    <line x1="3" y1="4" x2="21" y2="4"></line>
+    <line x1="8" y1="4" x2="8" y2="2"></line>
+    <line x1="16" y1="4" x2="16" y2="2"></line>
+
+    <!-- 휴지통 몸통 -->
+    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+
+    <!-- 안쪽 세로선 -->
+    <line x1="8" y1="8" x2="8" y2="20"></line>
+    <line x1="12" y1="8" x2="12" y2="20"></line>
+    <line x1="16" y1="8" x2="16" y2="20"></line>
+  </svg>
+</button>
+
+
     </div>
   `).join('');
 
@@ -1185,6 +1204,21 @@ function renderExercises(){
       e.stopPropagation(); // 카드 클릭 이벤트 방지
       deleteExercise(name);
     };
+  });
+
+    // 🔥 삭제 버튼 이벤트 연결
+  document.querySelectorAll('.delete-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const card = e.currentTarget.closest('.exercise-card');
+      const name = card.querySelector('.exercise-name').textContent;
+
+      // 배열에서 제거
+      currentExercises = currentExercises.filter(n => n !== name);
+      delete accRecordsByExercise[name]; // 기록 삭제
+
+      // 화면에서 제거
+      renderExercises();
+    });
   });
 }
 
@@ -2137,6 +2171,34 @@ function deleteExercise(name, e){
     ref.set({ list: accRecordsByExercise[currentPart] }, { merge: true });
   }
 }
+tabBtns.forEach(btn => {
+  btn.addEventListener('click', ()=>{
+    calPopup.classList.add("hidden");
+
+    tabBtns.forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+
+    const target = btn.dataset.target;
+    tabContents.forEach(tc=>{
+      if(tc.id === target){
+        tc.classList.add('active');
+        tc.style.display = 'block';
+      } else {
+        tc.classList.remove('active');
+        tc.style.display = 'none';
+      }
+    });
+
+    // 🔥 Tip 탭 초기화
+    if(target === 'tab4'){
+      partScreen.style.display = 'block';
+      exerciseScreen.style.display = 'none';
+    } else {
+      // ✅ 탭4가 아닌 경우 보조운동 상세 화면 숨기기
+      document.getElementById('exercise-detail-screen').style.display = 'none';
+    }
+  });
+});
 
 
    
