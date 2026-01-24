@@ -1104,57 +1104,10 @@ function fadeTempMsg(el, msg, timeout=1000, fadeDur=800){
    /* ===============================
    🔥 보조운동(4번째 탭) 로직
 ================================ */
-// 🔥 전역 변수 수정
-let accRecordsByExercise = {}; // 종목별 기록은 그대로
-let currentExerciseName = null; // 지금 보고 있는 종목
+   let accRecordsByExercise = {}; // 🔥 종목별 카드 저장소
+let currentExerciseName = null; // 🔥 지금 보고 있는 종목
 
-
-// ✅ 부위별 종목 배열
-let exercisesByPart = {
-  chest: [],
-  back: [],
-  shoulder: [],
-  leg: [],
-  arm: []
-};
-
-// 현재 선택된 부위
-let currentPart = 'chest';
-// 종목별 기록 객체
-let accRecordsByExercise = {};
-let currentExerciseName = null;
-
-const partButtons = document.querySelectorAll('.part-btn');
-const partScreen = document.getElementById('acc-part-screen');
-const exerciseScreen = document.getElementById('exercise-screen');
-
-partButtons.forEach(btn => {
-  btn.addEventListener('click', () => {
-    currentPart = btn.dataset.part;      // 현재 선택 부위 변경
-    renderExercises();                   // 해당 부위 종목 표시
-    partScreen.style.display = 'none';   // 부위 화면 숨기기
-    exerciseScreen.style.display = 'block'; // 종목 화면 표시
-    document.getElementById('current-part-name').textContent = currentPart;
-  });
-});
-
-function addExercise() {
-  const input = document.getElementById('exercise-search');
-  const name = input.value.trim();
-  if(!name) return;
-  
-  // 이미 있으면 추가 X
-  if(exercisesByPart[currentPart].includes(name)) return;
-
-  exercisesByPart[currentPart].unshift(name);
-  accRecordsByExercise[name] = [];
-  
-  input.value = '';
-  renderExercises();
-}
-
-   
-   
+let currentExercises = [];
 const exerciseListEl = document.getElementById('exercise-list');
 const addExerciseBtn = document.getElementById('add-exercise-btn');
    
@@ -1163,34 +1116,33 @@ addExerciseBtn.addEventListener('click', addExercise);
 function getAccessorySummary(name){
   const list = accRecordsByExercise[name];
   if (!list || list.length === 0) return '기록 없음';
+
   const latest = list[0];
   return `${latest.weight}kg × ${latest.reps}회`;
 }
 
+   
 function renderExercises(){
-  const currentExercises = exercisesByPart[currentPart];
   if (!currentExercises.length) {
     exerciseListEl.innerHTML =
       `<div style="color:#777;font-size:13px;">아직 추가된 종목이 없습니다</div>`;
     return;
   }
-  exerciseListEl.innerHTML = currentExercises.map(name => `
-    <div class="exercise-card" onclick="openExerciseDetail('${name}')">
-      <div class="exercise-name">${name}</div>
-      <div class="exercise-sub">${getAccessorySummary(name)}</div>
-    </div>
-  `).join('');
+
+exerciseListEl.innerHTML = currentExercises.map(name => `
+ <div class="exercise-card" onclick="openExerciseDetail('${name}')">
+    <div class="exercise-name">${name}</div>
+    <div class="exercise-sub">${getAccessorySummary(name)}</div>
+  </div>
+`).join('');
+
+
 }
 
-
-
-
 async function loadExercises(part){
-  currentPart = part; // ✅ 현재 부위 설정
-
   const user = auth.currentUser;
   if (!user) {
-    exercisesByPart[part] = [];
+    currentExercises = [];
     renderExercises();
     return;
   }
@@ -1203,30 +1155,27 @@ async function loadExercises(part){
 
   const snap = await ref.get();
 
-  exercisesByPart[part] = snap.exists ? snap.data().list || [] : [];
+  currentExercises = snap.exists ? snap.data().list || [] : [];
   renderExercises();
 }
 
-
-
-
- async function addExercise(){
+async function addExercise(){
   const name = prompt("운동 종목을 입력하시오");
   if (!name) return;
 
-  exercisesByPart[currentPart].unshift(name); // ✅ 부위별 추가
+  currentExercises.unshift(name);
   renderExercises();
 
-  // DB에 저장
   const user = auth.currentUser;
   if (!user) return;
-  await db.collection('users')
+
+  await db
+    .collection('users')
     .doc(user.uid)
     .collection('accessories')
     .doc(currentPart)
-    .set({ list: exercisesByPart[currentPart] });
+    .set({ list: currentExercises });
 }
-
 
 
 /* 3대 총합 업데이트 */
@@ -1993,8 +1942,6 @@ function addAccessorySet() {
   document.getElementById('acc-reps').value = '';
 
   renderAccessoryRecords(); // 🔥 현재 종목만 다시 그림
-   renderExercises();
-
 }
 
 function renderAccessoryRecords() {
@@ -2083,46 +2030,15 @@ function renderAccessoryRecords(){
 
 function openExerciseDetail(name){
   currentExerciseName = name;
-  partScreen.style.display = 'none';
-  exerciseScreen.style.display = 'none';
+
+  document.getElementById('exercise-screen').style.display = 'none';
   document.getElementById('exercise-detail-screen').style.display = 'block';
   document.getElementById('detail-exercise-name').textContent = name;
-  renderAccessoryRecords();
-}
-
-function closeExerciseDetail(){
-  document.getElementById('exercise-detail-screen').style.display = 'none';
-  partScreen.style.display = 'block';
-}
-
-   function addAccessorySet(){
-  const weight = parseFloat(document.getElementById('acc-weight').value);
-  const reps = parseInt(document.getElementById('acc-reps').value);
-  if(!weight || !reps) return;
-
-  accRecordsByExercise[currentExerciseName].unshift({weight, reps});
-  
-  // 입력 필드 초기화
-  document.getElementById('acc-weight').value = '';
-  document.getElementById('acc-reps').value = '';
 
   renderAccessoryRecords();
-  renderExercises();
 }
 
-function renderAccessoryRecords(){
-  const container = document.getElementById('acc-records');
-  const list = accRecordsByExercise[currentExerciseName];
-  if(!list || list.length===0){
-    container.innerHTML = '<div style="color:#777;font-size:13px;">기록 없음</div>';
-    return;
-  }
-
-  container.innerHTML = list.map(set => `
-    <div class="record-day">${set.weight}kg × ${set.reps}회</div>
-  `).join('');
-}
-
+   
 
 
    
