@@ -589,12 +589,16 @@ td, th {
   transform: translateX(22px);
 }
 
-
-   /* 종목 모드일 때 (토글 ON) */
-.toggle-switch.active ~ .days div {
+/* 종목 모드 전용 */
+.calendar.muscle-mode .days div {
   font-weight: 400;        /* 얇게 */
-  font-size: 14px;         /* 살짝 줄임 */
-  letter-spacing: 0.2px;  /* 운동명 느낌 */
+  font-size: 14px;         /* 날짜보다 살짝 작게 */
+  letter-spacing: 0.2px;
+}
+
+/* 운동한 날 배경은 유지 */
+.calendar.muscle-mode .days div.done {
+  font-weight: 400;
 }
 
 /* 날짜 모드는 절대 영향 안 받음 */
@@ -1347,8 +1351,13 @@ const calendarToggle = document.getElementById("calendarToggle");
 calendarToggle.addEventListener("click", () => {
   calendarMode = calendarMode === "date" ? "muscle" : "date";
   calendarToggle.classList.toggle("active");
+
+  document.querySelector(".calendar")
+    .classList.toggle("muscle-mode", calendarMode === "muscle");
+
   calRender();
 });
+
 
    
 const calPopup = document.getElementById("calPopup");
