@@ -1220,15 +1220,16 @@ function closeExerciseDetail(){
 
 async function loadExercises(part) {
   try {
+    // Firestore에서 part별 exercises 컬렉션 읽기
     const snapshot = await db
       .collection("accessoryExercises")
-      .doc(part)                // ex: "shoulder"
-      .collection("exercises")  // 컬렉션 이름은 문자열로
-      .get();                   // 🔥 add() 아님, get()으로 불러오기
+      .doc(part)               // ex: "shoulder"
+      .collection("exercises") // 컬렉션 이름은 문자열
+      .get();                  // 읽기용
 
     currentExercises = [];
     snapshot.forEach(doc => {
-      currentExercises.push(doc.data().name);
+      currentExercises.push(doc.data().name); // doc.data().name으로 종목 이름 가져오기
     });
 
     renderExercises();  // UI 갱신
