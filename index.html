@@ -588,9 +588,17 @@ td, th {
 .toggle-switch.active::after {
   transform: translateX(22px);
 }
-.toggle-switch.active ~ .days div.done {
-  font-weight: 400;
+
+
+   /* 종목 모드일 때 (토글 ON) */
+.toggle-switch.active ~ .days div {
+  font-weight: 400;        /* 얇게 */
+  font-size: 14px;         /* 살짝 줄임 */
+  letter-spacing: 0.2px;  /* 운동명 느낌 */
 }
+
+/* 날짜 모드는 절대 영향 안 받음 */
+
    
    
 /* .css 붙여넣기 */
