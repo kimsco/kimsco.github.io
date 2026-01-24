@@ -2162,8 +2162,9 @@ function renderExercises() {
 
   // 카드 생성 + 클릭 이벤트 연결
   currentExercises.forEach(item => {
-    const name = typeof item === 'string' ? item : item.name;
-    const safeId = `card-${name.replace(/\s+/g, '-')}`;
+    const name = typeof item === 'string' ? item : (item.name || 'unknown');
+const safeId = `card-${name.replace(/\s+/g, '-')}`;
+
 
     const card = document.createElement('div');
     card.className = 'exercise-card';
