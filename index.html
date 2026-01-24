@@ -1205,6 +1205,21 @@ function renderExercises(){
       deleteExercise(name);
     };
   });
+
+    // 🔥 삭제 버튼 이벤트 연결
+  document.querySelectorAll('.delete-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const card = e.currentTarget.closest('.exercise-card');
+      const name = card.querySelector('.exercise-name').textContent;
+
+      // 배열에서 제거
+      currentExercises = currentExercises.filter(n => n !== name);
+      delete accRecordsByExercise[name]; // 기록 삭제
+
+      // 화면에서 제거
+      renderExercises();
+    });
+  });
 }
 
 // 카드 클릭 → 입력창 보여주기
