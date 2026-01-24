@@ -2338,7 +2338,34 @@ window.addEventListener('load', ()=>{
     }
 });
 
+// ====================== 새로고침 기록 유지 ======================
+window.addEventListener('load', async () => {
+    // 1. localStorage에서 불러오기
+    const savedAcc = localStorage.getItem('accRecordsByExercise');
+    if (savedAcc) {
+        accRecordsByExercise = JSON.parse(savedAcc);
+    }
 
+    // 2. 첫 번째 파트와 종목 자동 선택
+    const parts = Object.keys(accRecordsByExercise);
+    if (parts.length > 0) {
+        currentPart = parts[0];
+        currentExercises = accRecordsByExercise[currentPart] || [];
+        currentExerciseName = currentExercises[0] ? (currentExercises[0].name || currentExercises[0]) : null;
+
+        renderExercises();
+        if (currentExerciseName) renderAccessoryRecords();
+    }
+
+    // 3. Firestore에서 불러오기 (로그인 되어있으면)
+    const user = auth.currentUser;
+    if (user && currentPart) {
+        await loadExercises(currentPart);
+    }
+});
+
+
+   
    
 
 </script>
