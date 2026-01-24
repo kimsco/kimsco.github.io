@@ -604,10 +604,40 @@ td, th {
 }
 
 /* 날짜 모드는 절대 영향 안 받음 */
+.record-horizontal {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 10px 0;
+}
+
+.record-day {
+  min-width: 120px;
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 12px;
+  padding: 10px;
+}
+
+.record-day .date {
+  font-size: 12px;
+  color: #FFD700;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.record-day .set {
+  font-size: 13px;
+  color: #eee;
+  line-height: 1.6;
+}
+
+
 
    
    
-/* .css 붙여넣기 */
+   
+/* .css ㅊㄴㄴ 붙여넣기 */
    
 
 
@@ -838,6 +868,17 @@ input[type="number"] {
   <div id="exercise-list"></div>
 
 
+</div>
+<div id="exercise-detail-screen" style="display:none;">
+  ← 체스트프레스
+
+  <!-- 기록 추가 버튼 -->
+  <button id="add-set-btn">+ 기록 추가</button>
+
+  <!-- 가로 기록 영역 -->
+  <div class="record-horizontal">
+    <!-- 날짜 컬럼들이 여기 들어감 -->
+  </div>
 </div>
 
 
