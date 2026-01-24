@@ -1105,10 +1105,40 @@ function fadeTempMsg(el, msg, timeout=1000, fadeDur=800){
    🔥 보조운동(4번째 탭) 로직
 ================================ */
 let currentExercises = [];
+   let currentPart = null;
+   
 const exerciseListEl = document.getElementById('exercise-list');
 const addExerciseBtn = document.getElementById('add-exercise-btn');
    
 addExerciseBtn.addEventListener('click', addExercise);
+exerciseListEl.addEventListener("click", e => {
+  const card = e.target.closest(".exercise-card");
+  if (!card) return;
+
+  const idx = card.dataset.idx;
+  const ex = currentExercises[idx];
+
+  const weight = prompt("무게(kg)");
+  const reps = prompt("횟수");
+
+  if (!weight || !reps) return;
+
+  ex.records.unshift({
+    weight: Number(weight),
+    reps: Number(reps)
+  });
+
+  renderExercises();
+
+  const user = auth.currentUser;
+  if (!user) return;
+
+  db.collection('users')
+    .doc(user.uid)
+    .collection('accessories')
+    .doc(currentPart)
+    .set({ list: currentExercises });
+});
 
 function renderExercises(){
   if (!currentExercises.length) {
@@ -1117,15 +1147,20 @@ function renderExercises(){
     return;
   }
 
-exerciseListEl.innerHTML = currentExercises.map(name => `
- <div class="exercise-card" onclick="openExerciseDetail('${name}')">
-    <div class="exercise-name">${name}</div>
-    <div class="exercise-sub">${getAccessorySummary(name)}</div>
-  </div>
-`).join('');
-
-
+  exerciseListEl.innerHTML = currentExercises.map((ex, idx) => `
+    <div class="exercise-card" data-idx="${idx}">
+      <div class="exercise-name">${ex.name}</div>
+      <div class="exercise-sub">
+        ${
+          ex.records.length
+            ? ex.records.map(r => `${r.weight}kg × ${r.reps}`).join(" / ")
+            : "기록 없음"
+        }
+      </div>
+    </div>
+  `).join('');
 }
+
 
 async function loadExercises(part){
   const user = auth.currentUser;
@@ -1151,7 +1186,11 @@ async function addExercise(){
   const name = prompt("운동 종목을 입력하시오");
   if (!name) return;
 
-  currentExercises.unshift(name);
+  currentExercises.unshift({
+    name,
+    records: []
+  });
+
   renderExercises();
 
   const user = auth.currentUser;
@@ -1165,6 +1204,7 @@ async function addExercise(){
     .set({ list: currentExercises });
 }
 
+   
 
 /* 3대 총합 업데이트 */
 function updateTotal3(){
@@ -1941,6 +1981,17 @@ function getAccessorySummary(name) {
 
   return `${latestDate} · ${lastSet.weight}kg × ${lastSet.reps}회`;
 }
+document.querySelectorAll(".part-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    currentPart = btn.dataset.part;
+
+    document.getElementById("current-part-name").textContent = currentPart;
+    document.getElementById("acc-part-screen").style.display = "none";
+    document.getElementById("exercise-screen").style.display = "block";
+
+    loadExercises(currentPart);
+  });
+});
 
 
    
