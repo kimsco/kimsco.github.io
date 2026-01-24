@@ -1126,7 +1126,15 @@ function fadeTempMsg(el, msg, timeout=1000, fadeDur=800){
    /* ===============================
    🔥 보조운동(4번째 탭) 로직
 ================================ */
-let accRecordsByExercise = {}; // 🔥 종목별 카드 저장소
+let accRecordsByExercise = {
+  // 예시
+  "벤치프레스": [
+    { date: "2026-01-24", weight: 80, reps: 8 },
+    { date: "2026-01-22", weight: 75, reps: 10 }
+  ],
+  "스쿼트": []
+};
+
 let currentExerciseName = null; // 🔥 지금 보고 있는 종목
 let currentPart = null;        // 🔥 지금 선택된 종목
 
@@ -2032,24 +2040,30 @@ function getToday() {
 
    
 function addAccessorySet() {
-  const weight = parseInt(document.getElementById('acc-weight').value);
-  const reps = parseInt(document.getElementById('acc-reps').value);
+  const weight = document.getElementById('acc-weight').value;
+  const reps = document.getElementById('acc-reps').value;
 
-  if (!weight || !reps || !currentExerciseName) return;
+  if (!weight || !reps) return;
 
-  const item = {
-    weight,
-    reps,
-    date: formatAccDate()
-  };
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, '0');
+  const dd = String(today.getDate()).padStart(2, '0');
+  const dateStr = `${yyyy}-${mm}-${dd}`;
 
-  accRecordsByExercise[currentExerciseName].unshift(item);
+  if (!accRecordsByExercise[currentExerciseName]) {
+    accRecordsByExercise[currentExerciseName] = [];
+  }
 
-  document.getElementById('acc-weight').value = '';
-  document.getElementById('acc-reps').value = '';
+  accRecordsByExercise[currentExerciseName].unshift({
+    date: dateStr,
+    weight: parseFloat(weight),
+    reps: parseInt(reps)
+  });
 
-  renderAccessoryRecords(); // 🔥 현재 종목만 다시 그림
+  renderExercises(); // 카드 새로 렌더링
 }
+
 
 function renderAccessoryRecords() {
   const wrap = document.getElementById('acc-records');
@@ -2072,23 +2086,15 @@ function renderAccessoryRecords() {
     wrap.appendChild(col);
   });
 }
-function getAccessorySummary(name) {
-  const data = accessoryRecords[name];
-  if (!data) return '기록 없음';
+function getAccessorySummary(name){
+  const list = accRecordsByExercise[name];
+  if (!list || list.length === 0) return '기록 없음';
 
-  const dates = Object.keys(data);
-  if (dates.length === 0) return '기록 없음';
-
-  const latestDate = dates.sort().reverse()[0];
-  const sets = data[latestDate];
-
-  if (!sets || sets.length === 0) return '기록 없음';
-
-  return `
-    ${latestDate}<br>
-    ${sets.map(s => `${s.weight}kg × ${s.reps}회`).join('<br>')}
-  `;
+  const latest = list[0];
+  return `${latest.date} → ${latest.weight}kg × ${latest.reps}회`;
 }
+
+   
 function addAccessorySet(){
   if(!currentExerciseName) return;
 
@@ -2149,11 +2155,11 @@ function deleteExercise(name, event) {
     renderExercises();
 
     try {
-        db.collection('users')
-          .doc(user.uid)
-          .collection('accessory')
-          .doc(currentPart)
-          .set({ exercises: currentExercises }, { merge: true });
+        db.collection('users').doc(user.uid)
+  .collection('accessoryRecords')
+  .doc(currentExerciseName)
+  .set({ records: accRecordsByExercise[currentExerciseName] });
+
     } catch (err) {
         console.error("Firestore 삭제 실패:", err);
         fadeTempMsg(exerciseListEl, "삭제 실패: " + err.message, 1500);
