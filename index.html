@@ -2095,16 +2095,14 @@ function renderAccessoryRecords(){
 
 function openExerciseDetail(name){
     currentExerciseName = name;
-
-    // DOM 이동 X, 그냥 내용 업데이트
+    // 입력창 DOM은 항상 최상위 위치에 고정
     document.getElementById('detail-exercise-name').textContent = name;
-    document.getElementById('acc-weight').value = '';
-    document.getElementById('acc-reps').value = '';
-
-    // exercise-detail-screen 고정으로 표시
-    exerciseScreen.style.display = 'none';
     document.getElementById('exercise-detail-screen').style.display = 'block';
 }
+function closeExerciseDetail(){
+    document.getElementById('exercise-detail-screen').style.display = 'none';
+}
+
 
 
 function deleteExercise(name, e){
