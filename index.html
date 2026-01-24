@@ -2143,6 +2143,36 @@ function deleteExercise(e, name){
     renderExercises();
 }
 
+function deleteExercise(e){
+    e.stopPropagation();
+    const card = e.currentTarget.closest('.exercise-card');
+    const name = card.querySelector('.exercise-name').textContent;
+
+    // 1️⃣ 배열에서 제거
+    currentExercises = currentExercises.filter(n => n !== name);
+
+    // 2️⃣ 메모리 기록 제거
+    delete accRecordsByExercise[name];
+
+    // 3️⃣ 화면 재렌더링
+    renderExercises();
+
+    // 4️⃣ DB에서도 삭제
+    deleteExerciseFromDB(currentPart, name);
+}
+
+async function deleteExerciseFromDB(part, name){
+    try {
+        await db.collection('accessoryExercises')
+                .doc(part)
+                .collection('exercises')
+                .doc(name)
+                .delete();
+        console.log(name + ' 삭제 완료');
+    } catch(err){
+        console.error('삭제 실패:', err);
+    }
+}
 
    
 tabBtns.forEach(btn => {
