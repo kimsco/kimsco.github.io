@@ -2260,61 +2260,7 @@ window.addEventListener('load', ()=>{
     saveAccessoryRecords(); // 🔥 여기서 localStorage에 저장
 }
 
-const userRef = auth.currentUser
-  ? db.collection('users').doc(auth.currentUser.uid)
-  : null;
 
-async function addExercise() {
-  if(!currentPart) return alert("먼저 종목을 선택하세요.");
-  const name = prompt("운동 종목을 입력하시오");
-  if (!name) return;
-
-  if(!accRecordsByExercise[currentPart]) accRecordsByExercise[currentPart] = [];
-  accRecordsByExercise[currentPart].unshift(name);
-  currentExercises = accRecordsByExercise[currentPart];
-  renderExercises();
-
-  // Firestore 저장
-  if(userRef){
-    await userRef.collection('accessories')
-                 .doc(currentPart)
-                 .set({ list: accRecordsByExercise[currentPart] });
-  }
-}
-
-   if(auth.currentUser){
-  const ref = db.collection('users').doc(auth.currentUser.uid)
-                .collection('accessories');
-  
-  ref.onSnapshot(snapshot=>{
-    snapshot.docs.forEach(doc=>{
-      accRecordsByExercise[doc.id] = doc.data().list || [];
-      if(doc.id === currentPart) {
-        currentExercises = accRecordsByExercise[currentPart];
-        renderExercises();
-      }
-    });
-  });
-}
-
-async function addAccessorySet(){
-  if(!currentExerciseName) return alert("운동 선택 필요");
-  const w = parseFloat(document.getElementById('acc-weight').value);
-  const r = parseInt(document.getElementById('acc-reps').value);
-  if(isNaN(w)||isNaN(r)) return alert('숫자를 입력하세요');
-
-  if(!accRecordsByExercise[currentExerciseName]) accRecordsByExercise[currentExerciseName] = [];
-  const today = new Date().toISOString().split('T')[0];
-  accRecordsByExercise[currentExerciseName].unshift({date:today, weight:w, reps:r});
-  renderAccessorySets(currentExerciseName);
-
-  // Firestore 저장
-  if(userRef){
-    await userRef.collection('accessories')
-                 .doc(currentExerciseName)
-                 .set({ list: accRecordsByExercise[currentExerciseName] });
-  }
-}
 
 
 
