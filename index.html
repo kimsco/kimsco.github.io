@@ -981,6 +981,7 @@ const db = firebase.firestore();
 
 /* 요소 참조 */
 const tabBtns = document.querySelectorAll('.tabBtn');
+   const calPopup = document.getElementById('calPopup');
 const tabContents = document.querySelectorAll('.tabContent');
 
 const weightSelect = document.getElementById('weight');
@@ -2006,6 +2007,20 @@ document.querySelectorAll(".part-btn").forEach(btn => {
   });
 });
 
+   
+
+document.querySelectorAll(".part-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    currentPart = btn.dataset.part;
+
+    document.getElementById("current-part-name").textContent = currentPart;
+
+    partScreen.style.display = "none";
+    exerciseScreen.style.display = "block";
+
+    loadExercises(currentPart);
+  });
+});
 
    
 
