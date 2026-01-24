@@ -1091,7 +1091,7 @@ goBtn.addEventListener('click', ()=> {
         html += `<div style="
                         text-align:center;
                         color:white;
-                        margin:12px 0; 
+                        margin:12px 0;   /* 기존 6px → 12px로 간격 늘림 */
                         font-size:16px;
                         font-weight:600;
                    ">
@@ -1159,48 +1159,53 @@ function getAccessorySummary(name){
   return `${latest.weight}kg × ${latest.reps}회`;
 }
 
+   
+// 카드 렌더링
 function renderExercises(){
-  exerciseListEl.innerHTML = ''; // 🔥 기존 카드 초기화
-
   if (!currentExercises.length) {
     exerciseListEl.innerHTML =
       `<div style="color:#777;font-size:13px;">아직 추가된 종목이 없습니다</div>`;
     return;
   }
 
+  // 기존 클릭 이벤트 모두 제거
+  exerciseListEl.innerHTML = currentExercises.map(name => `
+    <div class="exercise-card" id="card-${name}">
+      <div class="exercise-name">${name}</div>
+      <div class="exercise-sub">${getAccessorySummary(name)}</div>
+      <button class="delete-btn" aria-label="삭제">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <!-- 뚜껑 -->
+    <line x1="3" y1="4" x2="21" y2="4"></line>
+    <line x1="8" y1="4" x2="8" y2="2"></line>
+    <line x1="16" y1="4" x2="16" y2="2"></line>
+
+    <!-- 휴지통 몸통 -->
+    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+
+    <!-- 안쪽 세로선 -->
+    <line x1="8" y1="8" x2="8" y2="20"></line>
+    <line x1="12" y1="8" x2="12" y2="20"></line>
+    <line x1="16" y1="8" x2="16" y2="20"></line>
+  </svg>
+</button>
+
+
+    </div>
+  `).join('');
+
+  // 카드 클릭 이벤트 연결
   currentExercises.forEach(name => {
-    const cardEl = document.createElement('div');
-    cardEl.className = 'exercise-card';
-    cardEl.id = `card-${name}`;
-    cardEl.innerHTML = `
-  <div class="exercise-name">${name}</div>
-  <div class="exercise-sub">${getAccessorySummary(name)}</div>
-  <button class="delete-btn">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" 
-         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <line x1="18" y1="6" x2="6" y2="18"></line>
-      <line x1="6" y1="6" x2="18" y2="18"></line>
-    </svg>
-  </button>
-`;
-
-
-    exerciseListEl.appendChild(cardEl);
-
-    
-
-    // 카드 클릭 이벤트
-   cardEl.querySelector('.delete-btn').addEventListener('click', (e) => {
-  e.stopPropagation(); // 🔥 클릭 이벤트 전파 차단
-  currentExercises = currentExercises.filter(n => n !== name);
-  delete accRecordsByExercise[name];
-  renderExercises(); // 🔁 다시 그리기
-});
-
-});
-
-
-
+    const card = document.getElementById(`card-${name}`);
+    card.onclick = () => openExerciseDetail(name);
+    // 휴지통 클릭 이벤트
+    const delBtn = card.querySelector('.delete-btn');
+    delBtn.onclick = (e) => {
+      e.stopPropagation(); // 카드 클릭 이벤트 방지
+      deleteExercise(name);
+    };
+  });
+}
 
 // 카드 클릭 → 입력창 보여주기
 function openExerciseDetail(name){
@@ -1985,7 +1990,6 @@ function openExerciseDetail(name) {
 
   renderAccessoryRecords(); // 🔥 해당 종목 카드만 렌더
 }
-   
 function renderAccessoryRecords() {
   const wrap = document.getElementById('acc-records');
   const list = accRecordsByExercise[currentExerciseName] || [];
@@ -2132,15 +2136,12 @@ function renderAccessoryRecords(){
 }
 
 
-cardEl.querySelector('.delete-btn').addEventListener('click', (e) => {
-    e.stopPropagation(); // ✅ 카드 클릭 이벤트 막기
-    currentExercises = currentExercises.filter(n => n !== name);
-    delete accRecordsByExercise[name];
-    renderExercises(); // 다시 그리기
-});
 
 
 
+function deleteExercise(name, e){
+  e.stopPropagation(); // 🔥 카드 클릭 이벤트 전파 차단
+  if(!confirm(`${name} 종목을 삭제하시겠습니까?`)) return;
 
   // 로컬 제거
   accRecordsByExercise[currentPart] = accRecordsByExercise[currentPart].filter(n => n !== name);
@@ -2154,7 +2155,7 @@ cardEl.querySelector('.delete-btn').addEventListener('click', (e) => {
                   .collection('accessories').doc(currentPart);
     ref.set({ list: accRecordsByExercise[currentPart] }, { merge: true });
   }
-
+}
 tabBtns.forEach(btn => {
   btn.addEventListener('click', ()=>{
     calPopup.classList.add("hidden");
@@ -2184,21 +2185,6 @@ tabBtns.forEach(btn => {
   });
 });
 
-// exerciseListEl에 이벤트 위임
-exerciseListEl.addEventListener('click', e => {
-  const deleteBtn = e.target.closest('.delete-btn');
-  if (!deleteBtn) return;
-
-  const cardEl = deleteBtn.closest('.exercise-card');
-  const name = cardEl.id.replace('card-', '');
-
-  // 배열에서 제거
-  currentExercises = currentExercises.filter(n => n !== name);
-  delete accRecordsByExercise[name];
-
-  // 다시 렌더
-  renderExercises();
-});
 
    
 
