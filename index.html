@@ -1311,82 +1311,70 @@ let calendarMode = "date";
 let calSelectedDate = null;
 let calSelectedMuscles = [];
 
+
 function calRender() {
-   
-   
   calDaysEl.innerHTML = "";
 
   const y = calCurrent.getFullYear();
   const m = calCurrent.getMonth();
- calMonthEl.textContent = `${y}년 ${m + 1}월`;
-
+  calMonthEl.textContent = `${y}년 ${m + 1}월`;
 
   const first = new Date(y, m, 1);
   const start = first.getDay();
   const last = new Date(y, m + 1, 0).getDate();
 
+  // 빈칸
   for (let i = 0; i < start; i++) {
     calDaysEl.appendChild(document.createElement("div"));
   }
 
-for (let d = 1; d <= last; d++) {
-  const cell = document.createElement("div");
-  const key = `${y}-${m + 1}-${d}`;
+  const today = new Date();
 
-  // 🔴 운동한 날 표시 (모드 상관없이 항상)
-  if (calData[key]?.muscles?.length) {
-    cell.classList.add("done");
-  }
+  for (let d = 1; d <= last; d++) {
+    const cell = document.createElement("div");
+    const key = `${y}-${m + 1}-${d}`;
 
-  if (calendarMode === "date") {
-    // 날짜 모드
-    cell.textContent = d;
-  } else {
-    // 종목 모드
-    if (calData[key]?.muscles?.length) {
-      cell.textContent = calData[key].muscles[0];
-    } else {
-      // ⚪ 회색칸: 셀은 유지, 글자만 제거
-      cell.textContent = "";
+    // 오늘 표시
+    if (
+      d === today.getDate() &&
+      m === today.getMonth() &&
+      y === today.getFullYear()
+    ) {
+      cell.classList.add("today");
     }
-  }
 
-  calDaysEl.appendChild(cell);
-}
+    // 운동한 날
+    if (calData[key]?.muscles?.length) {
+      cell.classList.add("done");
+    }
 
+    if (calendarMode === "date") {
+      cell.textContent = d;
+    } else {
+      if (calData[key]?.muscles?.length) {
+        cell.textContent = calData[key].muscles[0];
+      } else {
+        cell.textContent = "";
+      }
+    }
 
-
-
-const today = new Date();
-const isToday =
-  d === today.getDate() &&
-  m === today.getMonth() &&
-  y === today.getFullYear();
-
-if (isToday) {
-  cell.classList.add("today");
-}
-
-
- if (calData[key]?.muscles?.length) {
-  cell.classList.add("done");
-}
-
-
-
+    // long press
     let timer;
+    cell.addEventListener("mousedown", () => {
+      timer = setTimeout(() => calOpenPopup(key), 500);
+    });
+    cell.addEventListener("mouseup", () => clearTimeout(timer));
     cell.addEventListener("touchstart", () => {
       timer = setTimeout(() => calOpenPopup(key), 500);
     });
     cell.addEventListener("touchend", () => clearTimeout(timer));
 
-    cell.addEventListener("mousedown", () => {
-      timer = setTimeout(() => calOpenPopup(key), 500);
-    });
-    cell.addEventListener("mouseup", () => clearTimeout(timer));
-
     calDaysEl.appendChild(cell);
   }
+}
+
+
+   
 }
 
 
