@@ -482,10 +482,17 @@ td, th {
   border-radius: 8px;
   font-size: 20px;
   cursor: pointer;
-}
 
+  /* 🔥 이 3줄이 핵심 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  line-height: 1; /* 글자 흔들림 방지 */
+}
 .add-btn:active {
   background: #222;
+  transform: scale(0.96);
 }
 
 /* .css 붙여넣기 */
