@@ -1222,8 +1222,10 @@ function closeExerciseDetail(){
 async function loadExercises(part) {
   try {
     const snapshot = await db.collection("accessoryExercises")
-                             .doc(part)
-                             .get();
+                          .doc(part)               // ex: "shoulder"
+                             .collection(exercise)    // ex: "벤치프레스"
+                          .add({ weight: 60, reps: 10, timestamp: firebase.firestore.FieldValue.serverTimestamp() })
+
 
     if (!snapshot.exists) {
       currentExercises = [];
