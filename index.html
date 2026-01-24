@@ -2164,6 +2164,7 @@ function renderExercises() {
   currentExercises.forEach(item => {
     const name = typeof item === 'string' ? item : (item.name || 'unknown');
 const safeId = `card-${name.replace(/\s+/g, '-')}`;
+currentExercises = currentExercises.filter(item => item && (typeof item === 'string' || item.name));
 
 
     const card = document.createElement('div');
