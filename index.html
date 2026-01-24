@@ -1140,16 +1140,21 @@ const partButtons = document.querySelectorAll('.part-btn');
 const currentPartNameEl = document.getElementById('current-part-name');
 
 partButtons.forEach(btn => {
-  btn.addEventListener('click', async ()=>{
-    currentPart = btn.dataset.part;   // 🔥 현재 선택한 종목 저장
-    currentPartNameEl.textContent = currentPart;
-    partScreen.style.display = 'none';
-    exerciseScreen.style.display = 'block';
+  btn.addEventListener('click', async () => {
+    try {
+      currentPart = btn.dataset.part;   
+      currentPartNameEl.textContent = currentPart;
+      partScreen.style.display = 'none';
+      exerciseScreen.style.display = 'block';
 
-    // Firestore에서 해당 종목 불러오기
-    await loadExercises(currentPart);
+      // Firestore에서 해당 종목 불러오기
+      await loadExercises(currentPart);
+    } catch (e) {
+      console.error('loadExercises 에러:', e);
+    }
   });
 });
+
 
 function getAccessorySummary(name){
   const list = accRecordsByExercise[name];
@@ -1214,30 +1219,26 @@ function closeExerciseDetail(){
 
 
 
-async function loadExercises(part){
-  currentPart = part;
+async function loadExercises(part) {
+  try {
+    const snapshot = await db.collection("accessoryExercises")
+                             .doc(part)
+                             .get();
 
-  // 🔥 로컬에 캐시가 있으면 즉시 렌더
-  if(accRecordsByExercise[part]){
-    currentExercises = accRecordsByExercise[part];
-    renderExercises(); // 즉시 화면 렌더링
-  } else {
-    // 처음 불러오는 경우
+    if (!snapshot.exists) {
+      currentExercises = [];
+    } else {
+      currentExercises = snapshot.data().list || [];
+    }
+
+    renderExercises();  // UI 갱신
+  } catch (e) {
+    console.error('Firestore load 실패:', e);
     currentExercises = [];
-    renderExercises(); // 빈 상태 렌더 (선택 사항)
-  }
-
-  // Firestore fetch
-  const user = auth.currentUser;
-  if(user){
-    const ref = db.collection('users').doc(user.uid)
-                  .collection('accessories').doc(part);
-    const snap = await ref.get();
-    accRecordsByExercise[part] = snap.exists ? snap.data().list || [] : [];
-    currentExercises = accRecordsByExercise[part];
-    renderExercises(); // fetch 완료 후 화면 다시 렌더
+    renderExercises();
   }
 }
+
 
 
 
