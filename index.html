@@ -978,7 +978,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
-
+let currentExercises = [];
 /* 요소 참조 */
 const tabBtns = document.querySelectorAll('.tabBtn');
 const tabContents = document.querySelectorAll('.tabContent');
@@ -1177,7 +1177,7 @@ async function loadExercises(part){
 }
 
 
-async function addExercise(){
+async function addExercise() {
   if(!currentPart) return alert("먼저 종목을 선택하세요.");
 
   const name = prompt("운동 종목을 입력하시오");
@@ -1186,19 +1186,27 @@ async function addExercise(){
   // 종목별 배열 초기화
   if(!accRecordsByExercise[currentPart]) accRecordsByExercise[currentPart] = [];
 
+  // 새 운동 추가
   accRecordsByExercise[currentPart].unshift(name);
+
+  // 현재 종목 리스트 업데이트 후 렌더링
   currentExercises = accRecordsByExercise[currentPart];
   renderExercises();
 
+  // Firestore에 저장
   const user = auth.currentUser;
-  if (!user) return;
-
-  await db
-    .collection('users')
-    .doc(user.uid)
-    .collection('accessories')
-    .doc(currentPart)
-    .set({ list: currentExercises });
+  if (user) {
+    try {
+      await db
+        .collection('users')
+        .doc(user.uid)
+        .collection('accessories')
+        .doc(currentPart)
+        .set({ list: accRecordsByExercise[currentPart] });
+    } catch (err) {
+      console.error("Firestore 저장 실패:", err);
+    }
+  }
 }
 
 
