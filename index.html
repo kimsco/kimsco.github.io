@@ -2207,27 +2207,28 @@ currentExercises.forEach(item => {
 
         
         
-    
+    currentExercises.forEach(item => {
+  // item이 객체면 item.name, 아니면 item 그대로
+  const name = typeof item === 'string' ? item : item.name;
+  const safeId = `card-${name.replace(/\s+/g, '-')}`;
+  const card = document.getElementById(safeId);
+  if (!card) return;
 
-  // 클릭 이벤트 연결
-  currentExercises.forEach(name => {
-    const safeId = `card-${name.replace(/\s+/g, '-')}`;
-    const card = document.getElementById(safeId);
-    if (!card) return;
+  // 카드 클릭
+  card.addEventListener('click', () => openExerciseDetail(name));
 
-    // 카드 클릭
-    card.addEventListener('click', () => openExerciseDetail(name));
+  // 휴지통 클릭
+  const delBtn = card.querySelector('.delete-btn');
+  if (delBtn) {
+    delBtn.addEventListener('click', (e) => {
+      e.stopPropagation(); // 카드 클릭 막기
+      deleteExercise(name);
+    });
+  }
+});
 
-    // 휴지통 클릭
-    const delBtn = card.querySelector('.delete-btn');
-    if (delBtn) {
-      delBtn.addEventListener('click', (e) => {
-        e.stopPropagation(); // 카드 클릭 막기
-        deleteExercise(name);
-      });
-    }
-  });
-}
+
+
 
 
 // 카드 추가
