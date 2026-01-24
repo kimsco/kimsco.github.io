@@ -1223,64 +1223,92 @@ function closeExerciseDetail(){
 
 
 
-async function loadExercises(part){
-  currentPart = part;
 
-  // 🔥 로컬에 캐시가 있으면 즉시 렌더
-  if(accRecordsByExercise[part]){
-    currentExercises = accRecordsByExercise[part];
-    renderExercises(); // 즉시 화면 렌더링
-  } else {
-    // 처음 불러오는 경우
-    currentExercises = [];
-    renderExercises(); // 빈 상태 렌더 (선택 사항)
-  }
 
-  // Firestore fetch
-  const user = auth.currentUser;
-  if(user){
-    const ref = db.collection('users').doc(user.uid)
-                  .collection('accessories').doc(part);
-    const snap = await ref.get();
-    accRecordsByExercise[part] = snap.exists ? snap.data().list || [] : [];
-    currentExercises = accRecordsByExercise[part];
-    renderExercises(); // fetch 완료 후 화면 다시 렌더
-  }
+
+// ==============================
+// 🔥 보조운동 Firestore 안전 연동
+// ==============================
+
+// Firestore에서 종목 불러오기
+async function loadExercises(part) {
+    // 1️⃣ 로그인 확인
+    const user = auth.currentUser;
+    if (!user) {
+        exerciseListEl.innerHTML = `<div style="color:#ff5555; font-size:13px;">
+            로그인 후 접근 가능합니다
+        </div>`;
+        return; // 로그인 안되면 여기서 종료
+    }
+
+    // 2️⃣ Firestore 접근
+    try {
+        const snapshot = await db
+            .collection('users')
+            .doc(user.uid)
+            .collection('accessory')
+            .doc(part)
+            .get();
+
+        if (snapshot.exists) {
+            currentExercises = snapshot.data().exercises || [];
+        } else {
+            currentExercises = [];
+        }
+        renderExercises();
+    } catch (err) {
+        console.error("Firestore 불러오기 실패:", err);
+        exerciseListEl.innerHTML = `<div style="color:#ff5555; font-size:13px;">
+            데이터 로드 실패: ${err.message}
+        </div>`;
+    }
 }
 
-
-
-
+// 보조운동 종목 추가
 async function addExercise() {
-  if(!currentPart) return alert("먼저 종목을 선택하세요.");
+    const name = document.getElementById('exercise-search').value.trim();
+    if (!name) return fadeTempMsg(exerciseListEl, "종목 이름을 입력하세요", 1000);
 
-  const name = prompt("운동 종목을 입력하시오");
-  if (!name) return;
+    const user = auth.currentUser;
+    if (!user) return fadeTempMsg(exerciseListEl, "로그인 후 사용 가능", 1000);
 
-  // 종목별 배열 초기화
-  if(!accRecordsByExercise[currentPart]) accRecordsByExercise[currentPart] = [];
+    if (!currentExercises.includes(name)) currentExercises.unshift(name);
 
-  // 새 운동 추가
-  accRecordsByExercise[currentPart].unshift(name);
+    renderExercises();
 
-  // 현재 종목 리스트 업데이트 후 렌더링
-  currentExercises = accRecordsByExercise[currentPart];
-  renderExercises();
-
-  // Firestore에 저장
-  const user = auth.currentUser;
-  if (user) {
+    // Firestore에 저장
     try {
-      await db
-        .collection('users')
-        .doc(user.uid)
-        .collection('accessories')
-        .doc(currentPart)
-        .set({ list: accRecordsByExercise[currentPart] });
+        await db
+            .collection('users')
+            .doc(user.uid)
+            .collection('accessory')
+            .doc(currentPart)
+            .set({ exercises: currentExercises }, { merge: true });
     } catch (err) {
-      console.error("Firestore 저장 실패:", err);
+        console.error("Firestore 저장 실패:", err);
+        fadeTempMsg(exerciseListEl, "저장 실패: " + err.message, 1500);
     }
-  }
+}
+
+// 종목 삭제
+async function deleteExercise(name) {
+    const user = auth.currentUser;
+    if (!user) return fadeTempMsg(exerciseListEl, "로그인 후 사용 가능", 1000);
+
+    currentExercises = currentExercises.filter(n => n !== name);
+    renderExercises();
+
+    try {
+        await db
+            .collection('users')
+            .doc(user.uid)
+            .collection('accessory')
+            .doc(currentPart)
+            .set({ exercises: currentExercises }, { merge: true });
+    } catch (err) {
+        console.error("Firestore 삭제 실패:", err);
+        fadeTempMsg(exerciseListEl, "삭제 실패: " + err.message, 1500);
+    }
 }
 
 
