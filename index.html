@@ -1329,20 +1329,31 @@ function calRender() {
     calDaysEl.appendChild(document.createElement("div"));
   }
 
-  for (let d = 1; d <= last; d++) {
-    const cell = document.createElement("div");
-    const key = `${y}-${m + 1}-${d}`;
-    if (calendarMode === "date") {
-  // 날짜 모드
-  cell.textContent = d;
-} else {
-  // 종목 모드
+for (let d = 1; d <= last; d++) {
+  const cell = document.createElement("div");
+  const key = `${y}-${m + 1}-${d}`;
+
+  // 🔴 운동한 날 표시 (모드 상관없이 항상)
   if (calData[key]?.muscles?.length) {
-    cell.textContent = calData[key].muscles[0];
-  } else {
-    cell.textContent = "";
+    cell.classList.add("done");
   }
+
+  if (calendarMode === "date") {
+    // 날짜 모드
+    cell.textContent = d;
+  } else {
+    // 종목 모드
+    if (calData[key]?.muscles?.length) {
+      cell.textContent = calData[key].muscles[0];
+    } else {
+      // ⚪ 회색칸: 셀은 유지, 글자만 제거
+      cell.textContent = "";
+    }
+  }
+
+  calDaysEl.appendChild(cell);
 }
+
 
 
 
