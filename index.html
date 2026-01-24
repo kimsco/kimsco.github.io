@@ -2205,6 +2205,38 @@ document.querySelectorAll('.delete-btn').forEach(btn => {
 
 
    
+function saveAccessoryRecords() {
+    localStorage.setItem('accRecordsByExercise', JSON.stringify(accRecordsByExercise));
+}
+
+window.addEventListener('load', ()=>{
+    const savedAcc = localStorage.getItem('accRecordsByExercise');
+    if(savedAcc){
+        accRecordsByExercise = JSON.parse(savedAcc);
+        // 화면에 렌더링
+        if(currentExerciseName) renderAccessorySets(currentExerciseName);
+    }
+});
+
+   function addAccessorySet() {
+    if(!currentExerciseName) return;
+    const w = parseFloat(document.getElementById('acc-weight').value);
+    const r = parseInt(document.getElementById('acc-reps').value);
+    if(!w || !r) return;
+
+    if(!accRecordsByExercise[currentExerciseName]){
+        accRecordsByExercise[currentExerciseName] = [];
+    }
+    accRecordsByExercise[currentExerciseName].unshift({
+        date: new Date().toISOString().slice(0,10),
+        weight: w,
+        reps: r
+    });
+
+    renderAccessorySets(currentExerciseName);
+    saveAccessoryRecords(); // 🔥 여기서 localStorage에 저장
+}
+
 
 
    
