@@ -2163,12 +2163,14 @@ function deleteExercise(e){
 
 async function deleteExerciseFromDB(part, name){
     try {
-        await db.collection('accessoryExercises')
-                .doc(part)
-                .collection('exercises')
-                .doc(name)
-                .delete();
-        console.log(name + ' 삭제 완료');
+        await db.collection('users')
+        .doc(auth.currentUser.uid)
+        .collection('accessoryExercises')
+        .doc(exerciseName)
+        .set({
+            name: exerciseName,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
     } catch(err){
         console.error('삭제 실패:', err);
     }
