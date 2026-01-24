@@ -2202,28 +2202,31 @@ tabBtns.forEach(btn => {
   });
 });
 
-if(confirm(`정말 '${exName}' 종목을 삭제하시겠습니까?`)){
-    // Firestore에서 삭제
+function deleteAccessorySet(exName, setId, card){
+  if(confirm('이 기록을 삭제하시겠습니까?')){
     db.collection('accessories')
       .doc(currentPart)
       .collection('exercises')
       .doc(exName)
+      .collection('sets')
+      .doc(setId)
       .delete()
       .then(()=>{
-          // 배열에서도 제거
-          currentExercises = currentExercises.filter(n => n !== exName);
-          delete accRecordsByExercise[exName];
-
           // 화면에서 제거
           card.remove();
 
-          fadeTempMsg(recordMessage, `'${exName}' 삭제 완료!`, 1200);
+          // 로컬 변수에서도 제거
+          accRecordsByExercise[exName] = accRecordsByExercise[exName].filter(s => s.id !== setId);
       })
-      .catch(err => {
-          console.error(err);
-          alert('삭제 실패!');
-      });
+      .catch(err => console.error(err));
+  }
 }
+function deleteCardLocally(exName, setId, card){
+    accRecordsByExercise[exName] = accRecordsByExercise[exName].filter(s => s.id !== setId);
+    card.remove();
+    localStorage.setItem('accRecords', JSON.stringify(accRecordsByExercise));
+}
+
 
    
 
