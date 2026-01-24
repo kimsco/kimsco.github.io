@@ -1156,26 +1156,30 @@ exerciseListEl.innerHTML = currentExercises.map(name => `
 }
 
 async function loadExercises(part){
-  currentExercises = [];               // 기존 리스트 비우기
-  renderExercises();                   // 화면 먼저 초기화 → '아직 추가된 종목이 없습니다' 표시
+  currentPart = part;
 
-  const user = auth.currentUser;
-  if (!user) {
-    accRecordsByExercise[part] = [];
-    return;
+  // 🔥 로컬에 캐시가 있으면 즉시 렌더
+  if(accRecordsByExercise[part]){
+    currentExercises = accRecordsByExercise[part];
+    renderExercises(); // 즉시 화면 렌더링
+  } else {
+    // 처음 불러오는 경우
+    currentExercises = [];
+    renderExercises(); // 빈 상태 렌더 (선택 사항)
   }
 
-  const ref = db
-    .collection('users')
-    .doc(user.uid)
-    .collection('accessories')
-    .doc(part);
-
-  const snap = await ref.get();
-  accRecordsByExercise[part] = snap.exists ? snap.data().list || [] : [];
-  currentExercises = accRecordsByExercise[part];
-  renderExercises();                   // 새 종목 화면 렌더링
+  // Firestore fetch
+  const user = auth.currentUser;
+  if(user){
+    const ref = db.collection('users').doc(user.uid)
+                  .collection('accessories').doc(part);
+    const snap = await ref.get();
+    accRecordsByExercise[part] = snap.exists ? snap.data().list || [] : [];
+    currentExercises = accRecordsByExercise[part];
+    renderExercises(); // fetch 완료 후 화면 다시 렌더
+  }
 }
+
 
 
 
