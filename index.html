@@ -2232,40 +2232,47 @@ function renderExercises() {
     return;
   }
 
-  exerciseListEl.innerHTML = currentExercises.map(name => `
-    <div class="exercise-card" id="card-${name}">
-      <div class="exercise-name">${name}</div>
-      <div class="exercise-sub">${getAccessorySummary(name)}</div>
-      <button class="delete-btn" aria-label="삭제">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="3" y1="4" x2="21" y2="4"></line>
-          <line x1="8" y1="4" x2="8" y2="2"></line>
-          <line x1="16" y1="4" x2="16" y2="2"></line>
-          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-          <line x1="8" y1="8" x2="8" y2="20"></line>
-          <line x1="12" y1="8" x2="12" y2="20"></line>
-          <line x1="16" y1="8" x2="16" y2="20"></line>
-        </svg>
-      </button>
-    </div>
-  `).join('');
+  exerciseListEl.innerHTML = currentExercises.map(name => {
+    const safeId = `card-${name.replace(/\s+/g, '-')}`; // 공백 제거
+    return `
+      <div class="exercise-card" id="${safeId}">
+        <div class="exercise-name">${name}</div>
+        <div class="exercise-sub">${getAccessorySummary(name)}</div>
+        <button class="delete-btn" aria-label="삭제">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="4" x2="21" y2="4"></line>
+            <line x1="8" y1="4" x2="8" y2="2"></line>
+            <line x1="16" y1="4" x2="16" y2="2"></line>
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="8" y1="8" x2="8" y2="20"></line>
+            <line x1="12" y1="8" x2="12" y2="20"></line>
+            <line x1="16" y1="8" x2="16" y2="20"></line>
+          </svg>
+        </button>
+      </div>
+    `;
+  }).join('');
 
   // 클릭 이벤트 연결
   currentExercises.forEach(name => {
-    const card = document.getElementById(`card-${name}`);
+    const safeId = `card-${name.replace(/\s+/g, '-')}`;
+    const card = document.getElementById(safeId);
+    if (!card) return;
 
     // 카드 클릭
     card.addEventListener('click', () => openExerciseDetail(name));
 
     // 휴지통 클릭
     const delBtn = card.querySelector('.delete-btn');
-    delBtn.addEventListener('click', (e) => {
+    if (delBtn) {
+      delBtn.addEventListener('click', (e) => {
         e.stopPropagation(); // 카드 클릭 막기
         deleteExercise(name);
-    });
-});
-
+      });
+    }
+  });
 }
+
 
 // 카드 추가
 async function addExercise() {
