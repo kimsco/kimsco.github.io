@@ -1931,16 +1931,17 @@ function getAccessorySummary(name) {
   const dates = Object.keys(data);
   if (dates.length === 0) return '기록 없음';
 
-  // 가장 최근 날짜
   const latestDate = dates.sort().reverse()[0];
   const sets = data[latestDate];
 
   if (!sets || sets.length === 0) return '기록 없음';
 
-  const lastSet = sets[sets.length - 1];
-
-  return `${latestDate} · ${lastSet.weight}kg × ${lastSet.reps}회`;
+  return `
+    ${latestDate}<br>
+    ${sets.map(s => `${s.weight}kg × ${s.reps}회`).join('<br>')}
+  `;
 }
+
 
 
    
