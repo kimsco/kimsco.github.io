@@ -1982,8 +1982,61 @@ function getAccessorySummary(name) {
     ${sets.map(s => `${s.weight}kg × ${s.reps}회`).join('<br>')}
   `;
 }
+function addAccessorySet(){
+  if(!currentExerciseName) return;
 
+  const weight = parseInt(document.getElementById('acc-weight').value);
+  const reps = parseInt(document.getElementById('acc-reps').value);
 
+  if(!weight || !reps) return;
+
+  const date = formatTodayYYMMDD();
+
+  if(!accRecordsByExercise[currentExerciseName]){
+    accRecordsByExercise[currentExerciseName] = [];
+  }
+
+  accRecordsByExercise[currentExerciseName].unshift({
+    date,
+    weight,
+    reps
+  });
+
+  document.getElementById('acc-weight').value = '';
+  document.getElementById('acc-reps').value = '';
+
+  renderAccessoryRecords();
+  renderExercises(); // 🔥 요약 갱신
+}
+
+function renderAccessoryRecords(){
+  const wrap = document.getElementById('acc-records');
+  const list = accRecordsByExercise[currentExerciseName] || [];
+
+  if(list.length === 0){
+    wrap.innerHTML = '';
+    return;
+  }
+
+  wrap.innerHTML = `
+    <div class="record-day">
+      <div class="date">${list[0].date}</div>
+      ${list.map(r=>`
+        <div class="set">${r.weight}kg × ${r.reps}회</div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function openExerciseDetail(name){
+  currentExerciseName = name;
+
+  document.getElementById('exercise-screen').style.display = 'none';
+  document.getElementById('exercise-detail-screen').style.display = 'block';
+  document.getElementById('detail-exercise-name').textContent = name;
+
+  renderAccessoryRecords();
+}
 
    
 
