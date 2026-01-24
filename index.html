@@ -314,8 +314,8 @@ td, th {
   font-weight: 600;
 }
 
-/* 빈칸 (월 시작 전) */
-.days div:empty {
+/* 월 시작 전 진짜 빈칸만 */
+.days div.empty {
   background: transparent;
   cursor: default;
 }
@@ -1324,9 +1324,11 @@ function calRender() {
   const last = new Date(y, m + 1, 0).getDate();
 
   // 빈칸
-  for (let i = 0; i < start; i++) {
-    calDaysEl.appendChild(document.createElement("div"));
-  }
+ for (let i = 0; i < start; i++) {
+  const empty = document.createElement("div");
+  empty.classList.add("empty");
+  calDaysEl.appendChild(empty);
+}
 
   const today = new Date();
 
