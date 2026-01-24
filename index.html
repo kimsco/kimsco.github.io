@@ -532,6 +532,21 @@ td, th {
   color: #777;
 }
 
+.calendar-toggle {
+  margin-top: 12px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: #2a2a2a;
+  color: #eee;
+  font-size: 13px;
+  border: none;
+  cursor: pointer;
+}
+
+.calendar-toggle.active {
+  background: #8b0000;
+  color: #fff;
+}
 
    
 /* .css 붙여넣기 */
@@ -709,6 +724,11 @@ input[type="number"] {
            <div>토</div>
         </div>
         <div id="calDays" class="days"></div>
+    
+       <button id="calendarToggle" class="calendar-toggle">
+  종목 보기
+</button>
+
     </div>
 </div>
 
@@ -1266,12 +1286,27 @@ setTodayDisplay();
 
 const calDaysEl = document.getElementById("calDays");
 const calMonthEl = document.getElementById("calMonth");
+const calendarToggleBtn = document.getElementById("calendarToggle");
+
+calendarToggleBtn.addEventListener("click", () => {
+  calendarMode = calendarMode === "date" ? "muscle" : "date";
+
+  calendarToggleBtn.classList.toggle("active");
+  calendarToggleBtn.textContent =
+    calendarMode === "date" ? "종목 보기" : "날짜 보기";
+
+  calRender(); // 🔥 달력 다시 그림
+});
+
+   
 const calPopup = document.getElementById("calPopup");
 const calPopupDate = document.getElementById("calPopupDate");
 const calMuscleBtns = calPopup.querySelectorAll(".muscles button");
 
 let calCurrent = new Date();
    let calData = {}; // 🔥 Firestore에서 채울 예정
+let calendarMode = "date"; 
+// "date" | "muscle"
 
 let calSelectedDate = null;
 let calSelectedMuscles = [];
@@ -1297,7 +1332,18 @@ function calRender() {
   for (let d = 1; d <= last; d++) {
     const cell = document.createElement("div");
     const key = `${y}-${m + 1}-${d}`;
-    cell.textContent = d;
+    if (calendarMode === "date") {
+  // 날짜 모드
+  cell.textContent = d;
+} else {
+  // 종목 모드
+  if (calData[key]?.muscles?.length) {
+    cell.textContent = calData[key].muscles[0];
+  } else {
+    cell.textContent = "";
+  }
+}
+
 
 
 const today = new Date();
