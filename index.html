@@ -1512,17 +1512,11 @@ function calRender() {
  // long press (날짜 모드에서만)
 let timer;
 
-cell.addEventListener("mousedown", () => {
-  if (calendarMode !== "date") return;
-  timer = setTimeout(() => calOpenPopup(key), 500);
-});
+
 
 cell.addEventListener("mouseup", () => clearTimeout(timer));
 
-cell.addEventListener("touchstart", () => {
-  if (calendarMode !== "date") return;
-  timer = setTimeout(() => calOpenPopup(key), 500);
-});
+
 
 cell.addEventListener("touchend", () => clearTimeout(timer));
 
@@ -1730,7 +1724,9 @@ async function deleteRecord(id){
   renderActiveBox();
 
   const user = auth.currentUser;
-  if(user && String(id).length > 10){ // firestoreId일 때만
+  if (user && records.bench.concat(records.squat, records.dead)
+  .some(r => r.firestoreId === id)) {
+
     await db
       .collection('users')
       .doc(user.uid)
