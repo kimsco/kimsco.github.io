@@ -1196,7 +1196,10 @@ arr.forEach(it => {
 const dates = Object.keys(grouped);
 
 boxEl.innerHTML = dates.map(date => {
-  const records = grouped[date];
+  const records = grouped[date]
+  .slice()
+  .sort((a, b) => a.createdAt - b.createdAt); // 오래된 → 최신
+
 
   return `
     <div style="margin-bottom:10px;">
@@ -1208,6 +1211,7 @@ boxEl.innerHTML = dates.map(date => {
           <div
                  class="record-line"
                  data-id="${r.firestoreId}"
+                 data-id="${r.firestoreId || r.localId}"
                  style="margin-left:auto; text-align:right; cursor:pointer;"
                   >
                  ${r.weight}kg × ${r.reps}회
@@ -1247,14 +1251,15 @@ recordAdd.addEventListener('click', async ()=>{
 
     const item = {
         firestoreId: null,
+       localId: Date.now() + Math.random(), // 🔥 추가
         date,
         weight,
         reps
     };
 
-    if(lift === 'bench') records.bench.push(item);
-   if(lift === 'squat') records.squat.push(item);
-   if(lift === 'dead')  records.dead.push(item);
+    f(lift === 'bench') records.bench.unshift(item);
+if(lift === 'squat') records.squat.unshift(item);
+if(lift === 'dead')  records.dead.unshift(item);
 
     recordWeight.value = '';
     recordReps.value = '';
@@ -1277,6 +1282,7 @@ recordAdd.addEventListener('click', async ()=>{
               });
 
             item.firestoreId = docRef.id;
+           
         }catch(e){
             console.error('Firestore add err', e);
         }
@@ -1338,10 +1344,12 @@ auth.onAuthStateChanged(async user=>{
                 if(!d || !d.lift) return;
 
                const item = {
+               
   firestoreId: doc.id,
   date: d.date,
   weight: d.weight,
   reps: d.reps
+    createdAt: d.createdAt?.toMillis?.() || 0
 };
 
                 if(d.lift === 'bench') records.bench.push(item);
@@ -1708,8 +1716,28 @@ document.addEventListener("touchmove", () => {
   clearTimeout(recordPressTimer);
 });
 
-async function deleteRecord(firestoreId){
-  if(!firestoreId) return;
+async function deleteRecord(id){
+  if(!id) return;
+
+  ["bench","squat","dead"].forEach(type=>{
+    records[type] = records[type].filter(r =>
+      r.firestoreId !== id && r.localId !== id
+    );
+  });
+
+  renderActiveBox();
+
+  const user = auth.currentUser;
+  if(user && String(id).length > 10){ // firestoreId일 때만
+    await db
+      .collection('users')
+      .doc(user.uid)
+      .collection('records')
+      .doc(id)
+      .delete();
+  }
+}
+
 
   // 🔥 로컬 삭제
   ["bench","squat","dead"].forEach(type=>{
