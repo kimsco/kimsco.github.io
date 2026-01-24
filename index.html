@@ -700,7 +700,13 @@ input[type="number"] {
     <button id="calNext" class="month-btn">&gt;</button>
 </div>
         <div class="weekdays">
-            <div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div><div>일</div>
+           <div>일</div>
+           <div>월</div>
+           <div>화</div>
+           <div>수</div>
+           <div>목</div>
+           <div>금</div>
+           <div>토</div>
         </div>
         <div id="calDays" class="days"></div>
     </div>
@@ -1281,7 +1287,7 @@ function calRender() {
 
 
   const first = new Date(y, m, 1);
-  const start = (first.getDay() + 6) % 7;
+  const start = first.getDay();
   const last = new Date(y, m + 1, 0).getDate();
 
   for (let i = 0; i < start; i++) {
