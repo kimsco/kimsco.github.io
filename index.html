@@ -1212,7 +1212,7 @@ boxEl.innerHTML = dates.map(date => {
           </div>
           <div
                  class="record-line"
-                 data-id="${r.firestoreId}"
+                 
                  data-id="${r.firestoreId || r.localId}"
                  style="margin-left:auto; text-align:right; cursor:pointer;"
                   >
@@ -1350,7 +1350,7 @@ auth.onAuthStateChanged(async user=>{
   firestoreId: doc.id,
   date: d.date,
   weight: d.weight,
-  reps: d.reps
+  reps: d.reps,
     createdAt: d.createdAt?.toMillis?.() || 0
 };
 
@@ -1741,24 +1741,7 @@ async function deleteRecord(id){
 }
 
 
-  // 🔥 로컬 삭제
-  ["bench","squat","dead"].forEach(type=>{
-    records[type] = records[type].filter(r => r.firestoreId !== firestoreId);
-  });
 
-  renderActiveBox();
-
-  // 🔥 Firestore 삭제
-  const user = auth.currentUser;
-  if(user){
-    await db
-      .collection('users')
-      .doc(user.uid)
-      .collection('records')
-      .doc(firestoreId)
-      .delete();
-  }
-}
 const partScreen = document.getElementById('acc-part-screen');
 const exerciseScreen = document.getElementById('exercise-screen');
 const partTitle = document.getElementById('current-part-name');
