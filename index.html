@@ -1194,7 +1194,17 @@ function renderExercises(){
     </div>
   `).join('');
 
-
+  // 카드 클릭 이벤트 연결
+  currentExercises.forEach(name => {
+    const card = document.getElementById(`card-${name}`);
+    card.onclick = () => openExerciseDetail(name);
+    // 휴지통 클릭 이벤트
+    const delBtn = card.querySelector('.delete-btn');
+    delBtn.onclick = (e) => {
+      e.stopPropagation(); // 카드 클릭 이벤트 방지
+      deleteExercise(name);
+    };
+  });
 }
 
 // 카드 클릭 → 입력창 보여주기
