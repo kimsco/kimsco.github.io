@@ -2186,6 +2186,16 @@ tabBtns.forEach(btn => {
   });
 });
 
+exerciseListEl.addEventListener('click', e => {
+  if(e.target.closest('.delete-btn')) {
+    const cardEl = e.target.closest('.exercise-card');
+    const name = cardEl.id.replace('card-', '');
+    // 배열에서 제거
+    currentExercises = currentExercises.filter(n => n !== name);
+    delete accRecordsByExercise[name];
+    renderExercises();
+  }
+});
 
    
 
