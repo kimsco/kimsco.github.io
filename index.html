@@ -1846,13 +1846,14 @@ threeToggleBtn.addEventListener("click", () => {
 });
 // 🔥 종목별 기록 (로컬 전용)
 const accessoryRecords = {
-  chest: {},
-  back: {},
-  shoulder: {},
-  leg: {},
-  arm: {}
+  // 예시 구조
+  // "체스트프레스": {
+  //   "2026.01.24": [
+  //     { weight: 20, reps: 5 },
+  //     { weight: 30, reps: 4 }
+  //   ]
+  // }
 };
-   
 let currentExercise = null;
 
 function openExerciseDetail(name) {
@@ -1863,19 +1864,12 @@ function openExerciseDetail(name) {
 
   document.getElementById('detail-exercise-name').textContent = name;
 
-  // 🔥 부위 기준으로 보장
-  if (!accessoryRecords[currentPart]) {
-    accessoryRecords[currentPart] = {};
-  }
-
-  if (!accessoryRecords[currentPart][name]) {
-    accessoryRecords[currentPart][name] = {};
+  if (!accessoryRecords[name]) {
+    accessoryRecords[name] = {};
   }
 
   renderAccessoryRecords();
 }
-
-   
 function closeExerciseDetail() {
   document.getElementById('exercise-detail-screen').style.display = 'none';
   exerciseScreen.style.display = 'block';
@@ -1898,12 +1892,11 @@ function addAccessorySet() {
 
   const date = getToday();
 
-if (!accessoryRecords[currentPart][currentExercise][date]) {
-  accessoryRecords[currentPart][currentExercise][date] = [];
-}
+  if (!accessoryRecords[currentExercise][date]) {
+    accessoryRecords[currentExercise][date] = [];
+  }
 
-accessoryRecords[currentPart][currentExercise][date].push({ weight, reps });
-
+  accessoryRecords[currentExercise][date].push({ weight, reps });
 
   document.getElementById('acc-weight').value = '';
   document.getElementById('acc-reps').value = '';
@@ -1914,9 +1907,7 @@ function renderAccessoryRecords() {
   const wrap = document.getElementById('acc-records');
   wrap.innerHTML = '';
 
-  const records = accessoryRecords[currentPart][currentExercise];
-   if (!records) return;
-   
+  const records = accessoryRecords[currentExercise];
   const dates = Object.keys(records).sort().reverse(); // 최신 오른쪽
 
   dates.forEach(date => {
@@ -1934,23 +1925,22 @@ function renderAccessoryRecords() {
   });
 }
 function getAccessorySummary(name) {
-  const partData = accessoryRecords[currentPart];
-  if (!partData || !partData[name]) return '기록 없음';
+  const data = accessoryRecords[name];
+  if (!data) return '기록 없음';
 
-  const data = partData[name];
   const dates = Object.keys(data);
   if (dates.length === 0) return '기록 없음';
 
+  // 가장 최근 날짜
   const latestDate = dates.sort().reverse()[0];
   const sets = data[latestDate];
 
-  return `
-    ${latestDate} ·
-    ${sets.map(s => `${s.weight}kg × ${s.reps}회`).join(', ')}
-  `;
+  if (!sets || sets.length === 0) return '기록 없음';
+
+  const lastSet = sets[sets.length - 1];
+
+  return `${latestDate} · ${lastSet.weight}kg × ${lastSet.reps}회`;
 }
-
-
 
 
    
