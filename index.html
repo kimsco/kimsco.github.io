@@ -654,27 +654,24 @@ cursor: pointer;
 
 .delete-btn {
    position: absolute;
-   top: 8px;
-   right: 8px;
-   width: 24px;
-   height: 24px;
-
-   background: none;      /* 배경 없음 */
-   border: none;          /* 테두리 없음 */
-   color: #888;           /* 무채색 회색 */
-   font-size: 20px;       /* 아이콘 크기 */
-   display: flex;
-   align-items: center;
-   justify-content: center;
-   cursor: pointer;
-   transition: color 0.2s ease;
+  top: 8px;
+  right: 8px;
+  width: 24px;   /* 버튼 크기 최소화 */
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  font-size: 16px;
+  border: none;
+  background: transparent;
+  color: #ff5555;
+  cursor: pointer;
 }
 
 .delete-btn:hover {
-   color: #fff;           /* 호버 시 하이라이트 */
+  color: #ff0000;
 }
-
-
 
 
 
@@ -2140,34 +2137,6 @@ function deleteExercise(name, e){
     ref.set({ list: accRecordsByExercise[currentPart] }, { merge: true });
   }
 }
-tabBtns.forEach(btn => {
-  btn.addEventListener('click', ()=>{
-    calPopup.classList.add("hidden");
-
-    tabBtns.forEach(b=>b.classList.remove('active'));
-    btn.classList.add('active');
-
-    const target = btn.dataset.target;
-    tabContents.forEach(tc=>{
-      if(tc.id === target){
-        tc.classList.add('active');
-        tc.style.display = 'block';
-      } else {
-        tc.classList.remove('active');
-        tc.style.display = 'none';
-      }
-    });
-
-    // 🔥 Tip 탭 초기화
-    if(target === 'tab4'){
-      partScreen.style.display = 'block';
-      exerciseScreen.style.display = 'none';
-    } else {
-      // ✅ 탭4가 아닌 경우 보조운동 상세 화면 숨기기
-      document.getElementById('exercise-detail-screen').style.display = 'none';
-    }
-  });
-});
 
 
    
