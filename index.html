@@ -1938,21 +1938,7 @@ const accessoryRecords = {
 };
 let currentExercise = null;
 
-function openExerciseDetail(name) {
-  currentExerciseName = name; // ✅ 현재 종목 저장
 
-  // 종목별 기록 배열 없으면 생성
-  if (!accRecordsByExercise[name]) {
-    accRecordsByExercise[name] = [];
-  }
-
-  document.getElementById('exercise-screen').style.display = 'none';
-  document.getElementById('exercise-detail-screen').style.display = 'block';
-
-  document.getElementById('detail-exercise-name').textContent = name;
-
-  renderAccessoryRecords(); // 🔥 해당 종목 카드만 렌더
-}
 
 function renderAccessorySets(exerciseName) {
     const container = document.getElementById('acc-records');
@@ -2232,13 +2218,20 @@ function renderExercises() {
     return;
   }
 
-  exerciseListEl.innerHTML = currentExercises.map(name => {
-    const safeId = `card-${name.replace(/\s+/g, '-')}`; // 공백 제거
-    return `
-      <div class="exercise-card" id="${safeId}">
-        <div class="exercise-name">${name}</div>
-        <div class="exercise-sub">${getAccessorySummary(name)}</div>
-        <button class="delete-btn" aria-label="삭제">
+ // 🔥 기존 exerciseListEl.innerHTML = ... 삭제
+exerciseListEl.innerHTML = '';
+
+// 카드 생성 + 클릭 이벤트 연결
+currentExercises.forEach(name => {
+  const safeId = `card-${name.replace(/\s+/g, '-')}`;
+  const card = document.createElement('div');
+  card.className = 'exercise-card';
+  card.id = safeId;
+
+  card.innerHTML = `
+    <div class="exercise-name">${name}</div>
+    <div class="exercise-sub">${getAccessorySummary(name)}</div>
+    <button class="delete-btn" aria-label="삭제">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="3" y1="4" x2="21" y2="4"></line>
             <line x1="8" y1="4" x2="8" y2="2"></line>
@@ -2249,9 +2242,29 @@ function renderExercises() {
             <line x1="16" y1="8" x2="16" y2="20"></line>
           </svg>
         </button>
-      </div>
-    `;
-  }).join('');
+  `;
+
+  // 카드 클릭 시 입력창 열기
+  card.addEventListener('click', () => {
+    openExerciseDetail(name);
+  });
+
+  // 삭제 버튼
+  card.querySelector('.delete-btn').addEventListener('click', (e) => {
+    e.stopPropagation(); // 카드 클릭 이벤트 방지
+    deleteExercise(name, e);
+  });
+
+  exerciseListEl.appendChild(card);
+});
+
+
+
+
+
+        
+        
+    
 
   // 클릭 이벤트 연결
   currentExercises.forEach(name => {
@@ -2302,9 +2315,18 @@ async function deleteExercise(name) {
 // 카드 입력창 열기
 function openExerciseDetail(name) {
   currentExerciseName = name;
-  document.getElementById('detail-exercise-name').textContent = name;
+
+  if(!accRecordsByExercise[name]){
+      accRecordsByExercise[name] = [];
+  }
+
+  document.getElementById('exercise-screen').style.display = 'none';
   document.getElementById('exercise-detail-screen').style.display = 'block';
+  document.getElementById('detail-exercise-name').textContent = name;
+
+  renderAccessoryRecords(); // 해당 종목 기록 렌더
 }
+
 
 // 카드 입력창 닫기
 function closeExerciseDetail() {
