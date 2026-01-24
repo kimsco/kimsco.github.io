@@ -1864,6 +1864,15 @@ document.addEventListener("touchmove", () => {
   clearTimeout(recordPressTimer);
 });
 
+document.addEventListener('DOMContentLoaded', () => {
+  const addBtn = document.getElementById('add-btn');
+  addBtn.addEventListener('click', addAccessorySet);
+
+  renderExercises(); 
+  renderAccessoryRecords();
+});
+
+   
 async function deleteRecord(id){
   if(!id) return;
 
