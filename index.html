@@ -1043,6 +1043,9 @@ for (let i = 1; i <= 10; i++) {
   opt.textContent = `${i}회`;
   repsSelect.appendChild(opt);
 }
+// ✅ 상단에 추가
+const partScreen = document.getElementById('acc-part-screen');
+const exerciseScreen = document.getElementById('exercise-screen');
 
 tabBtns.forEach(btn => {
   btn.addEventListener('click', ()=>{
@@ -1161,6 +1164,7 @@ function getAccessorySummary(name){
 
    
 // 카드 렌더링
+// ✅ 기존 renderExercises() HTML 그대로 사용
 function renderExercises(){
   if (!currentExercises.length) {
     exerciseListEl.innerHTML =
@@ -1168,61 +1172,57 @@ function renderExercises(){
     return;
   }
 
-  // 기존 클릭 이벤트 모두 제거
   exerciseListEl.innerHTML = currentExercises.map(name => `
     <div class="exercise-card" id="card-${name}">
       <div class="exercise-name">${name}</div>
       <div class="exercise-sub">${getAccessorySummary(name)}</div>
       <button class="delete-btn" aria-label="삭제">
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <!-- 뚜껑 -->
-    <line x1="3" y1="4" x2="21" y2="4"></line>
-    <line x1="8" y1="4" x2="8" y2="2"></line>
-    <line x1="16" y1="4" x2="16" y2="2"></line>
-
-    <!-- 휴지통 몸통 -->
-    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-
-    <!-- 안쪽 세로선 -->
-    <line x1="8" y1="8" x2="8" y2="20"></line>
-    <line x1="12" y1="8" x2="12" y2="20"></line>
-    <line x1="16" y1="8" x2="16" y2="20"></line>
-  </svg>
-</button>
-
-
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="3" y1="4" x2="21" y2="4"></line>
+          <line x1="8" y1="4" x2="8" y2="2"></line>
+          <line x1="16" y1="4" x2="16" y2="2"></line>
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="8" y1="8" x2="8" y2="20"></line>
+          <line x1="12" y1="8" x2="12" y2="20"></line>
+          <line x1="16" y1="8" x2="16" y2="20"></line>
+        </svg>
+      </button>
     </div>
   `).join('');
-
-  // 카드 클릭 이벤트 연결
-  currentExercises.forEach(name => {
-    const card = document.getElementById(`card-${name}`);
-    card.onclick = () => openExerciseDetail(name);
-    // 휴지통 클릭 이벤트
-    const delBtn = card.querySelector('.delete-btn');
-    delBtn.onclick = (e) => {
-      e.stopPropagation(); // 카드 클릭 이벤트 방지
-      deleteExercise(name);
-    };
-  });
-
- // 🔥 삭제 버튼 클릭 시 확인 후 삭제
-  document.querySelectorAll('.delete-btn').forEach(btn => {
-    btn.addEventListener('click', ()=>{
-      const card = btn.closest('.exercise-card');
-      const exName = card.querySelector('.exercise-name').textContent;
-
-      if(confirm(`정말 '${exName}' 종목을 삭제하시겠습니까?`)){
-        // 배열에서도 제거
-        currentExercises = currentExercises.filter(n => n !== exName);
-        delete accRecordsByExercise[exName];
-
-        // 화면에서 제거
-        card.remove();
-      }
-    });
-  });
 }
+
+// ✅ 삭제 버튼 이벤트 (render 밖에서 한 번만 붙임)
+exerciseListEl.addEventListener('click', async (e) => {
+  const deleteBtn = e.target.closest('.delete-btn');
+  if(!deleteBtn) return;
+
+  const cardEl = deleteBtn.closest('.exercise-card');
+  const name = cardEl.id.replace('card-', '');
+
+  // 1️⃣ UI에서 제거
+  currentExercises = currentExercises.filter(n => n !== name);
+  renderExercises();
+
+  // 2️⃣ localStorage 제거
+  if(currentPart && accRecordsByExercise[currentPart]){
+    accRecordsByExercise[currentPart] = accRecordsByExercise[currentPart].filter(r => r.name !== name);
+    localStorage.setItem(currentPart, JSON.stringify(accRecordsByExercise[currentPart]));
+  }
+
+  // 3️⃣ Firestore 제거
+  try {
+    await db.collection('accessories')
+            .doc(currentPart)
+            .collection('exercises')
+            .doc(name)
+            .delete();
+    fadeTempMsg(recordMessage, `${name} 삭제 완료`);
+  } catch(err){
+    console.error(err);
+    fadeTempMsg(recordMessage, `삭제 실패: ${name}`);
+  }
+});
+
 
 // 카드 클릭 → 입력창 보여주기
 function openExerciseDetail(name){
