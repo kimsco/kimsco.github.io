@@ -2227,6 +2227,32 @@ function deleteCardLocally(exName, setId, card){
     localStorage.setItem('accRecords', JSON.stringify(accRecordsByExercise));
 }
 
+// 카드 삭제
+exerciseListEl.addEventListener('click', async (e)=>{
+  if(e.target.closest('.delete-btn')){
+    const cardEl = e.target.closest('.exercise-card');
+    const name = cardEl.id.replace('card-', '');
+
+    // 1️⃣ UI에서 제거
+    currentExercises = currentExercises.filter(n => n !== name);
+    renderExercises();
+
+    // 2️⃣ localStorage 업데이트
+    if(currentPart){
+      accRecordsByExercise[currentPart] = accRecordsByExercise[currentPart].filter(r => r.name !== name);
+      localStorage.setItem(currentPart, JSON.stringify(accRecordsByExercise[currentPart]));
+    }
+
+    // 3️⃣ Firestore 삭제
+    try{
+      await db.collection('accessories').doc(currentPart).collection('exercises').doc(name).delete();
+      console.log(`${name} 삭제 완료`);
+    }catch(err){
+      console.error('Firestore 삭제 실패', err);
+    }
+
+  }
+});
 
    
 
