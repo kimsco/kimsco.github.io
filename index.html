@@ -1467,6 +1467,9 @@ document.addEventListener("mousedown", e => handleDatePressStart(e));
 document.addEventListener("touchstart", e => handleDatePressStart(e));
 
 function handleDatePressStart(e){
+    // ❌ 종목 모드에서는 long press 자체 차단
+    if (calendarMode === "muscle") return;
+
     const cell = e.target.closest(".days div");
     if(!cell || !cell.textContent) return;
 
@@ -1474,8 +1477,9 @@ function handleDatePressStart(e){
 
     longPressTimer = setTimeout(() => {
         calOpenPopup(key);
-    }, 500);  // 500ms 이상 눌러야 팝업
+    }, 500);
 }
+
 
 document.addEventListener("mouseup", e => clearLongPress(e));
 document.addEventListener("touchend", e => clearLongPress(e));
