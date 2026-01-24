@@ -1187,15 +1187,16 @@ function renderExercises(){
 
     exerciseListEl.appendChild(cardEl);
 
-    cardEl.querySelector('.delete-btn').addEventListener('click', () => {
-      currentExercises = currentExercises.filter(n => n !== name);
-      delete accRecordsByExercise[name];
-      renderExercises(); // 🔁 다시 그리기
-    });
+    
 
     // 카드 클릭 이벤트
-    cardEl.addEventListener('click', () => openExerciseDetail(name));
-  });
+   cardEl.querySelector('.delete-btn').addEventListener('click', (e) => {
+  e.stopPropagation(); // 🔥 클릭 이벤트 전파 차단
+  currentExercises = currentExercises.filter(n => n !== name);
+  delete accRecordsByExercise[name];
+  renderExercises(); // 🔁 다시 그리기
+});
+
 }
 
 
