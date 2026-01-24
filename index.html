@@ -2202,6 +2202,28 @@ tabBtns.forEach(btn => {
   });
 });
 
+if(confirm(`정말 '${exName}' 종목을 삭제하시겠습니까?`)){
+    // Firestore에서 삭제
+    db.collection('accessories')
+      .doc(currentPart)
+      .collection('exercises')
+      .doc(exName)
+      .delete()
+      .then(()=>{
+          // 배열에서도 제거
+          currentExercises = currentExercises.filter(n => n !== exName);
+          delete accRecordsByExercise[exName];
+
+          // 화면에서 제거
+          card.remove();
+
+          fadeTempMsg(recordMessage, `'${exName}' 삭제 완료!`, 1200);
+      })
+      .catch(err => {
+          console.error(err);
+          alert('삭제 실패!');
+      });
+}
 
    
 
