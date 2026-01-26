@@ -1002,6 +1002,9 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 let currentExercises = [];
+
+let exerciseRecords = {}; // 🔵 종목별 기록 전용
+
 /* 요소 참조 */
 const tabBtns = document.querySelectorAll('.tabBtn');
 const tabContents = document.querySelectorAll('.tabContent');
@@ -1940,6 +1943,15 @@ const accessoryRecords = {
   //   ]
   // }
 };
+   let accessoryRecords = {}; 
+// 구조:
+// {
+//   "벤치프레스": [
+//     { date, weight, reps },
+//     { date, weight, reps }
+//   ]
+// }
+
 let currentExercise = null;
 
 
@@ -1996,7 +2008,7 @@ function renderAccessoryRecords() {
 
    
 function getAccessorySummary(name) {
-  const records = accRecordsByExercise[name];
+  const records = exerciseRecords[name];
   if (!records || records.length === 0) return '';
 
   // 날짜별 그룹
@@ -2027,27 +2039,34 @@ function renderAccessorySets(name) {
 }
 
    
-function addAccessorySet() {
+function addAccessorySet(){
   if (!currentExerciseName) return;
 
-  const weight = parseFloat(document.getElementById('acc-weight').value);
+  const weight = parseInt(document.getElementById('acc-weight').value);
   const reps = parseInt(document.getElementById('acc-reps').value);
   if (!weight || !reps) return;
 
   const date = formatTodayYYMMDD();
 
-  if (!accRecordsByExercise[currentExerciseName]) {
-    accRecordsByExercise[currentExerciseName] = [];
+  if (!accessoryRecords[currentExerciseName]) {
+    accessoryRecords[currentExerciseName] = [];
   }
 
-  accRecordsByExercise[currentExerciseName].unshift({ date, weight, reps });
+  accessoryRecords[currentExerciseName].push({
+    date,
+    weight,
+    reps
+  });
 
-  document.getElementById('acc-weight').value = '';
-  document.getElementById('acc-reps').value = '';
+  // 🔥 저장
+  localStorage.setItem(
+    'accessoryRecords',
+    JSON.stringify(accessoryRecords)
+  );
 
-  renderAccessoryRecords(); // 카드 렌더
-  renderExercises();       // 요약/리스트 갱신
+  renderAccessoryRecords();
 }
+
 
 
 function renderAccessoryRecords(){
@@ -2362,6 +2381,12 @@ window.addEventListener('load', async () => {
     }
 });
 
+window.addEventListener('load', () => {
+  const saved = localStorage.getItem('accessoryRecords');
+  if (saved) {
+    accessoryRecords = JSON.parse(saved);
+  }
+});
 
    
    
