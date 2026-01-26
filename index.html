@@ -2004,26 +2004,25 @@ function getToday() {
 }
 
    
-function renderAccessoryRecords(exerciseName) {
-    const records = accRecordsByExercise[exerciseName] || [];
-    const container = document.getElementById('acc-records');
 
-    container.innerHTML = ''; // 초기화
 
-    records.forEach(rec => {
-        const div = document.createElement('div');
-        div.className = 'record-day';
-        div.innerHTML = `
-            <div class="date">${rec.date}</div>
-            <div class="set">${rec.weight} kg × ${rec.reps}회</div>
-        `;
-        container.appendChild(div);
-    });
+
+function renderAccessoryRecords() {
+  const wrap = document.getElementById('acc-records');
+  const list = accRecordsByExercise[currentExerciseName] || [];
+
+  if (list.length === 0) {
+    wrap.innerHTML = `<div style="color:#777; font-size:13px;">기록 없음</div>`;
+    return;
+  }
+
+  wrap.innerHTML = list.map(set => `
+    <div class="record-day">
+      <div class="date">${set.date}</div>
+      <div class="set">${set.weight}kg × ${set.reps}회</div>
+    </div>
+  `).join('');
 }
-
-
-
-
 
 
    
@@ -2041,34 +2040,47 @@ function renderAccessorySets(name) {
 }
 
    
-
-
 function addAccessorySet() {
-    const weight = parseFloat(document.getElementById('acc-weight').value);
-    const reps = parseInt(document.getElementById('acc-reps').value);
-    const date = new Date().toISOString().slice(0,10); // YYYY-MM-DD
+  if (!currentExerciseName) return;
 
-    if(!weight || !reps) {
-        fadeTempMsg(recordMessage, "무게와 횟수를 입력하세요");
-        return;
-    }
+  const weight = parseFloat(document.getElementById('acc-weight').value);
+  const reps = parseInt(document.getElementById('acc-reps').value);
+  if (!weight || !reps) return;
 
-    if(!currentExerciseName) return;
+  const date = formatTodayYYMMDD();
 
-    // Firebase 저장
-    db.collection("accessoryRecords")
-      .doc(auth.currentUser.uid)
-      .collection(currentExerciseName)
-      .add({ date, weight, reps })
-      .then(() => {
-          fadeTempMsg(recordMessage, "기록 저장 완료!");
-          if(!accRecordsByExercise[currentExerciseName])
-              accRecordsByExercise[currentExerciseName] = [];
-          accRecordsByExercise[currentExerciseName].push({date, weight, reps});
-          renderAccessoryRecords(currentExerciseName);
-      });
+  if (!accRecordsByExercise[currentExerciseName]) {
+    accRecordsByExercise[currentExerciseName] = [];
+  }
+
+  accRecordsByExercise[currentExerciseName].unshift({ date, weight, reps });
+
+  document.getElementById('acc-weight').value = '';
+  document.getElementById('acc-reps').value = '';
+
+  renderAccessoryRecords(); // 카드 렌더
+  renderExercises();       // 요약/리스트 갱신
 }
 
+
+function renderAccessoryRecords(){
+  const wrap = document.getElementById('acc-records');
+  const list = accRecordsByExercise[currentExerciseName] || [];
+
+  if(list.length === 0){
+    wrap.innerHTML = '';
+    return;
+  }
+
+  wrap.innerHTML = `
+    <div class="record-day">
+      <div class="date">${list[0].date}</div>
+      ${list.map(r=>`
+        <div class="set">${r.weight}kg × ${r.reps}회</div>
+      `).join('')}
+    </div>
+  `;
+}
 
 
 
@@ -2148,17 +2160,6 @@ window.addEventListener('load', ()=>{
 });
 
 
-function selectExercise(name) {
-    currentExerciseName = name;
-    document.getElementById('detail-exercise-name').textContent = name;
-
-    renderAccessoryRecords(name);
-
-    // 화면 전환
-    document.getElementById('acc-part-screen').style.display = 'none';
-    document.getElementById('exercise-screen').style.display = 'none';
-    document.getElementById('exercise-detail-screen').style.display = 'block';
-}
 
 // ===============================
 // 🔥 카드 기록 동기화 (Firestore)
