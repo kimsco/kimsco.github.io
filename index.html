@@ -1481,6 +1481,7 @@ googleLoginBtn.addEventListener('click', ()=>{
     auth.signInWithPopup(provider).catch(e=>alert('로그인 실패: '+e.message));
 });
 logoutBtn.addEventListener('click', ()=> auth.signOut());
+   
 
 auth.onAuthStateChanged(async user => {
   if (user) {
@@ -1563,7 +1564,11 @@ auth.onAuthStateChanged(async user => {
     } catch (e) {
       console.error("calendar load error", e);
     }
-
+ // 로그인 후 첫 종목 자동 선택
+    const firstExercise = Object.keys(accRecordsByExercise)[0];
+    if(firstExercise){
+        currentExerciseName = firstExercise;
+        await loadAccessorySets(currentExerciseName);
   } else {
     googleLoginBtn.style.display = 'block';
     logoutBtn.style.display = 'none';
@@ -2476,17 +2481,7 @@ async function loadAccessoryRecordsFromDB(user){
   }
 }
 
-auth.onAuthStateChanged(async user => {
-  if (user) {
-    ...
-    // 로그인 후 첫 종목 자동 선택
-    const firstExercise = Object.keys(accRecordsByExercise)[0];
-    if(firstExercise){
-        currentExerciseName = firstExercise;
-        await loadAccessorySets(currentExerciseName);
-    }
-  }
-});
+
 
 
 
