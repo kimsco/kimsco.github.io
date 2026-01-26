@@ -2476,6 +2476,20 @@ async function loadAccessoryRecordsFromDB(user){
   }
 }
 
+auth.onAuthStateChanged(async user => {
+  if (user) {
+    ...
+    // 로그인 후 첫 종목 자동 선택
+    const firstExercise = Object.keys(accRecordsByExercise)[0];
+    if(firstExercise){
+        currentExerciseName = firstExercise;
+        await loadAccessorySets(currentExerciseName);
+    }
+  }
+});
+
+
+
    
 
 </script>
