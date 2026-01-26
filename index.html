@@ -2449,13 +2449,15 @@ auth.onAuthStateChanged(user => {
 document.addEventListener('DOMContentLoaded', async () => {
   renderExercises(); 
 
+  // 유저가 이미 로그인되어 있으면
   const user = auth.currentUser;
-  if(user){
-    await loadAccessoryRecordsFromDB(user); // ← 새로 추가
+  if(user && currentExerciseName){
+    await loadAccessorySets(currentExerciseName); // DB에서 기록 불러오기
+  } else {
+    renderAccessoryRecords(); // 없으면 그냥 빈 화면
   }
-
-  renderAccessoryRecords(); // DB에서 가져온 기록 렌더
 });
+
 
 async function loadAccessoryRecordsFromDB(user){
   try{
