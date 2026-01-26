@@ -1412,74 +1412,65 @@ boxEl.innerHTML = dates.map(date => {
 }
 renderActiveBox();
 
-
-// 1. Firestore에서 기존 기록 불러오기
-async function loadAllRecords(user) {
-  const snap = await db
-    .collection('users')
-    .doc(user.uid)
-    .collection('records')
-    .orderBy('createdAt', 'desc')
-    .get();
-
-  records.bench = [];
-  records.squat = [];
-  records.dead = [];
-
-  snap.forEach(doc => {
-    const d = doc.data();
-    const item = {
-      firestoreId: doc.id,
-      date: d.date,
-      weight: d.weight,
-      reps: d.reps
-    };
-    if(d.lift === 'bench') records.bench.push(item);
-    if(d.lift === 'squat') records.squat.push(item);
-    if(d.lift === 'dead') records.dead.push(item);
-  });
-
-  renderActiveBox();
-}
-
-// 2. 저장 버튼 클릭
+/* 기록 추가 (가로 폼에서 저장) */
 recordAdd.addEventListener('click', async ()=>{
-  const weight = parseInt(recordWeight.value);
-  const reps = parseInt(recordReps.value);
-  if(!weight || !reps) return;
+    console.log("🔥 저장 버튼 클릭됨");
+    const weight = parseInt(recordWeight.value);
+    const reps = parseInt(recordReps.value);
 
-  const date = formatTodayYYMMDD();
+    if(!weight || !reps){
+        fadeTempMsg(recordMessage, '무게와 횟수를 입력하세요', 900, 600);
+        return;
+    }
 
-  const activeBtn = document.querySelector('.folderBtn.active');
-  const target = activeBtn ? activeBtn.dataset.target : 'benchBox';
-  const lift = target === 'benchBox' ? 'bench' :
-               target === 'squatBox' ? 'squat' : 'dead';
+    const date = formatTodayYYMMDD();
 
-  const item = { firestoreId: null, localId: Date.now(), date, weight, reps };
+    const activeBtn = document.querySelector('.folderBtn.active');
+    const target = activeBtn ? activeBtn.dataset.target : 'benchBox';
 
-  // 3. 배열에 추가
-  if(lift === 'bench') records.bench.unshift(item);
-  if(lift === 'squat') records.squat.unshift(item);
-  if(lift === 'dead')  records.dead.unshift(item);
+    const lift =
+      target === 'benchBox' ? 'bench' :
+      target === 'squatBox' ? 'squat' :
+      'dead';
 
-  renderActiveBox(); // 화면 갱신
+    const item = {
+        firestoreId: null,
+       localId: Date.now() + Math.random(), // 🔥 추가
+        date,
+        weight,
+        reps
+    };
 
-  // 4. Firestore 저장
-  const user = auth.currentUser;
-  if(user){
-    try{
-      const docRef = await db
-        .collection('users')
-        .doc(user.uid)
-        .collection('records')
-        .add({ lift, date, weight, reps, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+if(lift === 'bench') records.bench.unshift(item);
+if(lift === 'squat') records.squat.unshift(item);
+if(lift === 'dead')  records.dead.unshift(item);
 
-      item.firestoreId = docRef.id; // firestoreId 연결
-    }catch(e){ console.error(e); }
-  }
+    recordWeight.value = '';
+    recordReps.value = '';
+    fadeTempMsg(recordMessage, '기록 추가 완료', 700, 600);
+    renderActiveBox();
 
-  recordWeight.value = '';
-  recordReps.value = '';
+    const user = auth.currentUser;
+    if(user){
+        try{
+            const docRef = await db
+              .collection('users')
+              .doc(user.uid)
+              .collection('records')
+              .add({
+                lift,
+                date,
+                weight,
+                reps,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+              });
+
+            item.firestoreId = docRef.id;
+           
+        }catch(e){
+            console.error('Firestore add err', e);
+        }
+    }
 });
 
 
@@ -1728,7 +1719,7 @@ document.addEventListener("mousedown", e => handleDatePressStart(e));
 document.addEventListener("touchstart", e => handleDatePressStart(e));
 
 function handleDatePressStart(e){
-    // ❌ 종목 모드에서는 long press 자체 차단
+    // ❌ 종목 모드에 long press 자체 차단
     if (calendarMode === "muscle") return;
 
     const cell = e.target.closest(".days div");
@@ -2455,6 +2446,33 @@ auth.onAuthStateChanged(user => {
         userInfo.textContent = '';
     }
 });
+document.addEventListener('DOMContentLoaded', async () => {
+  renderExercises(); 
+
+  const user = auth.currentUser;
+  if(user){
+    await loadAccessoryRecordsFromDB(user); // ← 새로 추가
+  }
+
+  renderAccessoryRecords(); // DB에서 가져온 기록 렌더
+});
+
+async function loadAccessoryRecordsFromDB(user){
+  try{
+    const snap = await db
+      .collection('users')
+      .doc(user.uid)
+      .collection('accessoryRecords')
+      .get();
+
+    snap.forEach(doc=>{
+      const exerciseName = doc.id;
+      accRecordsByExercise[exerciseName] = doc.data().list || [];
+    });
+  }catch(e){
+    console.error('AccessoryRecords 로드 실패', e);
+  }
+}
 
    
 
