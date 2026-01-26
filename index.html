@@ -1469,13 +1469,14 @@ auth.onAuthStateChanged(async user=>{
               .limit(1)
               .get();
 
-            if(!threeSnap.empty){
-                const data = threeSnap.docs[0].data();
-                benchRM.value = data.bench || 0;
-                squatRM.value = data.squat || 0;
-                deadRM.value = data.dead || 0;
-                updateTotal3(); // 총합 갱신
-            }
+           if(!threeSnap.empty){
+    const data = threeSnap.docs[0].data();
+    benchRM.value = data.bench || 0;
+    squatRM.value = data.squat || 0;
+    deadRM.value = data.dead || 0;
+    updateTotal3(); // 🔥 함수명 정확히
+}
+
         }catch(e){
             console.error('load threeRM err', e);
         }
