@@ -1174,20 +1174,6 @@ function closeExerciseDetail(){
   document.getElementById('exercise-detail-screen').style.display = 'none';
 }
 
-// 1️⃣ 최상단에서 기록 배열 선언
-const records = { bench: [], squat: [], dead: [] };
-
-// 2️⃣ renderActiveBox 정의
-function renderActiveBox() {
-  // records 사용
-}
-
-// 3️⃣ Firestore onSnapshot 설정
-db.collection('users').doc(user.uid).collection('records')
-  .onSnapshot(snapshot => {
-    // records 채움
-    renderActiveBox(); // 초기 렌더링
-});
 
 
 
@@ -1349,7 +1335,9 @@ async function loadRecordsFromFirestore(user){
   renderActiveBox(); // 🔥 화면 갱신
 }
 
-
+   
+/* 기록 박스 데이터 (로컬 mock) 및 렌더 함수 */
+const records = { bench: [], squat: [], dead: [] };
 
 // 포맷 날짜: '25.12.10'
 function formatTodayYYMMDD(d = new Date()){
@@ -1362,10 +1350,128 @@ function formatTodayYYMMDD(d = new Date()){
 // 초기 날짜 표시
 recordDate.value = formatTodayYYMMDD();
 
+// 렌더 함수: 현재 active folder의 목록을 그려줌
+function renderActiveBox(){
+    const activeBtn = document.querySelector('.folderBtn.active');
+    const target = activeBtn ? activeBtn.dataset.target : 'benchBox';
+    let arr = [];
+    if(target === 'benchBox') arr = records.bench;
+    else if(target === 'squatBox') arr = records.squat;
+    else if(target === 'deadBox') arr = records.dead;
 
+    const boxEl = document.getElementById(target);
+if(!arr || arr.length === 0){
+    boxEl.innerHTML = `<div style="color:#777;font-size:13px;">기록이 여기에 쌓입니다</div>`;
+    return;
+}
+
+// 날짜별 그룹화
+const grouped = {};
+arr.forEach(it => {
+  if (!grouped[it.date]) grouped[it.date] = [];
+  grouped[it.date].push(it);
+});
+
+// 최신 날짜 먼저
+const dates = Object.keys(grouped)
+  .sort((a, b) => b.localeCompare(a)); // 🔥 최신 날짜 먼저
+
+
+boxEl.innerHTML = dates.map(date => {
+ const records = grouped[date]
+  .slice()
+  .reverse(); // 🔥 배열순서 역순 = 최신이 아래
+
+
+
+  return `
+    <div style="margin-bottom:10px;">
+      ${records.map((r, idx) => `
+        <div style="display:flex; line-height:1.6;">
+          <div style="width:90px;">
+            ${idx === 0 ? date : ''}
+          </div>
+          <div
+                 class="record-line"
+                 
+                 data-id="${r.firestoreId || r.localId}"
+                 style="margin-left:auto; text-align:right; cursor:pointer;"
+                  >
+                 ${r.weight}kg × ${r.reps}회
+            </div>
+
+        </div>
+      `).join('')}
+      <div style="border-bottom:1px solid rgba(255,255,255,0.25); margin-top:6px;"></div>
+    </div>
+  `;
+}).join('');
+
+
+
+}
 renderActiveBox();
 
+/* 기록 추가 (가로 폼에서 저장) */
+recordAdd.addEventListener('click', async ()=>{
+    console.log("🔥 저장 버튼 클릭됨");
+    const weight = parseInt(recordWeight.value);
+    const reps = parseInt(recordReps.value);
 
+    if(!weight || !reps){
+        fadeTempMsg(recordMessage, '무게와 횟수를 입력하세요', 900, 600);
+        return;
+    }
+
+    const date = formatTodayYYMMDD();
+
+    const activeBtn = document.querySelector('.folderBtn.active');
+    const target = activeBtn ? activeBtn.dataset.target : 'benchBox';
+
+    const lift =
+      target === 'benchBox' ? 'bench' :
+      target === 'squatBox' ? 'squat' :
+      'dead';
+
+    const item = {
+        firestoreId: null,
+       localId: Date.now() + Math.random(), // 🔥 추가
+        date,
+        weight,
+        reps
+    };
+
+if(lift === 'bench') records.bench.unshift(item);
+if(lift === 'squat') records.squat.unshift(item);
+if(lift === 'dead')  records.dead.unshift(item);
+
+    recordWeight.value = '';
+    recordReps.value = '';
+    fadeTempMsg(recordMessage, '기록 추가 완료', 700, 600);
+    renderActiveBox();
+
+    const user = auth.currentUser;
+    if(user){
+        try{
+            const docRef = await db
+              .collection('users')
+              .doc(user.uid)
+              .collection('records')
+              .add({
+                lift,
+                date,
+                weight,
+                reps,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+              });
+
+            item.firestoreId = docRef.id;
+           
+        }catch(e){
+            console.error('Firestore add err', e);
+        }
+    }
+});
 
 
 
@@ -1375,47 +1481,95 @@ googleLoginBtn.addEventListener('click', ()=>{
     auth.signInWithPopup(provider).catch(e=>alert('로그인 실패: '+e.message));
 });
 logoutBtn.addEventListener('click', ()=> auth.signOut());
-   
 
-// auth 상태에서 로그인 시 호출
 auth.onAuthStateChanged(async user => {
   if (user) {
-    // 3대 기록 기존 로직 그대로
+    googleLoginBtn.style.display = 'none';
+    logoutBtn.style.display = 'block';
+    userInfo.textContent = user.displayName || user.email || '';
 
-    // 🔥 records 실시간 반영
-    db.collection('users')
-      .doc(user.uid)
-      .collection('records')
-      .orderBy('createdAt', 'desc')
-      .onSnapshot(snapshot => {
-        // 배열 초기화
-        records.bench = [];
-        records.squat = [];
-        records.dead = [];
 
-        snapshot.forEach(doc => {
-          const d = doc.data();
-          if (!d || !d.lift) return;
+    /* 3대 최신값 */
+    try {
+      const threeSnap = await db
+        .collection('users')
+        .doc(user.uid)
+        .collection('threeRM')
+        .orderBy('createdAt', 'desc')
+        .limit(1)
+        .get();
 
-          const item = {
-            firestoreId: doc.id,
-            date: d.date,
-            weight: d.weight,
-            reps: d.reps,
-            createdAt: d.createdAt?.toMillis?.() || 0
-          };
+      if (!threeSnap.empty) {
+        const data = threeSnap.docs[0].data();
+        benchRM.value = data.bench || 0;
+        squatRM.value = data.squat || 0;
+        deadRM.value = data.dead || 0;
+        updateTotal3();
+      }
+    } catch (e) {
+      console.error('load threeRM err', e);
+    }
 
-          if (d.lift === 'bench') records.bench.push(item);
-          if (d.lift === 'squat') records.squat.push(item);
-          if (d.lift === 'dead')  records.dead.push(item);
-        });
+    /* records */
+    try {
+      const snap = await db
+        .collection('users')
+        .doc(user.uid)
+        .collection('records')
+        .orderBy('createdAt', 'desc')
+        .limit(200)
+        .get();
 
-        renderActiveBox(); // 화면 갱신
+      records.bench = [];
+      records.squat = [];
+      records.dead = [];
+
+      snap.forEach(doc => {
+        const d = doc.data();
+        if (!d || !d.lift) return;
+
+        const item = {
+          firestoreId: doc.id,
+          date: d.date,
+          weight: d.weight,
+          reps: d.reps,
+          createdAt: d.createdAt?.toMillis?.() || 0
+        };
+
+        if (d.lift === 'bench') records.bench.push(item);
+        if (d.lift === 'squat') records.squat.push(item);
+        if (d.lift === 'dead') records.dead.push(item);
       });
+
+      renderActiveBox();
+    } catch (e) {
+      console.error('load records err', e);
+    }
+
+    /* 🔥 달력 데이터 로드 (여기로!) */
+    try {
+      const snap = await db
+        .collection("users")
+        .doc(user.uid)
+        .collection("calendar")
+        .get();
+
+      calData = {};
+      snap.forEach(doc => {
+        calData[doc.id] = doc.data();
+      });
+
+      calRender();
+    } catch (e) {
+      console.error("calendar load error", e);
+    }
+
+  } else {
+    googleLoginBtn.style.display = 'block';
+    logoutBtn.style.display = 'none';
+    userInfo.textContent = '';
   }
 });
-
-
 
 
 
@@ -1565,7 +1719,7 @@ document.addEventListener("mousedown", e => handleDatePressStart(e));
 document.addEventListener("touchstart", e => handleDatePressStart(e));
 
 function handleDatePressStart(e){
-    // ❌ 종목 모드에 long press 자체 차단
+    // ❌ 종목 모드에서는 long press 자체 차단
     if (calendarMode === "muscle") return;
 
     const cell = e.target.closest(".days div");
@@ -1740,7 +1894,29 @@ document.addEventListener("touchmove", () => {
 
 
    
+async function deleteRecord(id){
+  if(!id) return;
 
+  ["bench","squat","dead"].forEach(type=>{
+    records[type] = records[type].filter(r =>
+      r.firestoreId !== id && r.localId !== id
+    );
+  });
+
+  renderActiveBox();
+
+  const user = auth.currentUser;
+  if(user && String(id).length > 10){ // firestoreId일 때만
+
+
+    await db
+      .collection('users')
+      .doc(user.uid)
+      .collection('records')
+      .doc(id)
+      .delete();
+  }
+}
 
 
 
@@ -2256,252 +2432,20 @@ async function loadExercisesFromDB() {
     });
 }
 
+
 auth.onAuthStateChanged(user => {
-  if (!user) {
-    googleLoginBtn.style.display = 'block';
-    logoutBtn.style.display = 'none';
-    userInfo.textContent = '';
-    return;
-  }
+    if(user){
+        googleLoginBtn.style.display = 'none';
+        logoutBtn.style.display = 'inline-block';
+        userInfo.textContent = user.displayName || user.email;
 
-  googleLoginBtn.style.display = 'none';
-  logoutBtn.style.display = 'block';
-  userInfo.textContent = user.displayName || user.email || '';
-
-  // --- 3대 최신값 실시간 반영 ---
-  db.collection('users')
-    .doc(user.uid)
-    .collection('threeRM')
-    .orderBy('createdAt', 'desc')
-    .limit(1)
-    .onSnapshot(snapshot => {
-      if (!snapshot.empty) {
-        const data = snapshot.docs[0].data();
-        benchRM.value = data.bench || 0;
-        squatRM.value = data.squat || 0;
-        deadRM.value = data.dead || 0;
-        updateTotal3();
-      }
-    }, e => console.error('threeRM snapshot err', e));
-
-  // --- records 실시간 반영 ---
-  db.collection('users')
-    .doc(user.uid)
-    .collection('records')
-    .orderBy('createdAt', 'desc')
-    .limit(200)
-    .onSnapshot(snapshot => {
-      records.bench = [];
-      records.squat = [];
-      records.dead = [];
-
-      snapshot.forEach(doc => {
-        const d = doc.data();
-        if (!d || !d.lift) return;
-
-        const item = {
-          firestoreId: doc.id,
-          date: d.date,
-          weight: d.weight,
-          reps: d.reps,
-          createdAt: d.createdAt?.toMillis?.() || 0
-        };
-
-        if (d.lift === 'bench') records.bench.push(item);
-        if (d.lift === 'squat') records.squat.push(item);
-        if (d.lift === 'dead') records.dead.push(item);
-      });
-
-      renderActiveBox();
-    }, e => console.error('records snapshot err', e));
-
-  // --- 달력 데이터 실시간 반영 ---
-  db.collection('users')
-    .doc(user.uid)
-    .collection('calendar')
-    .onSnapshot(snapshot => {
-      calData = {};
-      snapshot.forEach(doc => {
-        calData[doc.id] = doc.data();
-      });
-      calRender();
-    }, e => console.error('calendar snapshot err', e));
-
-  // --- 로그인 후 첫 종목 자동 선택 ---
-  const firstExercise = Object.keys(accRecordsByExercise)[0];
-  if (firstExercise) {
-    currentExerciseName = firstExercise;
-    loadAccessorySets(currentExerciseName);
-  }
-});
-
-
-document.addEventListener('DOMContentLoaded', async () => {
-  renderExercises(); 
-
-  // 유저가 이미 로그인되어 있으면
-  const user = auth.currentUser;
-  if(user && currentExerciseName){
-    await loadAccessorySets(currentExerciseName); // DB에서 기록 불러오기
-  } else {
-    renderAccessoryRecords(); // 없으면 그냥 빈 화면
-  }
-});
-
-
-async function loadAccessoryRecordsFromDB(user){
-  try{
-    const snap = await db
-      .collection('users')
-      .doc(user.uid)
-      .collection('accessoryRecords')
-      .get();
-
-    snap.forEach(doc=>{
-      const exerciseName = doc.id;
-      accRecordsByExercise[exerciseName] = doc.data().list || [];
-    });
-  }catch(e){
-    console.error('AccessoryRecords 로드 실패', e);
-  }
-}
-
-const records = { bench: [], squat: [], dead: [] };
-
-const user = auth.currentUser;
-if(user){
-  const recordsRef = db.collection('users').doc(user.uid).collection('records');
-
-  // 🔥 실시간 리스너
-  recordsRef.orderBy('createdAt', 'desc').onSnapshot(snapshot => {
-    records.bench = [];
-    records.squat = [];
-    records.dead = [];
-
-    snapshot.forEach(doc => {
-      const d = doc.data();
-      if(!d.lift) return;
-      const item = {
-        firestoreId: doc.id,
-        date: d.date,
-        weight: d.weight,
-        reps: d.reps,
-        createdAt: d.createdAt?.toMillis?.() || 0
-      };
-      if(d.lift === 'bench') records.bench.push(item);
-      if(d.lift === 'squat') records.squat.push(item);
-      if(d.lift === 'dead') records.dead.push(item);
-    });
-
-    renderActiveBox(); // 🔥 화면 갱신
-  });
-}
-
-// 기록 추가
-recordAdd.addEventListener('click', async ()=>{
-  const weight = parseInt(recordWeight.value);
-  const reps = parseInt(recordReps.value);
-  if(!weight || !reps){
-    fadeTempMsg(recordMessage, '무게와 횟수를 입력하세요', 900, 600);
-    return;
-  }
-
-  const date = formatTodayYYMMDD();
-  const activeBtn = document.querySelector('.folderBtn.active');
-  const target = activeBtn ? activeBtn.dataset.target : 'benchBox';
-  const lift = target === 'benchBox' ? 'bench' : target === 'squatBox' ? 'squat' : 'dead';
-
-  // Firestore 저장
-  const user = auth.currentUser;
-  if(user){
-    try{
-      const docRef = await db.collection('users')
-        .doc(user.uid)
-        .collection('records')
-        .add({
-          lift,
-          date,
-          weight,
-          reps,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-
-      // 로컬 배열에도 추가
-      const item = { firestoreId: docRef.id, date, weight, reps };
-      if(lift === 'bench') records.bench.unshift(item);
-      if(lift === 'squat') records.squat.unshift(item);
-      if(lift === 'dead') records.dead.unshift(item);
-
-      recordWeight.value = '';
-      recordReps.value = '';
-      fadeTempMsg(recordMessage, '기록 추가 완료', 700, 600);
-
-      renderActiveBox(); // 화면 갱신
-    }catch(e){
-      console.error('Firestore add err', e);
+        loadExercisesFromDB(); // 🔥 DB에서 카드 불러오기
+    } else {
+        googleLoginBtn.style.display = 'inline-block';
+        logoutBtn.style.display = 'none';
+        userInfo.textContent = '';
     }
-  }
 });
-
-// 기록 삭제
-async function deleteRecord(id){
-  if(!id) return;
-  ["bench","squat","dead"].forEach(type=>{
-    records[type] = records[type].filter(r => r.firestoreId !== id);
-  });
-  renderActiveBox();
-
-  const user = auth.currentUser;
-  if(user && String(id).length > 10){
-    await db.collection('users').doc(user.uid).collection('records').doc(id).delete();
-  }
-}
-
-// 렌더링 함수 (활성 폴더 기준)
-function renderActiveBox(){
-  const activeBtn = document.querySelector('.folderBtn.active');
-  const target = activeBtn ? activeBtn.dataset.target : 'benchBox';
-  let arr = [];
-  if(target === 'benchBox') arr = records.bench;
-  else if(target === 'squatBox') arr = records.squat;
-  else if(target === 'deadBox') arr = records.dead;
-
-  const boxEl = document.getElementById(target);
-  if(!arr || arr.length === 0){
-    boxEl.innerHTML = `<div style="color:#777;font-size:13px;">기록이 여기에 쌓입니다</div>`;
-    return;
-  }
-
-  // 날짜별 그룹화
-  const grouped = {};
-  arr.forEach(it => {
-    if(!grouped[it.date]) grouped[it.date] = [];
-    grouped[it.date].push(it);
-  });
-
-  // 최신 날짜 먼저
-  const dates = Object.keys(grouped).sort((a,b)=>b.localeCompare(a));
-
-  boxEl.innerHTML = dates.map(date=>{
-    const records = grouped[date].slice().reverse(); // 최신 아래
-    return `
-      <div style="margin-bottom:10px;">
-        ${records.map((r, idx)=>`
-          <div style="display:flex; line-height:1.6;">
-            <div style="width:90px;">${idx===0 ? date : ''}</div>
-            <div class="record-line" data-id="${r.firestoreId}" style="margin-left:auto; text-align:right; cursor:pointer;">
-              ${r.weight}kg × ${r.reps}회
-            </div>
-          </div>
-        `).join('')}
-        <div style="border-bottom:1px solid rgba(255,255,255,0.25); margin-top:6px;"></div>
-      </div>
-    `;
-  }).join('');
-}
-
-
-
 
    
 
