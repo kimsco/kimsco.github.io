@@ -2035,7 +2035,6 @@ function renderAccessorySets(name) {
     renderAccessoryRecords();
 }
 
-   
 async function addAccessorySet() {
   if (!currentExerciseName) return;
 
@@ -2048,59 +2047,43 @@ async function addAccessorySet() {
   if (!accRecordsByExercise[currentExerciseName]) {
     accRecordsByExercise[currentExerciseName] = [];
   }
-  
+
   accRecordsByExercise[currentExerciseName].unshift({ date, weight, reps });
-  await addAccessorySetToDB(currentExerciseName, weight, reps);
+
+  await addAccessorySetToDB(currentExerciseName, weight, reps); 
+  await loadAccessorySets(currentExerciseName); // 🔥 DB 반영 후 최신값 불러오기
+
   document.getElementById('acc-weight').value = '';
   document.getElementById('acc-reps').value = '';
-
-  renderAccessoryRecords(); // 카드 렌더
-  renderExercises();       // 요약/리스트 갱신
 }
-// 🔥 보조운동 세트 Firestore 저장
-async function addAccessorySetToDB(exerciseName, weight, reps){
-  const user = auth.currentUser;
-  if(!user) return;
 
-  const date = formatTodayYYMMDD();
+
+   
+// 🔥 보조운동 세트 Firestore 저장
+
+   
+async function loadAccessorySets(exerciseName) {
+  const user = auth.currentUser;
+  if (!user) return;
 
   try {
-    const docRef = await db
+    const snap = await db
       .collection('users')
       .doc(user.uid)
       .collection('accessoryRecords')
       .doc(exerciseName)
       .collection('sets')
-      .add({
-        date,
-        weight,
-        reps,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
+      .orderBy('createdAt', 'desc')
+      .get();
 
-    console.log('Accessory set saved:', docRef.id);
+    accRecordsByExercise[exerciseName] = snap.docs.map(doc => doc.data());
 
-  } catch(e){
-    console.error('Accessory set save error:', e);
+    renderAccessoryRecords();
+  } catch (e) {
+    console.error('loadAccessorySets error', e);
   }
 }
-async function loadAccessorySets(exerciseName){
-  const user = auth.currentUser;
-  if(!user) return;
 
-  const snap = await db
-    .collection('users')
-    .doc(user.uid)
-    .collection('accessoryRecords')
-    .doc(exerciseName)
-    .collection('sets')
-    .orderBy('createdAt', 'desc')
-    .get();
-
-  accRecordsByExercise[exerciseName] = snap.docs.map(doc => doc.data());
-
-  renderAccessoryRecords();
-}
 
 
 function renderAccessoryRecords(){
@@ -2420,15 +2403,29 @@ async function saveExerciseToDB(exerciseName) {
 }
 
 async function addAccessorySetToDB(exerciseName, weight, reps) {
-    const user = auth.currentUser;
-    if (!user) return;
-    const collectionRef = db.collection('users').doc(user.uid).collection('accessories').doc(exerciseName).collection('records');
-    await collectionRef.add({
-        weight: weight,
-        reps: reps,
-        date: new Date().toISOString().slice(0,10)
-    });
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const date = formatTodayYYMMDD();
+
+  try {
+    await db
+      .collection('users')
+      .doc(user.uid)
+      .collection('accessoryRecords')
+      .doc(exerciseName)
+      .collection('sets')
+      .add({
+        date,
+        weight,
+        reps,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+  } catch (e) {
+    console.error('addAccessorySetToDB error', e);
+  }
 }
+
 
 async function loadExercisesFromDB() {
     const user = auth.currentUser;
