@@ -2047,10 +2047,16 @@ async function addAccessorySet() {
   if (!accRecordsByExercise[currentExerciseName]) {
     accRecordsByExercise[currentExerciseName] = [];
   }
+   // 중복 방지: 동일 date+weight+reps 가 없으면만 추가
+const exists = accRecordsByExercise[currentExerciseName].some(
+  s => s.date === date && s.weight === weight && s.reps === reps
+);
 
+if(!exists){
   accRecordsByExercise[currentExerciseName].unshift({ date, weight, reps });
-
+}
   await addAccessorySetToDB(currentExerciseName, weight, reps); 
+  await loadAccessorySets(currentExerciseName); // 🔥 DB 반영 후 최신값 불러오기
 
   document.getElementById('acc-weight').value = '';
   document.getElementById('acc-reps').value = '';
