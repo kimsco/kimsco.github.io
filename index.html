@@ -1490,7 +1490,6 @@ auth.onAuthStateChanged(async user=>{
         googleLoginBtn.style.display = 'none';
         logoutBtn.style.display = 'block';
         userInfo.textContent = user.displayName || user.email || '';
- await loadRecordsFromFirestore(user); // 🔥 이 줄 추가
         /* 🔥 [추가] 3대 기록 최신값 불러오기 */
         try{
             const threeSnap = await db
@@ -2375,21 +2374,7 @@ window.addEventListener('load', async () => {
         await loadExercises(currentPart);
     }
 });
-auth.onAuthStateChanged(async (user) => {
-  if (user) {
-    googleLoginBtn.style.display = 'none';
-    logoutBtn.style.display = 'inline-block';
-    userInfo.textContent = user.email;
 
-    // 🔥🔥🔥 이 두 줄이 핵심
-    await loadRecordsFromFirestore(user);
-    renderActiveBox();
-  } else {
-    googleLoginBtn.style.display = 'inline-block';
-    logoutBtn.style.display = 'none';
-    userInfo.textContent = '';
-  }
-});
 
 
    
