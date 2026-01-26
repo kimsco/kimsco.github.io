@@ -2441,20 +2441,86 @@ async function loadExercisesFromDB() {
     });
 }
 
-
 auth.onAuthStateChanged(user => {
-    if(user){
-        googleLoginBtn.style.display = 'none';
-        logoutBtn.style.display = 'inline-block';
-        userInfo.textContent = user.displayName || user.email;
+  if (!user) {
+    googleLoginBtn.style.display = 'block';
+    logoutBtn.style.display = 'none';
+    userInfo.textContent = '';
+    return;
+  }
 
-        loadExercisesFromDB(); // 🔥 DB에서 카드 불러오기
-    } else {
-        googleLoginBtn.style.display = 'inline-block';
-        logoutBtn.style.display = 'none';
-        userInfo.textContent = '';
-    }
+  googleLoginBtn.style.display = 'none';
+  logoutBtn.style.display = 'block';
+  userInfo.textContent = user.displayName || user.email || '';
+
+  // --- 3대 최신값 실시간 반영 ---
+  db.collection('users')
+    .doc(user.uid)
+    .collection('threeRM')
+    .orderBy('createdAt', 'desc')
+    .limit(1)
+    .onSnapshot(snapshot => {
+      if (!snapshot.empty) {
+        const data = snapshot.docs[0].data();
+        benchRM.value = data.bench || 0;
+        squatRM.value = data.squat || 0;
+        deadRM.value = data.dead || 0;
+        updateTotal3();
+      }
+    }, e => console.error('threeRM snapshot err', e));
+
+  // --- records 실시간 반영 ---
+  db.collection('users')
+    .doc(user.uid)
+    .collection('records')
+    .orderBy('createdAt', 'desc')
+    .limit(200)
+    .onSnapshot(snapshot => {
+      records.bench = [];
+      records.squat = [];
+      records.dead = [];
+
+      snapshot.forEach(doc => {
+        const d = doc.data();
+        if (!d || !d.lift) return;
+
+        const item = {
+          firestoreId: doc.id,
+          date: d.date,
+          weight: d.weight,
+          reps: d.reps,
+          createdAt: d.createdAt?.toMillis?.() || 0
+        };
+
+        if (d.lift === 'bench') records.bench.push(item);
+        if (d.lift === 'squat') records.squat.push(item);
+        if (d.lift === 'dead') records.dead.push(item);
+      });
+
+      renderActiveBox();
+    }, e => console.error('records snapshot err', e));
+
+  // --- 달력 데이터 실시간 반영 ---
+  db.collection('users')
+    .doc(user.uid)
+    .collection('calendar')
+    .onSnapshot(snapshot => {
+      calData = {};
+      snapshot.forEach(doc => {
+        calData[doc.id] = doc.data();
+      });
+      calRender();
+    }, e => console.error('calendar snapshot err', e));
+
+  // --- 로그인 후 첫 종목 자동 선택 ---
+  const firstExercise = Object.keys(accRecordsByExercise)[0];
+  if (firstExercise) {
+    currentExerciseName = firstExercise;
+    loadAccessorySets(currentExerciseName);
+  }
 });
+
+
 document.addEventListener('DOMContentLoaded', async () => {
   renderExercises(); 
 
