@@ -2375,6 +2375,21 @@ window.addEventListener('load', async () => {
         await loadExercises(currentPart);
     }
 });
+auth.onAuthStateChanged(async (user) => {
+  if (user) {
+    googleLoginBtn.style.display = 'none';
+    logoutBtn.style.display = 'inline-block';
+    userInfo.textContent = user.email;
+
+    // 🔥🔥🔥 이 두 줄이 핵심
+    await loadRecordsFromFirestore(user);
+    renderActiveBox();
+  } else {
+    googleLoginBtn.style.display = 'inline-block';
+    logoutBtn.style.display = 'none';
+    userInfo.textContent = '';
+  }
+});
 
 
    
