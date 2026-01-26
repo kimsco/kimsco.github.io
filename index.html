@@ -1175,27 +1175,7 @@ function closeExerciseDetail(){
 }
 
 
-// 기록 추가 함수 (DB + 로컬 + 렌더링)
-async function recordAdd(targetArray, item, user) {
-    try {
-        // DB 저장
-        if(user){
-            const docRef = await db.collection('users')
-                                  .doc(user.uid)
-                                  .collection('records')
-                                  .add({...item});
-            item.firestoreId = docRef.id;
-        }
 
-        // 로컬 배열에 추가
-        targetArray.unshift(item);
-
-        // 렌더링
-        renderActiveBox();
-    } catch(err) {
-        console.error('기록 추가 실패', err);
-    }
-}
 
 async function loadExercises(part){
   currentPart = part;
@@ -1357,12 +1337,7 @@ async function loadRecordsFromFirestore(user){
 
    
 /* 기록 박스 데이터 (로컬 mock) 및 렌더 함수 */
-// 로컬 기록 배열
-const records = {
-    bench: [],
-    squat: [],
-    dead: []
-};
+const records = { bench: [], squat: [], dead: [] };
 
 // 포맷 날짜: '25.12.10'
 function formatTodayYYMMDD(d = new Date()){
@@ -1380,9 +1355,6 @@ function renderActiveBox(){
     const activeBtn = document.querySelector('.folderBtn.active');
     const target = activeBtn ? activeBtn.dataset.target : 'benchBox';
     let arr = [];
-   // 중복 제거
-    const unique = (items) => [...new Map(items.map(item => [item.firestoreId || item.localId, item])).values()];
-
     if(target === 'benchBox') arr = records.bench;
     else if(target === 'squatBox') arr = records.squat;
     else if(target === 'deadBox') arr = records.dead;
@@ -1434,8 +1406,6 @@ boxEl.innerHTML = dates.map(date => {
     </div>
   `;
 }).join('');
-
-
 
 
 
@@ -1922,13 +1892,6 @@ document.addEventListener("touchmove", () => {
   clearTimeout(recordPressTimer);
 });
 
-document.addEventListener('DOMContentLoaded', () => {
-  const addBtn = document.getElementById('add-btn');
-  addBtn.addEventListener('click', addAccessorySet);
-
-  renderExercises(); 
-  renderAccessoryRecords();
-});
 
    
 async function deleteRecord(id){
@@ -2074,19 +2037,18 @@ async function addAccessorySet() {
 
   const date = formatTodayYYMMDD();
 
-  const user = auth.currentUser;
-  if (!user) return;
+  if (!accRecordsByExercise[currentExerciseName]) {
+    accRecordsByExercise[currentExerciseName] = [];
+  }
 
-  // DB에 먼저 저장
+  accRecordsByExercise[currentExerciseName].unshift({ date, weight, reps });
+
   await addAccessorySetToDB(currentExerciseName, weight, reps); 
-
-  // DB에서 불러와 로컬 배열 덮어쓰기
-  await loadAccessorySets(currentExerciseName);
+  await loadAccessorySets(currentExerciseName); // 🔥 DB 반영 후 최신값 불러오기
 
   document.getElementById('acc-weight').value = '';
   document.getElementById('acc-reps').value = '';
 }
-
 
 
    
