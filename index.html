@@ -1934,8 +1934,10 @@ threeToggleBtn.addEventListener("click", () => {
       : "none";
 });
 // 🔥 종목별 기록 (로컬 전용)
+let accessoryRecords = JSON.parse(
+  localStorage.getItem('accessoryRecords') || '{}'
+);
 
-   let accessoryRecords = {}; 
    
 // 구조:
 // {
