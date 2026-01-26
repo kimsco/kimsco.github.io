@@ -2051,7 +2051,6 @@ async function addAccessorySet() {
   accRecordsByExercise[currentExerciseName].unshift({ date, weight, reps });
 
   await addAccessorySetToDB(currentExerciseName, weight, reps); 
-  await loadAccessorySets(currentExerciseName); // 🔥 DB 반영 후 최신값 불러오기
 
   document.getElementById('acc-weight').value = '';
   document.getElementById('acc-reps').value = '';
