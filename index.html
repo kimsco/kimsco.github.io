@@ -1175,7 +1175,27 @@ function closeExerciseDetail(){
 }
 
 
+// 기록 추가 함수 (DB + 로컬 + 렌더링)
+async function recordAdd(targetArray, item, user) {
+    try {
+        // DB 저장
+        if(user){
+            const docRef = await db.collection('users')
+                                  .doc(user.uid)
+                                  .collection('records')
+                                  .add({...item});
+            item.firestoreId = docRef.id;
+        }
 
+        // 로컬 배열에 추가
+        targetArray.unshift(item);
+
+        // 렌더링
+        renderActiveBox();
+    } catch(err) {
+        console.error('기록 추가 실패', err);
+    }
+}
 
 async function loadExercises(part){
   currentPart = part;
@@ -1337,7 +1357,12 @@ async function loadRecordsFromFirestore(user){
 
    
 /* 기록 박스 데이터 (로컬 mock) 및 렌더 함수 */
-const records = { bench: [], squat: [], dead: [] };
+// 로컬 기록 배열
+const records = {
+    bench: [],
+    squat: [],
+    dead: []
+};
 
 // 포맷 날짜: '25.12.10'
 function formatTodayYYMMDD(d = new Date()){
@@ -1352,19 +1377,15 @@ recordDate.value = formatTodayYYMMDD();
 
 // 렌더 함수: 현재 active folder의 목록을 그려줌
 function renderActiveBox(){
-     // 배열 복사 후 unique 처리
-    const uniqueBench = [...new Map(records.bench.map(item => [item.firestoreId || item.localId, item])).values()];
-    const uniqueSquat = [...new Map(records.squat.map(item => [item.firestoreId || item.localId, item])).values()];
-    const uniqueDead = [...new Map(records.dead.map(item => [item.firestoreId || item.localId, item])).values()];
-
-    // 기존 코드에서 arr 바꿔서 사용
     const activeBtn = document.querySelector('.folderBtn.active');
     const target = activeBtn ? activeBtn.dataset.target : 'benchBox';
     let arr = [];
-    if(target === 'benchBox') arr = uniqueBench;
-    else if(target === 'squatBox') arr = uniqueSquat;
-    else if(target === 'deadBox') arr = uniqueDead;
+   // 중복 제거
+    const unique = (items) => [...new Map(items.map(item => [item.firestoreId || item.localId, item])).values()];
 
+    if(target === 'benchBox') arr = records.bench;
+    else if(target === 'squatBox') arr = records.squat;
+    else if(target === 'deadBox') arr = records.dead;
 
     const boxEl = document.getElementById(target);
 if(!arr || arr.length === 0){
@@ -1413,6 +1434,8 @@ boxEl.innerHTML = dates.map(date => {
     </div>
   `;
 }).join('');
+
+
 
 
 
