@@ -1996,12 +1996,30 @@ function renderAccessoryRecords() {
 
    
 function getAccessorySummary(name) {
-  const list = accRecordsByExercise[name];
-  if (!list || list.length === 0) return '기록 없음';
+  const records = accRecordsByExercise[name];
+  if (!records || records.length === 0) return '';
 
-  const latest = list[0];
-  return `${latest.date} → ${latest.weight}kg × ${latest.reps}회`;
+  // 날짜별 그룹
+  const grouped = {};
+  records.forEach(r => {
+    if (!grouped[r.date]) grouped[r.date] = [];
+    grouped[r.date].push(r);
+  });
+
+  // 최신 날짜
+  const latestDate = Object.keys(grouped)
+    .sort((a, b) => b.localeCompare(a))[0];
+
+  const sets = grouped[latestDate];
+
+  return `
+    <div>${latestDate}</div>
+    ${sets.map(s =>
+      `<div>${s.weight}kg × ${s.reps}회</div>`
+    ).join('')}
+  `;
 }
+
 
 function renderAccessorySets(name) {
     currentExerciseName = name;
