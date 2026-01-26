@@ -1308,6 +1308,38 @@ folderBtns.forEach(btn=>{
     });
 });
 
+
+async function loadRecordsFromFirestore(user){
+  // 초기화
+  records.bench = [];
+  records.squat = [];
+  records.dead = [];
+
+  const snap = await db
+    .collection('users')
+    .doc(user.uid)
+    .collection('records')
+    .orderBy('createdAt', 'asc')
+    .get();
+
+  snap.forEach(doc=>{
+    const data = doc.data();
+    const item = {
+      firestoreId: doc.id,
+      date: data.date,
+      weight: data.weight,
+      reps: data.reps
+    };
+
+    if(data.lift === 'bench') records.bench.push(item);
+    if(data.lift === 'squat') records.squat.push(item);
+    if(data.lift === 'dead')  records.dead.push(item);
+  });
+
+  renderActiveBox(); // 🔥 화면 갱신
+}
+
+   
 /* 기록 박스 데이터 (로컬 mock) 및 렌더 함수 */
 const records = { bench: [], squat: [], dead: [] };
 
@@ -1458,7 +1490,7 @@ auth.onAuthStateChanged(async user=>{
         googleLoginBtn.style.display = 'none';
         logoutBtn.style.display = 'block';
         userInfo.textContent = user.displayName || user.email || '';
-
+ await loadRecordsFromFirestore(user); // 🔥 이 줄 추가
         /* 🔥 [추가] 3대 기록 최신값 불러오기 */
         try{
             const threeSnap = await db
