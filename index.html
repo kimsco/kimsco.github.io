@@ -2305,6 +2305,13 @@ const backBtn = document.getElementById('exercise-back-btn'); // 뒤로가기 �
 if (backBtn) {
     backBtn.addEventListener('click', closeExerciseDetail);
 }
+// 맨 위 또는 index.js 적절한 위치
+function createExerciseCard(exerciseName) {
+    const card = document.createElement('div');
+    card.classList.add('exercise-card');
+    card.textContent = exerciseName;
+    document.getElementById('exercise-list').appendChild(card);
+}
 
 function closeExerciseDetail() {
   const detail = document.getElementById('exercise-detail-screen');
