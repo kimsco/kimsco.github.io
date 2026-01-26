@@ -1352,12 +1352,19 @@ recordDate.value = formatTodayYYMMDD();
 
 // 렌더 함수: 현재 active folder의 목록을 그려줌
 function renderActiveBox(){
+     // 배열 복사 후 unique 처리
+    const uniqueBench = [...new Map(records.bench.map(item => [item.firestoreId || item.localId, item])).values()];
+    const uniqueSquat = [...new Map(records.squat.map(item => [item.firestoreId || item.localId, item])).values()];
+    const uniqueDead = [...new Map(records.dead.map(item => [item.firestoreId || item.localId, item])).values()];
+
+    // 기존 코드에서 arr 바꿔서 사용
     const activeBtn = document.querySelector('.folderBtn.active');
     const target = activeBtn ? activeBtn.dataset.target : 'benchBox';
     let arr = [];
-    if(target === 'benchBox') arr = records.bench;
-    else if(target === 'squatBox') arr = records.squat;
-    else if(target === 'deadBox') arr = records.dead;
+    if(target === 'benchBox') arr = uniqueBench;
+    else if(target === 'squatBox') arr = uniqueSquat;
+    else if(target === 'deadBox') arr = uniqueDead;
+
 
     const boxEl = document.getElementById(target);
 if(!arr || arr.length === 0){
