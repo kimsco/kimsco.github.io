@@ -2391,6 +2391,21 @@ async function loadExercisesFromDB() {
     });
 }
 
+
+auth.onAuthStateChanged(user => {
+    if(user){
+        googleLoginBtn.style.display = 'none';
+        logoutBtn.style.display = 'inline-block';
+        userInfo.textContent = user.displayName || user.email;
+
+        loadExercisesFromDB(); // 🔥 DB에서 카드 불러오기
+    } else {
+        googleLoginBtn.style.display = 'inline-block';
+        logoutBtn.style.display = 'none';
+        userInfo.textContent = '';
+    }
+});
+
    
 
 </script>
