@@ -2069,24 +2069,6 @@ function addAccessorySet(){
 
 
 
-function renderAccessoryRecords(){
-  const wrap = document.getElementById('acc-records');
-  const list = accRecordsByExercise[currentExerciseName] || [];
-
-  if(list.length === 0){
-    wrap.innerHTML = '';
-    return;
-  }
-
-  wrap.innerHTML = `
-    <div class="record-day">
-      <div class="date">${list[0].date}</div>
-      ${list.map(r=>`
-        <div class="set">${r.weight}kg × ${r.reps}회</div>
-      `).join('')}
-    </div>
-  `;
-}
 
 
 
