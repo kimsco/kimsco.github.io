@@ -1489,7 +1489,6 @@ auth.onAuthStateChanged(async user => {
     logoutBtn.style.display = 'block';
     userInfo.textContent = user.displayName || user.email || '';
 
-
     /* 3대 최신값 */
     try {
       const threeSnap = await db
@@ -1547,7 +1546,7 @@ auth.onAuthStateChanged(async user => {
       console.error('load records err', e);
     }
 
-    /* 🔥 달력 데이터 로드 (여기로!) */
+    /* 🔥 달력 데이터 로드 */
     try {
       const snap = await db
         .collection("users")
@@ -1564,18 +1563,23 @@ auth.onAuthStateChanged(async user => {
     } catch (e) {
       console.error("calendar load error", e);
     }
- // 로그인 후 첫 종목 자동 선택
+
+    // 로그인 후 첫 종목 자동 선택
     const firstExercise = Object.keys(accRecordsByExercise)[0];
-    if(firstExercise){
-        currentExerciseName = firstExercise;
-        await loadAccessorySets(currentExerciseName);
+    if (firstExercise) {
+      currentExerciseName = firstExercise;
+      await loadAccessorySets(currentExerciseName);
+    }
+
   } else {
+    // user가 없을 때 처리
     googleLoginBtn.style.display = 'block';
     logoutBtn.style.display = 'none';
     userInfo.textContent = '';
   }
 });
-}
+
+
 
 
 
