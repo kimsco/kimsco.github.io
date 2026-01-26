@@ -2057,6 +2057,50 @@ async function addAccessorySet() {
   renderAccessoryRecords(); // 카드 렌더
   renderExercises();       // 요약/리스트 갱신
 }
+// 🔥 보조운동 세트 Firestore 저장
+async function addAccessorySetToDB(exerciseName, weight, reps){
+  const user = auth.currentUser;
+  if(!user) return;
+
+  const date = formatTodayYYMMDD();
+
+  try {
+    const docRef = await db
+      .collection('users')
+      .doc(user.uid)
+      .collection('accessoryRecords')
+      .doc(exerciseName)
+      .collection('sets')
+      .add({
+        date,
+        weight,
+        reps,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+
+    console.log('Accessory set saved:', docRef.id);
+
+  } catch(e){
+    console.error('Accessory set save error:', e);
+  }
+}
+async function loadAccessorySets(exerciseName){
+  const user = auth.currentUser;
+  if(!user) return;
+
+  const snap = await db
+    .collection('users')
+    .doc(user.uid)
+    .collection('accessoryRecords')
+    .doc(exerciseName)
+    .collection('sets')
+    .orderBy('createdAt', 'desc')
+    .get();
+
+  accRecordsByExercise[exerciseName] = snap.docs.map(doc => doc.data());
+
+  renderAccessoryRecords();
+}
 
 
 function renderAccessoryRecords(){
