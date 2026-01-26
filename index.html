@@ -1138,6 +1138,12 @@ let accRecordsByExercise = {
   ],
   "스쿼트": []
 };
+// 🔥 보조운동 "기록" 전용 저장소
+let accessoryRecords = JSON.parse(
+  localStorage.getItem('accessoryRecords') || '{}'
+);
+
+   
 
 let currentExerciseName = null; // 🔥 지금 보고 있는 종목
 let currentPart = null;        // 🔥 지금 선택된 종목
@@ -1169,12 +1175,7 @@ partButtons.forEach(btn => {
 
 
 // 카드 클릭 → 입력창 보여주기
-function openExerciseDetail(name){
-  currentExerciseName = name;
-  document.getElementById('detail-exercise-name').textContent = name;
-  // 항상 최상위 입력창 표시
-  document.getElementById('exercise-detail-screen').style.display = 'block';
-}
+
 
 // 입력창 닫기
 function closeExerciseDetail(){
@@ -1933,10 +1934,7 @@ threeToggleBtn.addEventListener("click", () => {
       ? "block"
       : "none";
 });
-// 🔥 종목별 기록 (로컬 전용)
-let accessoryRecords = JSON.parse(
-  localStorage.getItem('accessoryRecords') || '{}'
-);
+
 
    
 // 구조:
@@ -1982,23 +1980,30 @@ function getToday() {
    
 
 
-
-function renderAccessoryRecords() {
+function renderAccessoryRecords(){
   const wrap = document.getElementById('acc-records');
-  const list = accRecordsByExercise[currentExerciseName] || [];
+  wrap.innerHTML = '';
 
-  if (list.length === 0) {
-    wrap.innerHTML = `<div style="color:#777; font-size:13px;">기록 없음</div>`;
+  if(!currentExerciseName) return;
+
+  const list = accessoryRecords[currentExerciseName] || [];
+
+  if(list.length === 0){
+    wrap.innerHTML = `<div style="color:#777;font-size:13px;">아직 기록이 없습니다</div>`;
     return;
   }
 
-  wrap.innerHTML = list.map(set => `
-    <div class="record-day">
-      <div class="date">${set.date}</div>
-      <div class="set">${set.weight}kg × ${set.reps}회</div>
-    </div>
-  `).join('');
+  list.slice().reverse().forEach(r => {
+    const div = document.createElement('div');
+    div.className = 'record-day';
+    div.innerHTML = `
+      <div class="date">${r.date}</div>
+      <div class="set">${r.weight}kg × ${r.reps}회</div>
+    `;
+    wrap.appendChild(div);
+  });
 }
+
 
 
    
