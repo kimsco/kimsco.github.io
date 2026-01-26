@@ -1418,6 +1418,7 @@ renderActiveBox();
 
 /* 기록 추가 (가로 폼에서 저장) */
 recordAdd.addEventListener('click', async ()=>{
+    console.log("🔥 저장 버튼 클릭됨");
     const weight = parseInt(recordWeight.value);
     const reps = parseInt(recordReps.value);
 
@@ -1475,64 +1476,7 @@ if(lift === 'dead')  records.dead.unshift(item);
         }
     }
 });
-document.addEventListener('DOMContentLoaded', () => {
 
-  const recordAdd = document.getElementById('recordAdd');
-
-  recordAdd.addEventListener('click', async ()=>{
-    console.log("🔥 저장 버튼 클릭됨");
-
-    const weight = parseInt(recordWeight.value);
-    const reps = parseInt(recordReps.value);
-
-    if(!weight || !reps){
-      fadeTempMsg(recordMessage, '무게와 횟수를 입력하세요', 900, 600);
-      return;
-    }
-
-    const date = formatTodayYYMMDD();
-
-    const activeBtn = document.querySelector('.folderBtn.active');
-    const target = activeBtn ? activeBtn.dataset.target : 'benchBox';
-
-    const lift =
-      target === 'benchBox' ? 'bench' :
-      target === 'squatBox' ? 'squat' :
-      'dead';
-
-    const item = {
-      localId: Date.now(),
-      date,
-      weight,
-      reps
-    };
-
-    if(lift === 'bench') records.bench.unshift(item);
-    if(lift === 'squat') records.squat.unshift(item);
-    if(lift === 'dead')  records.dead.unshift(item);
-
-    renderActiveBox();
-    fadeTempMsg(recordMessage, '기록 추가 완료', 700, 600);
-
-    const user = auth.currentUser;
-    if(user){
-      await db
-        .collection('users')
-        .doc(user.uid)
-        .collection('records')
-        .add({
-          lift,
-          date,
-          weight,
-          reps,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-
-      console.log("🔥 Firestore 저장 완료");
-    }
-  });
-
-});
 
 
 /* 로그인 (구글) */
