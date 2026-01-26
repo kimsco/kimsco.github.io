@@ -2048,7 +2048,7 @@ function addAccessorySet() {
   if (!accRecordsByExercise[currentExerciseName]) {
     accRecordsByExercise[currentExerciseName] = [];
   }
-
+  await addAccessorySetToDB(currentExerciseName, weight, reps);
   accRecordsByExercise[currentExerciseName].unshift({ date, weight, reps });
 
   document.getElementById('acc-weight').value = '';
