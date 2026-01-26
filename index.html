@@ -2036,7 +2036,7 @@ function renderAccessorySets(name) {
 }
 
    
-function addAccessorySet() {
+async function addAccessorySet() {
   if (!currentExerciseName) return;
 
   const weight = parseFloat(document.getElementById('acc-weight').value);
