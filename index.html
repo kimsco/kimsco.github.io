@@ -2004,25 +2004,26 @@ function getToday() {
 }
 
    
+function renderAccessoryRecords(exerciseName) {
+    const records = accRecordsByExercise[exerciseName] || [];
+    const container = document.getElementById('acc-records');
 
+    container.innerHTML = ''; // 초기화
 
-
-function renderAccessoryRecords() {
-  const wrap = document.getElementById('acc-records');
-  const list = accRecordsByExercise[currentExerciseName] || [];
-
-  if (list.length === 0) {
-    wrap.innerHTML = `<div style="color:#777; font-size:13px;">기록 없음</div>`;
-    return;
-  }
-
-  wrap.innerHTML = list.map(set => `
-    <div class="record-day">
-      <div class="date">${set.date}</div>
-      <div class="set">${set.weight}kg × ${set.reps}회</div>
-    </div>
-  `).join('');
+    records.forEach(rec => {
+        const div = document.createElement('div');
+        div.className = 'record-day';
+        div.innerHTML = `
+            <div class="date">${rec.date}</div>
+            <div class="set">${rec.weight} kg × ${rec.reps}회</div>
+        `;
+        container.appendChild(div);
+    });
 }
+
+
+
+
 
 
    
@@ -2041,46 +2042,41 @@ function renderAccessorySets(name) {
 
    
 function addAccessorySet() {
-  if (!currentExerciseName) return;
+    const weight = parseFloat(document.getElementById('acc-weight').value);
+    const reps = parseInt(document.getElementById('acc-reps').value);
 
-  const weight = parseFloat(document.getElementById('acc-weight').value);
-  const reps = parseInt(document.getElementById('acc-reps').value);
-  if (!weight || !reps) return;
+    if (!currentExerciseName) {
+        alert('종목을 먼저 선택하세요.');
+        return;
+    }
 
-  const date = formatTodayYYMMDD();
+    if (!weight || !reps) {
+        alert('무게와 횟수를 입력하세요.');
+        return;
+    }
 
-  if (!accRecordsByExercise[currentExerciseName]) {
-    accRecordsByExercise[currentExerciseName] = [];
-  }
+    // 기록 객체 생성
+    const newRecord = {
+        date: new Date().toISOString().split('T')[0], // yyyy-mm-dd
+        weight,
+        reps
+    };
 
-  accRecordsByExercise[currentExerciseName].unshift({ date, weight, reps });
+    // 기존 기록에 추가
+    if (!accRecordsByExercise[currentExerciseName]) {
+        accRecordsByExercise[currentExerciseName] = [];
+    }
+    accRecordsByExercise[currentExerciseName].push(newRecord);
 
-  document.getElementById('acc-weight').value = '';
-  document.getElementById('acc-reps').value = '';
+    // 입력 초기화
+    document.getElementById('acc-weight').value = '';
+    document.getElementById('acc-reps').value = '';
 
-  renderAccessoryRecords(); // 카드 렌더
-  renderExercises();       // 요약/리스트 갱신
+    // 화면 갱신
+    renderAccessoryRecords(currentExerciseName);
 }
 
 
-function renderAccessoryRecords(){
-  const wrap = document.getElementById('acc-records');
-  const list = accRecordsByExercise[currentExerciseName] || [];
-
-  if(list.length === 0){
-    wrap.innerHTML = '';
-    return;
-  }
-
-  wrap.innerHTML = `
-    <div class="record-day">
-      <div class="date">${list[0].date}</div>
-      ${list.map(r=>`
-        <div class="set">${r.weight}kg × ${r.reps}회</div>
-      `).join('')}
-    </div>
-  `;
-}
 
 
 
@@ -2160,6 +2156,17 @@ window.addEventListener('load', ()=>{
 });
 
 
+function selectExercise(name) {
+    currentExerciseName = name;
+    document.getElementById('detail-exercise-name').textContent = name;
+
+    renderAccessoryRecords(name);
+
+    // 화면 전환
+    document.getElementById('acc-part-screen').style.display = 'none';
+    document.getElementById('exercise-screen').style.display = 'none';
+    document.getElementById('exercise-detail-screen').style.display = 'block';
+}
 
 // ===============================
 // 🔥 카드 기록 동기화 (Firestore)
