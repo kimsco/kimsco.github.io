@@ -1939,6 +1939,10 @@ threeToggleBtn.addEventListener("click", () => {
 
 let currentExercise = null;
 
+// 🔥 보조운동 종목 + 기록 전체 저장소
+let accRecordsByExercise = JSON.parse(
+  localStorage.getItem('accRecordsByExercise')
+) || {};
 
 
 
@@ -2133,6 +2137,8 @@ window.addEventListener('load', ()=>{
         accRecordsByExercise = JSON.parse(savedAcc);
         // 화면에 렌더링
         if(currentExerciseName) renderAccessorySets(currentExerciseName);
+
+       
     }
 });
 
