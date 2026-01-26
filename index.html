@@ -1127,14 +1127,10 @@ function fadeTempMsg(el, msg, timeout=1000, fadeDur=800){
    /* ===============================
    🔥 보조운동(4번째 탭) 로직
 ================================ */
-let accRecordsByExercise = {
-  // 예시
-  "벤치프레스": [
-    { date: "2026-01-24", weight: 80, reps: 8 },
-    { date: "2026-01-22", weight: 75, reps: 10 }
-  ],
-  "스쿼트": []
-};
+
+
+let accRecordsByExercise = {}; // 🔥 DB에서 가져올 예정
+
 
 let currentExerciseName = null; // 🔥 지금 보고 있는 종목
 let currentPart = null;        // 🔥 지금 선택된 종목
@@ -2236,20 +2232,7 @@ currentExercises = currentExercises.filter(item => item && (typeof item === 'str
   });
 }
 
-// 카드 추가
-async function addExercise() {
-  if (!currentPart) return alert("먼저 종목을 선택하세요.");
-  const name = prompt("운동 종목을 입력하시오");
-  if (!name) return;
 
-  if (!accRecordsByExercise[currentPart]) accRecordsByExercise[currentPart] = [];
-  accRecordsByExercise[currentPart].unshift(name);
-
-  currentExercises = accRecordsByExercise[currentPart];
-  renderExercises();
-
-  await saveAccessoryRecords(); // Firestore 저장
-}
 
 
 // 카드 삭제
@@ -2375,7 +2358,39 @@ window.addEventListener('load', async () => {
     }
 });
 
-   
+async function saveExerciseToDB(exerciseName) {
+    const user = auth.currentUser;
+    if (!user) return;
+    const docRef = db.collection('users').doc(user.uid).collection('accessories').doc(exerciseName);
+    await docRef.set({
+        name: exerciseName,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+}
+
+async function addAccessorySetToDB(exerciseName, weight, reps) {
+    const user = auth.currentUser;
+    if (!user) return;
+    const collectionRef = db.collection('users').doc(user.uid).collection('accessories').doc(exerciseName).collection('records');
+    await collectionRef.add({
+        weight: weight,
+        reps: reps,
+        date: new Date().toISOString().slice(0,10)
+    });
+}
+
+async function loadExercisesFromDB() {
+    const user = auth.currentUser;
+    if (!user) return;
+    const snapshot = await db.collection('users').doc(user.uid).collection('accessories').get();
+    accRecordsByExercise = {}; // 초기화
+    snapshot.forEach(doc => {
+        const name = doc.id;
+        accRecordsByExercise[name] = []; // 기록은 나중에 불러올 수 있음
+        createExerciseCard(name);
+    });
+}
+
    
 
 </script>
