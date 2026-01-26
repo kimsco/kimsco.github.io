@@ -1220,7 +1220,7 @@ async function addExercise() {
   // 현재 종목 리스트 업데이트 후 렌더링
   currentExercises = accRecordsByExercise[currentPart];
   renderExercises();
-
+await saveExerciseToDB(name);
   // Firestore에 저장
   const user = auth.currentUser;
   if (user) {
