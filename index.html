@@ -922,7 +922,7 @@ input[type="number"] {
   <div class="recordFormRow">
     <input id="acc-weight" type="number" placeholder="kg">
     <input id="acc-reps" type="number" placeholder="회">
-     <button id="add-btn" class="recordAddBtn" onclick="addAccessorySet()">저 장</button>
+     <button id="add-btn" class="recordAddBtn" onclick="addAccessorySet()">저장</button>
 
 
   </div>
@@ -1469,14 +1469,13 @@ auth.onAuthStateChanged(async user=>{
               .limit(1)
               .get();
 
-           if(!threeSnap.empty){
-    const data = threeSnap.docs[0].data();
-    benchRM.value = data.bench || 0;
-    squatRM.value = data.squat || 0;
-    deadRM.value = data.dead || 0;
-    updateTotal3(); // 🔥 함수명 정확히
-}
-
+            if(!threeSnap.empty){
+                const data = threeSnap.docs[0].data();
+                benchRM.value = data.bench || 0;
+                squatRM.value = data.squat || 0;
+                deadRM.value = data.dead || 0;
+                updateTotal3(); // 총합 갱신
+            }
         }catch(e){
             console.error('load threeRM err', e);
         }
@@ -1994,26 +1993,6 @@ function renderAccessoryRecords() {
   `).join('');
 }
 
-async function loadAccessoryRecords(){
-  const user = auth.currentUser;
-  if(!user) return;
-
-  const snap = await db
-    .collection('users')
-    .doc(user.uid)
-    .collection('accessories')
-    .doc(currentPart)
-    .collection('exercises')
-    .doc(currentExerciseName)
-    .collection('records')
-    .orderBy('createdAt','desc')
-    .get();
-
-  accRecordsByExercise[currentExerciseName] =
-    snap.docs.map(d => d.data());
-
-  renderAccessoryRecords();
-}
 
    
 function getAccessorySummary(name) {
@@ -2030,36 +2009,27 @@ function renderAccessorySets(name) {
 }
 
    
-async function addAccessorySet(){
-  const weight = parseInt(document.getElementById('acc-weight').value);
+function addAccessorySet() {
+  if (!currentExerciseName) return;
+
+  const weight = parseFloat(document.getElementById('acc-weight').value);
   const reps = parseInt(document.getElementById('acc-reps').value);
-  if(!weight || !reps) return;
+  if (!weight || !reps) return;
 
-  const user = auth.currentUser;
-  if(!user) return alert("로그인 필요");
+  const date = formatTodayYYMMDD();
 
-  const record = {
-    date: new Date().toISOString().slice(0,10),
-    weight,
-    reps,
-    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-  };
+  if (!accRecordsByExercise[currentExerciseName]) {
+    accRecordsByExercise[currentExerciseName] = [];
+  }
 
-  // 🔥 Firestore 저장
-  await db
-    .collection('users')
-    .doc(user.uid)
-    .collection('accessories')
-    .doc(currentPart)
-    .collection('exercises')
-    .doc(currentExerciseName)
-    .collection('records')
-    .add(record);
+  accRecordsByExercise[currentExerciseName].unshift({ date, weight, reps });
 
-  // 화면 즉시 반영
-  renderAccessoryRecords();
+  document.getElementById('acc-weight').value = '';
+  document.getElementById('acc-reps').value = '';
+
+  renderAccessoryRecords(); // 카드 렌더
+  renderExercises();       // 요약/리스트 갱신
 }
-
 
 
 function renderAccessoryRecords(){
