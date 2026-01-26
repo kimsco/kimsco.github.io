@@ -1002,9 +1002,6 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 let currentExercises = [];
-
-let exerciseRecords = {}; // 🔵 종목별 기록 전용
-
 /* 요소 참조 */
 const tabBtns = document.querySelectorAll('.tabBtn');
 const tabContents = document.querySelectorAll('.tabContent');
@@ -1130,12 +1127,14 @@ function fadeTempMsg(el, msg, timeout=1000, fadeDur=800){
    /* ===============================
    🔥 보조운동(4번째 탭) 로직
 ================================ */
-
-// 🔥 보조운동 "기록" 전용 저장소
-let accessoryRecords = JSON.parse(localStorage.getItem('accessoryRecords')) || {};
-
-
-   
+let accRecordsByExercise = {
+  // 예시
+  "벤치프레스": [
+    { date: "2026-01-24", weight: 80, reps: 8 },
+    { date: "2026-01-22", weight: 75, reps: 10 }
+  ],
+  "스쿼트": []
+};
 
 let currentExerciseName = null; // 🔥 지금 보고 있는 종목
 let currentPart = null;        // 🔥 지금 선택된 종목
@@ -1167,7 +1166,12 @@ partButtons.forEach(btn => {
 
 
 // 카드 클릭 → 입력창 보여주기
-
+function openExerciseDetail(name){
+  currentExerciseName = name;
+  document.getElementById('detail-exercise-name').textContent = name;
+  // 항상 최상위 입력창 표시
+  document.getElementById('exercise-detail-screen').style.display = 'block';
+}
 
 // 입력창 닫기
 function closeExerciseDetail(){
@@ -1926,23 +1930,18 @@ threeToggleBtn.addEventListener("click", () => {
       ? "block"
       : "none";
 });
-
-
-   
-// 구조:
-// {
-//   "벤치프레스": [
-//     { date, weight, reps },
-//     { date, weight, reps }
-//   ]
-// }
-
+// 🔥 종목별 기록 (로컬 전용)
+const accessoryRecords = {
+  // 예시 구조
+  // "체스트프레스": {
+  //   "2026.01.24": [
+  //     { weight: 20, reps: 5 },
+  //     { weight: 30, reps: 4 }
+  //   ]
+  // }
+};
 let currentExercise = null;
 
-// 🔥 보조운동 종목 + 기록 전체 저장소
-let accRecordsByExercise = JSON.parse(
-  localStorage.getItem('accRecordsByExercise')
-) || {};
 
 
 
@@ -1974,57 +1973,35 @@ function getToday() {
 }
 
    
+
+
+
 function renderAccessoryRecords() {
-  const container = document.getElementById('accessory-record-list');
-  container.innerHTML = '';
+  const wrap = document.getElementById('acc-records');
+  const list = accRecordsByExercise[currentExerciseName] || [];
 
-  const records = accRecordsByExercise[currentExerciseName];
-  if (!records) return;
+  if (list.length === 0) {
+    wrap.innerHTML = `<div style="color:#777; font-size:13px;">기록 없음</div>`;
+    return;
+  }
 
-  records.forEach((record, index) => {
-    const card = document.createElement('div');
-    card.className = 'record-card';
-
-    card.innerHTML = `
-      <div>${record.weight}kg × ${record.reps}회</div>
-      <button onclick="deleteAccessoryRecord(${index})">🗑</button>
-    `;
-
-    container.appendChild(card);
-  });
+  wrap.innerHTML = list.map(set => `
+    <div class="record-day">
+      <div class="date">${set.date}</div>
+      <div class="set">${set.weight}kg × ${set.reps}회</div>
+    </div>
+  `).join('');
 }
-
-
-
-
 
 
    
 function getAccessorySummary(name) {
-  const records = exerciseRecords[name];
-  if (!records || records.length === 0) return '';
+  const list = accRecordsByExercise[name];
+  if (!list || list.length === 0) return '기록 없음';
 
-  // 날짜별 그룹
-  const grouped = {};
-  records.forEach(r => {
-    if (!grouped[r.date]) grouped[r.date] = [];
-    grouped[r.date].push(r);
-  });
-
-  // 최신 날짜
-  const latestDate = Object.keys(grouped)
-    .sort((a, b) => b.localeCompare(a))[0];
-
-  const sets = grouped[latestDate];
-
-  return `
-    <div>${latestDate}</div>
-    ${sets.map(s =>
-      `<div>${s.weight}kg × ${s.reps}회</div>`
-    ).join('')}
-  `;
+  const latest = list[0];
+  return `${latest.date} → ${latest.weight}kg × ${latest.reps}회`;
 }
-
 
 function renderAccessorySets(name) {
     currentExerciseName = name;
@@ -2032,36 +2009,47 @@ function renderAccessorySets(name) {
 }
 
    
-function addAccessorySet(){
+function addAccessorySet() {
   if (!currentExerciseName) return;
 
-  const weight = parseInt(document.getElementById('acc-weight').value);
+  const weight = parseFloat(document.getElementById('acc-weight').value);
   const reps = parseInt(document.getElementById('acc-reps').value);
   if (!weight || !reps) return;
 
   const date = formatTodayYYMMDD();
 
-  if (!accessoryRecords[currentExerciseName]) {
-    accessoryRecords[currentExerciseName] = [];
+  if (!accRecordsByExercise[currentExerciseName]) {
+    accRecordsByExercise[currentExerciseName] = [];
   }
 
-  accessoryRecords[currentExerciseName].push({
-    date,
-    weight,
-    reps
-  });
+  accRecordsByExercise[currentExerciseName].unshift({ date, weight, reps });
 
-  // 🔥 저장
-  localStorage.setItem(
-    'accessoryRecords',
-    JSON.stringify(accessoryRecords)
-  );
+  document.getElementById('acc-weight').value = '';
+  document.getElementById('acc-reps').value = '';
 
-  renderAccessoryRecords();
+  renderAccessoryRecords(); // 카드 렌더
+  renderExercises();       // 요약/리스트 갱신
 }
 
 
+function renderAccessoryRecords(){
+  const wrap = document.getElementById('acc-records');
+  const list = accRecordsByExercise[currentExerciseName] || [];
 
+  if(list.length === 0){
+    wrap.innerHTML = '';
+    return;
+  }
+
+  wrap.innerHTML = `
+    <div class="record-day">
+      <div class="date">${list[0].date}</div>
+      ${list.map(r=>`
+        <div class="set">${r.weight}kg × ${r.reps}회</div>
+      `).join('')}
+    </div>
+  `;
+}
 
 
 
@@ -2137,8 +2125,6 @@ window.addEventListener('load', ()=>{
         accRecordsByExercise = JSON.parse(savedAcc);
         // 화면에 렌더링
         if(currentExerciseName) renderAccessorySets(currentExerciseName);
-
-       
     }
 });
 
@@ -2358,12 +2344,6 @@ window.addEventListener('load', async () => {
     }
 });
 
-window.addEventListener('load', () => {
-  const saved = localStorage.getItem('accessoryRecords');
-  if (saved) {
-    accessoryRecords = JSON.parse(saved);
-  }
-});
 
    
    
