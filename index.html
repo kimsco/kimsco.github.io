@@ -989,6 +989,9 @@ input[type="number"] {
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <script>
+   
+/* 기록 박스 데이터 (로컬 mock) 및 렌더 함수 */
+const records = { bench: [], squat: [], dead: [] };
 /* Firebase 설정 (기존 값 유지) */
 const firebaseConfig = {
     apiKey: "AIzaSyCXn174XsW6ndqaeUpVK6XAAf4MR0-q7_k",
@@ -1336,8 +1339,6 @@ async function loadRecordsFromFirestore(user){
 }
 
    
-/* 기록 박스 데이터 (로컬 mock) 및 렌더 함수 */
-const records = { bench: [], squat: [], dead: [] };
 
 // 포맷 날짜: '25.12.10'
 function formatTodayYYMMDD(d = new Date()){
