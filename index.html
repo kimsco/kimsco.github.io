@@ -1993,6 +1993,26 @@ function renderAccessoryRecords() {
   `).join('');
 }
 
+async function loadAccessoryRecords(){
+  const user = auth.currentUser;
+  if(!user) return;
+
+  const snap = await db
+    .collection('users')
+    .doc(user.uid)
+    .collection('accessories')
+    .doc(currentPart)
+    .collection('exercises')
+    .doc(currentExerciseName)
+    .collection('records')
+    .orderBy('createdAt','desc')
+    .get();
+
+  accRecordsByExercise[currentExerciseName] =
+    snap.docs.map(d => d.data());
+
+  renderAccessoryRecords();
+}
 
    
 function getAccessorySummary(name) {
@@ -2009,27 +2029,36 @@ function renderAccessorySets(name) {
 }
 
    
-function addAccessorySet() {
-  if (!currentExerciseName) return;
-
-  const weight = parseFloat(document.getElementById('acc-weight').value);
+async function addAccessorySet(){
+  const weight = parseInt(document.getElementById('acc-weight').value);
   const reps = parseInt(document.getElementById('acc-reps').value);
-  if (!weight || !reps) return;
+  if(!weight || !reps) return;
 
-  const date = formatTodayYYMMDD();
+  const user = auth.currentUser;
+  if(!user) return alert("로그인 필요");
 
-  if (!accRecordsByExercise[currentExerciseName]) {
-    accRecordsByExercise[currentExerciseName] = [];
-  }
+  const record = {
+    date: new Date().toISOString().slice(0,10),
+    weight,
+    reps,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
 
-  accRecordsByExercise[currentExerciseName].unshift({ date, weight, reps });
+  // 🔥 Firestore 저장
+  await db
+    .collection('users')
+    .doc(user.uid)
+    .collection('accessories')
+    .doc(currentPart)
+    .collection('exercises')
+    .doc(currentExerciseName)
+    .collection('records')
+    .add(record);
 
-  document.getElementById('acc-weight').value = '';
-  document.getElementById('acc-reps').value = '';
-
-  renderAccessoryRecords(); // 카드 렌더
-  renderExercises();       // 요약/리스트 갱신
+  // 화면 즉시 반영
+  renderAccessoryRecords();
 }
+
 
 
 function renderAccessoryRecords(){
