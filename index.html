@@ -2041,41 +2041,33 @@ function renderAccessorySets(name) {
 }
 
    
+
+
 function addAccessorySet() {
     const weight = parseFloat(document.getElementById('acc-weight').value);
     const reps = parseInt(document.getElementById('acc-reps').value);
+    const date = new Date().toISOString().slice(0,10); // YYYY-MM-DD
 
-    if (!currentExerciseName) {
-        alert('종목을 먼저 선택하세요.');
+    if(!weight || !reps) {
+        fadeTempMsg(recordMessage, "무게와 횟수를 입력하세요");
         return;
     }
 
-    if (!weight || !reps) {
-        alert('무게와 횟수를 입력하세요.');
-        return;
-    }
+    if(!currentExerciseName) return;
 
-    // 기록 객체 생성
-    const newRecord = {
-        date: new Date().toISOString().split('T')[0], // yyyy-mm-dd
-        weight,
-        reps
-    };
-
-    // 기존 기록에 추가
-    if (!accRecordsByExercise[currentExerciseName]) {
-        accRecordsByExercise[currentExerciseName] = [];
-    }
-    accRecordsByExercise[currentExerciseName].push(newRecord);
-
-    // 입력 초기화
-    document.getElementById('acc-weight').value = '';
-    document.getElementById('acc-reps').value = '';
-
-    // 화면 갱신
-    renderAccessoryRecords(currentExerciseName);
+    // Firebase 저장
+    db.collection("accessoryRecords")
+      .doc(auth.currentUser.uid)
+      .collection(currentExerciseName)
+      .add({ date, weight, reps })
+      .then(() => {
+          fadeTempMsg(recordMessage, "기록 저장 완료!");
+          if(!accRecordsByExercise[currentExerciseName])
+              accRecordsByExercise[currentExerciseName] = [];
+          accRecordsByExercise[currentExerciseName].push({date, weight, reps});
+          renderAccessoryRecords(currentExerciseName);
+      });
 }
-
 
 
 
