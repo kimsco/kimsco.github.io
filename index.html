@@ -1512,44 +1512,40 @@ auth.onAuthStateChanged(async user => {
     }
 
     /* records */
-    /* 🔥 카드(팁 탭) 기록 초기 로드 */
-try {
-  const snap = await db
-    .collection('users')
-    .doc(user.uid)
-    .collection('accessoryRecords')
-    .orderBy('createdAt', 'asc')
-    .get();
+    try {
+      const snap = await db
+        .collection('users')
+        .doc(user.uid)
+        .collection('records')
+        .orderBy('createdAt', 'desc')
+        .limit(200)
+        .get();
 
-  accRecordsByExercise = {};
+      records.bench = [];
+      records.squat = [];
+      records.dead = [];
 
-  snap.forEach(doc => {
-    const d = doc.data();
-    if (!d || !d.exercise) return;
+      snap.forEach(doc => {
+        const d = doc.data();
+        if (!d || !d.lift) return;
 
-    if (!accRecordsByExercise[d.exercise]) {
-      accRecordsByExercise[d.exercise] = [];
+        const item = {
+          firestoreId: doc.id,
+          date: d.date,
+          weight: d.weight,
+          reps: d.reps,
+          createdAt: d.createdAt?.toMillis?.() || 0
+        };
+
+        if (d.lift === 'bench') records.bench.push(item);
+        if (d.lift === 'squat') records.squat.push(item);
+        if (d.lift === 'dead') records.dead.push(item);
+      });
+
+      renderActiveBox();
+    } catch (e) {
+      console.error('load records err', e);
     }
-
-    accRecordsByExercise[d.exercise].push({
-      id: doc.id,
-      date: d.date,
-      weight: d.weight,
-      reps: d.reps,
-      createdAt: d.createdAt
-    });
-  });
-
-  // 👉 첫 종목 자동 선택
-  const firstExercise = Object.keys(accRecordsByExercise)[0];
-  if (firstExercise) {
-    currentExerciseName = firstExercise;
-    renderAccessoryRecords(); // 화면에 바로 뿌림
-  }
-} catch (e) {
-  console.error('accessory record load error', e);
-}
-
 
     /* 🔥 달력 데이터 로드 (여기로!) */
     try {
@@ -2438,7 +2434,19 @@ async function loadExercisesFromDB() {
 }
 
 
+auth.onAuthStateChanged(user => {
+    if(user){
+        googleLoginBtn.style.display = 'none';
+        logoutBtn.style.display = 'inline-block';
+        userInfo.textContent = user.displayName || user.email;
 
+        loadExercisesFromDB(); // 🔥 DB에서 카드 불러오기
+    } else {
+        googleLoginBtn.style.display = 'inline-block';
+        logoutBtn.style.display = 'none';
+        userInfo.textContent = '';
+    }
+});
 
    
 
