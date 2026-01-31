@@ -2145,6 +2145,7 @@ auth.onAuthStateChanged(async user => {
 /* 2️⃣ 종목 카드 렌더 */
 function renderExerciseCards() {
   const container = document.getElementById('tipCards');
+   if (!container) return; // 🔥 없으면 그냥 중단
   container.innerHTML = '';
 
   Object.keys(accRecordsByExercise).forEach(name => {
