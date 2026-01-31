@@ -1441,6 +1441,8 @@ googleLoginBtn.addEventListener('click', ()=>{
 });
 logoutBtn.addEventListener('click', ()=> auth.signOut());
 
+
+   
 auth.onAuthStateChanged(async user => {
   if (user) {
     googleLoginBtn.style.display = 'none';
@@ -1518,7 +1520,9 @@ try {
     } catch (e) {
       console.error("calendar load error", e);
     }
-});
+
+  }
+  });
 
 
 
