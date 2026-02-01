@@ -2123,12 +2123,7 @@ if (backBtn) {
     backBtn.addEventListener('click', closeExerciseDetail);
 }
 // 맨 위 또는 index.js 적절한 위치
-function createExerciseCard(exerciseName) {
-    const card = document.createElement('div');
-    card.classList.add('exercise-card');
-    card.textContent = exerciseName;
-    document.getElementById('exercise-list').appendChild(card);
-}
+
 
 
 document.addEventListener('keydown', (e) => {
@@ -2168,49 +2163,24 @@ auth.onAuthStateChanged(user => {
 
 });
 
-   async function loadExercises() {
+async function loadExercises(part) {
   if (!auth.currentUser) return;
 
   const uid = auth.currentUser.uid;
 
-  accRecordsByExercise = {};
-
-  const snap = await db
+  const doc = await db
     .collection('users')
     .doc(uid)
     .collection('accessories')
+    .doc(part)
     .get();
 
-  snap.forEach(doc => {
-    accRecordsByExercise[doc.id] = doc.data().list || [];
-  });
+  currentExercises = doc.exists ? (doc.data().list || []) : [];
 
-  renderAccessoryRecords();
+  renderExercises(); // 🔥 여기서 카드 생성
 }
 
-   function renderAccessoryRecords() {
-  const container = document.getElementById('accessoryCards');
-  if (!container) return;
 
-  container.innerHTML = '';
-
-  Object.entries(accRecordsByExercise).forEach(([part, list]) => {
-    list.forEach(name => {
-      const card = document.createElement('div');
-      card.className = 'exercise-card';
-      card.textContent = name;
-
-      card.onclick = () => openExerciseDetail(name);
-
-      container.appendChild(card);
-    });
-  });
-}
-
-   function closeExerciseDetail() {
-  const detail = document.getElementById('exerciseDetail');
-  if (detail) detail.style.display = 'none';
-}
 
 
 </script>
