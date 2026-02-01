@@ -980,12 +980,7 @@ input[type="number"] {
     </div>
 </div>
 
-   <div id="exerciseList"></div>
 
-<div id="exerciseDetail" style="display:none">
-  <div class="back-btn" onclick="closeExerciseDetail()">← 뒤로</div>
-  <div id="accessoryRecordList"></div>
-</div>
 
 <!-- 로그인 -->
 
@@ -1167,6 +1162,10 @@ partButtons.forEach(btn => {
 });
 
 
+const partScreen = document.getElementById('acc-part-screen');
+const exerciseScreen = document.getElementById('exercise-screen');
+const detailScreen = document.getElementById('exercise-detail-screen');
+
 
    /* ===============================
    카드 상세 열기
@@ -1174,33 +1173,20 @@ partButtons.forEach(btn => {
 function openExerciseDetail(exerciseName) {
   currentExerciseName = exerciseName;
 
-  const list = document.getElementById('exerciseList');
-  const detail = document.getElementById('exerciseDetail');
+  exerciseScreen.style.display = 'none';
+  detailScreen.style.display = 'block';
 
-  if (!list || !detail) {
-    console.error('exerciseList / exerciseDetail 없음');
-    return;
-  }
-
-  list.style.display = 'none';
-  detail.style.display = 'block';
-
+  document.getElementById('detail-exercise-name').textContent = exerciseName;
   renderAccessoryDetail(exerciseName);
 }
 
-
-/* ===============================
-   카드 상세 닫기 (뒤로가기)
-================================ */
 function closeExerciseDetail() {
-  const list = document.getElementById('exerciseList');
-  const detail = document.getElementById('exerciseDetail');
-
-  if (list) list.style.display = 'block';
-  if (detail) detail.style.display = 'none';
+  detailScreen.style.display = 'none';
+  exerciseScreen.style.display = 'block';
 
   currentExerciseName = null;
 }
+
 
 
 /* ===============================
