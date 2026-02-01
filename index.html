@@ -2201,6 +2201,16 @@ function getAccessorySummary(exerciseName) {
   return `${latest.weight}kg × ${latest.reps}회`;
 }
 
+function closeExerciseDetail() {
+  // 상세 화면 숨기고
+  document.getElementById('exerciseDetail').style.display = 'none';
+
+  // 카드 목록 다시 보여주기
+  document.getElementById('exerciseList').style.display = 'block';
+
+  // 선택된 종목 초기화
+  currentExerciseName = null;
+}
 
 
 </script>
