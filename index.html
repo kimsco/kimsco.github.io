@@ -1994,26 +1994,6 @@ function getToday() {
 
 
 
-function deleteExercise(name, event) {
-    if (event) event.stopPropagation(); // 이벤트가 있으면 막기
-
-    const user = auth.currentUser;
-    if (!user) return fadeTempMsg(exerciseListEl, "로그인 후 사용 가능", 1000);
-
-    currentExercises = currentExercises.filter(n => n !== name);
-    renderExercises();
-
-    try {
-        db.collection('users').doc(user.uid)
-           
-  .doc(currentExerciseName)
-  .set({ records: accRecordsByExercise[currentExerciseName] });
-
-    } catch (err) {
-        console.error("Firestore 삭제 실패:", err);
-        fadeTempMsg(exerciseListEl, "삭제 실패: " + err.message, 1500);
-    }
-}
 
 
    
@@ -2120,14 +2100,58 @@ currentExercises = currentExercises.filter(item => item && (typeof item === 'str
 
 
 
-// 카드 삭제
-async function deleteExercise(name) {
-  if (!currentPart) return;
-  accRecordsByExercise[currentPart] = accRecordsByExercise[currentPart].filter(n => n !== name);
-  currentExercises = accRecordsByExercise[currentPart];
-  renderExercises();
+async function deleteExercise(exerciseName) {
+  if (!confirm('이 종목의 모든 기록을 삭제할까요?')) return;
 
-  await saveAccessoryRecords(); // 🔥 Firestore 저장
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const snap = await db
+    .collection('users')
+    .doc(user.uid)
+    .collection('accessoryRecords')
+    .where('exercise', '==', exerciseName)
+    .get();
+
+  const batch = db.batch();
+  snap.forEach(doc => batch.delete(doc.ref));
+  await batch.commit();
+
+  // 화면 갱신
+  await loadAccessoryRecords();
+}
+
+async function loadAccessoryRecords() {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const snap = await db
+    .collection('users')
+    .doc(user.uid)
+    .collection('accessoryRecords')
+    .orderBy('createdAt', 'asc')
+    .get();
+
+  accRecordsByExercise = {};
+
+  snap.forEach(doc => {
+    const d = doc.data();
+    if (!d.exercise) return;
+
+    if (!accRecordsByExercise[d.exercise]) {
+      accRecordsByExercise[d.exercise] = [];
+    }
+
+    accRecordsByExercise[d.exercise].push({
+      id: doc.id,
+      ...d
+    });
+  });
+
+  renderExercises(); // 목록
+  if (currentExerciseName) {
+    renderAccessoryRecords(currentExerciseName); // 카드
+  }
 }
 
 // 카드 입력창 열기
