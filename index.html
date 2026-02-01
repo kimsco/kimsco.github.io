@@ -980,6 +980,13 @@ input[type="number"] {
     </div>
 </div>
 
+   <div id="exerciseList"></div>
+
+<div id="exerciseDetail" style="display:none">
+  <div class="back-btn" onclick="closeExerciseDetail()">← 뒤로</div>
+  <div id="accessoryRecordList"></div>
+</div>
+
 <!-- 로그인 -->
 
 
@@ -1161,18 +1168,64 @@ partButtons.forEach(btn => {
 
 
 
-   
+   /* ===============================
+   카드 상세 열기
+================================ */
+function openExerciseDetail(exerciseName) {
+  currentExerciseName = exerciseName;
 
+  const list = document.getElementById('exerciseList');
+  const detail = document.getElementById('exerciseDetail');
 
-// 카드 클릭 → 입력창 보여주기
-function openExerciseDetail(name){
-  currentExerciseName = name;
-  document.getElementById('detail-exercise-name').textContent = name;
-  // 항상 최상위 입력창 표시
-  document.getElementById('exercise-detail-screen').style.display = 'block';
+  if (!list || !detail) {
+    console.error('exerciseList / exerciseDetail 없음');
+    return;
+  }
+
+  list.style.display = 'none';
+  detail.style.display = 'block';
+
+  renderAccessoryDetail(exerciseName);
 }
 
 
+/* ===============================
+   카드 상세 닫기 (뒤로가기)
+================================ */
+function closeExerciseDetail() {
+  const list = document.getElementById('exerciseList');
+  const detail = document.getElementById('exerciseDetail');
+
+  if (list) list.style.display = 'block';
+  if (detail) detail.style.display = 'none';
+
+  currentExerciseName = null;
+}
+
+
+/* ===============================
+   카드 상세 렌더링 (핵심)
+================================ */
+function renderAccessoryDetail(exerciseName) {
+  const container = document.getElementById('accessoryRecordList');
+  if (!container) return;
+
+  container.innerHTML = '';
+
+  const records = accRecordsByExercise[exerciseName] || [];
+
+  if (records.length === 0) {
+    container.innerHTML = '<div class="empty">기록 없음</div>';
+    return;
+  }
+
+  records.forEach(r => {
+    const div = document.createElement('div');
+    div.className = 'record-row';
+    div.textContent = `${r.date}  ${r.weight}kg × ${r.reps}회`;
+    container.appendChild(div);
+  });
+}
 
 
 
@@ -2201,16 +2254,7 @@ function getAccessorySummary(exerciseName) {
   return `${latest.weight}kg × ${latest.reps}회`;
 }
 
-function closeExerciseDetail() {
-  // 상세 화면 숨기고
-  document.getElementById('exerciseDetail').style.display = 'none';
 
-  // 카드 목록 다시 보여주기
-  document.getElementById('exerciseList').style.display = 'block';
-
-  // 선택된 종목 초기화
-  currentExerciseName = null;
-}
 
 
 </script>
