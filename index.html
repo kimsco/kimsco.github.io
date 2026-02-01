@@ -2180,6 +2180,26 @@ async function loadExercises(part) {
   renderExercises(); // 🔥 여기서 카드 생성
 }
 
+function getAccessorySummary(exerciseName) {
+  // accRecordsByExercise 구조:
+  // {
+  //   "랫풀다운": [{ weight, reps, date, ... }, ...]
+  // }
+
+  const records = accRecordsByExercise[exerciseName];
+  if (!records || records.length === 0) {
+    return '기록 없음';
+  }
+
+  // 최신 기록 기준
+  const latest = records[records.length - 1];
+
+  if (!latest.weight || !latest.reps) {
+    return '기록 없음';
+  }
+
+  return `${latest.weight}kg × ${latest.reps}회`;
+}
 
 
 
