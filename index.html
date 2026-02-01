@@ -1172,38 +1172,9 @@ function openExerciseDetail(name){
   document.getElementById('exercise-detail-screen').style.display = 'block';
 }
 
-// 입력창 닫기
-function closeExerciseDetail(){
-  document.getElementById('exercise-detail-screen').style.display = 'none';
-}
 
 
 
-
-async function loadExercises(part){
-  currentPart = part;
-
-  // 🔥 로컬에 캐시가 있으면 즉시 렌더
-  if(accRecordsByExercise[part]){
-    currentExercises = accRecordsByExercise[part];
-    renderExercises(); // 즉시 화면 렌더링
-  } else {
-    // 처음 불러오는 경우
-    currentExercises = [];
-    renderExercises(); // 빈 상태 렌더 (선택 사항)
-  }
-
-  // Firestore fetch
-  const user = auth.currentUser;
-  if(user){
-    const ref = db.collection('users').doc(user.uid)
-                  .collection('accessories').doc(part);
-    const snap = await ref.get();
-    accRecordsByExercise[part] = snap.exists ? snap.data().list || [] : [];
-    currentExercises = accRecordsByExercise[part];
-    renderExercises(); // fetch 완료 후 화면 다시 렌더
-  }
-}
 
 
 
@@ -1951,31 +1922,10 @@ threeToggleBtn.addEventListener("click", () => {
       ? "block"
       : "none";
 });
-// 🔥 종목별 기록 (로컬 전용)
-const accessoryRecords = {
-  // 예시 구조
-  // "체스트프레스": {
-  //   "2026.01.24": [
-  //     { weight: 20, reps: 5 },
-  //     { weight: 30, reps: 4 }
-  //   ]
-  // }
-};
-let currentExercise = null;
-
-
 
 
 
    
-
-
-   
-function closeExerciseDetail() {
-  document.getElementById('exercise-detail-screen').style.display = 'none';
-  document.getElementById('exercise-screen').style.display = 'block';
-}
-
 
 function getToday() {
   const d = new Date();
@@ -1997,107 +1947,8 @@ function getToday() {
 
 
 
-function renderAccessoryRecords() {
-  const wrap = document.getElementById('acc-records');
-  const list = accRecordsByExercise[currentExerciseName] || [];
-
-  if (list.length === 0) {
-    wrap.innerHTML = `<div style="color:#777; font-size:13px;">기록 없음</div>`;
-    return;
-  }
-
-  wrap.innerHTML = list.map(set => `
-    <div class="record-day">
-      <div class="date">${set.date}</div>
-      <div class="set">${set.weight}kg × ${set.reps}회</div>
-    </div>
-  `).join('');
-}
 
 
-   
-function getAccessorySummary(name) {
-  const list = accRecordsByExercise[name];
-  if (!list || list.length === 0) return '기록 없음';
-
-  const latest = list[0];
-  return `${latest.date} → ${latest.weight}kg × ${latest.reps}회`;
-}
-
-function renderAccessorySets(name) {
-    currentExerciseName = name;
-    renderAccessoryRecords();
-}
-
-async function addAccessorySet() {
-  if (!currentExerciseName) return;
-
-  const weight = parseFloat(document.getElementById('acc-weight').value);
-  const reps = parseInt(document.getElementById('acc-reps').value);
-  if (!weight || !reps) return;
-
-  const date = formatTodayYYMMDD();
-
-  if (!accRecordsByExercise[currentExerciseName]) {
-    accRecordsByExercise[currentExerciseName] = [];
-  }
-
-  accRecordsByExercise[currentExerciseName].unshift({ date, weight, reps });
-
-  await addAccessorySetToDB(currentExerciseName, weight, reps); 
-  await loadAccessorySets(currentExerciseName); // 🔥 DB 반영 후 최신값 불러오기
-
-  document.getElementById('acc-weight').value = '';
-  document.getElementById('acc-reps').value = '';
-}
-
-
-   
-// 🔥 보조운동 세트 Firestore 저장
-
-   
-async function loadAccessorySets(exerciseName) {
-  const user = auth.currentUser;
-  if (!user) return;
-
-  try {
-    const snap = await db
-      .collection('users')
-      .doc(user.uid)
-      .collection('accessoryRecords')
-      .doc(exerciseName)
-      .collection('sets')
-      .orderBy('createdAt', 'desc')
-      .get();
-
-    accRecordsByExercise[exerciseName] = snap.docs.map(doc => doc.data());
-
-    renderAccessoryRecords();
-  } catch (e) {
-    console.error('loadAccessorySets error', e);
-  }
-}
-
-
-
-function renderAccessoryRecords(){
-  const wrap = document.getElementById('acc-records');
-  const list = accRecordsByExercise[currentExerciseName] || [];
-
-  if(list.length === 0){
-    wrap.innerHTML = '';
-    return;
-  }
-
-  wrap.innerHTML = `
-    <div class="record-day">
-      <div class="date">${list[0].date}</div>
-      ${list.map(r=>`
-        <div class="set">${r.weight}kg × ${r.reps}회</div>
-      `).join('')}
-    </div>
-  `;
-}
 
 
 
@@ -2114,7 +1965,7 @@ function deleteExercise(name, event) {
 
     try {
         db.collection('users').doc(user.uid)
-  .collection('accessoryRecords')
+           
   .doc(currentExerciseName)
   .set({ records: accRecordsByExercise[currentExerciseName] });
 
@@ -2162,40 +2013,13 @@ document.querySelectorAll('.delete-btn').forEach(btn => {
 });
 
 
-   
-function saveAccessoryRecords() {
-    localStorage.setItem('accRecordsByExercise', JSON.stringify(accRecordsByExercise));
-}
-
-window.addEventListener('load', ()=>{
-    const savedAcc = localStorage.getItem('accRecordsByExercise');
-    if(savedAcc){
-        accRecordsByExercise = JSON.parse(savedAcc);
-        // 화면에 렌더링
-        if(currentExerciseName) renderAccessorySets(currentExerciseName);
-    }
-});
 
 
 
-// ===============================
-// 🔥 카드 기록 동기화 (Firestore)
-// ===============================
-async function saveAccessoryRecords() {
-  const user = auth.currentUser;
-  if (!user || !currentPart) return;
 
-  try {
-    await db.collection('users')
-      .doc(user.uid)
-      .collection('accessories')
-      .doc(currentPart)
-      .set({ list: accRecordsByExercise[currentPart] });
-    console.log('Accessory Records 저장 완료');
-  } catch (err) {
-    console.error('Accessory Records 저장 실패:', err);
-  }
-}
+
+
+
 
 // 카드 렌더링
 function renderExercises() {
@@ -2282,34 +2106,6 @@ function openExerciseDetail(name) {
 }
 
 
-// 카드 입력창 닫기
-function closeExerciseDetail() {
-  document.getElementById('exercise-detail-screen').style.display = 'none';
-}
-
-// Firestore에서 기록 불러오기
-async function loadExercises(part) {
-  currentPart = part;
-
-  // 로컬 캐시가 있으면 먼저 렌더
-  if (accRecordsByExercise[part]) {
-    currentExercises = accRecordsByExercise[part];
-    renderExercises();
-  } else {
-    currentExercises = [];
-    renderExercises();
-  }
-
-  // Firestore fetch
-  const user = auth.currentUser;
-  if (user) {
-    const ref = db.collection('users').doc(user.uid).collection('accessories').doc(part);
-    const snap = await ref.get();
-    accRecordsByExercise[part] = snap.exists ? snap.data().list || [] : [];
-    currentExercises = accRecordsByExercise[part];
-    renderExercises();
-  }
-}
 
 // 종목 버튼 클릭 시 Firestore 불러오기
 partButtons.forEach(btn => {
@@ -2334,57 +2130,13 @@ function createExerciseCard(exerciseName) {
     document.getElementById('exercise-list').appendChild(card);
 }
 
-function closeExerciseDetail() {
-  const detail = document.getElementById('exercise-detail-screen');
-  const exerciseScreen = document.getElementById('exercise-screen');
-  const partScreen = document.getElementById('acc-part-screen');
 
-  if(detail.style.display !== 'none'){
-    detail.style.display = 'none';
-    exerciseScreen.style.display = 'block';
-  } else {
-    // 이미 상세 화면이 아닌 경우, 파트 화면으로
-    exerciseScreen.style.display = 'none';
-    partScreen.style.display = 'block';
-  }
-}
 document.addEventListener('keydown', (e) => {
   if(e.key === "Escape") closeExerciseDetail();
 });
-window.addEventListener('load', ()=>{
-    const savedAcc = localStorage.getItem('accRecordsByExercise');
-    if(savedAcc){
-        accRecordsByExercise = JSON.parse(savedAcc);
-        // 화면에 렌더링
-        if(currentExerciseName) renderAccessoryRecords(currentExerciseName); // ✅ 변경
-    }
-});
 
-// ====================== 새로고침 기록 유지 ======================
-window.addEventListener('load', async () => {
-    // 1. localStorage에서 불러오기
-    const savedAcc = localStorage.getItem('accRecordsByExercise');
-    if (savedAcc) {
-        accRecordsByExercise = JSON.parse(savedAcc);
-    }
 
-    // 2. 첫 번째 파트와 종목 자동 선택
-    const parts = Object.keys(accRecordsByExercise);
-    if (parts.length > 0) {
-        currentPart = parts[0];
-        currentExercises = accRecordsByExercise[currentPart] || [];
-        currentExerciseName = currentExercises[0] ? (currentExercises[0].name || currentExercises[0]) : null;
 
-        renderExercises();
-        if (currentExerciseName) renderAccessoryRecords();
-    }
-
-    // 3. Firestore에서 불러오기 (로그인 되어있으면)
-    const user = auth.currentUser;
-    if (user && currentPart) {
-        await loadExercises(currentPart);
-    }
-});
 
 async function saveExerciseToDB(exerciseName) {
     const user = auth.currentUser;
@@ -2396,42 +2148,9 @@ async function saveExerciseToDB(exerciseName) {
     }, { merge: true });
 }
 
-async function addAccessorySetToDB(exerciseName, weight, reps) {
-  const user = auth.currentUser;
-  if (!user) return;
-
-  const date = formatTodayYYMMDD();
-
-  try {
-    await db
-      .collection('users')
-      .doc(user.uid)
-      .collection('accessoryRecords')
-      .doc(exerciseName)
-      .collection('sets')
-      .add({
-        date,
-        weight,
-        reps,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
-  } catch (e) {
-    console.error('addAccessorySetToDB error', e);
-  }
-}
 
 
-async function loadExercisesFromDB() {
-    const user = auth.currentUser;
-    if (!user) return;
-    const snapshot = await db.collection('users').doc(user.uid).collection('accessories').get();
-    accRecordsByExercise = {}; // 초기화
-    snapshot.forEach(doc => {
-        const name = doc.id;
-        accRecordsByExercise[name] = []; // 기록은 나중에 불러올 수 있음
-        createExerciseCard(name);
-    });
-}
+
 
 
 auth.onAuthStateChanged(user => {
@@ -2446,9 +2165,53 @@ auth.onAuthStateChanged(user => {
         logoutBtn.style.display = 'none';
         userInfo.textContent = '';
     }
+   await loadExercises();
 });
 
-   
+   async function loadExercises() {
+  if (!auth.currentUser) return;
+
+  const uid = auth.currentUser.uid;
+
+  accRecordsByExercise = {};
+
+  const snap = await db
+    .collection('users')
+    .doc(uid)
+    .collection('accessories')
+    .get();
+
+  snap.forEach(doc => {
+    accRecordsByExercise[doc.id] = doc.data().list || [];
+  });
+
+  renderAccessoryRecords();
+}
+
+   function renderAccessoryRecords() {
+  const container = document.getElementById('accessoryCards');
+  if (!container) return;
+
+  container.innerHTML = '';
+
+  Object.entries(accRecordsByExercise).forEach(([part, list]) => {
+    list.forEach(name => {
+      const card = document.createElement('div');
+      card.className = 'exercise-card';
+      card.textContent = name;
+
+      card.onclick = () => openExerciseDetail(name);
+
+      container.appendChild(card);
+    });
+  });
+}
+
+   function closeExerciseDetail() {
+  const detail = document.getElementById('exerciseDetail');
+  if (detail) detail.style.display = 'none';
+}
+
 
 </script>
 <!-- ⚠️ 여기 아래에 네가 쓰던 JS ㅓㄴ 그대로 유지 -->
