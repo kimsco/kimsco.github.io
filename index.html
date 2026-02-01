@@ -1216,40 +1216,42 @@ function renderAccessoryDetail(exerciseName) {
 
 
 
-
+let exercisesByPart = {}; // 🔥 종목 목록 전용
 
 
 async function addExercise() {
-  if(!currentPart) return alert("먼저 종목을 선택하세요.");
+  if (!currentPart) return alert("먼저 부위를 선택하세요.");
 
   const name = prompt("운동 종목을 입력하시오");
   if (!name) return;
 
-  // 종목별 배열 초기화
-  if(!accRecordsByExercise[currentPart]) accRecordsByExercise[currentPart] = [];
+  if (!exercisesByPart[currentPart]) {
+    exercisesByPart[currentPart] = [];
+  }
 
-  // 새 운동 추가
-  accRecordsByExercise[currentPart].unshift(name);
+  if (exercisesByPart[currentPart].includes(name)) {
+    alert("이미 존재하는 종목입니다.");
+    return;
+  }
 
-  // 현재 종목 리스트 업데이트 후 렌더링
-  currentExercises = accRecordsByExercise[currentPart];
+  exercisesByPart[currentPart].unshift(name);
+  currentExercises = exercisesByPart[currentPart];
   renderExercises();
-await saveExerciseToDB(name);
-  // Firestore에 저장
+
   const user = auth.currentUser;
   if (user) {
-    try {
-      await db
-        .collection('users')
-        .doc(user.uid)
-        .collection('accessories')
-        .doc(currentPart)
-        .set({ list: accRecordsByExercise[currentPart] });
-    } catch (err) {
-      console.error("Firestore 저장 실패:", err);
-    }
+    await db
+      .collection('users')
+      .doc(user.uid)
+      .collection('accessories')
+      .doc(currentPart)
+      .set(
+        { list: exercisesByPart[currentPart] },
+        { merge: true } // 🔥 덮어쓰기 방지
+      );
   }
 }
+
 
 
 
