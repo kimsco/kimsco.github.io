@@ -1170,26 +1170,28 @@ function closeExerciseDetail() {
 /* ===============================
    카드 상세 렌더링 (핵심)
 ================================ */
-function renderAccessoryDetail(exerciseName) {
-  const container = document.getElementById('accessoryRecordList');
-  if (!container) return;
+function renderAccessoryRecords(exerciseName) {
+  const el = document.getElementById('acc-records');
+  if (!el) return;
 
-  container.innerHTML = '';
+  const list = accRecordsByExercise[exerciseName] || [];
 
-  const records = accRecordsByExercise[exerciseName] || [];
-
-  if (records.length === 0) {
-    container.innerHTML = '<div class="empty">기록 없음</div>';
+  if (!list.length) {
+    el.innerHTML = `<div style="color:#777;font-size:13px;">기록 없음</div>`;
     return;
   }
 
-  records.forEach(r => {
-    const div = document.createElement('div');
-    div.className = 'record-row';
-    div.textContent = `${r.date}  ${r.weight}kg × ${r.reps}회`;
-    container.appendChild(div);
-  });
+  // 최신이 오른쪽(마지막)으로 가게 정렬
+  const sorted = [...list].sort((a,b) => (a.createdAt || 0) - (b.createdAt || 0));
+
+  el.innerHTML = sorted.map(r => `
+    <div class="record-day">
+      <div class="date">${r.date || ''}</div>
+      <div class="set">${r.weight}kg × ${r.reps}회</div>
+    </div>
+  `).join('');
 }
+
 
 
 
@@ -1554,6 +1556,7 @@ auth.onAuthStateChanged(async user => {
     } catch (e) {
       console.error("calendar load error", e);
     }
+await loadAccessoryRecords();  // ✅ 보조운동 기록 전체 로드
 
   } else {
     googleLoginBtn.style.display = 'block';
@@ -2168,20 +2171,7 @@ async function saveExerciseToDB(exerciseName) {
 
 
 
-auth.onAuthStateChanged(user => {
-    if(user){
-        googleLoginBtn.style.display = 'none';
-        logoutBtn.style.display = 'inline-block';
-        userInfo.textContent = user.displayName || user.email;
 
-        loadExercisesFromDB(); // 🔥 DB에서 카드 불러오기
-    } else {
-        googleLoginBtn.style.display = 'inline-block';
-        logoutBtn.style.display = 'none';
-        userInfo.textContent = '';
-    }
-
-});
 
 async function loadExercises(part) {
   if (!auth.currentUser) return;
