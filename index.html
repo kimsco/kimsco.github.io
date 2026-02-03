@@ -1181,10 +1181,10 @@ function renderAccessoryRecords(exerciseName) {
     return;
   }
 
-  // ✅ 최신이 오른쪽으로 가게: createdAt 오름차순 정렬
-  const sorted = [...list].sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+  // ✅ 최신 기록이 먼저 오도록 정렬 (내림차순)
+  const sorted = [...list].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
 
-  // ✅ 날짜별 그룹화
+  // ✅ 날짜별 그룹화 (정렬된 상태 유지)
   const grouped = {};
   sorted.forEach(r => {
     const dateKey = r.date || "날짜없음";
@@ -1192,14 +1192,18 @@ function renderAccessoryRecords(exerciseName) {
     grouped[dateKey].push(r);
   });
 
-  // ✅ 날짜 순서 (오래된→최신 / 최신이 오른쪽으로 밀리게)
-  const dates = Object.keys(grouped).sort((a, b) => a.localeCompare(b));
+  // ✅ 날짜도 최신이 왼쪽(먼저) 나오게: 내림차순
+  const dates = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
 
-  // ✅ 날짜 1개당 카드 1개, 그 안에 세트 여러 줄
+  // ✅ 날짜 1개당 카드 1개, 그 안에 세트 여러 줄 (최신이 위 → 아래로 누적)
   el.innerHTML = dates.map(date => {
-    const sets = grouped[date].map(r =>
-      `<div class="set">${r.weight}kg × ${r.reps}회</div>`
-    ).join("");
+    // grouped[date]는 이미 최신순으로 들어가 있음
+    // "최신이 아래"로 하고 싶으면 reverse() 하면 됨
+    const sets = grouped[date]
+      .slice()
+      .reverse() // ✅ 최신이 아래로 (누적 느낌)
+      .map(r => `<div class="set">${r.weight}kg × ${r.reps}회</div>`)
+      .join("");
 
     return `
       <div class="record-day">
@@ -1209,6 +1213,7 @@ function renderAccessoryRecords(exerciseName) {
     `;
   }).join("");
 }
+
 
 
 
