@@ -1197,24 +1197,24 @@ function renderAccessoryRecords(exerciseName) {
 
 let exercisesByPart = {}; // 🔥 종목 목록 전용
 
-
 async function addExercise() {
   if (!currentPart) return alert("먼저 부위를 선택하세요.");
 
   const name = prompt("운동 종목을 입력하시오");
   if (!name) return;
 
-  if (!exercisesByPart[currentPart]) {
-    exercisesByPart[currentPart] = [];
-  }
+  const clean = name.trim();
+  if (!clean) return;
 
-  if (exercisesByPart[currentPart].includes(name)) {
+  // ✅ 핵심: 현재 화면의 목록(currentExercises)에 추가
+  currentExercises = (currentExercises || []).filter(x => typeof x === 'string' && x.trim());
+
+  if (currentExercises.includes(clean)) {
     alert("이미 존재하는 종목입니다.");
     return;
   }
 
-  exercisesByPart[currentPart].unshift(name);
-  currentExercises = exercisesByPart[currentPart];
+  currentExercises.unshift(clean);   // 최신이 위
   renderExercises();
 
   const user = auth.currentUser;
@@ -1224,12 +1224,11 @@ async function addExercise() {
       .doc(user.uid)
       .collection('accessories')
       .doc(currentPart)
-      .set(
-        { list: exercisesByPart[currentPart] },
-        { merge: true } // 🔥 덮어쓰기 방지
-      );
+      .set({ list: currentExercises }, { merge: true });
   }
 }
+
+
 
 
 
@@ -2177,7 +2176,7 @@ async function loadExercises(part) {
     .get();
 
   currentExercises = doc.exists ? (doc.data().list || []) : [];
-
+currentExercises = currentExercises.filter(x => typeof x === "string" && x.trim());
   renderExercises(); // 🔥 여기서 카드 생성
 }
 
