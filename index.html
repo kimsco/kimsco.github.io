@@ -2272,15 +2272,6 @@ const partBtns = document.querySelectorAll('.part-btn');
 
 
 
-partBtns.forEach(btn => {
-  btn.addEventListener('click', () => {
-    currentPart = btn.dataset.part;
-
-    partScreen.style.display = 'none';
-    exerciseScreen.style.display = 'block';
-    partTitle.textContent = currentPart;
-  });
-});
 
 document.getElementById('exercise-header').addEventListener('click', () => {
   exerciseScreen.style.display = 'none';
