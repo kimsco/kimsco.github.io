@@ -2280,6 +2280,69 @@ async function addAccessorySet() {
   renderExercises(); // 카드 서브텍스트 최신 기록 반영
 }
 
+   let accDeleteTimer = null;
+
+// PC
+document.addEventListener("mousedown", e => {
+  const setEl = e.target.closest(".record-set");
+  if (!setEl) return;
+
+  accDeleteTimer = setTimeout(() => {
+    if (confirm("이 기록을 삭제할까요?")) {
+      deleteAccessoryRecord(setEl.dataset.id);
+    }
+  }, 600);
+});
+
+document.addEventListener("mouseup", () => {
+  clearTimeout(accDeleteTimer);
+});
+
+// 모바일
+document.addEventListener("touchstart", e => {
+  const setEl = e.target.closest(".record-set");
+  if (!setEl) return;
+
+  accDeleteTimer = setTimeout(() => {
+    if (confirm("이 기록을 삭제할까요?")) {
+      deleteAccessoryRecord(setEl.dataset.id);
+    }
+  }, 600);
+});
+
+document.addEventListener("touchend", () => {
+  clearTimeout(accDeleteTimer);
+});
+document.addEventListener("touchmove", () => {
+  clearTimeout(accDeleteTimer);
+});
+
+async function deleteAccessoryRecord(recordId) {
+  if (!recordId) return;
+
+  const user = auth.currentUser;
+  if (!user) return;
+
+  // 1) 로컬에서 제거
+  Object.keys(accRecordsByExercise).forEach(exName => {
+    accRecordsByExercise[exName] =
+      accRecordsByExercise[exName].filter(r => r.id !== recordId);
+  });
+
+  // 2) Firestore 삭제
+  await db
+    .collection("users")
+    .doc(user.uid)
+    .collection("accessoryRecords")
+    .doc(recordId)
+    .delete();
+
+  // 3) 화면 갱신
+  if (currentExerciseName) {
+    renderAccessoryRecords(currentExerciseName);
+  }
+  renderExercises(); // 카드 summary 갱신
+}
 
 
 </script>
