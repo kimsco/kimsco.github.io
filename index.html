@@ -1189,6 +1189,98 @@ function fadeTempMsg(el, msg, timeout=1000, fadeDur=800){
     }, timeout);
 }
 
+/*********************************
+ * ✅ 게스트 모드 로컬 저장 엔진
+ *********************************/
+const LS_KEYS = {
+  three: "mf_threeRM_v1",
+  records: "mf_records_v1",              // bench/squat/dead
+  calendar: "mf_calendar_v1",            // calData
+  accessoriesList: (part) => `mf_acc_list_${part}_v1`,   // part별 종목 리스트
+  accessoryRecords: "mf_acc_records_v1"  // 보조운동 기록 전체
+};
+
+function lsGet(key, fallback){
+  try{
+    const raw = localStorage.getItem(key);
+    if(!raw) return fallback;
+    return JSON.parse(raw);
+  }catch(e){
+    return fallback;
+  }
+}
+function lsSet(key, value){
+  try{
+    localStorage.setItem(key, JSON.stringify(value));
+  }catch(e){}
+}
+
+/* ✅ 로컬에서 전체 불러오기 */
+function loadAllFromLocal(){
+  // 3대
+  const three = lsGet(LS_KEYS.three, {bench:0,squat:0,dead:0});
+  benchRM.value = three.bench || 0;
+  squatRM.value = three.squat || 0;
+  deadRM.value  = three.dead  || 0;
+  updateTotal3();
+
+  // 3대 기록(벤/스/데드 세트 기록)
+  const r = lsGet(LS_KEYS.records, {bench:[],squat:[],dead:[]});
+  records.bench = Array.isArray(r.bench) ? r.bench : [];
+  records.squat = Array.isArray(r.squat) ? r.squat : [];
+  records.dead  = Array.isArray(r.dead)  ? r.dead  : [];
+  renderActiveBox();
+
+  // 달력
+  calData = lsGet(LS_KEYS.calendar, {});
+  calRender();
+
+  // 보조운동 기록
+  accRecordsByExercise = lsGet(LS_KEYS.accessoryRecords, {});
+  if(!accRecordsByExercise || typeof accRecordsByExercise !== "object") accRecordsByExercise = {};
+}
+
+/* ✅ 로컬로 전체 저장 */
+function saveThreeToLocal(){
+  lsSet(LS_KEYS.three, {
+    bench: parseInt(benchRM.value)||0,
+    squat: parseInt(squatRM.value)||0,
+    dead:  parseInt(deadRM.value)||0
+  });
+}
+function saveRecordsToLocal(){
+  lsSet(LS_KEYS.records, {
+    bench: records.bench || [],
+    squat: records.squat || [],
+    dead:  records.dead  || []
+  });
+}
+function saveCalendarToLocal(){
+  lsSet(LS_KEYS.calendar, calData || {});
+}
+function saveAccRecordsToLocal(){
+  lsSet(LS_KEYS.accessoryRecords, accRecordsByExercise || {});
+}
+function saveAccListToLocal(part, list){
+  lsSet(LS_KEYS.accessoriesList(part), list || []);
+}
+function loadAccListFromLocal(part){
+  return lsGet(LS_KEYS.accessoriesList(part), []);
+}
+
+/* ✅ 게스트용 createdAt 숫자 통일 */
+function normalizeCreatedAt(v){
+  if(!v) return 0;
+  // Firestore Timestamp 형태면 .toMillis 있을 수 있음
+  if(typeof v?.toMillis === "function") return v.toMillis();
+  // 이미 숫자면
+  if(typeof v === "number") return v;
+  // 기타면 0
+  return 0;
+}
+
+
+   
    /* ===============================
    🔥 보조운동(4번째 탭) 로직
 ================================ */
@@ -1328,6 +1420,8 @@ async function addExercise() {
 
   currentExercises.unshift(clean);   // 최신이 위
   renderExercises();
+   // ✅ 게스트/로그인 공통: 로컬 저장
+saveAccListToLocal(currentPart, currentExercises);
 
   const user = auth.currentUser;
   if (user) {
@@ -1351,6 +1445,9 @@ function updateTotal3(){
     const s = parseInt(squatRM.value)||0;
     const d = parseInt(deadRM.value)||0;
     total3.textContent = `3대: ${b+s+d} kg`;
+
+     // ✅ 게스트/로그인 모두 로컬 저장
+     saveThreeToLocal();
 }
 [benchRM, squatRM, deadRM].forEach(el => el.addEventListener('input', updateTotal3));
 
@@ -1553,6 +1650,7 @@ if(lift === 'dead')  records.dead.unshift(item);
     recordReps.value = '';
     fadeTempMsg(recordMessage, '기록 추가 완료', 700, 600);
     renderActiveBox();
+    saveRecordsToLocal(); // ✅ 추가
 
     const user = auth.currentUser;
     if(user){
@@ -1669,16 +1767,19 @@ auth.onAuthStateChanged(async user => {
     }
 await loadAccessoryRecords();  // ✅ 보조운동 기록 전체 로드
 
-  } else {
-    googleLoginBtn.style.display = 'block';
-    logoutBtn.style.display = 'none';
-    userInfo.textContent = '';
+ } else {
+  googleLoginBtn.style.display = 'block';
+  logoutBtn.style.display = 'none';
+  userInfo.textContent = '';
 
-     accRecordsByExercise = {};
-currentExercises = [];
-renderExercises();
+  // ✅ 게스트: 로컬에서 전부 복원
+  loadAllFromLocal();
 
-  }
+  // ✅ Tip 탭 목록은 part 들어갈 때 로컬에서 읽도록 처리 (아래 4번 참고)
+  currentExercises = [];
+  renderExercises();
+}
+
 });
 
 
@@ -1902,7 +2003,7 @@ async function handleMuscleSelect(btn) {
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
       });
   }
-
+   saveCalendarToLocal(); // ✅ 추가
   calRender();
   calPopup.classList.add("hidden");
   calPopupOpen = false;
@@ -2014,6 +2115,8 @@ async function deleteRecord(id){
   });
 
   renderActiveBox();
+ saveRecordsToLocal(); // ✅ 추가
+   
 
   const user = auth.currentUser;
   if(user && String(id).length > 10){ // firestoreId일 때만
@@ -2174,38 +2277,44 @@ async function deleteExercise(exerciseName) {
   if (!confirm('이 종목의 모든 기록을 삭제할까요?')) return;
 
   const user = auth.currentUser;
-  if (!user) return;
 
-  // 1) accessoryRecords 삭제
-  const snap = await db
-    .collection('users')
-    .doc(user.uid)
-    .collection('accessoryRecords')
-    .where('exercise', '==', exerciseName)
-    .get();
+  // ✅ 1) 로컬 기록에서 삭제 (게스트/로그인 공통)
+  delete accRecordsByExercise[exerciseName];
+  saveAccRecordsToLocal();
 
-  const batch = db.batch();
-  snap.forEach(doc => batch.delete(doc.ref));
-  await batch.commit();
-
-  // 2) 현재 파트의 목록(list)에서도 제거
+  // ✅ 2) 현재 파트 목록에서도 제거 (게스트/로그인 공통)
   if (currentPart) {
     currentExercises = (currentExercises || []).filter(n => n !== exerciseName);
-
-    await db
-      .collection('users')
-      .doc(user.uid)
-      .collection('accessories')
-      .doc(currentPart)
-      .set({ list: currentExercises }, { merge: true });
+    saveAccListToLocal(currentPart, currentExercises);
   }
 
-  // 3) 화면 갱신
-  renderExercises();
+  // ✅ 3) 로그인 상태면 Firestore도 삭제
+  if (user) {
+    const snap = await db
+      .collection('users')
+      .doc(user.uid)
+      .collection('accessoryRecords')
+      .where('exercise', '==', exerciseName)
+      .get();
 
-  // 디테일 열려있던 종목이면 닫기
+    const batch = db.batch();
+    snap.forEach(doc => batch.delete(doc.ref));
+    await batch.commit();
+
+    if (currentPart) {
+      await db
+        .collection('users')
+        .doc(user.uid)
+        .collection('accessories')
+        .doc(currentPart)
+        .set({ list: currentExercises }, { merge: true });
+    }
+  }
+
+  renderExercises();
   if (currentExerciseName === exerciseName) closeExerciseDetail();
 }
+
 
 
    
@@ -2277,10 +2386,18 @@ async function saveExerciseToDB(exerciseName) {
 
 
 async function loadExercises(part) {
-  if (!auth.currentUser) return;
+  const user = auth.currentUser;
 
-  const uid = auth.currentUser.uid;
+  if (!user) {
+    // ✅ 게스트: 로컬에서 part별 리스트 로드
+    currentExercises = loadAccListFromLocal(part);
+    currentExercises = (currentExercises || []).filter(x => typeof x === "string" && x.trim());
+    renderExercises();
+    return;
+  }
 
+  // ✅ 로그인: Firestore
+  const uid = user.uid;
   const doc = await db
     .collection('users')
     .doc(uid)
@@ -2289,9 +2406,10 @@ async function loadExercises(part) {
     .get();
 
   currentExercises = doc.exists ? (doc.data().list || []) : [];
-currentExercises = currentExercises.filter(x => typeof x === "string" && x.trim());
-  renderExercises(); // 🔥 여기서 카드 생성
+  currentExercises = currentExercises.filter(x => typeof x === "string" && x.trim());
+  renderExercises();
 }
+
 
 function getAccessorySummary(exerciseName) {
   const list = accRecordsByExercise[exerciseName] || [];
@@ -2356,6 +2474,7 @@ async function addAccessorySet() {
     accRecordsByExercise[currentExerciseName] = [];
   }
   accRecordsByExercise[currentExerciseName].push(localItem);
+saveAccRecordsToLocal(); // ✅ 추가
 
   // 3) 화면 갱신
   document.getElementById("acc-weight").value = "";
@@ -2413,6 +2532,7 @@ async function deleteAccessoryRecord(recordId) {
     accRecordsByExercise[exName] =
       accRecordsByExercise[exName].filter(r => r.id !== recordId);
   });
+   saveAccRecordsToLocal(); // ✅ 추가
 
   // 2) Firestore 삭제
   await db
