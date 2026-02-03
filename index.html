@@ -2205,25 +2205,29 @@ currentExercises = currentExercises.filter(x => typeof x === "string" && x.trim(
 }
 
 function getAccessorySummary(exerciseName) {
-  // accRecordsByExercise 구조:
-  // {
-  //   "랫풀다운": [{ weight, reps, date, ... }, ...]
-  // }
+  const list = accRecordsByExercise[exerciseName] || [];
+  if (!list.length) return '기록 없음';
 
-  const records = accRecordsByExercise[exerciseName];
-  if (!records || records.length === 0) {
-    return '기록 없음';
-  }
+  // createdAt 기준 최신순 정렬
+  const sorted = [...list].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
 
-  // 최신 기록 기준
-  const latest = records[records.length - 1];
+  // 최신 날짜(첫 레코드의 date)
+  const latestDate = sorted[0].date;
+  if (!latestDate) return '기록 없음';
 
-  if (!latest.weight || !latest.reps) {
-    return '기록 없음';
-  }
+  // 최신 날짜에 해당하는 세트만 모으기
+  const sameDateSets = sorted.filter(r => r.date === latestDate);
 
-  return `${latest.weight}kg × ${latest.reps}회`;
+  // 같은 날짜 내에서는 "저장 순서(누적)"로 보이게 최신을 아래로
+  const lines = sameDateSets
+    .slice()
+    .reverse()
+    .map(r => `${r.weight}kg × ${r.reps}회`);
+
+  // 줄바꿈 렌더링
+  return `${latestDate}<br>${lines.join('<br>')}`;
 }
+
 
 async function addAccessorySet() {
   const user = auth.currentUser;
