@@ -1078,6 +1078,7 @@ input[type="number"] {
    
 /* 기록 박스 데이터 (로컬 mock) 및 렌더 함수 */
 const records = { bench: [], squat: [], dead: [] };
+     let calData = {}; // 🔥 Firestore에서 채울 예정
 /* Firebase 설정 (기존 값 유지) */
 const firebaseConfig = {
     apiKey: "AIzaSyCXn174XsW6ndqaeUpVK6XAAf4MR0-q7_k",
@@ -1595,7 +1596,7 @@ boxEl.innerHTML = dates.map(date => {
           <div
                  class="record-line"
                  
-                 data-id="${r.firestoreId || r.localId}"
+                 data-id="${r.firestoreId ? r.firestoreId : ('local_' + r.localId)}"
                  style="margin-left:auto; text-align:right; cursor:pointer;"
                   >
                  ${r.weight}kg × ${r.reps}회
@@ -1844,7 +1845,7 @@ const calPopupDate = document.getElementById("calPopupDate");
 const calMuscleBtns = calPopup.querySelectorAll(".muscles button");
 
 let calCurrent = new Date();
-   let calData = {}; // 🔥 Firestore에서 채울 예정
+ 
 let calendarMode = "date"; 
 // "date" | "muscle"
 
@@ -1970,7 +1971,6 @@ calPopup.addEventListener("click", e => {
 
 async function handleMuscleSelect(btn) {
   const user = auth.currentUser;
-  if (!user) return;
 
   const m = btn.dataset.muscle;
   const alreadySelected = calSelectedMuscles.includes(m);
@@ -1981,33 +1981,31 @@ async function handleMuscleSelect(btn) {
     delete calData[calSelectedDate];
     calSelectedMuscles = [];
 
-    await db
-      .collection("users")
-      .doc(user.uid)
-      .collection("calendar")
-      .doc(calSelectedDate)
-      .delete();
+    // 로그인이면 Firestore 삭제
+    if (user) {
+      await db.collection("users").doc(user.uid)
+        .collection("calendar").doc(calSelectedDate).delete();
+    }
   } else {
     calSelectedMuscles = [m];
     btn.classList.add("active");
-
     calData[calSelectedDate] = { muscles: [m] };
 
-    await db
-      .collection("users")
-      .doc(user.uid)
-      .collection("calendar")
-      .doc(calSelectedDate)
-      .set({
-        muscles: [m],
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
+    // 로그인이면 Firestore 저장
+    if (user) {
+      await db.collection("users").doc(user.uid)
+        .collection("calendar").doc(calSelectedDate)
+        .set({ muscles: [m], updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+    }
   }
-   saveCalendarToLocal(); // ✅ 추가
+
+  // ✅ 게스트/로그인 공통: 로컬 저장
+  saveCalendarToLocal();
   calRender();
   calPopup.classList.add("hidden");
   calPopupOpen = false;
 }
+
 
    
 calMuscleBtns.forEach(btn => {
@@ -2106,30 +2104,37 @@ document.addEventListener("touchmove", () => {
 
    
 async function deleteRecord(id){
-  if(!id) return;
+  if (!id) return;
 
-  ["bench","squat","dead"].forEach(type=>{
+  const isLocal = String(id).startsWith("local_");
+  const pureId = isLocal ? id.replace("local_", "") : id;
+
+  // 1️⃣ 로컬 배열에서 제거 (게스트/로그인 공통)
+  ["bench","squat","dead"].forEach(type => {
     records[type] = records[type].filter(r =>
-      r.firestoreId !== id && r.localId !== id
+      r.firestoreId !== pureId && String(r.localId) !== pureId
     );
   });
 
   renderActiveBox();
- saveRecordsToLocal(); // ✅ 추가
-   
+  saveRecordsToLocal(); // ✅ 로컬 저장
 
+  // 2️⃣ Firestore 삭제는 "진짜 firestoreId"일 때만
   const user = auth.currentUser;
-  if(user && String(id).length > 10){ // firestoreId일 때만
-
-
-    await db
-      .collection('users')
-      .doc(user.uid)
-      .collection('records')
-      .doc(id)
-      .delete();
+  if (user && !isLocal) {
+    try {
+      await db
+        .collection('users')
+        .doc(user.uid)
+        .collection('records')
+        .doc(id)
+        .delete();
+    } catch (e) {
+      console.error("Firestore delete error:", e);
+    }
   }
 }
+
 
 
 
@@ -2437,36 +2442,22 @@ function getAccessorySummary(exerciseName) {
 
 
 async function addAccessorySet() {
-  const user = auth.currentUser;
-  if (!user) return alert("로그인 후 사용하세요.");
-
   if (!currentExerciseName) return alert("종목을 먼저 선택하세요.");
 
   const w = parseFloat(document.getElementById("acc-weight").value);
   const r = parseInt(document.getElementById("acc-reps").value, 10);
-
   if (!w || !r) return alert("kg / 회를 입력하세요.");
 
-  const item = {
+  const user = auth.currentUser;
+
+  // ✅ 게스트/로그인 공통으로 로컬에 먼저 반영할 아이템
+  const localItem = {
+    id: "local_" + Date.now() + "_" + Math.random(),
     exercise: currentExerciseName,
     part: currentPart || "",
     weight: w,
     reps: r,
-    date: formatTodayYYMMDD(), // 너 기존 포맷 함수 그대로 사용
-    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-  };
-
-  // 1) DB 저장
-  const docRef = await db
-    .collection("users")
-    .doc(user.uid)
-    .collection("accessoryRecords")
-    .add(item);
-
-  // 2) 로컬 반영 (createdAt은 즉시 숫자로 만들어서 정렬용)
-  const localItem = {
-    id: docRef.id,
-    ...item,
+    date: formatTodayYYMMDD(),
     createdAt: Date.now()
   };
 
@@ -2474,15 +2465,41 @@ async function addAccessorySet() {
     accRecordsByExercise[currentExerciseName] = [];
   }
   accRecordsByExercise[currentExerciseName].push(localItem);
-saveAccRecordsToLocal(); // ✅ 추가
+  saveAccRecordsToLocal(); // ✅ 게스트도 저장됨
 
-  // 3) 화면 갱신
+  // ✅ 로그인 상태면 Firestore에도 저장 + id를 firestore id로 업데이트
+  if (user) {
+    const item = {
+      exercise: currentExerciseName,
+      part: currentPart || "",
+      weight: w,
+      reps: r,
+      date: formatTodayYYMMDD(),
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    try {
+      const docRef = await db
+        .collection("users")
+        .doc(user.uid)
+        .collection("accessoryRecords")
+        .add(item);
+
+      // 로컬 id를 firestore id로 교체(옵션이지만 깔끔)
+      localItem.id = docRef.id;
+      saveAccRecordsToLocal();
+    } catch (e) {
+      console.error("accessoryRecords save err", e);
+    }
+  }
+
+  // 화면 갱신
   document.getElementById("acc-weight").value = "";
   document.getElementById("acc-reps").value = "";
-
   renderAccessoryRecords(currentExerciseName);
-  renderExercises(); // 카드 서브텍스트 최신 기록 반영
+  renderExercises();
 }
+
 
    let accDeleteTimer = null;
 
@@ -2524,30 +2541,36 @@ document.addEventListener("touchmove", () => {
 async function deleteAccessoryRecord(recordId) {
   if (!recordId) return;
 
-  const user = auth.currentUser;
-  if (!user) return;
-
-  // 1) 로컬에서 제거
+  // 1) 로컬에서 제거 (게스트/로그인 공통)
   Object.keys(accRecordsByExercise).forEach(exName => {
     accRecordsByExercise[exName] =
-      accRecordsByExercise[exName].filter(r => r.id !== recordId);
+      (accRecordsByExercise[exName] || []).filter(r => r.id !== recordId);
   });
-   saveAccRecordsToLocal(); // ✅ 추가
+  saveAccRecordsToLocal();
 
-  // 2) Firestore 삭제
-  await db
-    .collection("users")
-    .doc(user.uid)
-    .collection("accessoryRecords")
-    .doc(recordId)
-    .delete();
+  // 2) 로그인 상태면 Firestore에서도 삭제
+  const user = auth.currentUser;
+  if (user) {
+    // recordId가 firestore id일 때만 시도
+    if (!String(recordId).startsWith("local_")) {
+      try {
+        await db
+          .collection("users")
+          .doc(user.uid)
+          .collection("accessoryRecords")
+          .doc(recordId)
+          .delete();
+      } catch (e) {
+        console.error("accessory record delete err", e);
+      }
+    }
+  }
 
   // 3) 화면 갱신
-  if (currentExerciseName) {
-    renderAccessoryRecords(currentExerciseName);
-  }
-  renderExercises(); // 카드 summary 갱신
+  if (currentExerciseName) renderAccessoryRecords(currentExerciseName);
+  renderExercises();
 }
+
 
 
 </script>
