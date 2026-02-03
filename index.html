@@ -1181,16 +1181,35 @@ function renderAccessoryRecords(exerciseName) {
     return;
   }
 
-  // 최신이 오른쪽(마지막)으로 가게 정렬
-  const sorted = [...list].sort((a,b) => (a.createdAt || 0) - (b.createdAt || 0));
+  // ✅ 최신이 오른쪽으로 가게: createdAt 오름차순 정렬
+  const sorted = [...list].sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
 
-  el.innerHTML = sorted.map(r => `
-    <div class="record-day">
-      <div class="date">${r.date || ''}</div>
-      <div class="set">${r.weight}kg × ${r.reps}회</div>
-    </div>
-  `).join('');
+  // ✅ 날짜별 그룹화
+  const grouped = {};
+  sorted.forEach(r => {
+    const dateKey = r.date || "날짜없음";
+    if (!grouped[dateKey]) grouped[dateKey] = [];
+    grouped[dateKey].push(r);
+  });
+
+  // ✅ 날짜 순서 (오래된→최신 / 최신이 오른쪽으로 밀리게)
+  const dates = Object.keys(grouped).sort((a, b) => a.localeCompare(b));
+
+  // ✅ 날짜 1개당 카드 1개, 그 안에 세트 여러 줄
+  el.innerHTML = dates.map(date => {
+    const sets = grouped[date].map(r =>
+      `<div class="set">${r.weight}kg × ${r.reps}회</div>`
+    ).join("");
+
+    return `
+      <div class="record-day">
+        <div class="date">${date}</div>
+        ${sets}
+      </div>
+    `;
+  }).join("");
 }
+
 
 
 
