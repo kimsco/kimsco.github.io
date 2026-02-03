@@ -680,45 +680,80 @@ cursor: pointer;
 }
 
 /* ===============================
-   ✅ 하단 탭바
+   ✅ 하단 탭바 (진짜 고정 + 4칸 디자인)
 ================================ */
+
+/* 탭바 높이 */
+:root { --bottomTabH: 78px; }
+
+/* ✅ 스크롤되는 app 내용이 탭바에 가리지 않게 */
+.app{
+  padding-bottom: calc(var(--bottomTabH) + env(safe-area-inset-bottom));
+}
+
+/* ✅ 진짜 하단 고정 */
 .bottomTab{
-  position: sticky;          /* app 내부에서 아래에 붙게 */
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
   bottom: 0;
-  left: 0;
-  right: 0;
+
+  width: 390px;
+  max-width: 100%;
+
+  height: var(--bottomTabH);
+  padding-bottom: env(safe-area-inset-bottom);
 
   display: flex;
-  gap: 10px;
-  justify-content: center;
-
-  padding: 12px 14px;
   background: rgba(0,0,0,0.92);
-  backdrop-filter: blur(6px);
+  backdrop-filter: blur(10px);
 
-  border-top: 1px solid #222;
-  z-index: 999;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  z-index: 99999;
 }
 
-/* 하단 탭 버튼 */
+/* ✅ “칸 4개” 느낌 */
 .bottomTab .tabBtn{
   flex: 1;
-  background:#333;
-  color:white;
-  font-size:15px;
-  padding:10px 0;
-  border-radius: 14px;
+  height: 100%;
+  margin: 0;
+
+  border: none;
+  border-radius: 0;
+  background: transparent;
+
+  color: #9a9a9a;
+  font-size: 14px;
+  font-weight: 700;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+  position: relative;
 }
 
-/* 활성 탭 */
+/* 칸 구분선 */
+.bottomTab .tabBtn + .tabBtn{
+  border-left: 1px solid rgba(255,255,255,0.06);
+}
+
+/* ✅ 활성 칸 */
 .bottomTab .tabBtn.active{
-  background:#FFD700;
-  color:black;
+  color: #FFD700;
+  background: rgba(255,215,0,0.06);
 }
 
-/* ✅ 컨텐츠가 탭바에 가리지 않도록 아래 여백 */
-.container{
-  padding-bottom: 90px; /* bottomTab 높이만큼 */
+/* 활성 표시: 위쪽 라인 */
+.bottomTab .tabBtn.active::before{
+  content:"";
+  position:absolute;
+  top: 0;
+  width: 42%;
+  height: 3px;
+  border-radius: 999px;
+  background: #FFD700;
 }
 
 
