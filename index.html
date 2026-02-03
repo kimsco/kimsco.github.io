@@ -1173,6 +1173,11 @@ input[type="number"] {
   </div>
 </div>
 
+<div id="loginArea" style="display:none;">
+  <button id="googleLoginBtn">Google 로그인</button>
+  <button id="logoutBtn">로그아웃</button>
+  <div id="userInfo"></div>
+</div>
 
 <!-- 로그인 -->
 
@@ -1794,19 +1799,39 @@ googleLoginBtn.addEventListener('click', ()=>{
 logoutBtn.addEventListener('click', ()=> auth.signOut());
 
 auth.onAuthStateChanged(async user => {
-  if (user) {
-    googleLoginBtn.style.display = 'none';
-    logoutBtn.style.display = 'block';
-    userInfo.textContent = user.displayName || user.email || '';
 
+  // ✅ (A) 상단 로그인 영역(없을 수도 있으니 null 체크)
+  if (user) {
+    if (googleLoginBtn) googleLoginBtn.style.display = "none";
+    if (logoutBtn) logoutBtn.style.display = "block";
+    if (userInfo) userInfo.textContent = user.displayName || user.email || "";
+  } else {
+    if (googleLoginBtn) googleLoginBtn.style.display = "block";
+    if (logoutBtn) logoutBtn.style.display = "none";
+    if (userInfo) userInfo.textContent = "";
+  }
+
+  // ✅ (B) 설정 패널 UI 갱신 (이걸 여기 넣는 게 포인트)
+  if (user) {
+    if (settingsUserName) settingsUserName.textContent = user.displayName || "사용자";
+    if (settingsUserEmail) settingsUserEmail.textContent = user.email || "";
+    if (settingsLogoutBtn) settingsLogoutBtn.style.display = "block";
+  } else {
+    if (settingsUserName) settingsUserName.textContent = "게스트";
+    if (settingsUserEmail) settingsUserEmail.textContent = "로그인하지 않음";
+    if (settingsLogoutBtn) settingsLogoutBtn.style.display = "none";
+  }
+
+  // ✅ 여기부터는 네 기존 로직 그대로
+  if (user) {
 
     /* 3대 최신값 */
     try {
       const threeSnap = await db
-        .collection('users')
+        .collection("users")
         .doc(user.uid)
-        .collection('threeRM')
-        .orderBy('createdAt', 'desc')
+        .collection("threeRM")
+        .orderBy("createdAt", "desc")
         .limit(1)
         .get();
 
@@ -1818,16 +1843,16 @@ auth.onAuthStateChanged(async user => {
         updateTotal3();
       }
     } catch (e) {
-      console.error('load threeRM err', e);
+      console.error("load threeRM err", e);
     }
 
     /* records */
     try {
       const snap = await db
-        .collection('users')
+        .collection("users")
         .doc(user.uid)
-        .collection('records')
-        .orderBy('createdAt', 'desc')
+        .collection("records")
+        .orderBy("createdAt", "desc")
         .limit(200)
         .get();
 
@@ -1847,17 +1872,17 @@ auth.onAuthStateChanged(async user => {
           createdAt: d.createdAt?.toMillis?.() || 0
         };
 
-        if (d.lift === 'bench') records.bench.push(item);
-        if (d.lift === 'squat') records.squat.push(item);
-        if (d.lift === 'dead') records.dead.push(item);
+        if (d.lift === "bench") records.bench.push(item);
+        if (d.lift === "squat") records.squat.push(item);
+        if (d.lift === "dead")  records.dead.push(item);
       });
 
       renderActiveBox();
     } catch (e) {
-      console.error('load records err', e);
+      console.error("load records err", e);
     }
 
-    /* 🔥 달력 데이터 로드 (여기로!) */
+    /* 달력 */
     try {
       const snap = await db
         .collection("users")
@@ -1874,22 +1899,18 @@ auth.onAuthStateChanged(async user => {
     } catch (e) {
       console.error("calendar load error", e);
     }
-await loadAccessoryRecords();  // ✅ 보조운동 기록 전체 로드
 
- } else {
-  googleLoginBtn.style.display = 'block';
-  logoutBtn.style.display = 'none';
-  userInfo.textContent = '';
+    await loadAccessoryRecords();
 
-  // ✅ 게스트: 로컬에서 전부 복원
-  loadAllFromLocal();
+  } else {
+    // ✅ 게스트: 로컬에서 전부 복원
+    loadAllFromLocal();
 
-  // ✅ Tip 탭 목록은 part 들어갈 때 로컬에서 읽도록 처리 (아래 4번 참고)
-  currentExercises = [];
-  renderExercises();
-}
-
+    currentExercises = [];
+    renderExercises();
+  }
 });
+
 
 
 
@@ -2702,17 +2723,7 @@ const settingsUserName = document.getElementById("settingsUserName");
 const settingsUserEmail = document.getElementById("settingsUserEmail");
 const settingsLogoutBtn = document.getElementById("settingsLogoutBtn");
 
-auth.onAuthStateChanged(user => {
-  if (user) {
-    settingsUserName.textContent = user.displayName || "사용자";
-    settingsUserEmail.textContent = user.email || "";
-    settingsLogoutBtn.style.display = "block";
-  } else {
-    settingsUserName.textContent = "게스트";
-    settingsUserEmail.textContent = "로그인하지 않음";
-    settingsLogoutBtn.style.display = "none";
-  }
-});
+
 
 settingsLogoutBtn.addEventListener("click", () => {
   auth.signOut();
