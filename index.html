@@ -679,6 +679,47 @@ cursor: pointer;
   font-weight: 500;      /* 너무 굵지 않게 */
 }
 
+/* ===============================
+   ✅ 하단 탭바
+================================ */
+.bottomTab{
+  position: sticky;          /* app 내부에서 아래에 붙게 */
+  bottom: 0;
+  left: 0;
+  right: 0;
+
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+
+  padding: 12px 14px;
+  background: rgba(0,0,0,0.92);
+  backdrop-filter: blur(6px);
+
+  border-top: 1px solid #222;
+  z-index: 999;
+}
+
+/* 하단 탭 버튼 */
+.bottomTab .tabBtn{
+  flex: 1;
+  background:#333;
+  color:white;
+  font-size:15px;
+  padding:10px 0;
+  border-radius: 14px;
+}
+
+/* 활성 탭 */
+.bottomTab .tabBtn.active{
+  background:#FFD700;
+  color:black;
+}
+
+/* ✅ 컨텐츠가 탭바에 가리지 않도록 아래 여백 */
+.container{
+  padding-bottom: 90px; /* bottomTab 높이만큼 */
+}
 
 
 
@@ -818,15 +859,7 @@ input[type="number"] {
 <div class="container">
 
 
-<!-- 탭 -->
-<div class="tab">
-    <button class="tabBtn active" data-target="tab1">1RM</button>
-    <button class="tabBtn" data-target="tab2">3대</button>
-    <button class="tabBtn" data-target="tab3">달력</button>
-  <button class="tabBtn" data-target="tab4">Tip</button>
 
-
-</div>
 
 <!-- 1RM -->
 <div id="tab1" class="tabContent active">
@@ -972,6 +1005,16 @@ input[type="number"] {
 
 </div>
 
+<!-- ✅ 하단 탭바 (새로 추가/이동) -->
+<div class="bottomTab">
+  <button class="tabBtn active" data-target="tab1">1RM</button>
+  <button class="tabBtn" data-target="tab2">3대</button>
+  <button class="tabBtn" data-target="tab3">달력</button>
+  <button class="tabBtn" data-target="tab4">Tip</button>
+</div>
+
+
+   
 <!-- 팝업 -->
 <div id="calPopup" class="popup hidden">
     <div class="popup-box">
@@ -2023,6 +2066,7 @@ tabBtns.forEach(btn => {
       tc.classList.toggle('active', on);
       tc.style.display = on ? 'block' : 'none';
     });
+document.querySelector('.app').scrollTo({ top: 0, behavior: 'auto' });
 
     // Tip 탭 초기화
     if (target === 'tab4') {
