@@ -1199,11 +1199,15 @@ function renderAccessoryRecords(exerciseName) {
   el.innerHTML = dates.map(date => {
     // grouped[date]는 이미 최신순으로 들어가 있음
     // "최신이 아래"로 하고 싶으면 reverse() 하면 됨
-    const sets = grouped[date]
-      .slice()
-      .reverse() // ✅ 최신이 아래로 (누적 느낌)
-      .map(r => `<div class="set">${r.weight}kg × ${r.reps}회</div>`)
-      .join("");
+   const sets = grouped[date]
+  .slice()
+  .reverse()
+  .map(r => `
+    <div class="set record-set" data-id="${r.id}">
+      ${r.weight}kg × ${r.reps}회
+    </div>
+  `)
+  .join("");
 
     return `
       <div class="record-day">
