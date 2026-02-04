@@ -30,7 +30,7 @@ body {
   width: 390px;
   height: 100vh;
   margin: 0 auto;
-  background: black;
+  background: var(--bg-body); /* #0f0f0f */
   padding: 0 20px calc(var(--bottomTabH) + env(safe-area-inset-bottom));
   box-sizing: border-box;
   overflow-y: auto;
@@ -96,6 +96,8 @@ td, th {
   align-items: center;
   height: 55px; 
   padding: 12px 10px;   /* 14 → 10 (오른쪽 더 붙음) */
+   background: var(--bg-frame);
+  border-bottom: 1px solid var(--line-soft);
 }
 
 
@@ -680,7 +682,11 @@ cursor: pointer;
 /* 탭바 높이 */
 :root { --bottomTabH: 78px; }
 
-
+:root {
+  --bg-frame: #000000;    /* 탑바, 탭바 */
+  --bg-body:  #0f0f0f;    /* 가운데 전체 */
+  --line-soft: rgba(255,255,255,0.08);
+}
 
 /* ✅ 진짜 하단 고정 */
 .bottomTab{
@@ -696,10 +702,12 @@ cursor: pointer;
   padding-bottom: env(safe-area-inset-bottom);
 
   display: flex;
-  background: rgba(0,0,0,0.92);
+  
   backdrop-filter: blur(10px);
 
-  border-top: 1px solid rgba(255,255,255,0.08);
+  background: var(--bg-frame);
+  border-top: 1px solid var(--line-soft);
+   
   z-index: 99999;
 }
 
@@ -711,9 +719,9 @@ cursor: pointer;
 
   border: none;
   border-radius: 0;
-  background: transparent;
+  background: rgba(255,255,255,0.04); /* 아주 약하게 */
 
-  color: #9a9a9a;
+ color: #FFD700;
   font-size: 14px;
   font-weight: 700;
 
