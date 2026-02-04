@@ -995,6 +995,25 @@ cursor: pointer;
 .settings-header{
   padding-right: 2px;
 }   
+
+/* 설정 화면 맨 밑 로그아웃 (텍스트형) */
+.settings-logout-text{
+  margin-top: 26px;          /* 공백에 덩그러니 */
+  text-align: center;
+
+  font-size: 12.5px;        /* 작게 */
+  color: #777;              /* 회색 */
+  font-weight: 500;
+
+  cursor: pointer;
+}
+
+.settings-logout-text:active{
+  color: #ff6b6b;            /* 눌렀을 때만 살짝 빨강 */
+}
+
+
+   
 /* .css ㅊㄴㄴ 붙여넣기 */
    
 
@@ -1332,7 +1351,10 @@ input[type="number"] {
     </div>
 
 <!-- ✅ 하단 로그아웃 버튼 (iOS 느낌) -->
-<button id="settingsLogoutBtn" class="logout-bottom">로그아웃</button>
+<div id="settingsLogoutText" class="settings-logout-text">
+  로그아웃
+</div>
+
 
   </div>
 </div>
