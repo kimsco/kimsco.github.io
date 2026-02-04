@@ -848,6 +848,130 @@ cursor: pointer;
   border-radius: 8px;
 }
 
+/* ===== 설정 화면 리스트 느낌 ===== */
+.settings-section{
+  margin-top: 6px;
+  border-top: 1px solid #222;
+  border-bottom: 1px solid #222;
+}
+
+.settings-row{
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: #eee;
+  padding: 14px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  text-align: left;
+}
+
+.settings-row + .settings-row{
+  border-top: 1px solid #1f1f1f;
+}
+
+.settings-row.static{
+  cursor: default;
+}
+
+.row-left{
+  display:flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.row-title{
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.row-sub{
+  font-size: 12px;
+  color: #777;
+}
+
+.row-right{
+  color: #777;
+  font-size: 22px;
+  line-height: 1;
+}
+
+/* ===== 하단 로그아웃 버튼 (iOS 느낌) ===== */
+.logout-bottom{
+  margin-top: 18px;
+  width: 100%;
+  padding: 14px 12px;
+  border-radius: 10px;
+  background: transparent;
+  border: 1px solid #2a2a2a;
+  color: #ff5a5a;
+  font-size: 14px;
+  font-weight: 650;
+}
+
+/* ===== 로그아웃 모달 ===== */
+.modal{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 200000;
+}
+
+.modal.hidden{ display:none; }
+
+.modal-box{
+  width: 86%;
+  max-width: 340px;
+  background: #1a1a1a;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.modal-title{
+  padding: 16px 16px 8px;
+  font-size: 16px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.modal-desc{
+  padding: 0 16px 14px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: #cfcfcf;
+  text-align: center;
+  opacity: 0.95;
+}
+
+.modal-actions{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.modal-btn{
+  background: transparent;
+  border: none;
+  padding: 14px 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: #8bbcff; /* 취소/일반 */
+  cursor: pointer;
+}
+
+.modal-btn + .modal-btn{
+  border-left: 1px solid rgba(255,255,255,0.08);
+}
+
+.modal-btn.danger{
+  color: #ff6b6b; /* 확인(위험) */
+}
    
    
    
@@ -1161,14 +1285,34 @@ input[type="number"] {
       <button id="closeSettingsBtn">✕</button>
     </div>
 
-    <!-- 메뉴 -->
+<!-- ✅ 프로필/로그인 영역 -->
+<div class="settings-section">
+  <!-- 게스트일 때만 보일 "로그인 하기" -->
+  <button id="settingsLoginRow" class="settings-row">
+    <div class="row-left">
+      <div class="row-title" style="color:#4aa3ff;">로그인 하기</div>
+      <div class="row-sub">내 정보 수정</div>
+    </div>
+    <div class="row-right">›</div>
+  </button>
+
+  <!-- 로그인 상태일 때만 보일 "계정" -->
+  <div id="settingsAccountRow" class="settings-row static">
+    <div class="row-left">
+      <div class="row-title" id="settingsNameBig">게스트</div>
+      <div class="row-sub" id="settingsEmailSub">로그인하지 않음</div>
+    </div>
+  </div>
+</div>
+ 
+     <!-- 메뉴 -->
     <div class="settings-list">
       <div class="settings-item">문의</div>
       <div class="settings-item muted">김무진한테 문의하세요</div>
     </div>
 
-    <!-- 하단 -->
-    <button id="settingsLogoutBtn" class="settings-logout">로그아웃</button>
+<!-- ✅ 하단 로그아웃 버튼 (iOS 느낌) -->
+<button id="settingsLogoutBtn" class="logout-bottom">로그아웃</button>
 
   </div>
 </div>
@@ -1179,7 +1323,27 @@ input[type="number"] {
   <div id="userInfo"></div>
 </div>
 
-<!-- 로그인 -->
+<!-- ✅ 로그아웃 확인 팝업 -->
+<div id="logoutModal" class="modal hidden">
+  <div class="modal-box">
+    <div class="modal-title">로그아웃</div>
+    <div class="modal-desc">
+      로그아웃 상태에서는 기록된 운동결과를 확인할 수 없습니다.<br>
+      또한 로그아웃 상태에서 작성된 모든 기록은, 앱 삭제시 복원할 수 없습니다.<br><br>
+      정말 로그아웃 하시겠습니까?
+    </div>
+
+    <div class="modal-actions">
+      <button id="logoutCancel" class="modal-btn">취소</button>
+      <button id="logoutConfirm" class="modal-btn danger">확인</button>
+    </div>
+  </div>
+</div>
+
+
+
+   
+<!--  </body> 끝나기 전에 아래 팝업-->
 
 
 <!-- 🔥 JS는 네 기존 그대로 붙이면 정상 작동 -->
@@ -1825,6 +1989,21 @@ auth.onAuthStateChanged(async user => {
     if (settingsLogoutBtn) settingsLogoutBtn.style.display = "none";
   }
 
+
+   if (user) {
+    if (settingsLoginRow) settingsLoginRow.style.display = "none";
+    if (settingsAccountRow) settingsAccountRow.style.display = "flex";
+
+    if (settingsNameBig) settingsNameBig.textContent = user.displayName || "사용자";
+    if (settingsEmailSub) settingsEmailSub.textContent = user.email || "";
+
+    if (settingsLogoutBtn) settingsLogoutBtn.style.display = "block";
+  } else {
+    if (settingsLoginRow) settingsLoginRow.style.display = "flex";
+    if (settingsAccountRow) settingsAccountRow.style.display = "none";
+
+    if (settingsLogoutBtn) settingsLogoutBtn.style.display = "none";
+  }
   // ✅ 여기부터는 네 기존 로직 그대로
   if (user) {
 
@@ -2713,14 +2892,60 @@ settingsOverlay.addEventListener("click", (e) => {
   }
 });
 
-
-
-
 settingsLogoutBtn.addEventListener("click", () => {
   auth.signOut();
   settingsOverlay.classList.add("hidden");
 });
 
+// ✅ 설정 화면용 로그인/로그아웃 요소
+const settingsLoginRow = document.getElementById("settingsLoginRow");
+const settingsAccountRow = document.getElementById("settingsAccountRow");
+const settingsNameBig = document.getElementById("settingsNameBig");
+const settingsEmailSub = document.getElementById("settingsEmailSub");
+
+// ✅ 로그아웃 모달 요소
+const logoutModal = document.getElementById("logoutModal");
+const logoutCancel = document.getElementById("logoutCancel");
+const logoutConfirm = document.getElementById("logoutConfirm");
+
+// ✅ 구글 로그인 함수 (게스트에서도 동작)
+function doGoogleLogin(){
+  const provider = new firebase.auth.GoogleAuthProvider();
+  auth.signInWithPopup(provider).catch(e => alert("로그인 실패: " + e.message));
+}
+
+// ✅ 설정 패널에서 "로그인 하기" 클릭 시 로그인
+if (settingsLoginRow) {
+  settingsLoginRow.addEventListener("click", () => {
+    doGoogleLogin();
+  });
+}
+
+// ✅ 로그아웃 버튼 누르면 모달 띄우기
+settingsLogoutBtn.addEventListener("click", () => {
+  logoutModal.classList.remove("hidden");
+});
+
+// ✅ 모달 취소/확인
+logoutCancel.addEventListener("click", () => {
+  logoutModal.classList.add("hidden");
+});
+
+logoutConfirm.addEventListener("click", async () => {
+  logoutModal.classList.add("hidden");
+  await auth.signOut();
+  settingsOverlay.classList.add("hidden");
+});
+
+// ✅ 모달 바깥 클릭 닫기
+logoutModal.addEventListener("click", (e) => {
+  if (e.target === logoutModal) logoutModal.classList.add("hidden");
+});
+
+
+
+
+   
 </script>
 <!-- ⚠️ 여기 아래에 네가 쓰던 JS ㅓㄴ 그대로 유지 -->
 </body>
