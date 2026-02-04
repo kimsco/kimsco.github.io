@@ -1159,11 +1159,13 @@ input[type="number"] {
         <button class="folderBtn active" data-target="benchBox">벤치</button>
         <button class="folderBtn" data-target="squatBox">스쿼트</button>
         <button class="folderBtn" data-target="deadBox">데드</button>
+       <button class="folderBtn" data-target="ohpBox">OHP</button>
     </div>
 
     <div id="benchBox" class="folderContent active"></div>
     <div id="squatBox" class="folderContent"></div>
     <div id="deadBox" class="folderContent"></div>
+   <div id="ohpBox" class="folderContent"></div>
 
   <div class="recordFormRow">
     <input type="hidden" id="recordDate">
@@ -1375,7 +1377,7 @@ input[type="number"] {
 <script>
    
 /* 기록 박스 데이터 (로컬 mock) 및 렌더 함수 */
-const records = { bench: [], squat: [], dead: [] };
+const records = { bench: [], squat: [], dead: [], ohp: [] };
      let calData = {}; // 🔥 Firestore에서 채울 예정
 /* Firebase 설정 (기존 값 유지) */
 const firebaseConfig = {
@@ -1524,10 +1526,12 @@ function loadAllFromLocal(){
   updateTotal3();
 
   // 3대 기록(벤/스/데드 세트 기록)
-  const r = lsGet(LS_KEYS.records, {bench:[],squat:[],dead:[]});
+  const r = lsGet(LS_KEYS.records, {bench:[],squat:[],dead:[],ohp:[]});
   records.bench = Array.isArray(r.bench) ? r.bench : [];
   records.squat = Array.isArray(r.squat) ? r.squat : [];
   records.dead  = Array.isArray(r.dead)  ? r.dead  : [];
+  records.ohp = Array.isArray(r.ohp) ? r.ohp : [];
+
   renderActiveBox();
 
   // 달력
@@ -1549,10 +1553,11 @@ function saveThreeToLocal(){
 }
 function saveRecordsToLocal(){
   lsSet(LS_KEYS.records, {
-    bench: records.bench || [],
-    squat: records.squat || [],
-    dead:  records.dead  || []
-  });
+  bench: records.bench || [],
+  squat: records.squat || [],
+  dead:  records.dead  || [],
+  ohp:   records.ohp   || []    // ✅
+});
 }
 function saveCalendarToLocal(){
   lsSet(LS_KEYS.calendar, calData || {});
@@ -1858,6 +1863,7 @@ function renderActiveBox(){
     if(target === 'benchBox') arr = records.bench;
     else if(target === 'squatBox') arr = records.squat;
     else if(target === 'deadBox') arr = records.dead;
+    else if(target === 'ohpBox')  arr = records.ohp;
 
     const boxEl = document.getElementById(target);
 if(!arr || arr.length === 0){
@@ -1929,9 +1935,10 @@ recordAdd.addEventListener('click', async ()=>{
     const target = activeBtn ? activeBtn.dataset.target : 'benchBox';
 
     const lift =
-      target === 'benchBox' ? 'bench' :
-      target === 'squatBox' ? 'squat' :
-      'dead';
+  target === 'benchBox' ? 'bench' :
+  target === 'squatBox' ? 'squat' :
+  target === 'deadBox'  ? 'dead'  :
+  'ohp';
 
     const item = {
         firestoreId: null,
@@ -1944,6 +1951,7 @@ recordAdd.addEventListener('click', async ()=>{
 if(lift === 'bench') records.bench.unshift(item);
 if(lift === 'squat') records.squat.unshift(item);
 if(lift === 'dead')  records.dead.unshift(item);
+if(lift === 'ohp')   records.ohp.unshift(item);
 
     recordWeight.value = '';
     recordReps.value = '';
@@ -2077,6 +2085,7 @@ auth.onAuthStateChanged(async user => {
         if (d.lift === "bench") records.bench.push(item);
         if (d.lift === "squat") records.squat.push(item);
         if (d.lift === "dead")  records.dead.push(item);
+        if (d.lift === "ohp")   records.ohp.push(item);
       });
 
       renderActiveBox();
@@ -2441,7 +2450,7 @@ async function deleteRecord(id){
   const pureId = isLocal ? id.replace("local_", "") : id;
 
   // 1️⃣ 로컬 배열에서 제거 (게스트/로그인 공통)
-  ["bench","squat","dead"].forEach(type => {
+  ["bench","squat","dead","ohp"].forEach(type => {
     records[type] = records[type].filter(r =>
       r.firestoreId !== pureId && String(r.localId) !== pureId
     );
