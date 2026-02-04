@@ -829,16 +829,7 @@ cursor: pointer;
   color: #777;
 }
 
-/* 로그아웃 */
-.settings-logout {
-  margin-top: auto;
-  background: none;
-  border: 1px solid #333;
-  color: #aaa;
-  padding: 10px;
-  width: 100%;
-  border-radius: 8px;
-}
+
 
 /* ===== 설정 화면 리스트 느낌 ===== */
 .settings-section{
@@ -890,18 +881,6 @@ cursor: pointer;
   line-height: 1;
 }
 
-/* ===== 하단 로그아웃 버튼 (iOS 느낌) ===== */
-.logout-bottom{
-  margin-top: 18px;
-  width: 100%;
-  padding: 14px 12px;
-  border-radius: 10px;
-  background: transparent;
-  border: 1px solid #2a2a2a;
-  color: #ff5a5a;
-  font-size: 14px;
-  font-weight: 650;
-}
 
 /* ===== 로그아웃 모달 ===== */
 .modal{
@@ -1998,7 +1977,7 @@ if(lift === 'dead')  records.dead.unshift(item);
 
 const settingsUserName = document.getElementById("settingsUserName");
 const settingsUserEmail = document.getElementById("settingsUserEmail");
-const settingsLogoutBtn = document.getElementById("settingsLogoutBtn");
+const settingsLogoutText = document.getElementById("settingsLogoutText");
 
 /* 로그인 (구글) */
 googleLoginBtn.addEventListener('click', ()=>{
@@ -2024,11 +2003,11 @@ auth.onAuthStateChanged(async user => {
   if (user) {
     if (settingsUserName) settingsUserName.textContent = user.displayName || "사용자";
     if (settingsUserEmail) settingsUserEmail.textContent = user.email || "";
-    if (settingsLogoutBtn) settingsLogoutBtn.style.display = "block";
+    if (settingsLogoutText) settingsLogoutText.style.display = "block";
   } else {
     if (settingsUserName) settingsUserName.textContent = "게스트";
     if (settingsUserEmail) settingsUserEmail.textContent = "로그인하지 않음";
-    if (settingsLogoutBtn) settingsLogoutBtn.style.display = "none";
+    if (settingsLogoutText) settingsLogoutText.style.display = "none";
   }
 
 
@@ -2039,12 +2018,12 @@ auth.onAuthStateChanged(async user => {
     if (settingsNameBig) settingsNameBig.textContent = user.displayName || "사용자";
     if (settingsEmailSub) settingsEmailSub.textContent = user.email || "";
 
-    if (settingsLogoutBtn) settingsLogoutBtn.style.display = "block";
+    if (settingsLogoutText) settingsLogoutText.style.display = "block";
   } else {
     if (settingsLoginRow) settingsLoginRow.style.display = "flex";
     if (settingsAccountRow) settingsAccountRow.style.display = "none";
 
-    if (settingsLogoutBtn) settingsLogoutBtn.style.display = "none";
+    if (settingsLogoutText) settingsLogoutText.style.display = "none";
   }
   // ✅ 여기부터는 네 기존 로직 그대로
   if (user) {
@@ -2960,9 +2939,12 @@ if (settingsLoginRow) {
 }
 
 // ✅ 로그아웃 버튼 누르면 모달 띄우기
-settingsLogoutBtn.addEventListener("click", () => {
-  logoutModal.classList.remove("hidden");
-});
+if (settingsLogoutText) {
+  settingsLogoutText.addEventListener("click", () => {
+    logoutModal.classList.remove("hidden");
+  });
+}
+
 
 // ✅ 모달 취소/확인
 logoutCancel.addEventListener("click", () => {
