@@ -26,23 +26,18 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
 }
 
-.app {
-    width: 390px;
-    height: 100vh;          /* 🔥 min-height ❌ */
-    margin: 0 auto;
-
-    background: black;
-    padding: 0 20px 20px;
-    box-sizing: border-box;
-
-    overflow-y: auto;       /* ✅ 얘만 스크롤 */
-    overflow-x: hidden;
--ms-overflow-style: none;  /* IE, Edge */
-    scrollbar-width: none;     /* Firefox */
-   
-    -webkit-overflow-scrolling: touch;
-
+.app{
+  width: 390px;
+  height: 100vh;
+  margin: 0 auto;
+  background: black;
+  padding: 0 20px calc(var(--bottomTabH) + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 }
+
 
 .app::-webkit-scrollbar {
     display: none;             /* Chrome, Safari */
@@ -684,10 +679,7 @@ cursor: pointer;
 /* 탭바 높이 */
 :root { --bottomTabH: 78px; }
 
-/* ✅ 스크롤되는 app 내용이 탭바에 가리지 않게 */
-.app{
-  padding-bottom: calc(var(--bottomTabH) + env(safe-area-inset-bottom));
-}
+
 
 /* ✅ 진짜 하단 고정 */
 .bottomTab{
@@ -973,7 +965,12 @@ cursor: pointer;
   color: #ff6b6b; /* 확인(위험) */
 }
    
-   
+   .settings-btn:focus-visible{
+  outline: 2px solid rgba(255,215,0,0.7);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
    
 /* .css ㅊㄴㄴ 붙여넣기 */
    
@@ -2892,10 +2889,6 @@ settingsOverlay.addEventListener("click", (e) => {
   }
 });
 
-settingsLogoutBtn.addEventListener("click", () => {
-  auth.signOut();
-  settingsOverlay.classList.add("hidden");
-});
 
 // ✅ 설정 화면용 로그인/로그아웃 요소
 const settingsLoginRow = document.getElementById("settingsLoginRow");
