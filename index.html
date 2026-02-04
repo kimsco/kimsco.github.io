@@ -2001,14 +2001,13 @@ auth.onAuthStateChanged(async user => {
 
   // ✅ (B) 설정 패널 UI 갱신 (이걸 여기 넣는 게 포인트)
   if (user) {
-    if (settingsUserName) settingsUserName.textContent = user.displayName || "사용자";
-    if (settingsUserEmail) settingsUserEmail.textContent = user.email || "";
-    if (settingsLogoutText) settingsLogoutText.style.display = "block";
-  } else {
-    if (settingsUserName) settingsUserName.textContent = "게스트";
-    if (settingsUserEmail) settingsUserEmail.textContent = "로그인하지 않음";
-    if (settingsLogoutText) settingsLogoutText.style.display = "none";
-  }
+  if (settingsUserName) settingsUserName.textContent = user.displayName || "사용자";
+  if (settingsUserEmail) settingsUserEmail.textContent = ""; // ✅ 헤더 이메일 숨김
+} else {
+  if (settingsUserName) settingsUserName.textContent = "게스트";
+  if (settingsUserEmail) settingsUserEmail.textContent = "로그인하지 않음";
+}
+
 
 
    if (user) {
