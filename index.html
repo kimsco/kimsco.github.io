@@ -711,42 +711,21 @@ cursor: pointer;
   margin: 0;
 
   border: none;
-  border-radius: 0;
   background: transparent;
 
-  color: #9a9a9a;
+  color: #888;          /* 기본 회색 */
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
   cursor: pointer;
-  position: relative;
 }
 
-/* 칸 구분선 */
-.bottomTab .tabBtn + .tabBtn{
-  border-left: 1px solid rgba(255,255,255,0.06);
-}
 
-/* ✅ 활성 칸 */
-.bottomTab .tabBtn.active{
-  color: #FFD700;
-  background: rgba(255,215,0,0.06);
-}
 
-/* 활성 표시: 위쪽 라인 */
-.bottomTab .tabBtn.active::before{
-  content:"";
-  position:absolute;
-  top: 0;
-  width: 42%;
-  height: 3px;
-  border-radius: 999px;
-  background: #FFD700;
-}
 
 .settings-btn {
   all: unset;              /* 🔥 기본 button 스타일 전부 제거 */
