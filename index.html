@@ -984,6 +984,72 @@ cursor: pointer;
   color: #ddd;   /* 아이콘 색 */
 }
 
+/* ===============================
+   ✅ 1년 진행률 (달력 아래)
+================================ */
+.year-progress{
+  margin-top: 18px;
+  padding: 16px 12px 14px;
+  background: transparent;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+
+.year-progress-title{
+  text-align: center;
+  font-size: 16px;
+  font-weight: 700;
+  color: #eee;
+  letter-spacing: 0.2px;
+  margin-bottom: 6px;
+}
+
+.year-progress-sub{
+  text-align: center;
+  font-size: 13px;
+  color: #888;
+  margin-bottom: 12px;
+}
+
+/* 인스타/깃허브 느낌: 7행(요일) x 53열(주) */
+.year-dots{
+  display: grid;
+  grid-template-columns: repeat(53, 1fr);
+  grid-auto-rows: 10px;
+  gap: 4px;
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.year-dot{
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.10); /* 기본(미진행) */
+  border: 1px solid rgba(255,255,255,0.03);
+}
+
+/* 진행된 점 */
+.year-dot.on{
+  background: rgba(255,255,255,0.85);
+  border-color: rgba(255,255,255,0.10);
+}
+
+/* 오늘 점 강조(옵션) */
+.year-dot.today{
+  outline: 1px solid rgba(255,215,0,0.8);
+  outline-offset: 1px;
+}
+
+.year-progress-foot{
+  margin-top: 10px;
+  text-align: right;
+  font-size: 12px;
+  color: #666;
+}
+
+
+
    
 /* .css ㅊㄴㄴ 붙여넣기 */
    
@@ -1291,6 +1357,21 @@ input[type="number"] {
         <div id="calDays" class="days"></div>
     
       <div class="calendar-toggle-wrap">
+
+<!-- ✅ 1년 진행률 (달력 아래) -->
+<div class="year-progress" id="yearProgress">
+  <div class="year-progress-title" id="yearProgressTitle">2026년 진행률</div>
+  <div class="year-progress-sub" id="yearProgressSub">0%</div>
+
+  <div class="year-dots" id="yearDots"></div>
+
+  <div class="year-progress-foot">
+    <span id="yearProgressCount">0/365</span>
+  </div>
+</div>
+
+
+         
   <div id="calendarToggle" class="toggle-switch"></div>
 </div>
 
@@ -3001,7 +3082,78 @@ logoutModal.addEventListener("click", (e) => {
   if (e.target === logoutModal) logoutModal.classList.add("hidden");
 });
 
+/*********************************
+ * ✅ 1년 진행률 (달력 아래)
+ *********************************/
+function isLeapYear(y){
+  return (y % 4 === 0 && y % 100 !== 0) || (y % 400 === 0);
+}
+function daysInYear(y){
+  return isLeapYear(y) ? 366 : 365;
+}
+function dayOfYear(date){
+  const start = new Date(date.getFullYear(), 0, 1);
+  const diff = date - start;
+  const oneDay = 24 * 60 * 60 * 1000;
+  return Math.floor(diff / oneDay) + 1; // 1~365(366)
+}
 
+let yearDotsBuiltFor = null;
+
+function buildYearDots(year){
+  const dotsEl = document.getElementById("yearDots");
+  if(!dotsEl) return;
+
+  dotsEl.innerHTML = "";
+  const total = daysInYear(year);
+
+  // 7*53 = 371칸 중에서 total만큼만 사용
+  for(let i=1; i<=total; i++){
+    const dot = document.createElement("div");
+    dot.className = "year-dot";
+    dot.dataset.day = String(i);
+    dotsEl.appendChild(dot);
+  }
+  yearDotsBuiltFor = year;
+}
+
+function updateYearProgress(){
+  const now = new Date();
+  const year = now.getFullYear();
+
+  const titleEl = document.getElementById("yearProgressTitle");
+  const subEl   = document.getElementById("yearProgressSub");
+  const countEl = document.getElementById("yearProgressCount");
+
+  if(titleEl) titleEl.textContent = `${year}년 진행률`;
+
+  if(yearDotsBuiltFor !== year){
+    buildYearDots(year);
+  }
+
+  const total = daysInYear(year);
+  const passed = dayOfYear(now); // 오늘 포함
+  const pct = Math.floor((passed / total) * 100);
+
+  if(subEl) subEl.textContent = `${pct}%`;
+  if(countEl) countEl.textContent = `${passed}/${total}`;
+
+  // 점 칠하기
+  const dots = document.querySelectorAll("#yearDots .year-dot");
+  dots.forEach((dot, idx) => {
+    const dayNum = idx + 1;
+    dot.classList.toggle("on", dayNum <= passed);
+    dot.classList.toggle("today", dayNum === passed);
+  });
+}
+
+// 초기 1회
+updateYearProgress();
+
+// “실시간 수치 반영” 느낌: 1분마다 갱신(배터리도 괜찮음)
+setInterval(updateYearProgress, 60 * 1000);
+
+   
 
 
    
