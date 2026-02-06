@@ -2471,20 +2471,7 @@ async function handleMuscleSelect(btn) {
 
 
    
-calMuscleBtns.forEach(btn => {
-  btn.addEventListener("pointerdown", () => {
-    btn.classList.add("active"); // 눌림 효과
-  });
 
-  btn.addEventListener("pointerup", e => {
-    e.preventDefault();
-    handleMuscleSelect(btn); // 👉 한 번에 선택 + 저장 + 닫힘
-  });
-
-  btn.addEventListener("pointerleave", () => {
-    btn.classList.remove("active");
-  });
-});
 
 
 
