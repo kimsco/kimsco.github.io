@@ -679,7 +679,7 @@ cursor: pointer;
 ================================ */
 
 /* 탭바 높이 */
-:root { --bottomTabH: 78px; }
+:root { --bottomTabH: 90px; }
 
 
 
@@ -1378,7 +1378,15 @@ input[type="number"] {
 
     </div>
 </div>
+<!-- 예정 -->
+<div id="tab5" class="tabContent">
+  <div style="padding:20px 0; text-align:center; color:#777; font-size:13px;">
+    예정(준비중)
+  </div>
+</div>
 
+
+   
 </div>
 
 <!-- ✅ 하단 탭바 (새로 추가/이동) -->
@@ -1387,6 +1395,7 @@ input[type="number"] {
   <button class="tabBtn" data-target="tab2">3대</button>
   <button class="tabBtn" data-target="tab3">달력</button>
   <button class="tabBtn" data-target="tab4">Tip</button>
+   <button class="tabBtn" data-target="tab5">예정</button>
 </div>
 
 
@@ -2632,7 +2641,9 @@ function getToday() {
   return `${yy}.${mm}.${dd}`;
 }
 
-   
+   const tabBtns = document.querySelectorAll('.bottomTab .tabBtn');
+const tabContents = document.querySelectorAll('.tabContent');
+
 
 
 
