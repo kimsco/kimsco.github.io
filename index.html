@@ -1661,6 +1661,10 @@ const LS_KEYS = {
   accessoryRecords: "mf_acc_records_v1",  // 보조운동 기록 전체
   goals: "mf_goals_v1"
 };
+const partScreen = document.getElementById('acc-part-screen');
+const exerciseScreen = document.getElementById('exercise-screen');
+const partTitle = document.getElementById('current-part-name');
+const partBtns = document.querySelectorAll('.part-btn');
 
 function lsGet(key, fallback){
   try{
@@ -2647,10 +2651,6 @@ async function deleteRecord(id){
 
 
 
-const partScreen = document.getElementById('acc-part-screen');
-const exerciseScreen = document.getElementById('exercise-screen');
-const partTitle = document.getElementById('current-part-name');
-const partBtns = document.querySelectorAll('.part-btn');
 
 
 
