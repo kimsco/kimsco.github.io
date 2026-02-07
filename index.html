@@ -2413,6 +2413,21 @@ function handleDatePressStart(e){
     }, 500);
 }
 
+// ✅ 팝업 근육 버튼 클릭 이벤트 연결
+calMuscleBtns.forEach(btn => {
+  btn.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();     // ✅ 팝업 배경 클릭 닫기랑 충돌 방지
+    handleMuscleSelect(btn);
+  });
+});
+calPopup.addEventListener("click", e => {
+  if (e.target === calPopup) {
+    calPopup.classList.add("hidden");
+    calPopupOpen = false;   // ✅ 추가
+  }
+});
+
 
 document.addEventListener("mouseup", e => clearLongPress(e));
 document.addEventListener("touchend", e => clearLongPress(e));
