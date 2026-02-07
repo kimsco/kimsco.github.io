@@ -2453,45 +2453,48 @@ calPopup.addEventListener("click", e => {
   if (e.target === calPopup) calPopup.classList.add("hidden");
 });
 
-async function handleMuscleSelect(btn) {
-  const user = auth.currentUser;
 
+
+
+   async function handleMuscleSelect(btn) {
+  const user = auth.currentUser;
   const m = btn.dataset.muscle;
   const alreadySelected = calSelectedMuscles.includes(m);
 
-  calMuscleBtns.forEach(b => b.classList.remove("active"));
-
-  if (alreadySelected) {
-    delete calData[calSelectedDate];
-    calSelectedMuscles = [];
-
-    // 로그인이면 Firestore 삭제
-    if (user) {
-      await db.collection("users").doc(user.uid)
-        .collection("calendar").doc(calSelectedDate).delete();
-    }
-  } else {
-    calSelectedMuscles = [m];
-    btn.classList.add("active");
-    calData[calSelectedDate] = { muscles: [m] };
-
-    // 로그인이면 Firestore 저장
-    if (user) {
-      await db.collection("users").doc(user.uid)
-        .collection("calendar").doc(calSelectedDate)
-        .set({ muscles: [m], updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
-    }
-  }
-
-  // ✅ 게스트/로그인 공통: 로컬 저장
-  saveCalendarToLocal();
-  calRender();
+  // ✅ 1) 팝업을 먼저 즉시 닫아서 "반응"을 빠르게
   calPopup.classList.add("hidden");
   calPopupOpen = false;
+
+  // ✅ 2) 저장/렌더 같은 무거운 작업은 다음 프레임으로 넘김
+  requestAnimationFrame(async () => {
+
+    calMuscleBtns.forEach(b => b.classList.remove("active"));
+
+    if (alreadySelected) {
+      delete calData[calSelectedDate];
+      calSelectedMuscles = [];
+
+      if (user) {
+        await db.collection("users").doc(user.uid)
+          .collection("calendar").doc(calSelectedDate).delete();
+      }
+    } else {
+      calSelectedMuscles = [m];
+      btn.classList.add("active");
+      calData[calSelectedDate] = { muscles: [m] };
+
+      if (user) {
+        await db.collection("users").doc(user.uid)
+          .collection("calendar").doc(calSelectedDate)
+          .set({ muscles: [m], updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+      }
+    }
+
+    // ✅ 게스트/로그인 공통 저장 + 달력 다시그리기
+    saveCalendarToLocal();
+    calRender();
+  });
 }
-
-
-   
 
 
 
