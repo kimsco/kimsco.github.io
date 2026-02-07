@@ -1300,7 +1300,14 @@ input[type="number"] {
   <button class="part-btn" data-part="leg">leg</button>
   <button class="part-btn" data-part="arm">arm</button>
 </div>
-
+<!-- 목표 섹션 -->
+<div id="goalsSection" style="margin-top:12px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin:8px 0;">
+    <div style="font-size:15px;font-weight:700;color:#eee;">목표</div>
+    <button id="addGoalBtn" class="add-btn" style="width:32px;height:32px;">+</button>
+  </div>
+  <div id="goalsList"></div>
+</div>
 <div id="exercise-screen" style="display:none;">
   <div id="exercise-header" style="margin-bottom:10px; cursor:pointer;">
     ← <span id="current-part-name"></span>
@@ -1339,14 +1346,7 @@ input[type="number"] {
   <div id="acc-records" class="record-horizontal"></div>
 
 </div>
-<!-- 목표 섹션 -->
-<div id="goalsSection" style="margin-top:12px;">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin:8px 0;">
-    <div style="font-size:15px;font-weight:700;color:#eee;">목표</div>
-    <button id="addGoalBtn" class="add-btn" style="width:32px;height:32px;">+</button>
-  </div>
-  <div id="goalsList"></div>
-</div>
+
 
 <!-- 목표 추가 팝업 -->
 <div id="goalModal" class="modal hidden">
