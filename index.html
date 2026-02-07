@@ -1665,6 +1665,8 @@ const partScreen = document.getElementById('acc-part-screen');
 const exerciseScreen = document.getElementById('exercise-screen');
 const partTitle = document.getElementById('current-part-name');
 const partBtns = document.querySelectorAll('.part-btn');
+const goalsSection = document.getElementById("goalsSection");
+
 
 function lsGet(key, fallback){
   try{
@@ -1779,7 +1781,8 @@ partButtons.forEach(btn => {
     currentPartNameEl.textContent = currentPart;
     partScreen.style.display = 'none';
     exerciseScreen.style.display = 'block';
-
+   
+if (goalsSection) goalsSection.style.display = "none";
     // Firestore에서 해당 종목 불러오기
     await loadExercises(currentPart);
   });
@@ -1803,6 +1806,7 @@ function openExerciseDetail(name) {
   exerciseScreen.style.display = 'none';
   detailScreen.style.display = 'block';
   document.getElementById('detail-exercise-name').textContent = name;
+if (goalsSection) goalsSection.style.display = 
 
   renderAccessoryRecords(name); // ✅ "디테일 화면"에는 이걸 쓰자
 }
@@ -2658,6 +2662,7 @@ async function deleteRecord(id){
 document.getElementById('exercise-header').addEventListener('click', () => {
   exerciseScreen.style.display = 'none';
   partScreen.style.display = 'block';
+if (goalsSection) goalsSection.style.display = "block";
 });
 const threeToggleBtn = document.getElementById("threeToggleBtn");
 const threeDetail = document.getElementById("threeDetail");
