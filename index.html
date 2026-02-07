@@ -1806,7 +1806,7 @@ function openExerciseDetail(name) {
   exerciseScreen.style.display = 'none';
   detailScreen.style.display = 'block';
   document.getElementById('detail-exercise-name').textContent = name;
-if (goalsSection) goalsSection.style.display = 
+if (goalsSection) goalsSection.style.display = "none";
 
   renderAccessoryRecords(name); // ✅ "디테일 화면"에는 이걸 쓰자
 }
@@ -2719,13 +2719,19 @@ bottomTabBtns.forEach(btn => {
     document.querySelector('.app').scrollTo({ top: 0, behavior: 'auto' });
 
     // Tip 탭 초기화
-    if (target === 'tab4') {
-      partScreen.style.display = 'block';
-      exerciseScreen.style.display = 'none';
-      detailScreen.style.display = 'none';
-    } else {
-      detailScreen.style.display = 'none';
-    }
+  if (target === 'tab4') {
+  partScreen.style.display = 'block';
+  exerciseScreen.style.display = 'none';
+  detailScreen.style.display = 'none';
+
+  // ✅ 기록 탭 “최상위(부위 선택 화면)”에서는 목표 보이게
+  if (goalsSection) goalsSection.style.display = "block";
+} else {
+  detailScreen.style.display = 'none';
+
+  // ✅ 기록 탭이 아니면 목표 숨김
+  if (goalsSection) goalsSection.style.display = "none";
+}
   });
 });
 
@@ -2736,31 +2742,7 @@ bottomTabBtns.forEach(btn => {
 
 
 
-tabBtns.forEach(btn => {
-  btn.addEventListener('click', () => {
-    calPopup.classList.add("hidden");
 
-    tabBtns.forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-
-    const target = btn.dataset.target;
-    tabContents.forEach(tc => {
-      const on = (tc.id === target);
-      tc.classList.toggle('active', on);
-      tc.style.display = on ? 'block' : 'none';
-    });
-document.querySelector('.app').scrollTo({ top: 0, behavior: 'auto' });
-
-    // Tip 탭 초기화
-    if (target === 'tab4') {
-      partScreen.style.display = 'block';
-      exerciseScreen.style.display = 'none';
-      detailScreen.style.display = 'none'; // ✅ 추가: 디테일도 닫기
-    } else {
-      detailScreen.style.display = 'none';
-    }
-  });
-});
 
 
 
