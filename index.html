@@ -2724,12 +2724,9 @@ bottomTabBtns.forEach(btn => {
   exerciseScreen.style.display = 'none';
   detailScreen.style.display = 'none';
 
-  // ✅ 기록 탭 “최상위(부위 선택 화면)”에서는 목표 보이게
-  if (goalsSection) goalsSection.style.display = "block";
+  // ❌ 여기서 goals 건드리지 마라
 } else {
   detailScreen.style.display = 'none';
-
-  // ✅ 기록 탭이 아니면 목표 숨김
   if (goalsSection) goalsSection.style.display = "none";
 }
   });
