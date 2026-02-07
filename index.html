@@ -1339,6 +1339,37 @@ input[type="number"] {
   <div id="acc-records" class="record-horizontal"></div>
 
 </div>
+<!-- 목표 섹션 -->
+<div id="goalsSection" style="margin-top:12px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin:8px 0;">
+    <div style="font-size:15px;font-weight:700;color:#eee;">목표</div>
+    <button id="addGoalBtn" class="add-btn" style="width:32px;height:32px;">+</button>
+  </div>
+  <div id="goalsList"></div>
+</div>
+
+<!-- 목표 추가 팝업 -->
+<div id="goalModal" class="modal hidden">
+  <div class="modal-box">
+    <div class="modal-title">목표 추가</div>
+
+    <div style="padding: 10px 16px 16px;">
+      <input id="goalName" placeholder="목표명 (예: 턱걸이)" style="width:100%;padding:12px;border-radius:10px;border:1px solid #333;background:#111;color:#eee;box-sizing:border-box;margin-bottom:10px;">
+      <div style="display:flex;gap:8px;">
+        <input id="goalWeight" type="number" placeholder="목표 무게(선택)" style="flex:1;padding:12px;border-radius:10px;border:1px solid #333;background:#111;color:#eee;box-sizing:border-box;">
+        <input id="goalReps" type="number" placeholder="목표 횟수(선택)" style="flex:1;padding:12px;border-radius:10px;border:1px solid #333;background:#111;color:#eee;box-sizing:border-box;">
+      </div>
+      <div style="margin-top:8px;font-size:12px;color:#777;">
+        * 무게 없으면 횟수 목표로 저장됨
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button id="goalCancel" class="modal-btn">취소</button>
+      <button id="goalSave" class="modal-btn danger">저장</button>
+    </div>
+  </div>
+</div>
 </div>
 
 
@@ -1628,6 +1659,7 @@ const LS_KEYS = {
   calendar: "mf_calendar_v1",            // calData
   accessoriesList: (part) => `mf_acc_list_${part}_v1`,   // part별 종목 리스트
   accessoryRecords: "mf_acc_records_v1"  // 보조운동 기록 전체
+  goals: "mf_goals_v1"
 };
 
 function lsGet(key, fallback){
@@ -1670,6 +1702,9 @@ function loadAllFromLocal(){
   // 보조운동 기록
   accRecordsByExercise = lsGet(LS_KEYS.accessoryRecords, {});
   if(!accRecordsByExercise || typeof accRecordsByExercise !== "object") accRecordsByExercise = {};
+  // ✅ 목표 로드 + 자동 반영
+  loadGoalsFromLocal();
+  syncGoalsFromAccessoryRecords();
 }
 
 /* ✅ 로컬로 전체 저장 */
@@ -2996,6 +3031,7 @@ async function addAccessorySet() {
   // 화면 갱신
   document.getElementById("acc-weight").value = "";
   document.getElementById("acc-reps").value = "";
+syncGoalsFromAccessoryRecords(); // ✅ 목표 자동 반영
   renderAccessoryRecords(currentExerciseName);
   renderExercises();
 }
@@ -3037,6 +3073,65 @@ document.addEventListener("touchend", () => {
 document.addEventListener("touchmove", () => {
   clearTimeout(accDeleteTimer);
 });
+
+function syncGoalsFromAccessoryRecords(){
+  // 목표명(name)과 exerciseName이 같으면 자동 반영한다고 가정
+  // accRecordsByExercise 구조: { "턱걸이": [ {reps, weight, createdAt...}, ... ] }
+
+  goals.forEach(g=>{
+    const list = accRecordsByExercise[g.name] || [];
+    if(!list.length) return;
+
+    // 최신/최고 기준은 정책 정하면 됨.
+    // 1) reps 목표: 최대 reps
+    if(g.mode === "reps"){
+      let maxR = 0;
+      list.forEach(x => { maxR = Math.max(maxR, Number(x.reps||0)); });
+      g.currentReps = maxR;
+    }
+
+    // 2) weight 목표: 최대 weight
+    if(g.mode === "weight"){
+      let maxW = 0;
+      list.forEach(x => { maxW = Math.max(maxW, Number(x.weight||0)); });
+      g.currentWeight = maxW;
+    }
+
+    // 3) weight_reps 목표:
+    //    목표 weight에 가장 가까운 weight에서 reps 최대(혹은 동일 weight에서 reps 최대)
+    if(g.mode === "weight_reps"){
+      const targetW = Number(g.targetWeight||0);
+      // 목표 무게와 같은 weight 기록에서 reps 최대를 우선
+      let best = null;
+
+      list.forEach(x=>{
+        const w = Number(x.weight||0);
+        const r = Number(x.reps||0);
+        if(!w || !r) return;
+
+        if(best === null) best = {w,r};
+        // 1순위: weight가 목표와 같으면 reps 큰 게 승
+        if(w === targetW){
+          if(best.w !== targetW || r > best.r) best = {w,r};
+          return;
+        }
+        // 2순위: 목표보다 낮은 weight 중 가장 높은 weight, 그 안에서 reps 최대
+        if(w < targetW){
+          if(best.w > targetW) return; // (혹시) 목표보다 큰 게 best면 건드리지 않음
+          if(w > best.w || (w === best.w && r > best.r)) best = {w,r};
+        }
+      });
+
+      if(best){
+        g.currentWeight = best.w;
+        g.currentReps = best.r;
+      }
+    }
+  });
+
+  saveGoalsToLocal();
+  renderGoals();
+}
 
 async function deleteAccessoryRecord(recordId) {
   if (!recordId) return;
@@ -3210,7 +3305,142 @@ updateYearProgress();
 // “실시간 수치 반영” 느낌: 1분마다 갱신(배터리도 괜찮음)
 setInterval(updateYearProgress, 60 * 1000);
 
-   
+   let goals = [];
+
+function loadGoalsFromLocal(){
+  goals = lsGet(LS_KEYS.goals, []);
+  if(!Array.isArray(goals)) goals = [];
+}
+function saveGoalsToLocal(){
+  lsSet(LS_KEYS.goals, goals || []);
+}
+
+function calcGoalProgress(g){
+  // mode별 퍼센트
+  if(g.mode === "reps"){
+    const cur = Number(g.currentReps||0);
+    const tar = Number(g.targetReps||0);
+    if(!tar) return 0;
+    return Math.max(0, Math.min(100, Math.floor((cur / tar) * 100)));
+  }
+  if(g.mode === "weight"){
+    const cur = Number(g.currentWeight||0);
+    const tar = Number(g.targetWeight||0);
+    if(!tar) return 0;
+    return Math.max(0, Math.min(100, Math.floor((cur / tar) * 100)));
+  }
+  // weight_reps: 둘 다 만족해야 100
+  const wPct = g.targetWeight ? (Number(g.currentWeight||0) / Number(g.targetWeight)) : 0;
+  const rPct = g.targetReps ? (Number(g.currentReps||0) / Number(g.targetReps)) : 0;
+  const pct = Math.min(wPct, rPct) * 100;
+  return Math.max(0, Math.min(100, Math.floor(pct)));
+}
+
+function goalDisplayLine(g){
+  if(g.mode === "reps"){
+    return `${g.currentReps||0} / ${g.targetReps} 회`;
+  }
+  if(g.mode === "weight"){
+    return `${g.currentWeight||0} / ${g.targetWeight} kg`;
+  }
+  return `${g.currentWeight||0}kg × ${g.currentReps||0} / ${g.targetWeight}kg × ${g.targetReps}`;
+}
+
+function renderGoals(){
+  const listEl = document.getElementById("goalsList");
+  if(!listEl) return;
+
+  if(!goals.length){
+    listEl.innerHTML = `<div style="color:#777;font-size:13px;">목표를 추가해봐</div>`;
+    return;
+  }
+
+  listEl.innerHTML = goals.map(g=>{
+    const pct = calcGoalProgress(g);
+    return `
+      <div style="padding:12px 12px;border:1px solid #222;border-radius:14px;background:#111;margin-bottom:10px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div style="font-size:16px;font-weight:700;color:#fff;">${g.name}</div>
+          <button data-id="${g.id}" class="goal-del" style="background:none;border:none;color:#777;font-size:14px;cursor:pointer;">삭제</button>
+        </div>
+
+        <div style="margin-top:6px;font-size:13px;color:#aaa;">${goalDisplayLine(g)}</div>
+
+        <div style="margin-top:10px;height:6px;background:rgba(255,255,255,0.12);border-radius:999px;overflow:hidden;">
+          <div style="height:100%;width:${pct}%;background:#FFD700;border-radius:999px;"></div>
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  // 삭제 연결
+  document.querySelectorAll(".goal-del").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const id = btn.dataset.id;
+      goals = goals.filter(x => x.id !== id);
+      saveGoalsToLocal();
+      renderGoals();
+    });
+  });
+}
+
+const addGoalBtn = document.getElementById("addGoalBtn");
+const goalModal = document.getElementById("goalModal");
+const goalCancel = document.getElementById("goalCancel");
+const goalSave = document.getElementById("goalSave");
+
+addGoalBtn.addEventListener("click", ()=>{
+  goalModal.classList.remove("hidden");
+});
+
+goalCancel.addEventListener("click", ()=>{
+  goalModal.classList.add("hidden");
+});
+
+goalModal.addEventListener("click", (e)=>{
+  if(e.target === goalModal) goalModal.classList.add("hidden");
+});
+
+goalSave.addEventListener("click", ()=>{
+  const name = (document.getElementById("goalName").value || "").trim();
+  const w = Number(document.getElementById("goalWeight").value);
+  const r = Number(document.getElementById("goalReps").value);
+
+  if(!name){ alert("목표명을 입력해"); return; }
+  if(!w && !r){ alert("무게/횟수 중 하나는 입력해야 해"); return; }
+
+  let mode = "reps";
+  if(w && r) mode = "weight_reps";
+  else if(w) mode = "weight";
+  else mode = "reps";
+
+  const g = {
+    id: "g_" + Date.now(),
+    name,
+    mode,
+    targetWeight: w || null,
+    targetReps: r || null,
+    currentWeight: null,
+    currentReps: null
+  };
+
+  // 초기 current는 0으로
+  if(mode === "weight") g.currentWeight = 0;
+  if(mode === "reps") g.currentReps = 0;
+  if(mode === "weight_reps"){ g.currentWeight = 0; g.currentReps = 0; }
+
+  goals.unshift(g);
+  saveGoalsToLocal();
+  renderGoals();
+
+  // 입력값 초기화 + 닫기
+  document.getElementById("goalName").value = "";
+  document.getElementById("goalWeight").value = "";
+  document.getElementById("goalReps").value = "";
+  goalModal.classList.add("hidden");
+});
+
+
 
 
    
