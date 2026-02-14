@@ -2013,55 +2013,63 @@ function renderActiveBox(){
     else if(target === 'ohpBox')  arr = records.ohp;
 
     const boxEl = document.getElementById(target);
-if(!arr || arr.length === 0){
-    boxEl.innerHTML = `<div style="color:#777;font-size:13px;">기록이 여기에 쌓입니다</div>`;
-    return;
-}
 
-// 날짜별 그룹화
-const grouped = {};
-arr.forEach(it => {
-  if (!grouped[it.date]) grouped[it.date] = [];
-  grouped[it.date].push(it);
-});
+    if(!arr || arr.length === 0){
+        boxEl.innerHTML = `<div style="color:#777;font-size:13px;">기록이 여기에 쌓입니다</div>`;
+        return;
+    }
 
-// 최신 날짜 먼저
-const dates = Object.keys(grouped)
-  .sort((a, b) => b.localeCompare(a)); // 🔥 최신 날짜 먼저
+    // ✅ 날짜별 그룹화 (기존 그대로)
+    const grouped = {};
+    arr.forEach(it => {
+      if (!grouped[it.date]) grouped[it.date] = [];
+      grouped[it.date].push(it);
+    });
 
+    // ✅ 최신 날짜 먼저 (기존 그대로)
+    const dates = Object.keys(grouped)
+      .sort((a, b) => b.localeCompare(a));
 
-boxEl.innerHTML = dates.map(date => {
- const records = grouped[date]
-  .slice()
-  .reverse(); // 🔥 배열순서 역순 = 최신이 아래
+    // ✅ 여기부터가 "배치 변경" 핵심
+    boxEl.innerHTML = dates.map(date => {
+      // 🔥 같은 날짜의 세트들: 기존처럼 "최신이 아래로" 보이게 reverse 유지
+      const dayRecords = grouped[date].slice().reverse();
 
+      return `
+        <div style="margin-bottom:10px;">
+          ${dayRecords.map((r, idx) => `
+            <!-- ✅ 한 줄을 '기록(왼쪽) / 날짜(오른쪽)' 2컬럼처럼 고정 -->
+            <div style="display:flex; align-items:center; line-height:1.6;">
+              
+              <!-- ✅ (왼쪽) 기록: 삭제 long-press 타겟(.record-line)은 그대로 유지 -->
+              <div
+                class="record-line"
+                data-id="${r.firestoreId ? r.firestoreId : ('local_' + r.localId)}"
+                style="
+                  flex: 1;
+                  text-align: left;       /* 🔥 왼쪽 정렬 */
+                  cursor: pointer;
+                "
+              >
+                ${r.weight}kg × ${r.reps}회
+              </div>
 
+              <!-- ✅ (오른쪽) 날짜: 첫 줄에만 표시 / 고정폭 90px 유지 -->
+              <div style="
+                width: 90px;             /* 🔥 네가 말한 '고정' */
+                text-align: right;       /* 🔥 오른쪽 정렬 */
+                color: rgba(255,255,255,0.75); /* 날짜는 메타라 살짝 톤 다운(원하면 빼도 됨) */
+                font-size: 13px;
+              ">
+                ${idx === 0 ? date : ''}
+              </div>
 
-  return `
-    <div style="margin-bottom:10px;">
-      ${records.map((r, idx) => `
-        <div style="display:flex; line-height:1.6;">
-          <div style="width:90px;">
-            ${idx === 0 ? date : ''}
-          </div>
-          <div
-                 class="record-line"
-                 
-                 data-id="${r.firestoreId ? r.firestoreId : ('local_' + r.localId)}"
-                 style="margin-left:auto; text-align:right; cursor:pointer;"
-                  >
-                 ${formatKgSmart(r.weight)}kg × ${r.reps}회
             </div>
-
+          `).join('')}
+          <div style="border-bottom:1px solid rgba(255,255,255,0.25); margin-top:6px;"></div>
         </div>
-      `).join('')}
-      <div style="border-bottom:1px solid rgba(255,255,255,0.25); margin-top:6px;"></div>
-    </div>
-  `;
-}).join('');
-
-
-
+      `;
+    }).join('');
 }
 renderActiveBox();
 
