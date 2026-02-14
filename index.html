@@ -194,17 +194,31 @@ td, th {
     background:#FFD700;
     color:black;
 }
-
 .folderContent {
-    display:none;
-    margin-top:10px;
-    background:#222;    /*원래 444였음 */
-    border-radius:8px;
-    padding:10px;
-    height:380px;
-    overflow:auto;
+    display: none;
+    margin-top: 10px;
+
+    /* 배경 */
+    background: #222;
+    border-radius: 8px;
+    padding: 10px;
+
+    /* 높이 */
+    height: 380px;
+    overflow: auto;
+
+    /* 글자 (iOS 메모장 느낌) */
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.9;
+    letter-spacing: 0.2px;
+    color: #E5E5E7;
 }
-.folderContent.active { display:block; }
+
+.folderContent.active {
+    display: block;
+}
 
 /* ===============================
    기록 입력 한 줄
