@@ -35,6 +35,10 @@ body {
 
 /* ✅ app: transform 제거 + 가운데 정렬은 margin으로 */
 .app{
+   
+   z-index: 1;              /* ✅ app는 아래 */
+  isolation: isolate;      /* ✅ 스태킹 분리(이게 은근 잘 먹음) */
+
   position: fixed;
   top: var(--topBarH);
   bottom: calc(var(--bottomTabH) + env(safe-area-inset-bottom));
@@ -763,18 +767,14 @@ cursor: pointer;
 }
 
 
-
-/* ✅ bottomTab도 동일하게 transform 제거 */
 .bottomTab{
   position: fixed;
+  left: 50%;
+  transform: translate3d(-50%, 0, 0); /* ✅ translateX 말고 3d */
   bottom: 0;
 
   width: 390px;
   max-width: 100%;
-  margin: 0 auto;
-
-  left: 0; right: 0;          /* ✅ 가운데 */
-  transform: none;            /* ✅ 핵심 */
 
   height: var(--bottomTabH);
   padding-bottom: env(safe-area-inset-bottom);
@@ -782,8 +782,12 @@ cursor: pointer;
   display: flex;
   background: rgba(0,0,0,0.92);
   backdrop-filter: blur(10px);
+
   border-top: 1px solid rgba(255,255,255,0.08);
-  z-index: 99999;
+
+  z-index: 2147483647;      /* ✅ 최상단 */
+  will-change: transform;   /* ✅ iOS 레이어 고정 */
+  backface-visibility: hidden;
 }
 
 /* ✅ “칸 4개” 느낌 */
