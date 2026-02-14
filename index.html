@@ -40,8 +40,8 @@ body {
   margin: 0 auto;
   background: black;
 
-  /* ✅ topBar 높이만큼 위 공간 확보 */
-  padding: 70px 20px calc(var(--bottomTabH) + env(safe-area-inset-bottom));
+  padding: calc(var(--topBarH) + env(safe-area-inset-top)) 20px
+           calc(var(--bottomTabH) + env(safe-area-inset-bottom));
   box-sizing: border-box;
 
   overflow-y: auto;
@@ -105,15 +105,16 @@ td, th {
   position: fixed;
   top: 0;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translate3d(-50%,0,0);
 
   width: 390px;
   max-width: 100%;
+  height: var(--topBarH);
 
-  height: 55px;
-  padding: 12px 10px;
+  padding: calc(env(safe-area-inset-top) + 8px) 16px 8px; /* 위쪽만 안전영역 */
+  box-sizing: border-box;
 
-  display: flex;
+  display:flex;
   justify-content: space-between;
   align-items: center;
 
@@ -125,12 +126,13 @@ td, th {
 }
 
 
-   .topText {
-  color: white;
-  font-size: 0.66em; /* 기존 subtitle 대비 2/3 */
-  line-height: 1.4;
+.topText{
+  max-width: 300px;        /* 너무 길게 퍼지는 거 방지 */
+  font-size: 11px;         /* 0.66em 대신 고정 추천 */
+  line-height: 1.35;
   opacity: 0.85;
 }
+
 
 #loginArea {
     display: flex;
@@ -751,7 +753,10 @@ cursor: pointer;
 ================================ */
 
 /* 탭바 높이 */
-:root { --bottomTabH: 88px; }
+:root{
+  --topBarH: 79px;          /* 55 + 12*2 = 79 */
+  --bottomTabH: 88px;
+}
 
 
 
