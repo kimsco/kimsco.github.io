@@ -1600,7 +1600,23 @@ goBtn.addEventListener('click', ()=> {
     tableArea.innerHTML = html;
 });
 
+/* ===============================
+   ✅ kg 소수점 정책 유틸 (세트 기록 전용)
+   - 저장: 1자리 반올림(예: 95.55 -> 95.6)
+   - 표시: .0이면 정수처럼(95.0 -> "95"), 아니면 1자리("95.5")
+================================ */
+function round1(n){
+  const x = (typeof n === "number") ? n : parseFloat(n);
+  if(!Number.isFinite(x)) return NaN;
+  return Math.round(x * 10) / 10;
+}
 
+function formatKgSmart(n){
+  const x = round1(n);
+  if(!Number.isFinite(x)) return "";
+  const s = x.toFixed(1);           // 항상 1자리 문자열
+  return s.endsWith(".0") ? s.slice(0, -2) : s;  // 필요할 때만 소수점
+}
 
 /* 페이드 텍스트 유틸 */
 function fadeOutElem(el, timeout=1000, fadeDur=800){
@@ -2034,7 +2050,7 @@ boxEl.innerHTML = dates.map(date => {
                  data-id="${r.firestoreId ? r.firestoreId : ('local_' + r.localId)}"
                  style="margin-left:auto; text-align:right; cursor:pointer;"
                   >
-                 ${r.weight}kg × ${r.reps}회
+                 ${formatKgSmart(r.weight)}kg × ${r.reps}회
             </div>
 
         </div>
@@ -2052,10 +2068,13 @@ renderActiveBox();
 /* 기록 추가 (가로 폼에서 저장) */
 recordAdd.addEventListener('click', async ()=>{
     console.log("🔥 저장 버튼 클릭됨");
-    const weight = parseInt(recordWeight.value);
-    const reps = parseInt(recordReps.value);
+const weightRaw = parseFloat(recordWeight.value);
+const reps = parseInt(recordReps.value, 10);
 
-    if(!weight || !reps){
+// ✅ kg는 1자리 반올림해서 "저장값"을 통일
+const weight = round1(weightRaw);
+
+  if(!Number.isFinite(weight) || !reps){
         fadeTempMsg(recordMessage, '무게와 횟수를 입력하세요', 900, 600);
         return;
     }
