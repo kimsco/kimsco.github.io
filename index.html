@@ -179,20 +179,52 @@ td, th {
 /* ===============================
    기록 폴더
 ================================ */
-.recordFolders {
-    display:flex;
-    gap:8px;
-    margin-top:15px;
+/* ===============================
+   3대 종목 버튼 (미니멀 C안)
+================================ */
+
+.recordFolders{
+  display: flex;
+  gap: 24px;                 /* 버튼 사이 여백 */
+  margin-top: 20px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
 }
-.folderBtn {
-    flex:1;
-    background:#333;
-    color:white;
-    padding:10px;
+
+.folderBtn{
+  flex: none;
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 15px;
+  font-weight: 500;
+  color: #888;               /* 기본 비활성 회색 */
+  position: relative;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
-.folderBtn.active {
-    background:#FFD700;
-    color:black;
+
+/* hover */
+.folderBtn:hover{
+  color: #ccc;
+}
+
+/* 활성 상태 */
+.folderBtn.active{
+  color: #fff;               /* ✅ 활성 글자 흰색 */
+  font-weight: 700;
+}
+
+/* 활성 밑줄 */
+.folderBtn.active::after{
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -8px;
+  width: 100%;
+  height: 2px;
+  background: #fff;          /* ✅ 밑줄도 흰색 */
+  border-radius: 2px;
 }
 .folderContent {
     display: none;
