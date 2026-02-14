@@ -33,27 +33,27 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
 }
 
+/* ✅ app: transform 제거 + 가운데 정렬은 margin으로 */
 .app{
-  position: fixed;                 /* ✅ 핵심 */
-  left: 50%;
-  transform: translateX(-50%);
-
-  top: var(--topBarH);             /* ✅ 탑바 아래부터 */
-  bottom: calc(var(--bottomTabH) + env(safe-area-inset-bottom)); /* ✅ 탭바 위까지 */
+  position: fixed;
+  top: var(--topBarH);
+  bottom: calc(var(--bottomTabH) + env(safe-area-inset-bottom));
 
   width: 390px;
   max-width: 100%;
+  margin: 0 auto;
+
+  left: 0; right: 0;          /* ✅ 가운데 */
+  transform: none;            /* ✅ 이게 핵심 */
+
   box-sizing: border-box;
-
   background: black;
-
-  padding: 0 20px 20px;            /* ✅ 위 패딩은 0 (탑바가 담당) */
+  padding: 0 20px 20px;
   overflow-y: auto;
   overflow-x: hidden;
-
-  -webkit-overflow-scrolling: auto; /* ✅ iOS 바운스 줄이기 */
-  overscroll-behavior: none;        /* ✅ 지원 브라우저 바운스 차단 */
 }
+
+
 
 
 .app::-webkit-scrollbar {
@@ -764,17 +764,17 @@ cursor: pointer;
 
 
 
-/* ✅ 진짜 하단 고정 */
+/* ✅ bottomTab도 동일하게 transform 제거 */
 .bottomTab{
-   box-sizing: border-box;
-   
   position: fixed;
-  left: 50%;
-  transform: translateX(-50%);
   bottom: 0;
 
   width: 390px;
   max-width: 100%;
+  margin: 0 auto;
+
+  left: 0; right: 0;          /* ✅ 가운데 */
+  transform: none;            /* ✅ 핵심 */
 
   height: var(--bottomTabH);
   padding-bottom: env(safe-area-inset-bottom);
@@ -782,7 +782,6 @@ cursor: pointer;
   display: flex;
   background: rgba(0,0,0,0.92);
   backdrop-filter: blur(10px);
-
   border-top: 1px solid rgba(255,255,255,0.08);
   z-index: 99999;
 }
@@ -1475,6 +1474,8 @@ input[type="number"] {
    
 </div>
 
+
+
 <!-- ✅ 하단 탭바 (새로 추가/이동) -->
 <div class="bottomTab">
   <button class="tabBtn active" data-target="tab1">1RM</button>
@@ -1483,8 +1484,6 @@ input[type="number"] {
   <button class="tabBtn" data-target="tab4">기록</button>
    <button class="tabBtn" data-target="tab5">예정</button>
 </div>
-
-
    
 <!-- 팝업 -->
 <div id="calPopup" class="popup hidden">
