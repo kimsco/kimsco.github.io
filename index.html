@@ -21,10 +21,9 @@ html, body {
     margin: 0;
     padding: 0;
     width: 100%;
- 
-   
     height: 100%;
     overflow: hidden;
+    overscroll-behavior: none; /* ✅ 추가 */
 }
 
 body { 
@@ -35,18 +34,25 @@ body {
 }
 
 .app{
-  width: 390px;
-  height: 100vh;
-  margin: 0 auto;
-  background: black;
+  position: fixed;                 /* ✅ 핵심 */
+  left: 50%;
+  transform: translateX(-50%);
 
-  /* ✅ topBar 높이만큼 위 공간 확보 */
-  padding: 70px 20px calc(var(--bottomTabH) + env(safe-area-inset-bottom));
+  top: var(--topBarH);             /* ✅ 탑바 아래부터 */
+  bottom: calc(var(--bottomTabH) + env(safe-area-inset-bottom)); /* ✅ 탭바 위까지 */
+
+  width: 390px;
+  max-width: 100%;
   box-sizing: border-box;
 
+  background: black;
+
+  padding: 0 20px 20px;            /* ✅ 위 패딩은 0 (탑바가 담당) */
   overflow-y: auto;
   overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
+
+  -webkit-overflow-scrolling: auto; /* ✅ iOS 바운스 줄이기 */
+  overscroll-behavior: none;        /* ✅ 지원 브라우저 바운스 차단 */
 }
 
 
@@ -100,7 +106,6 @@ td, th {
 /* ===============================
    로그인 영역
 ================================ */
-  
 .topBar{
   position: fixed;
   top: 0;
@@ -109,9 +114,10 @@ td, th {
 
   width: 390px;
   max-width: 100%;
+  box-sizing: border-box;     /* ✅ 중요 */
 
-  height: 55px;
-  padding: 12px 10px;
+  height: var(--topBarH);
+  padding: 12px 20px;         /* ✅ app이랑 동일하게 20px */
 
   display: flex;
   justify-content: space-between;
@@ -751,12 +757,17 @@ cursor: pointer;
 ================================ */
 
 /* 탭바 높이 */
-:root { --bottomTabH: 88px; }
+:root{
+  --bottomTabH: 88px;
+  --topBarH: 55px;
+}
 
 
 
 /* ✅ 진짜 하단 고정 */
 .bottomTab{
+   box-sizing: border-box;
+   
   position: fixed;
   left: 50%;
   transform: translateX(-50%);
