@@ -39,11 +39,8 @@ body {
   height: 100vh;
   margin: 0 auto;
   background: black;
-
-  padding: calc(var(--topBarH) + env(safe-area-inset-top)) 20px
-           calc(var(--bottomTabH) + env(safe-area-inset-bottom));
+  padding: 0 20px calc(var(--bottomTabH) + env(safe-area-inset-bottom));
   box-sizing: border-box;
-
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
@@ -101,51 +98,22 @@ td, th {
    로그인 영역
 ================================ */
   
-.topBar{
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  margin: 0 auto;
-  width: 390px;
-  max-width: 100%;
-  height: var(--topBarH);
-
-  padding: calc(env(safe-area-inset-top) + 8px) 16px 8px;
-  box-sizing: border-box;
-
-  display:flex;
+.topBar {
+  display: flex;
   justify-content: space-between;
   align-items: center;
-
-  /* ✅ 배경/블러는 ::before로 보냄 */
-  background: transparent;
-
-  border-bottom: 1px solid rgba(255,255,255,0.04);
-  z-index: 99998;
-
-  position: fixed;
-  isolation: isolate;     /* ✅ iOS 합성 충돌 줄임 */
-}
-
-.topBar::before{
-  content:"";
-  position:absolute;
-  inset:0;
-  background: rgba(0,0,0,0.95);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-  z-index:-1;             /* ✅ 탑바 “뒤”에만 깔림 */
+  height: 55px; 
+  padding: 12px 10px;   /* 14 → 10 (오른쪽 더 붙음) */
+    border-bottom: 1px solid rgba(255,255,255,0.04);
 }
 
 
-.topText{
-  max-width: 300px;        /* 너무 길게 퍼지는 거 방지 */
-  font-size: 11px;         /* 0.66em 대신 고정 추천 */
-  line-height: 1.35;
+   .topText {
+  color: white;
+  font-size: 0.66em; /* 기존 subtitle 대비 2/3 */
+  line-height: 1.4;
   opacity: 0.85;
 }
-
 
 #loginArea {
     display: flex;
@@ -766,10 +734,7 @@ cursor: pointer;
 ================================ */
 
 /* 탭바 높이 */
-:root{
-  --topBarH: 79px;          /* 55 + 12*2 = 79 */
-  --bottomTabH: 88px;
-}
+:root { --bottomTabH: 88px; }
 
 
 
@@ -844,17 +809,13 @@ cursor: pointer;
 }
 
 
-.settings-overlay{
+.settings-overlay {
   position: fixed;
-  inset: 0;                 /* ✅ top/left/right/bottom 한방 */
-  width: auto;
-  height: auto;
-
+  inset: 0;
   background: rgba(0,0,0,0.4);
-  z-index: 2147483647;
-
-  display:flex;
-  justify-content:flex-end;
+  z-index: 100000;
+  display: flex;
+  justify-content: flex-end;
 }
 
 .settings-overlay.hidden {
@@ -1262,10 +1223,9 @@ input[type="number"] {
 </head>
 
 <body>
+<div class="app">
    
-   
-   
-   <div class="topBar">
+<div class="topBar">
   <div class="topText">
     <div>대부분의 문제는 돈이 없어서,</div>
     <div>그 외의 문제는 근육이 없어서 생긴다</div>
@@ -1312,10 +1272,14 @@ input[type="number"] {
 </button>
 
 </div>
-   
-<div class="app">
+
+
+
    
 <div class="container">
+
+
+
 
 <!-- 1RM -->
 <div id="tab1" class="tabContent active">
