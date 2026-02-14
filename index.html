@@ -104,16 +104,21 @@ td, th {
 .topBar{
   position: fixed;
   top: 0;
-  left: 50%;
-  transform: translate3d(-50%,0,0);
+
+  /* ✅ 여기 핵심: 50%/transform 방식 버리고, 좌우 0 + margin auto */
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  transform: none;
 
   width: 390px;
   max-width: 100%;
+
   height: var(--topBarH);
 
-  padding: calc(env(safe-area-inset-top) + 8px) 16px 8px; /* 위쪽만 안전영역 */
+  padding: calc(env(safe-area-inset-top) + 8px) 16px 8px;
   box-sizing: border-box;
-transform: none;   
+
   display:flex;
   justify-content: space-between;
   align-items: center;
