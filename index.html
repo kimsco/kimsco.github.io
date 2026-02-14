@@ -113,7 +113,7 @@ td, th {
 
   padding: calc(env(safe-area-inset-top) + 8px) 16px 8px; /* 위쪽만 안전영역 */
   box-sizing: border-box;
-
+transform: none;   
   display:flex;
   justify-content: space-between;
   align-items: center;
@@ -831,11 +831,18 @@ cursor: pointer;
 }
 
 
-.settings-overlay {
+.settings-overlay{
   position: fixed;
-  inset: 0;
+  left: 0; top: 0;
+  width: 100vw;
+  height: 100dvh;                 /* ✅ iOS 주소창/툴바 대응 */
+
   background: rgba(0,0,0,0.4);
-  z-index: 999999;
+  z-index: 2147483647;            /* ✅ 사실상 최상위 */
+
+  transform: translateZ(0);       /* ✅ iOS 합성 레이어 강제 */
+  -webkit-transform: translateZ(0);
+
   display: flex;
   justify-content: flex-end;
 }
