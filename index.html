@@ -21,9 +21,10 @@ html, body {
     margin: 0;
     padding: 0;
     width: 100%;
+ 
+   
     height: 100%;
     overflow: hidden;
-    overscroll-behavior: none; /* ✅ 추가 */
 }
 
 body { 
@@ -33,31 +34,20 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
 }
 
-/* ✅ app: transform 제거 + 가운데 정렬은 margin으로 */
 .app{
-   
-   z-index: 1;              /* ✅ app는 아래 */
-  isolation: isolate;      /* ✅ 스태킹 분리(이게 은근 잘 먹음) */
-
-  position: fixed;
-  top: var(--topBarH);
-  bottom: calc(var(--bottomTabH) + env(safe-area-inset-bottom));
-
   width: 390px;
-  max-width: 100%;
+  height: 100vh;
   margin: 0 auto;
-
-  left: 0; right: 0;          /* ✅ 가운데 */
-  transform: none;            /* ✅ 이게 핵심 */
-
-  box-sizing: border-box;
   background: black;
-  padding: 0 20px 20px;
+
+  /* ✅ topBar 높이만큼 위 공간 확보 */
+  padding: 70px 20px calc(var(--bottomTabH) + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+
   overflow-y: auto;
   overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 }
-
-
 
 
 .app::-webkit-scrollbar {
@@ -110,6 +100,7 @@ td, th {
 /* ===============================
    로그인 영역
 ================================ */
+  
 .topBar{
   position: fixed;
   top: 0;
@@ -118,10 +109,9 @@ td, th {
 
   width: 390px;
   max-width: 100%;
-  box-sizing: border-box;     /* ✅ 중요 */
 
-  height: var(--topBarH);
-  padding: 12px 20px;         /* ✅ app이랑 동일하게 20px */
+  height: 55px;
+  padding: 12px 10px;
 
   display: flex;
   justify-content: space-between;
@@ -761,16 +751,15 @@ cursor: pointer;
 ================================ */
 
 /* 탭바 높이 */
-:root{
-  --bottomTabH: 88px;
-  --topBarH: 55px;
-}
+:root { --bottomTabH: 88px; }
 
 
+
+/* ✅ 진짜 하단 고정 */
 .bottomTab{
   position: fixed;
   left: 50%;
-  transform: translate3d(-50%, 0, 0); /* ✅ translateX 말고 3d */
+  transform: translateX(-50%);
   bottom: 0;
 
   width: 390px;
@@ -784,10 +773,7 @@ cursor: pointer;
   backdrop-filter: blur(10px);
 
   border-top: 1px solid rgba(255,255,255,0.08);
-
-  z-index: 2147483647;      /* ✅ 최상단 */
-  will-change: transform;   /* ✅ iOS 레이어 고정 */
-  backface-visibility: hidden;
+  z-index: 99999;
 }
 
 /* ✅ “칸 4개” 느낌 */
@@ -1478,8 +1464,6 @@ input[type="number"] {
    
 </div>
 
-
-
 <!-- ✅ 하단 탭바 (새로 추가/이동) -->
 <div class="bottomTab">
   <button class="tabBtn active" data-target="tab1">1RM</button>
@@ -1488,6 +1472,8 @@ input[type="number"] {
   <button class="tabBtn" data-target="tab4">기록</button>
    <button class="tabBtn" data-target="tab5">예정</button>
 </div>
+
+
    
 <!-- 팝업 -->
 <div id="calPopup" class="popup hidden">
