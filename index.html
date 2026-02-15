@@ -1149,7 +1149,50 @@ cursor: pointer;
   color: #666;
 }
 
+/* ✅ iOS 액션시트 */
+.action-sheet.hidden { display:none; }
 
+.action-sheet{
+  position: fixed;
+  inset: 0;
+  z-index: 300000;
+}
+
+.action-sheet-backdrop{
+  position:absolute;
+  inset:0;
+  background: rgba(0,0,0,0.55);
+}
+
+.action-sheet-panel{
+  position:absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  width: min(390px, 96vw);
+  background: #111;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  overflow:hidden;
+}
+
+.action-sheet-btn{
+  width:100%;
+  background: transparent;
+  border: none;
+  color:#eee;
+  padding: 16px 0;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.action-sheet-btn + .action-sheet-btn{
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.action-sheet-btn.danger{ color:#ff6b6b; }
+.action-sheet-btn.cancel{ color:#8bbcff; }
 
    
 /* .css ㅊㄴㄴ 붙여넣기 */
@@ -1590,6 +1633,17 @@ input[type="number"] {
       <button id="logoutCancel" class="modal-btn">취소</button>
       <button id="logoutConfirm" class="modal-btn danger">확인</button>
     </div>
+  </div>
+</div>
+
+<!-- ✅ 기록 액션시트 (수정/삭제) -->
+<div id="recordActionSheet" class="action-sheet hidden">
+  <div class="action-sheet-backdrop"></div>
+
+  <div class="action-sheet-panel">
+    <button id="rasEdit" class="action-sheet-btn">수정</button>
+    <button id="rasDelete" class="action-sheet-btn danger">삭제</button>
+    <button id="rasCancel" class="action-sheet-btn cancel">취소</button>
   </div>
 </div>
 
@@ -2690,43 +2744,144 @@ document.getElementById("calNext").onclick = () => {
 
 calRender();
 
-   let recordPressTimer = null;
+/*********************************
+ * ✅ 기록 꾹누름: 수정/삭제 액션시트
+ *********************************/
+let recordPressTimer = null;
+let pressedRecordEl = null;
 
-// PC
+const recordActionSheet = document.getElementById("recordActionSheet");
+const rasEdit   = document.getElementById("rasEdit");
+const rasDelete = document.getElementById("rasDelete");
+const rasCancel = document.getElementById("rasCancel");
+
+function openRecordSheet(el){
+  pressedRecordEl = el;
+  recordActionSheet.classList.remove("hidden");
+}
+function closeRecordSheet(){
+  recordActionSheet.classList.add("hidden");
+  pressedRecordEl = null;
+}
+
+// 바깥 클릭 / 취소
+recordActionSheet.querySelector(".action-sheet-backdrop")
+  .addEventListener("click", closeRecordSheet);
+rasCancel.addEventListener("click", closeRecordSheet);
+
+// ✅ 수정
+rasEdit.addEventListener("click", async () => {
+  if(!pressedRecordEl) return;
+
+  const id = pressedRecordEl.dataset.id;
+  const ids = (pressedRecordEl.dataset.ids || "").split(",").filter(Boolean);
+
+  // 묶음(있으면) → 기본은 “마지막 id”만 수정 (원하면 전체 수정도 가능)
+  const targetId = ids.length ? ids[ids.length-1] : id;
+
+  // 현재 값(텍스트에서 파싱하기 어려워서 prompt 2개로 받자)
+  const w = prompt("무게(kg) 수정", "");
+  if(w === null) return; // 취소
+  const r = prompt("횟수(회) 수정", "");
+  if(r === null) return;
+
+  const newW = Math.round(parseFloat(w) * 10) / 10;
+  const newR = parseInt(r,10);
+
+  if(!Number.isFinite(newW) || !Number.isFinite(newR) || newR<=0){
+    alert("값이 이상함. kg/회를 제대로 입력해줘");
+    return;
+  }
+
+  await updateRecord(targetId, newW, newR);
+
+  closeRecordSheet();
+});
+
+// ✅ 삭제
+rasDelete.addEventListener("click", async () => {
+  if(!pressedRecordEl) return;
+
+  // data-ids 있으면 묶음 삭제 가능(원하면)
+  const ids = (pressedRecordEl.dataset.ids || "").split(",").filter(Boolean);
+  const targetId = pressedRecordEl.dataset.id;
+
+  // 1) 묶음이면 묶음 전체 삭제, 아니면 1개 삭제
+  if(ids.length){
+    if(!confirm(`이 기록 ${ids.length}개를 삭제할까요?`)) return;
+    for(const rid of ids){
+      await deleteRecord(rid);
+    }
+  }else{
+    if(!confirm("이 기록을 삭제할까요?")) return;
+    await deleteRecord(targetId);
+  }
+
+  closeRecordSheet();
+});
+
+// ✅ long press 감지 (PC)
 document.addEventListener("mousedown", e => {
   const line = e.target.closest(".record-line");
-  if (!line) return;
+  if(!line) return;
 
-  recordPressTimer = setTimeout(() => {
-    if (confirm("이 기록을 삭제할까요?")) {
-      deleteRecord(line.dataset.id);
-    }
-  }, 600);
+  recordPressTimer = setTimeout(() => openRecordSheet(line), 600);
 });
+document.addEventListener("mouseup", () => clearTimeout(recordPressTimer));
+document.addEventListener("mousemove", () => clearTimeout(recordPressTimer));
 
-document.addEventListener("mouseup", () => {
-  clearTimeout(recordPressTimer);
-});
-
-// 모바일
+// ✅ long press 감지 (모바일)
 document.addEventListener("touchstart", e => {
   const line = e.target.closest(".record-line");
-  if (!line) return;
+  if(!line) return;
 
-  recordPressTimer = setTimeout(() => {
-    if (confirm("이 기록을 삭제할까요?")) {
-      deleteRecord(line.dataset.id);
+  recordPressTimer = setTimeout(() => openRecordSheet(line), 600);
+});
+document.addEventListener("touchend", () => clearTimeout(recordPressTimer));
+document.addEventListener("touchmove", () => clearTimeout(recordPressTimer));
+
+/*********************************
+ * ✅ 기록 수정 로직 (로컬 + Firestore)
+ *********************************/
+async function updateRecord(id, newWeight, newReps){
+  if(!id) return;
+
+  const isLocal = String(id).startsWith("local_");
+  const pureId = isLocal ? id.replace("local_","") : id;
+
+  // 1) 로컬 records 배열에서 업데이트 (게스트/로그인 공통)
+  ["bench","squat","dead","ohp"].forEach(type => {
+    (records[type] || []).forEach(r => {
+      const rid = r.firestoreId ? r.firestoreId : ("local_" + r.localId);
+      if(rid === id || String(r.localId) === pureId || r.firestoreId === pureId){
+        r.weight = newWeight;
+        r.reps = newReps;
+      }
+    });
+  });
+
+  renderActiveBox();
+  saveRecordsToLocal();
+
+  // 2) 로그인 + firestore id면 Firestore 업데이트
+  const user = auth.currentUser;
+  if(user && !isLocal){
+    try{
+      await db
+        .collection("users")
+        .doc(user.uid)
+        .collection("records")
+        .doc(id)
+        .update({
+          weight: newWeight,
+          reps: newReps,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+    }catch(e){
+      console.error("Firestore update error:", e);
     }
-  }, 600);
-});
-
-document.addEventListener("touchend", () => {
-  clearTimeout(recordPressTimer);
-});
-
-document.addEventListener("touchmove", () => {
-  clearTimeout(recordPressTimer);
-});
+  }
+}
 
 
    
