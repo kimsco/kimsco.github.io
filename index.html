@@ -1194,6 +1194,18 @@ cursor: pointer;
 .action-sheet-btn.danger{ color:#ff6b6b; }
 .action-sheet-btn.cancel{ color:#8bbcff; }
 
+/* ✅ 기록줄 드래그/텍스트 선택 방지 + 롱프레스 깔끔 */
+.record-line, .record-line *{
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.record-line{
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation; /* 드래그 스크롤/줌 제스처 덜 침범 */
+}
+
    
 /* .css ㅊㄴㄴ 붙여넣기 */
    
