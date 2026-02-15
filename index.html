@@ -1623,8 +1623,6 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 let currentExercises = [];
 /* 요소 참조 */
-const tabBtns = document.querySelectorAll('.tabBtn');
-const tabContents = document.querySelectorAll('.tabContent');
 
 const weightSelect = document.getElementById('weight');
 const repsSelect = document.getElementById('reps');
@@ -2841,42 +2839,6 @@ bottomTabBtns.forEach(btn => {
     }
   });
 });
-
-
-
-
-
-
-
-
-tabBtns.forEach(btn => {
-  btn.addEventListener('click', () => {
-    calPopup.classList.add("hidden");
-
-    tabBtns.forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-
-    const target = btn.dataset.target;
-    tabContents.forEach(tc => {
-      const on = (tc.id === target);
-      tc.classList.toggle('active', on);
-      tc.style.display = on ? 'block' : 'none';
-    });
-document.querySelector('.app').scrollTo({ top: 0, behavior: 'auto' });
-
-    // Tip 탭 초기화
-    if (target === 'tab4') {
-      partScreen.style.display = 'block';
-      exerciseScreen.style.display = 'none';
-      detailScreen.style.display = 'none'; // ✅ 추가: 디테일도 닫기
-    } else {
-      detailScreen.style.display = 'none';
-    }
-  });
-});
-
-
-
 
 
 
