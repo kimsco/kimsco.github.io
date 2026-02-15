@@ -976,7 +976,7 @@ cursor: pointer;
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 400000;
+  z-index: 200000;
 }
 
 .modal.hidden{ display:none; }
@@ -1149,62 +1149,7 @@ cursor: pointer;
   color: #666;
 }
 
-/* ✅ iOS 액션시트 */
-.action-sheet.hidden { display:none; }
 
-.action-sheet{
-  position: fixed;
-  inset: 0;
-  z-index: 300000;
-}
-
-.action-sheet-backdrop{
-  position:absolute;
-  inset:0;
-  background: rgba(0,0,0,0.55);
-}
-
-.action-sheet-panel{
-  position:absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: calc(12px + env(safe-area-inset-bottom));
-  width: min(390px, 96vw);
-  background: #111;
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 16px;
-  overflow:hidden;
-}
-
-.action-sheet-btn{
-  width:100%;
-  background: transparent;
-  border: none;
-  color:#eee;
-  padding: 16px 0;
-  font-size: 15px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.action-sheet-btn + .action-sheet-btn{
-  border-top: 1px solid rgba(255,255,255,0.08);
-}
-
-.action-sheet-btn.danger{ color:#ff6b6b; }
-.action-sheet-btn.cancel{ color:#8bbcff; }
-
-/* ✅ 기록줄 드래그/텍스트 선택 방지 + 롱프레스 깔끔 */
-.record-line, .record-line *{
-  -webkit-user-select: none;
-  user-select: none;
-  -webkit-touch-callout: none;
-}
-
-.record-line{
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation; /* 드래그 스크롤/줌 제스처 덜 침범 */
-}
 
    
 /* .css ㅊㄴㄴ 붙여넣기 */
@@ -1645,61 +1590,6 @@ input[type="number"] {
       <button id="logoutCancel" class="modal-btn">취소</button>
       <button id="logoutConfirm" class="modal-btn danger">확인</button>
     </div>
-  </div>
-</div>
-
-<!-- ✅ 기록 수정/삭제 액션 모달 -->
-<div id="recordActionModal" class="modal hidden">
-  <div class="modal-box">
-    <div class="modal-title">기록</div>
-    <div class="modal-desc" id="recordActionCurrentLine" style="font-size:14px;"></div>
-
-    <div class="modal-actions" style="grid-template-columns: 1fr 1fr 1fr;">
-      <button id="recordActionEdit" class="modal-btn">수정</button>
-      <button id="recordActionDelete" class="modal-btn danger">삭제</button>
-      <button id="recordActionCancel" class="modal-btn">취소</button>
-    </div>
-  </div>
-</div>
-
-<!-- ✅ “통짜 수정” 모달 -->
-<div id="recordEditModal" class="modal hidden">
-  <div class="modal-box">
-    <div class="modal-title">기록 수정</div>
-
-    <!-- 현재값 표시 (클릭하면 자동 세팅) -->
-    <div id="recordEditCurrent"
-         style="padding:0 16px 10px; text-align:center; font-weight:800; color:#FFD700; cursor:pointer;">
-    </div>
-
-    <!-- 선택 탭 -->
-    <div style="display:flex; gap:8px; padding:0 16px 12px;">
-      <button class="editPickBtn" data-pick="weight" style="flex:1;" type="button">무게</button>
-      <button class="editPickBtn" data-pick="reps" style="flex:1;" type="button">횟수</button>
-      <button class="editPickBtn" data-pick="sets" style="flex:1;" type="button">세트</button>
-    </div>
-
-    <!-- 입력 -->
-    <div style="padding:0 16px 14px;">
-      <div id="recordEditLabel" style="font-size:12px; color:#888; margin-bottom:6px;">무게(kg) 수정</div>
-      <input id="recordEditInput" type="number" style="width:100%; height:42px; border-radius:10px; border:1px solid #333; background:#111; color:#eee; padding:0 12px;">
-    </div>
-
-    <div class="modal-actions" style="grid-template-columns: 1fr 1fr;">
-      <button id="recordEditCancel" class="modal-btn">취소</button>
-      <button id="recordEditConfirm" class="modal-btn danger">확인</button>
-    </div>
-  </div>
-</div>
-
-<!-- ✅ 기록 액션시트 (수정/삭제) -->
-<div id="recordActionSheet" class="action-sheet hidden">
-  <div class="action-sheet-backdrop"></div>
-
-  <div class="action-sheet-panel">
-    <button id="rasEdit" class="action-sheet-btn">수정</button>
-    <button id="rasDelete" class="action-sheet-btn danger">삭제</button>
-    <button id="rasCancel" class="action-sheet-btn cancel">취소</button>
   </div>
 </div>
 
@@ -2282,17 +2172,13 @@ function renderActiveBox(){
                 ${packed.map((p, idx) => `
                     <div style="display:flex; align-items:center; line-height:1.6;">
                         <div
-  class="record-line"
-  data-id="${p.ids[p.ids.length - 1]}"
-  data-ids="${p.ids.join(',')}"
-  data-weight="${p.weight}"
-  data-reps="${p.reps}"
-  data-sets="${p.sets}"
-  data-date="${date}"
-  style="flex:1; text-align:left; cursor:pointer;"
->
-  ${formatSetLine(p.weight, p.reps, p.sets)}
-</div>
+                            class="record-line"
+                            data-id="${p.ids[p.ids.length - 1]}"
+                            data-ids="${p.ids.join(',')}"
+                            style="flex:1; text-align:left; cursor:pointer;"
+                        >
+                            ${formatSetLine(p.weight, p.reps, p.sets)}
+                        </div>
 
                         <div style="
                             width:90px;
@@ -2804,375 +2690,43 @@ document.getElementById("calNext").onclick = () => {
 
 calRender();
 
-/*********************************
- * ✅ 기록 꾹누름: 수정/삭제 액션시트
- *********************************/
-let recordPressTimer = null;
-let pressedRecordEl = null;
+   let recordPressTimer = null;
 
-const recordActionSheet = document.getElementById("recordActionSheet");
-const rasEdit   = document.getElementById("rasEdit");
-const rasDelete = document.getElementById("rasDelete");
-const rasCancel = document.getElementById("rasCancel");
-
-function openRecordSheet(el){
-  pressedRecordEl = el;
-  recordActionSheet.classList.remove("hidden");
-}
-function closeRecordSheet(){
-  recordActionSheet.classList.add("hidden");
-  pressedRecordEl = null;
-}
-
-// 바깥 클릭 / 취소
-recordActionSheet.querySelector(".action-sheet-backdrop")
-  .addEventListener("click", closeRecordSheet);
-rasCancel.addEventListener("click", closeRecordSheet);
-
-// ✅ 수정
-/*********************************
- * ✅ 통짜 수정 모달(무게/횟수/세트)
- *********************************/
-const recordEditModal   = document.getElementById("recordEditModal");
-const recordEditCurrent = document.getElementById("recordEditCurrent");
-const recordEditLabel   = document.getElementById("recordEditLabel");
-const recordEditInput   = document.getElementById("recordEditInput");
-const recordEditCancel  = document.getElementById("recordEditCancel");
-const recordEditConfirm = document.getElementById("recordEditConfirm");
-const pickBtns          = document.querySelectorAll(".editPickBtn");
-
-let editPick = "weight"; // weight | reps | sets
-let editCtx = null;      // { ids[], weight, reps, sets, date }
-
-function setPick(p){
-  editPick = p;
-  pickBtns.forEach(b => b.classList.toggle("active", b.dataset.pick === p));
-
-  if(editPick === "weight") recordEditLabel.textContent = "무게(kg) 수정";
-  if(editPick === "reps")   recordEditLabel.textContent = "횟수(회) 수정";
-  if(editPick === "sets")   recordEditLabel.textContent = "세트(set) 수정";
-
-  // 기본값 채우기
-  if(editCtx){
-    if(editPick === "weight") recordEditInput.value = String(editCtx.weight ?? "");
-    if(editPick === "reps")   recordEditInput.value = String(editCtx.reps ?? "");
-    if(editPick === "sets")   recordEditInput.value = String(editCtx.sets ?? "");
-  }
-  // 포커스
-  setTimeout(() => recordEditInput.focus(), 0);
-}
-
-function renderEditCurrentLine(){
-  if(!editCtx) return;
-  // 숫자 클릭 가능하게 span으로 감싸기
-  recordEditCurrent.innerHTML = `
-    <span data-pick="weight">${formatKgSmart(editCtx.weight)}</span>kg ×
-    <span data-pick="reps">${parseInt(editCtx.reps,10)}</span>회 ×
-    <span data-pick="sets">${parseInt(editCtx.sets,10)}</span>set
-  `;
-}
-
-function openRecordEditModalFromLine(lineEl){
-  const ids = (lineEl.dataset.ids || "").split(",").filter(Boolean);
-  const w   = parseFloat(lineEl.dataset.weight);
-  const r   = parseInt(lineEl.dataset.reps, 10);
-  const s   = parseInt(lineEl.dataset.sets, 10);
-  const d   = lineEl.dataset.date || "";
-
-  editCtx = {
-    ids: ids.length ? ids : [lineEl.dataset.id],
-    weight: round1(w),
-    reps: r,
-    sets: s,
-    date: d
-  };
-
-  renderEditCurrentLine();
-  setPick("weight");              // 기본은 무게 수정
-  recordEditModal.classList.remove("hidden");
-}
-
-function closeRecordEditModal(){
-  recordEditModal.classList.add("hidden");
-  editCtx = null;
-}
-
-// 숫자 클릭하면 해당 항목으로 바로 전환
-recordEditCurrent.addEventListener("click", (e) => {
-  const pick = e.target?.dataset?.pick;
-  if(pick) setPick(pick);
-});
-
-// 탭 버튼(무게/횟수/세트)
-pickBtns.forEach(btn => {
-  btn.addEventListener("click", () => setPick(btn.dataset.pick));
-});
-
-// 취소/바깥 닫기
-recordEditCancel.addEventListener("click", closeRecordEditModal);
-recordEditModal.addEventListener("click", (e) => {
-  if(e.target === recordEditModal) closeRecordEditModal();
-});
-
-// 엔터로 확인
-recordEditInput.addEventListener("keydown", (e) => {
-  if(e.key === "Enter") recordEditConfirm.click();
-});
-
-/*********************************
- * ✅ 통짜 적용: 무게/횟수는 묶음 전체 수정
- * ✅ 세트는 "개수"까지 맞춰줌 (추가/삭제)
- *********************************/
-function findRecordTypeByAnyId(ids){
-  const all = ["bench","squat","dead","ohp"];
-  for(const type of all){
-    for(const r of (records[type] || [])){
-      const rid = r.firestoreId ? r.firestoreId : ("local_" + r.localId);
-      if(ids.includes(rid)) return type;
-    }
-  }
-  return null;
-}
-
-function findFirstRecordByAnyId(ids){
-  const all = ["bench","squat","dead","ohp"];
-  for(const type of all){
-    for(const r of (records[type] || [])){
-      const rid = r.firestoreId ? r.firestoreId : ("local_" + r.localId);
-      if(ids.includes(rid)) return r;
-    }
-  }
-  return null;
-}
-
-// 묶음 전체 무게/횟수 수정
-async function updatePackedWeightReps(ids, newW, newR){
-  // 로컬 배열 수정
-  ["bench","squat","dead","ohp"].forEach(type => {
-    (records[type] || []).forEach(r => {
-      const rid = r.firestoreId ? r.firestoreId : ("local_" + r.localId);
-      if(ids.includes(rid)){
-        r.weight = newW;
-        r.reps   = newR;
-      }
-    });
-  });
-
-  renderActiveBox();
-  saveRecordsToLocal();
-
-  // Firestore 수정(로그인 + firestoreId만)
-  const user = auth.currentUser;
-  if(user){
-    for(const rid of ids){
-      if(String(rid).startsWith("local_")) continue;
-      try{
-        await db.collection("users").doc(user.uid)
-          .collection("records").doc(rid)
-          .update({
-            weight: newW,
-            reps: newR,
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-          });
-      }catch(e){
-        console.error("Firestore packed update error:", e);
-      }
-    }
-  }
-}
-
-// 세트 개수 맞추기: 줄이기 = 뒤에서부터 삭제, 늘리기 = 동일 값으로 추가
-async function syncPackedSetsCount(ids, targetSets, weight, reps, date){
-  const cur = ids.length;
-  if(targetSets === cur) return;
-
-  const type = findRecordTypeByAnyId(ids);
-  if(!type){
-    alert("대상 기록을 못 찾았어(타입 찾기 실패).");
-    return;
-  }
-
-  if(targetSets < cur){
-    // 뒤에서 target만큼 남기고 삭제
-    const toDelete = ids.slice(0, cur - targetSets); // ✅ 'raw' 기준 누적이라 앞쪽이 오래된/위쪽일 확률 높음
-    for(const rid of toDelete){
-      await deleteRecord(rid); // 기존 함수 사용(로컬+firestore)
-    }
-  }else{
-    const toAdd = targetSets - cur;
-
-    // 추가는 "연속"을 유지하려고 records[type] 앞쪽(최신)으로 unshift
-    for(let i=0; i<toAdd; i++){
-      const item = {
-        firestoreId: null,
-        localId: Date.now() + Math.random(),
-        date,
-        weight,
-        reps
-      };
-
-      records[type].unshift(item);
-      saveRecordsToLocal();
-
-      const user = auth.currentUser;
-      if(user){
-        try{
-          const docRef = await db.collection("users").doc(user.uid)
-            .collection("records")
-            .add({
-              lift: type,
-              date,
-              weight,
-              reps,
-              createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-          item.firestoreId = docRef.id;
-        }catch(e){
-          console.error("Firestore add for extra set err:", e);
-        }
-      }
-    }
-
-    renderActiveBox();
-    saveRecordsToLocal();
-  }
-}
-
-recordEditConfirm.addEventListener("click", async () => {
-  if(!editCtx) return;
-
-  const vRaw = recordEditInput.value;
-  if(vRaw === "" || vRaw === null) return;
-
-  // 입력값 파싱
-  let v;
-  if(editPick === "weight"){
-    v = round1(parseFloat(vRaw));
-    if(!Number.isFinite(v) || v <= 0) return alert("무게를 제대로 입력해줘");
-    editCtx.weight = v;
-    await updatePackedWeightReps(editCtx.ids, editCtx.weight, editCtx.reps);
-  }
-
-  if(editPick === "reps"){
-    v = parseInt(vRaw, 10);
-    if(!Number.isFinite(v) || v <= 0) return alert("횟수를 제대로 입력해줘");
-    editCtx.reps = v;
-    await updatePackedWeightReps(editCtx.ids, editCtx.weight, editCtx.reps);
-  }
-
-  if(editPick === "sets"){
-    v = parseInt(vRaw, 10);
-    if(!Number.isFinite(v) || v <= 0) return alert("세트를 제대로 입력해줘");
-
-    // ✅ 세트 수 자체를 맞춤(추가/삭제)
-    const first = findFirstRecordByAnyId(editCtx.ids);
-    const date = (first?.date) || editCtx.date || formatTodayYYMMDD();
-    await syncPackedSetsCount(editCtx.ids, v, editCtx.weight, editCtx.reps, date);
-
-    // 세트 재렌더 후 닫기
-  }
-
-  // 상단 표시 갱신
-  editCtx.sets = (editPick === "sets") ? parseInt(recordEditInput.value,10) : editCtx.sets;
-  renderEditCurrentLine();
-
-  closeRecordEditModal();
-  closeRecordSheet(); // 액션시트도 닫기
-});
-
-// ✅ 액션시트 "수정" → 모달 열기
-rasEdit.addEventListener("click", () => {
-  if(!pressedRecordEl) return;
-
-  const el = pressedRecordEl;  // ✅ 닫으면 null로 되니까 백업
-  closeRecordSheet();          // ✅ 먼저 시트 닫기
-  openRecordEditModalFromLine(el); // ✅ 그 다음 모달 열기
-});
-
-// ✅ 삭제
-rasDelete.addEventListener("click", async () => {
-  if(!pressedRecordEl) return;
-
-  // data-ids 있으면 묶음 삭제 가능(원하면)
-  const ids = (pressedRecordEl.dataset.ids || "").split(",").filter(Boolean);
-  const targetId = pressedRecordEl.dataset.id;
-
-  // 1) 묶음이면 묶음 전체 삭제, 아니면 1개 삭제
-  if(ids.length){
-    if(!confirm(`이 기록 ${ids.length}개를 삭제할까요?`)) return;
-    for(const rid of ids){
-      await deleteRecord(rid);
-    }
-  }else{
-    if(!confirm("이 기록을 삭제할까요?")) return;
-    await deleteRecord(targetId);
-  }
-
-  closeRecordSheet();
-});
-
-// ✅ long press 감지 (PC)
+// PC
 document.addEventListener("mousedown", e => {
   const line = e.target.closest(".record-line");
-  if(!line) return;
+  if (!line) return;
 
-  recordPressTimer = setTimeout(() => openRecordSheet(line), 600);
+  recordPressTimer = setTimeout(() => {
+    if (confirm("이 기록을 삭제할까요?")) {
+      deleteRecord(line.dataset.id);
+    }
+  }, 600);
 });
-document.addEventListener("mouseup", () => clearTimeout(recordPressTimer));
-document.addEventListener("mousemove", () => clearTimeout(recordPressTimer));
 
-// ✅ long press 감지 (모바일)
+document.addEventListener("mouseup", () => {
+  clearTimeout(recordPressTimer);
+});
+
+// 모바일
 document.addEventListener("touchstart", e => {
   const line = e.target.closest(".record-line");
-  if(!line) return;
+  if (!line) return;
 
-  recordPressTimer = setTimeout(() => openRecordSheet(line), 600);
-});
-document.addEventListener("touchend", () => clearTimeout(recordPressTimer));
-document.addEventListener("touchmove", () => clearTimeout(recordPressTimer));
-
-/*********************************
- * ✅ 기록 수정 로직 (로컬 + Firestore)
- *********************************/
-async function updateRecord(id, newWeight, newReps){
-  if(!id) return;
-
-  const isLocal = String(id).startsWith("local_");
-  const pureId = isLocal ? id.replace("local_","") : id;
-
-  // 1) 로컬 records 배열에서 업데이트 (게스트/로그인 공통)
-  ["bench","squat","dead","ohp"].forEach(type => {
-    (records[type] || []).forEach(r => {
-      const rid = r.firestoreId ? r.firestoreId : ("local_" + r.localId);
-      if(rid === id || String(r.localId) === pureId || r.firestoreId === pureId){
-        r.weight = newWeight;
-        r.reps = newReps;
-      }
-    });
-  });
-
-  renderActiveBox();
-  saveRecordsToLocal();
-
-  // 2) 로그인 + firestore id면 Firestore 업데이트
-  const user = auth.currentUser;
-  if(user && !isLocal){
-    try{
-      await db
-        .collection("users")
-        .doc(user.uid)
-        .collection("records")
-        .doc(id)
-        .update({
-          weight: newWeight,
-          reps: newReps,
-          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-    }catch(e){
-      console.error("Firestore update error:", e);
+  recordPressTimer = setTimeout(() => {
+    if (confirm("이 기록을 삭제할까요?")) {
+      deleteRecord(line.dataset.id);
     }
-  }
-}
+  }, 600);
+});
+
+document.addEventListener("touchend", () => {
+  clearTimeout(recordPressTimer);
+});
+
+document.addEventListener("touchmove", () => {
+  clearTimeout(recordPressTimer);
+});
 
 
    
