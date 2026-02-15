@@ -101,6 +101,11 @@ td, th {
    로그인 영역
 ================================ */
   
+:root{
+  --topBarH: 76px;      /* ✅ 실제 탑바 높이(패딩 포함) */
+  --bottomTabH: 88px;
+}
+
 .topBar{
   position: fixed;
   top: 0;
@@ -111,7 +116,13 @@ td, th {
   max-width: 100%;
 
   height: var(--topBarH);
+  box-sizing: border-box;          /* ✅ padding 포함해서 height 유지 */
   padding: 12px 10px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
 
   background: rgba(0,0,0,0.92);
   backdrop-filter: blur(10px);
@@ -122,12 +133,27 @@ td, th {
 
 
 
-   .topText {
+.topText{
+  flex: 1;              /* ✅ 남는 공간 다 먹고 */
+  min-width: 0;         /* ✅ iOS에서 줄바꿈/밀림 방지 핵심 */
   color: white;
-  font-size: 0.66em; /* 기존 subtitle 대비 2/3 */
+  font-size: 0.66em;
   line-height: 1.4;
   opacity: 0.85;
 }
+
+.settings-btn{
+  flex: 0 0 auto;       /* ✅ 버튼은 절대 안 줄어듦 */
+  all: unset;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #ddd;
+}
+
 
 #loginArea {
     display: flex;
@@ -749,7 +775,7 @@ cursor: pointer;
 
 /* 탭바 높이 */
 :root{
-  --topBarH: 55px;
+  --topBarH: 76px;      /* ✅ 실제 탑바 높이(패딩 포함) */
   --bottomTabH: 88px;
 }
 
