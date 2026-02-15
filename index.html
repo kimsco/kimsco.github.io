@@ -1148,48 +1148,9 @@ cursor: pointer;
   font-size: 12px;
   color: #666;
 }
-/* ✅ 3대 탭(tab2)만 위로 땡기기 */
-#tab2{ margin-top: -5px; }   /* 예: 절반만 */
-/* ✅ 탑바 아래 라인에 붙는 삼각형 버튼 (tab2에서만 표시) */
-/* tab2 안에서만, 탑바 바로 아래에 붙는 '스크롤 영역용' *//* ✅ 탑바 바로 아래에 딱 붙는 '고정' 삼각형 버튼 */
-.threeStickyRow{
-  /* 더 이상 sticky 필요 없음 */
-  position: static;
-  height: 0;
-  pointer-events: none;
-}
 
-#threeToggleBtn{
-  pointer-events: auto;
 
-  position: fixed; /* ✅ 핵심: sticky 말고 fixed */
-  top: calc(env(safe-area-inset-top) + var(--topBarH) - 6px); /* ✅ 탑바 아래 라인에 붙음(숫자만 미세조정) */
 
-  /* ✅ 왼쪽에 붙이기 (app 좌측 패딩(20px) 기준) */
-  left: calc(50% - 195px + 20px + 2px);  /* 195 = 390/2 */
-
-  transform: none;   /* ✅ translate로 끌어올리지 말기 */
-  z-index: 100000;   /* ✅ topBar(99999)보다 높게 */
-
-  width: 28px;
-  height: 28px;
-
-  display: none;     /* ✅ 기본 숨김 (JS에서 tab2일 때만 flex로 켜줌) */
-  align-items: center;
-  justify-content: center;
-
-  background: transparent;
-  border: none;
-  color: #777;
-  font-size: 16px;
-  line-height: 1;
-
-  -webkit-tap-highlight-color: transparent;
-}
-
-/* 아이콘 미세 */
-#threeToggleBtn .chev{ display:block; transform: translateY(0); }
-#threeToggleBtn:active .chev{ transform: translateY(0) scale(0.95); }
    
 /* .css ㅊㄴㄴ 붙여넣기 */
    
@@ -1291,7 +1252,7 @@ input[type="number"] {
   display: block;
   margin: auto;
 }
-.three-toggle{ display:none; }
+
 /* 접힌 상태 */
 #threeDetail {
   display: none;
@@ -1360,6 +1321,7 @@ input[type="number"] {
 </div>
 
 
+
 <div class="container">
 
 
@@ -1377,15 +1339,10 @@ input[type="number"] {
 <!-- 3대 -->
 <div id="tab2" class="tabContent">
 
-  <div class="threeStickyRow">
-    <button id="threeToggleBtn" aria-label="3대 접기/펼치기"><span class="chev">▼</span></button>
-  </div>
    
      <!-- 🔥 헤더 -->
 <div class="three-header">
-
-
-
+  <button id="threeToggleBtn" class="three-toggle"></button>
 </div>
 
 <div id="threeDetail">
@@ -2849,13 +2806,6 @@ bottomTabBtns.forEach(btn => {
 
     document.querySelector('.app').scrollTo({ top: 0, behavior: 'auto' });
 
-    // ✅ 3대 탭(tab2)에서만 역삼각형 버튼 표시
-    if (target === "tab2") {
-      threeToggleBtn.style.display = "flex";
-    } else {
-      threeToggleBtn.style.display = "none";
-    }
-
     // Tip 탭 초기화
     if (target === 'tab4') {
       partScreen.style.display = 'block';
@@ -2874,7 +2824,31 @@ bottomTabBtns.forEach(btn => {
 
 
 
+tabBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    calPopup.classList.add("hidden");
 
+    tabBtns.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    const target = btn.dataset.target;
+    tabContents.forEach(tc => {
+      const on = (tc.id === target);
+      tc.classList.toggle('active', on);
+      tc.style.display = on ? 'block' : 'none';
+    });
+document.querySelector('.app').scrollTo({ top: 0, behavior: 'auto' });
+
+    // Tip 탭 초기화
+    if (target === 'tab4') {
+      partScreen.style.display = 'block';
+      exerciseScreen.style.display = 'none';
+      detailScreen.style.display = 'none'; // ✅ 추가: 디테일도 닫기
+    } else {
+      detailScreen.style.display = 'none';
+    }
+  });
+});
 
 
 
