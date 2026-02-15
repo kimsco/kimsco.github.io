@@ -1720,7 +1720,13 @@ function formatKgSmart(n){
 function makeKey(w, r){ return `${round1(w)}__${parseInt(r,10)}`; }
 
 function formatSetLine(w, r, sets){
-  return `${formatKgSmart(w)}kg × ${parseInt(r,10)}회 × ${sets}set`;
+  const weightStr = `${formatKgSmart(w)}kg × ${parseInt(r,10)}회`;
+
+  if(sets === 1){
+    return weightStr;   // ✅ 1세트는 그냥 기본 표시
+  }
+
+  return `${weightStr} × ${sets}set`;
 }
 
 /* 페이드 텍스트 유틸 */
