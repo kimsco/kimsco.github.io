@@ -976,7 +976,7 @@ cursor: pointer;
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 200000;
+  z-index: 400000;
 }
 
 .modal.hidden{ display:none; }
@@ -3083,7 +3083,10 @@ recordEditConfirm.addEventListener("click", async () => {
 // ✅ 액션시트 "수정" → 모달 열기
 rasEdit.addEventListener("click", () => {
   if(!pressedRecordEl) return;
-  openRecordEditModalFromLine(pressedRecordEl);
+
+  const el = pressedRecordEl;  // ✅ 닫으면 null로 되니까 백업
+  closeRecordSheet();          // ✅ 먼저 시트 닫기
+  openRecordEditModalFromLine(el); // ✅ 그 다음 모달 열기
 });
 
 // ✅ 삭제
