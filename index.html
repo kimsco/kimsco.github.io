@@ -1150,28 +1150,30 @@ cursor: pointer;
 }
 
 /* ✅ 탑바 아래 라인에 붙는 삼각형 버튼 (tab2에서만 표시) */
-/* tab2 안에서만, 탑바 바로 아래에 붙는 '스크롤 영역용' */
-/* tab2 안에서만, 탑바 바로 아래에 붙는 '스크롤 영역용' */
+/* tab2 안에서만, 탑바 바로 아래에 붙는 '스크롤 영역용' *//* ✅ 탑바 바로 아래에 딱 붙는 '고정' 삼각형 버튼 */
 .threeStickyRow{
-  position: sticky;
-  top: calc(var(--topBarH) + env(safe-area-inset-top));
-  z-index: 50;
+  /* 더 이상 sticky 필요 없음 */
+  position: static;
   height: 0;
   pointer-events: none;
 }
 
-/* ✅ 여기만 수정 */
 #threeToggleBtn{
   pointer-events: auto;
-  position: relative;
 
-  left: 10%;
-  transform: translate(-50%, -30px);  /* ✅ X만 있던거 → Y도 추가 */
-  /* 또는 top: -14px; 해도 됨 */
+  position: fixed; /* ✅ 핵심: sticky 말고 fixed */
+  top: calc(env(safe-area-inset-top) + var(--topBarH) - 6px); /* ✅ 탑바 아래 라인에 붙음(숫자만 미세조정) */
+
+  /* ✅ 왼쪽에 붙이기 (app 좌측 패딩(20px) 기준) */
+  left: calc(50% - 195px + 20px + 2px);  /* 195 = 390/2 */
+
+  transform: none;   /* ✅ translate로 끌어올리지 말기 */
+  z-index: 100000;   /* ✅ topBar(99999)보다 높게 */
 
   width: 28px;
   height: 28px;
-  display: flex;
+
+  display: none;     /* ✅ 기본 숨김 (JS에서 tab2일 때만 flex로 켜줌) */
   align-items: center;
   justify-content: center;
 
@@ -1180,11 +1182,13 @@ cursor: pointer;
   color: #777;
   font-size: 16px;
   line-height: 1;
-}
-/* 눌러도 위치 안 움직이게: 아이콘만 scale */
-#threeToggleBtn .chev{ display:block; transform: translateY(-1px); }
-#threeToggleBtn:active .chev{ transform: translateY(-1px) scale(0.95); }
 
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 아이콘 미세 */
+#threeToggleBtn .chev{ display:block; transform: translateY(0); }
+#threeToggleBtn:active .chev{ transform: translateY(0) scale(0.95); }
    
 /* .css ㅊㄴㄴ 붙여넣기 */
    
