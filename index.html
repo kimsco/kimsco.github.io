@@ -2159,7 +2159,7 @@ function renderActiveBox(){
                 packed.push({
                     weight: r.weight,
                     reps: r.reps,
-                    sets: 1,
+                    sets: parseInt(r.sets, 10) || 1,
                     ids: [rid]
                 });
             }
@@ -2197,70 +2197,87 @@ renderActiveBox();
 
 /* 기록 추가 (가로 폼에서 저장) */
 recordAdd.addEventListener('click', async ()=>{
-    console.log("🔥 저장 버튼 클릭됨");
-const weightRaw = parseFloat(recordWeight.value);
-const reps = parseInt(recordReps.value, 10);
 
-// ✅ kg는 1자리 반올림해서 "저장값"을 통일
-const weight = round1(weightRaw);
+  const weightRaw = parseFloat(recordWeight.value);
+  const reps = parseInt(recordReps.value, 10);
+  const weight = round1(weightRaw);
 
   if(!Number.isFinite(weight) || !reps){
-        fadeTempMsg(recordMessage, '무게와 횟수를 입력하세요', 900, 600);
-        return;
-    }
+    fadeTempMsg(recordMessage, '무게와 횟수를 입력하세요', 900, 600);
+    return;
+  }
 
-    const date = formatTodayYYMMDD();
+  const date = formatTodayYYMMDD();
 
-    const activeBtn = document.querySelector('.folderBtn.active');
-    const target = activeBtn ? activeBtn.dataset.target : 'benchBox';
+  const activeBtn = document.querySelector('.folderBtn.active');
+  const target = activeBtn ? activeBtn.dataset.target : 'benchBox';
 
-    const lift =
-  target === 'benchBox' ? 'bench' :
-  target === 'squatBox' ? 'squat' :
-  target === 'deadBox'  ? 'dead'  :
-  'ohp';
+  const lift =
+    target === 'benchBox' ? 'bench' :
+    target === 'squatBox' ? 'squat' :
+    target === 'deadBox'  ? 'dead'  : 'ohp';
 
-    const item = {
-        firestoreId: null,
-       localId: Date.now() + Math.random(), // 🔥 추가
+  // ✅ (A) 로컬(게스트/로그인 공통) 먼저 반영: 같은 date+lift+weight+reps면 sets+1
+  const key = makeKey(weight, reps);
+  const arr = records[lift] || (records[lift] = []);
+
+  // 같은 날/같은 세트 찾기
+  const found = arr.find(x => x.date === date && makeKey(x.weight, x.reps) === key);
+
+  if(found){
+    found.sets = (parseInt(found.sets,10) || 1) + 1;
+    found.updatedAt = Date.now();
+  }else{
+    arr.unshift({
+      firestoreId: null,
+      localId: Date.now() + Math.random(),
+      date,
+      weight,
+      reps,
+      sets: 1,
+      createdAt: Date.now(),
+      updatedAt: Date.now()
+    });
+  }
+
+  recordWeight.value = '';
+  recordReps.value = '';
+  fadeTempMsg(recordMessage, '기록 추가 완료', 700, 600);
+
+  renderActiveBox();
+  saveRecordsToLocal();
+
+  // ✅ (B) 로그인 상태면 Firestore에도 "누적 저장"
+  const user = auth.currentUser;
+  if(user){
+    try{
+      const docId = makeRecordDocId(lift, date, weight, reps);
+      const ref = db
+        .collection('users')
+        .doc(user.uid)
+        .collection('records')
+        .doc(docId);
+
+      await ref.set({
+        lift,
         date,
         weight,
-        reps
-    };
+        reps,
+        sets: firebase.firestore.FieldValue.increment(1),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        createdAt: firebase.firestore.FieldValue.serverTimestamp() // merge면 최초 1회만 실질 의미
+      }, { merge: true });
 
-if(lift === 'bench') records.bench.unshift(item);
-if(lift === 'squat') records.squat.unshift(item);
-if(lift === 'dead')  records.dead.unshift(item);
-if(lift === 'ohp')   records.ohp.unshift(item);
+      // 로컬에 firestoreId 매핑(있으면 해두면 깔끔)
+      const mapped = arr.find(x => x.date === date && makeKey(x.weight, x.reps) === key);
+      if(mapped) mapped.firestoreId = docId;
 
-    recordWeight.value = '';
-    recordReps.value = '';
-    fadeTempMsg(recordMessage, '기록 추가 완료', 700, 600);
-    renderActiveBox();
-    saveRecordsToLocal(); // ✅ 추가
-
-    const user = auth.currentUser;
-    if(user){
-        try{
-            const docRef = await db
-              .collection('users')
-              .doc(user.uid)
-              .collection('records')
-              .add({
-                lift,
-                date,
-                weight,
-                reps,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-              });
-
-            item.firestoreId = docRef.id;
-           
-        }catch(e){
-            console.error('Firestore add err', e);
-        }
+    }catch(e){
+      console.error('Firestore upsert err', e);
     }
+  }
 });
+
 
 
 const settingsUserName = document.getElementById("settingsUserName");
@@ -2339,36 +2356,39 @@ auth.onAuthStateChanged(async user => {
     /* records */
     try {
       const snap = await db
-        .collection("users")
-        .doc(user.uid)
-        .collection("records")
-        .orderBy("createdAt", "desc")
-        .limit(200)
-        .get();
+  .collection("users")
+  .doc(user.uid)
+  .collection("records")
+  .get();
 
-      records.bench = [];
-      records.squat = [];
-      records.dead = [];
+records.bench = [];
+records.squat = [];
+records.dead  = [];
+records.ohp   = [];
 
-      snap.forEach(doc => {
-        const d = doc.data();
-        if (!d || !d.lift) return;
+snap.forEach(doc => {
+  const d = doc.data();
+  if (!d || !d.lift) return;
 
-        const item = {
-          firestoreId: doc.id,
-          date: d.date,
-          weight: d.weight,
-          reps: d.reps,
-          createdAt: d.createdAt?.toMillis?.() || 0
-        };
+  const item = {
+    firestoreId: doc.id, // ✅ 이제 doc.id가 곧 recordId(고정)
+    date: d.date,
+    weight: d.weight,
+    reps: d.reps,
+    sets: parseInt(d.sets, 10) || 1,
+    createdAt: d.createdAt?.toMillis?.() || 0,
+    updatedAt: d.updatedAt?.toMillis?.() || 0
+  };
 
-        if (d.lift === "bench") records.bench.push(item);
-        if (d.lift === "squat") records.squat.push(item);
-        if (d.lift === "dead")  records.dead.push(item);
-        if (d.lift === "ohp")   records.ohp.push(item);
-      });
+  if (d.lift === "bench") records.bench.push(item);
+  if (d.lift === "squat") records.squat.push(item);
+  if (d.lift === "dead")  records.dead.push(item);
+  if (d.lift === "ohp")   records.ohp.push(item);
+});
 
-      renderActiveBox();
+renderActiveBox();
+saveRecordsToLocal(); // (옵션) 로그인 상태에서도 로컬 캐시 업데이트
+
     } catch (e) {
       console.error("load records err", e);
     }
@@ -2404,6 +2424,13 @@ auth.onAuthStateChanged(async user => {
 
 
 
+function makeRecordDocId(lift, date, weight, reps){
+  // date: "26.02.16" -> "26_02_16" (Firestore docId 안전)
+  const safeDate = String(date).replace(/\./g, "_");
+  const w = formatKgSmart(weight);          // "90" or "90.5"
+  const r = parseInt(reps, 10);
+  return `${lift}__${safeDate}__${w}__${r}`;
+}
 
 
  
