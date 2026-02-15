@@ -2840,6 +2840,13 @@ bottomTabBtns.forEach(btn => {
 
     document.querySelector('.app').scrollTo({ top: 0, behavior: 'auto' });
 
+    // ✅ 3대 탭(tab2)에서만 역삼각형 버튼 표시
+    if (target === "tab2") {
+      threeToggleBtn.style.display = "flex";
+    } else {
+      threeToggleBtn.style.display = "none";
+    }
+
     // Tip 탭 초기화
     if (target === 'tab4') {
       partScreen.style.display = 'block';
