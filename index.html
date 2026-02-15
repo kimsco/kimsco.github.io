@@ -1762,14 +1762,6 @@ function lsSet(key, value){
   }catch(e){}
 }
 
-function makeKey(w, r){
-  return `${w}__${r}`;
-}
-
-function formatSetLine(w, r, sets){
-  return `${w}kg × ${r}회 × ${sets}set`;
-}
-
 /* ✅ 로컬에서 전체 불러오기 */
 function loadAllFromLocal(){
   // 3대
@@ -1785,8 +1777,6 @@ function loadAllFromLocal(){
   records.squat = Array.isArray(r.squat) ? r.squat : [];
   records.dead  = Array.isArray(r.dead)  ? r.dead  : [];
   records.ohp = Array.isArray(r.ohp) ? r.ohp : [];
-
-  
 
   renderActiveBox();
 
@@ -1940,7 +1930,7 @@ function renderAccessoryRecords(exerciseName) {
   .reverse()
   .map(r => `
     <div class="set record-set" data-id="${r.id}">
-      ${formatSetLine(p.weight, p.reps, p.sets)}
+      ${r.weight}kg × ${r.reps}회
     </div>
   `)
   .join("");
@@ -2141,51 +2131,44 @@ function renderActiveBox(){
 
     // ✅ 여기부터가 "배치 변경" 핵심
     boxEl.innerHTML = dates.map(date => {
-  const raw = grouped[date].slice().reverse();
+      // 🔥 같은 날짜의 세트들: 기존처럼 "최신이 아래로" 보이게 reverse 유지
+      const dayRecords = grouped[date].slice().reverse();
 
-  // ✅ 연속 동일 묶기
-  const packed = [];
-  for (const r of raw){
-    const last = packed[packed.length - 1];
-    if (last && makeKey(last.weight, last.reps) === makeKey(r.weight, r.reps)){
-      last.sets += 1;
-      last.ids.push(r.firestoreId ? r.firestoreId : ('local_' + r.localId));
-    } else {
-      packed.push({
-        weight: r.weight,
-        reps: r.reps,
-        sets: 1,
-        ids: [r.firestoreId ? r.firestoreId : ('local_' + r.localId)]
-      });
-    }
-  }
+      return `
+        <div style="margin-bottom:10px;">
+          ${dayRecords.map((r, idx) => `
+            <!-- ✅ 한 줄을 '기록(왼쪽) / 날짜(오른쪽)' 2컬럼처럼 고정 -->
+            <div style="display:flex; align-items:center; line-height:1.6;">
+              
+              <!-- ✅ (왼쪽) 기록: 삭제 long-press 타겟(.record-line)은 그대로 유지 -->
+              <div
+                class="record-line"
+                data-id="${r.firestoreId ? r.firestoreId : ('local_' + r.localId)}"
+                style="
+                  flex: 1;
+                  text-align: left;       /* 🔥 왼쪽 정렬 */
+                  cursor: pointer;
+                "
+              >
+                ${r.weight}kg × ${r.reps}회
+              </div>
 
-  return `
-    <div style="margin-bottom:10px;">
-      ${packed.map((p, idx) => `
-        <div style="display:flex; align-items:center; line-height:1.6;">
-          <div
-            class="record-line"
-            data-ids="${p.ids.join(',')}"
-            style="flex:1; text-align:left; cursor:pointer;"
-          >
-            ${formatSetLine(p.weight, p.reps, p.sets)}
-          </div>
+              <!-- ✅ (오른쪽) 날짜: 첫 줄에만 표시 / 고정폭 90px 유지 -->
+              <div style="
+                width: 90px;             /* 🔥 네가 말한 '고정' */
+                text-align: right;       /* 🔥 오른쪽 정렬 */
+                color: rgba(255,255,255,0.75); /* 날짜는 메타라 살짝 톤 다운(원하면 빼도 됨) */
+                font-size: 13px;
+              ">
+                ${idx === 0 ? date : ''}
+              </div>
 
-          <div style="
-            width:90px;
-            text-align:right;
-            color:rgba(255,255,255,0.75);
-            font-size:13px;
-          ">
-            ${idx === 0 ? date : ''}
-          </div>
+            </div>
+          `).join('')}
+          <div style="border-bottom:1px solid rgba(255,255,255,0.12); margin-top:6px;"></div>
         </div>
-      `).join('')}
-      <div style="border-bottom:1px solid rgba(255,255,255,0.12); margin-top:6px;"></div>
-    </div>
-  `;
-}).join('');
+      `;
+    }).join('');
 }
 renderActiveBox();
 
@@ -3065,26 +3048,23 @@ function getAccessorySummary(exerciseName) {
   const list = accRecordsByExercise[exerciseName] || [];
   if (!list.length) return '기록 없음';
 
-  // createdAt 기준 최신순
+  // createdAt 기준 최신순 정렬
   const sorted = [...list].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+  // 최신 날짜(첫 레코드의 date)
   const latestDate = sorted[0].date;
   if (!latestDate) return '기록 없음';
 
-  // 최신 날짜만
-  const sameDateSets = sorted.filter(r => r.date === latestDate).slice().reverse();
+  // 최신 날짜에 해당하는 세트만 모으기
+  const sameDateSets = sorted.filter(r => r.date === latestDate);
 
-  // ✅ 연속 동일 묶기
-  const packed = [];
-  for (const r of sameDateSets){
-    const last = packed[packed.length - 1];
-    if (last && `${last.weight}__${last.reps}` === `${r.weight}__${r.reps}`){
-      last.sets += 1;
-    } else {
-      packed.push({ weight: r.weight, reps: r.reps, sets: 1 });
-    }
-  }
+  // 같은 날짜 내에서는 "저장 순서(누적)"로 보이게 최신을 아래로
+  const lines = sameDateSets
+    .slice()
+    .reverse()
+    .map(r => `${r.weight}kg × ${r.reps}회`);
 
-  const lines = packed.map(p => `${p.weight}kg × ${p.reps}회 × ${p.sets}set`);
+  // 줄바꿈 렌더링
   return `${latestDate}<br>${lines.join('<br>')}`;
 }
 
