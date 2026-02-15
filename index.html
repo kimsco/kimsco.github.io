@@ -2111,6 +2111,7 @@ recordDate.value = formatTodayYYMMDD();
 function renderActiveBox(){
     const activeBtn = document.querySelector('.folderBtn.active');
     const target = activeBtn ? activeBtn.dataset.target : 'benchBox';
+
     let arr = [];
     if(target === 'benchBox') arr = records.bench;
     else if(target === 'squatBox') arr = records.squat;
@@ -2124,70 +2125,69 @@ function renderActiveBox(){
         return;
     }
 
-    // ✅ 날짜별 그룹화 (기존 그대로)
+    // 날짜별 그룹화
     const grouped = {};
     arr.forEach(it => {
-      if (!grouped[it.date]) grouped[it.date] = [];
-      grouped[it.date].push(it);
+        if (!grouped[it.date]) grouped[it.date] = [];
+        grouped[it.date].push(it);
     });
 
-    // ✅ 최신 날짜 먼저 (기존 그대로)
+    // 최신 날짜 먼저
     const dates = Object.keys(grouped)
-      .sort((a, b) => b.localeCompare(a));
+        .sort((a, b) => b.localeCompare(a));
 
-    // ✅ 여기부터가 "배치 변경" 핵심
- // ✅ 여기부터: 날짜별 → "연속 동일 세트" 묶어서 렌더
-boxEl.innerHTML = dates.map(date => {
-  // 같은 날짜의 세트들: 오래된 것 → 최신(=최신이 아래)
-  const raw = grouped[date].slice().reverse();
+    boxEl.innerHTML = dates.map(date => {
 
-  // ✅ 연속 동일(무게/횟수) 묶기
-  const packed = [];
-  for (const r of raw) {
-    const last = packed[packed.length - 1];
+        // 오래된 것 → 최신 순서로
+        const raw = grouped[date].slice().reverse();
 
-    const rid = r.firestoreId ? r.firestoreId : ("local_" + r.localId);
+        // 연속 동일 세트 묶기
+        const packed = [];
 
-    if (last && makeKey(last.weight, last.reps) === makeKey(r.weight, r.reps)) {
-      last.sets += 1;
-      last.ids.push(rid);
-    } else {
-      packed.push({
-        weight: r.weight,
-        reps: r.reps,
-        sets: 1,
-        ids: [rid]
-      });
-    }
-  }
+        for (const r of raw) {
+            const last = packed[packed.length - 1];
+            const rid = r.firestoreId ? r.firestoreId : ("local_" + r.localId);
 
-  return `
-    <div style="margin-bottom:10px;">
-      ${packed.map((p, idx) => `
-        <div style="display:flex; align-items:center; line-height:1.6;">
-          <div
-            class="record-line"
-            data-id="${p.ids[p.ids.length - 1]}"          <!-- 임시: 일단 하나만 -->
-            data-ids="${p.ids.join(',')}"                 <!-- 나중 삭제용 -->
-            style="flex:1; text-align:left; cursor:pointer;"
-          >
-            ${formatSetLine(p.weight, p.reps, p.sets)}
-          </div>
+            if (last && makeKey(last.weight, last.reps) === makeKey(r.weight, r.reps)) {
+                last.sets += 1;
+                last.ids.push(rid);
+            } else {
+                packed.push({
+                    weight: r.weight,
+                    reps: r.reps,
+                    sets: 1,
+                    ids: [rid]
+                });
+            }
+        }
 
-          <div style="
-            width:90px;
-            text-align:right;
-            color:rgba(255,255,255,0.75);
-            font-size:13px;
-          ">
-            ${idx === 0 ? date : ''}
-          </div>
-        </div>
-      `).join('')}
-      <div style="border-bottom:1px solid rgba(255,255,255,0.12); margin-top:6px;"></div>
-    </div>
-  `;
-}).join('');
+        return `
+            <div style="margin-bottom:10px;">
+                ${packed.map((p, idx) => `
+                    <div style="display:flex; align-items:center; line-height:1.6;">
+                        <div
+                            class="record-line"
+                            data-id="${p.ids[p.ids.length - 1]}"
+                            data-ids="${p.ids.join(',')}"
+                            style="flex:1; text-align:left; cursor:pointer;"
+                        >
+                            ${formatSetLine(p.weight, p.reps, p.sets)}
+                        </div>
+
+                        <div style="
+                            width:90px;
+                            text-align:right;
+                            color:rgba(255,255,255,0.75);
+                            font-size:13px;
+                        ">
+                            ${idx === 0 ? date : ''}
+                        </div>
+                    </div>
+                `).join('')}
+                <div style="border-bottom:1px solid rgba(255,255,255,0.12); margin-top:6px;"></div>
+            </div>
+        `;
+    }).join('');
 }
 renderActiveBox();
 
