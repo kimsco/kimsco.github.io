@@ -1153,11 +1153,8 @@ cursor: pointer;
 #threeToggleBtn{
   position: fixed;
   left: 50%;
-  transform: translateX(-50%);
-
-  /* 🔥 탑바 끝(경계선)에 딱 붙게 */
   top: calc(env(safe-area-inset-top) + var(--topBarH) - 1px);
-
+  transform: translateX(-50%) translateY(-8px);  /* ✅ 위로 8px 올림 */
   width: 390px;
   max-width: 100%;
 
@@ -1179,7 +1176,7 @@ cursor: pointer;
 
 /* 눌림 효과 */
 #threeToggleBtn:active{
-  transform: translateX(-50%) scale(0.95);
+  transform: translateX(-50%) translateY(-8px) scale(0.95);
 }
 
    
