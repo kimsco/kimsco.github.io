@@ -1648,6 +1648,50 @@ input[type="number"] {
   </div>
 </div>
 
+<!-- ✅ 기록 수정/삭제 액션 모달 -->
+<div id="recordActionModal" class="modal hidden">
+  <div class="modal-box">
+    <div class="modal-title">기록</div>
+    <div class="modal-desc" id="recordActionCurrentLine" style="font-size:14px;"></div>
+
+    <div class="modal-actions" style="grid-template-columns: 1fr 1fr 1fr;">
+      <button id="recordActionEdit" class="modal-btn">수정</button>
+      <button id="recordActionDelete" class="modal-btn danger">삭제</button>
+      <button id="recordActionCancel" class="modal-btn">취소</button>
+    </div>
+  </div>
+</div>
+
+<!-- ✅ “통짜 수정” 모달 -->
+<div id="recordEditModal" class="modal hidden">
+  <div class="modal-box">
+    <div class="modal-title">기록 수정</div>
+
+    <!-- 현재값 표시 (클릭하면 자동 세팅) -->
+    <div id="recordEditCurrent"
+         style="padding:0 16px 10px; text-align:center; font-weight:800; color:#FFD700; cursor:pointer;">
+    </div>
+
+    <!-- 선택 탭 -->
+    <div style="display:flex; gap:8px; padding:0 16px 12px;">
+      <button class="editPickBtn" data-pick="weight" style="flex:1;" type="button">무게</button>
+      <button class="editPickBtn" data-pick="reps" style="flex:1;" type="button">횟수</button>
+      <button class="editPickBtn" data-pick="sets" style="flex:1;" type="button">세트</button>
+    </div>
+
+    <!-- 입력 -->
+    <div style="padding:0 16px 14px;">
+      <div id="recordEditLabel" style="font-size:12px; color:#888; margin-bottom:6px;">무게(kg) 수정</div>
+      <input id="recordEditInput" type="number" style="width:100%; height:42px; border-radius:10px; border:1px solid #333; background:#111; color:#eee; padding:0 12px;">
+    </div>
+
+    <div class="modal-actions" style="grid-template-columns: 1fr 1fr;">
+      <button id="recordEditCancel" class="modal-btn">취소</button>
+      <button id="recordEditConfirm" class="modal-btn danger">확인</button>
+    </div>
+  </div>
+</div>
+
 <!-- ✅ 기록 액션시트 (수정/삭제) -->
 <div id="recordActionSheet" class="action-sheet hidden">
   <div class="action-sheet-backdrop"></div>
@@ -2238,13 +2282,17 @@ function renderActiveBox(){
                 ${packed.map((p, idx) => `
                     <div style="display:flex; align-items:center; line-height:1.6;">
                         <div
-                            class="record-line"
-                            data-id="${p.ids[p.ids.length - 1]}"
-                            data-ids="${p.ids.join(',')}"
-                            style="flex:1; text-align:left; cursor:pointer;"
-                        >
-                            ${formatSetLine(p.weight, p.reps, p.sets)}
-                        </div>
+  class="record-line"
+  data-id="${p.ids[p.ids.length - 1]}"
+  data-ids="${p.ids.join(',')}"
+  data-weight="${p.weight}"
+  data-reps="${p.reps}"
+  data-sets="${p.sets}"
+  data-date="${date}"
+  style="flex:1; text-align:left; cursor:pointer;"
+>
+  ${formatSetLine(p.weight, p.reps, p.sets)}
+</div>
 
                         <div style="
                             width:90px;
@@ -2782,32 +2830,260 @@ recordActionSheet.querySelector(".action-sheet-backdrop")
 rasCancel.addEventListener("click", closeRecordSheet);
 
 // ✅ 수정
-rasEdit.addEventListener("click", async () => {
-  if(!pressedRecordEl) return;
+/*********************************
+ * ✅ 통짜 수정 모달(무게/횟수/세트)
+ *********************************/
+const recordEditModal   = document.getElementById("recordEditModal");
+const recordEditCurrent = document.getElementById("recordEditCurrent");
+const recordEditLabel   = document.getElementById("recordEditLabel");
+const recordEditInput   = document.getElementById("recordEditInput");
+const recordEditCancel  = document.getElementById("recordEditCancel");
+const recordEditConfirm = document.getElementById("recordEditConfirm");
+const pickBtns          = document.querySelectorAll(".editPickBtn");
 
-  const id = pressedRecordEl.dataset.id;
-  const ids = (pressedRecordEl.dataset.ids || "").split(",").filter(Boolean);
+let editPick = "weight"; // weight | reps | sets
+let editCtx = null;      // { ids[], weight, reps, sets, date }
 
-  // 묶음(있으면) → 기본은 “마지막 id”만 수정 (원하면 전체 수정도 가능)
-  const targetId = ids.length ? ids[ids.length-1] : id;
+function setPick(p){
+  editPick = p;
+  pickBtns.forEach(b => b.classList.toggle("active", b.dataset.pick === p));
 
-  // 현재 값(텍스트에서 파싱하기 어려워서 prompt 2개로 받자)
-  const w = prompt("무게(kg) 수정", "");
-  if(w === null) return; // 취소
-  const r = prompt("횟수(회) 수정", "");
-  if(r === null) return;
+  if(editPick === "weight") recordEditLabel.textContent = "무게(kg) 수정";
+  if(editPick === "reps")   recordEditLabel.textContent = "횟수(회) 수정";
+  if(editPick === "sets")   recordEditLabel.textContent = "세트(set) 수정";
 
-  const newW = Math.round(parseFloat(w) * 10) / 10;
-  const newR = parseInt(r,10);
+  // 기본값 채우기
+  if(editCtx){
+    if(editPick === "weight") recordEditInput.value = String(editCtx.weight ?? "");
+    if(editPick === "reps")   recordEditInput.value = String(editCtx.reps ?? "");
+    if(editPick === "sets")   recordEditInput.value = String(editCtx.sets ?? "");
+  }
+  // 포커스
+  setTimeout(() => recordEditInput.focus(), 0);
+}
 
-  if(!Number.isFinite(newW) || !Number.isFinite(newR) || newR<=0){
-    alert("값이 이상함. kg/회를 제대로 입력해줘");
+function renderEditCurrentLine(){
+  if(!editCtx) return;
+  // 숫자 클릭 가능하게 span으로 감싸기
+  recordEditCurrent.innerHTML = `
+    <span data-pick="weight">${formatKgSmart(editCtx.weight)}</span>kg ×
+    <span data-pick="reps">${parseInt(editCtx.reps,10)}</span>회 ×
+    <span data-pick="sets">${parseInt(editCtx.sets,10)}</span>set
+  `;
+}
+
+function openRecordEditModalFromLine(lineEl){
+  const ids = (lineEl.dataset.ids || "").split(",").filter(Boolean);
+  const w   = parseFloat(lineEl.dataset.weight);
+  const r   = parseInt(lineEl.dataset.reps, 10);
+  const s   = parseInt(lineEl.dataset.sets, 10);
+  const d   = lineEl.dataset.date || "";
+
+  editCtx = {
+    ids: ids.length ? ids : [lineEl.dataset.id],
+    weight: round1(w),
+    reps: r,
+    sets: s,
+    date: d
+  };
+
+  renderEditCurrentLine();
+  setPick("weight");              // 기본은 무게 수정
+  recordEditModal.classList.remove("hidden");
+}
+
+function closeRecordEditModal(){
+  recordEditModal.classList.add("hidden");
+  editCtx = null;
+}
+
+// 숫자 클릭하면 해당 항목으로 바로 전환
+recordEditCurrent.addEventListener("click", (e) => {
+  const pick = e.target?.dataset?.pick;
+  if(pick) setPick(pick);
+});
+
+// 탭 버튼(무게/횟수/세트)
+pickBtns.forEach(btn => {
+  btn.addEventListener("click", () => setPick(btn.dataset.pick));
+});
+
+// 취소/바깥 닫기
+recordEditCancel.addEventListener("click", closeRecordEditModal);
+recordEditModal.addEventListener("click", (e) => {
+  if(e.target === recordEditModal) closeRecordEditModal();
+});
+
+// 엔터로 확인
+recordEditInput.addEventListener("keydown", (e) => {
+  if(e.key === "Enter") recordEditConfirm.click();
+});
+
+/*********************************
+ * ✅ 통짜 적용: 무게/횟수는 묶음 전체 수정
+ * ✅ 세트는 "개수"까지 맞춰줌 (추가/삭제)
+ *********************************/
+function findRecordTypeByAnyId(ids){
+  const all = ["bench","squat","dead","ohp"];
+  for(const type of all){
+    for(const r of (records[type] || [])){
+      const rid = r.firestoreId ? r.firestoreId : ("local_" + r.localId);
+      if(ids.includes(rid)) return type;
+    }
+  }
+  return null;
+}
+
+function findFirstRecordByAnyId(ids){
+  const all = ["bench","squat","dead","ohp"];
+  for(const type of all){
+    for(const r of (records[type] || [])){
+      const rid = r.firestoreId ? r.firestoreId : ("local_" + r.localId);
+      if(ids.includes(rid)) return r;
+    }
+  }
+  return null;
+}
+
+// 묶음 전체 무게/횟수 수정
+async function updatePackedWeightReps(ids, newW, newR){
+  // 로컬 배열 수정
+  ["bench","squat","dead","ohp"].forEach(type => {
+    (records[type] || []).forEach(r => {
+      const rid = r.firestoreId ? r.firestoreId : ("local_" + r.localId);
+      if(ids.includes(rid)){
+        r.weight = newW;
+        r.reps   = newR;
+      }
+    });
+  });
+
+  renderActiveBox();
+  saveRecordsToLocal();
+
+  // Firestore 수정(로그인 + firestoreId만)
+  const user = auth.currentUser;
+  if(user){
+    for(const rid of ids){
+      if(String(rid).startsWith("local_")) continue;
+      try{
+        await db.collection("users").doc(user.uid)
+          .collection("records").doc(rid)
+          .update({
+            weight: newW,
+            reps: newR,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+      }catch(e){
+        console.error("Firestore packed update error:", e);
+      }
+    }
+  }
+}
+
+// 세트 개수 맞추기: 줄이기 = 뒤에서부터 삭제, 늘리기 = 동일 값으로 추가
+async function syncPackedSetsCount(ids, targetSets, weight, reps, date){
+  const cur = ids.length;
+  if(targetSets === cur) return;
+
+  const type = findRecordTypeByAnyId(ids);
+  if(!type){
+    alert("대상 기록을 못 찾았어(타입 찾기 실패).");
     return;
   }
 
-  await updateRecord(targetId, newW, newR);
+  if(targetSets < cur){
+    // 뒤에서 target만큼 남기고 삭제
+    const toDelete = ids.slice(0, cur - targetSets); // ✅ 'raw' 기준 누적이라 앞쪽이 오래된/위쪽일 확률 높음
+    for(const rid of toDelete){
+      await deleteRecord(rid); // 기존 함수 사용(로컬+firestore)
+    }
+  }else{
+    const toAdd = targetSets - cur;
 
-  closeRecordSheet();
+    // 추가는 "연속"을 유지하려고 records[type] 앞쪽(최신)으로 unshift
+    for(let i=0; i<toAdd; i++){
+      const item = {
+        firestoreId: null,
+        localId: Date.now() + Math.random(),
+        date,
+        weight,
+        reps
+      };
+
+      records[type].unshift(item);
+      saveRecordsToLocal();
+
+      const user = auth.currentUser;
+      if(user){
+        try{
+          const docRef = await db.collection("users").doc(user.uid)
+            .collection("records")
+            .add({
+              lift: type,
+              date,
+              weight,
+              reps,
+              createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+          item.firestoreId = docRef.id;
+        }catch(e){
+          console.error("Firestore add for extra set err:", e);
+        }
+      }
+    }
+
+    renderActiveBox();
+    saveRecordsToLocal();
+  }
+}
+
+recordEditConfirm.addEventListener("click", async () => {
+  if(!editCtx) return;
+
+  const vRaw = recordEditInput.value;
+  if(vRaw === "" || vRaw === null) return;
+
+  // 입력값 파싱
+  let v;
+  if(editPick === "weight"){
+    v = round1(parseFloat(vRaw));
+    if(!Number.isFinite(v) || v <= 0) return alert("무게를 제대로 입력해줘");
+    editCtx.weight = v;
+    await updatePackedWeightReps(editCtx.ids, editCtx.weight, editCtx.reps);
+  }
+
+  if(editPick === "reps"){
+    v = parseInt(vRaw, 10);
+    if(!Number.isFinite(v) || v <= 0) return alert("횟수를 제대로 입력해줘");
+    editCtx.reps = v;
+    await updatePackedWeightReps(editCtx.ids, editCtx.weight, editCtx.reps);
+  }
+
+  if(editPick === "sets"){
+    v = parseInt(vRaw, 10);
+    if(!Number.isFinite(v) || v <= 0) return alert("세트를 제대로 입력해줘");
+
+    // ✅ 세트 수 자체를 맞춤(추가/삭제)
+    const first = findFirstRecordByAnyId(editCtx.ids);
+    const date = (first?.date) || editCtx.date || formatTodayYYMMDD();
+    await syncPackedSetsCount(editCtx.ids, v, editCtx.weight, editCtx.reps, date);
+
+    // 세트 재렌더 후 닫기
+  }
+
+  // 상단 표시 갱신
+  editCtx.sets = (editPick === "sets") ? parseInt(recordEditInput.value,10) : editCtx.sets;
+  renderEditCurrentLine();
+
+  closeRecordEditModal();
+  closeRecordSheet(); // 액션시트도 닫기
+});
+
+// ✅ 액션시트 "수정" → 모달 열기
+rasEdit.addEventListener("click", () => {
+  if(!pressedRecordEl) return;
+  openRecordEditModalFromLine(pressedRecordEl);
 });
 
 // ✅ 삭제
