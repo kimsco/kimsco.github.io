@@ -1149,46 +1149,38 @@ cursor: pointer;
   color: #666;
 }
 
-/* ✅ 탑바 경계선 바로 밑: 역삼각 토글 */
-.top-divider-toggle{
-  position: fixed; /* 탑바처럼 고정 */
+/* ✅ 탑바 아래 라인에 붙는 삼각형 버튼 (tab2에서만 표시) */
+#threeToggleBtn{
+  position: fixed;
   left: 50%;
   transform: translateX(-50%);
-  top: calc(var(--topBarH, 55px) + env(safe-area-inset-top)); /* 탑바 끝 지점 */
-  
-  /* 390px 프레임 안에서 왼쪽 1/10 지점 */
+
+  /* 🔥 탑바 끝(경계선)에 딱 붙게 */
+  top: calc(env(safe-area-inset-top) + var(--topBarH) - 1px);
+
   width: 390px;
   max-width: 100%;
-  pointer-events: none; /* 컨테이너처럼 두고 */
 
-  z-index: 99998;
-}
-
-/* 실제 클릭되는 삼각형 */
-.top-divider-toggle{
-  display: flex;
+  display: none;                 /* ✅ 기본 숨김 */
   justify-content: flex-start;
-  padding-left: 10%;   /* ✅ 왼쪽 기준 1/10 지점 */
-  height: 0;           /* 선에 붙게 */
+  padding-left: 10%;             /* ✅ 왼쪽 1/10 지점 */
+
+  height: 0;                     /* ✅ 선에 붙는 느낌 */
   border: none;
   background: transparent;
-  color: #777;         /* ✅ 회색 */
+
+  color: #777;
   font-size: 16px;
   line-height: 1;
-  pointer-events: auto; /* 버튼만 클릭 */
-  cursor: pointer;
-}
 
-/* 선에 딱 붙는 느낌 */
-.top-divider-toggle{
-  margin-top: -2px; /* 필요하면 -4px까지 */
+  z-index: 99998;
+  pointer-events: auto;
 }
 
 /* 눌림 효과 */
-.top-divider-toggle:active{
+#threeToggleBtn:active{
   transform: translateX(-50%) scale(0.95);
 }
-
 
    
 /* .css ㅊㄴㄴ 붙여넣기 */
@@ -2866,31 +2858,7 @@ bottomTabBtns.forEach(btn => {
 
 
 
-tabBtns.forEach(btn => {
-  btn.addEventListener('click', () => {
-    calPopup.classList.add("hidden");
 
-    tabBtns.forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-
-    const target = btn.dataset.target;
-    tabContents.forEach(tc => {
-      const on = (tc.id === target);
-      tc.classList.toggle('active', on);
-      tc.style.display = on ? 'block' : 'none';
-    });
-document.querySelector('.app').scrollTo({ top: 0, behavior: 'auto' });
-
-    // Tip 탭 초기화
-    if (target === 'tab4') {
-      partScreen.style.display = 'block';
-      exerciseScreen.style.display = 'none';
-      detailScreen.style.display = 'none'; // ✅ 추가: 디테일도 닫기
-    } else {
-      detailScreen.style.display = 'none';
-    }
-  });
-});
 
 
 
