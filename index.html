@@ -1153,15 +1153,14 @@ cursor: pointer;
 /* tab2 안에서만, 탑바 바로 아래에 붙는 '스크롤 영역용' */
 .threeStickyRow{
   position: sticky;
-  top: 0;                 /* ✅ app의 스크롤 영역 기준 top */
+  top: calc(var(--topBarH) + env(safe-area-inset-top)); /* ✅ 여기 변경 */
   z-index: 50;
-  
-  /* ✅ 탑바 아래처럼 보이게 */
-  margin-top: calc(-1 * (var(--topBarH) + env(safe-area-inset-top)));
-  padding-top: calc(var(--topBarH) + env(safe-area-inset-top));
 
-  height: 0;              /* 자리 거의 안 먹게 */
-  pointer-events: none;   /* ✅ row 자체는 클릭 막고 */
+  margin-top: 0;          /* ✅ 아래 2줄은 이제 필요없음 */
+  padding-top: 0;
+
+  height: 0;
+  pointer-events: none;
 }
 
 /* 버튼만 클릭 가능 */
