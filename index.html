@@ -3016,19 +3016,31 @@ editConfirm.addEventListener("click", applyPackedEdit);
 recordEditModal.addEventListener("click", (e) => {
   if(e.target === recordEditModal) closeEditModal();
 });
-
-// ✅ “기록 꾹누르기” → 액션시트
+// ✅ 기록 롱프레스(움직임 임계값 적용) - iOS에서도 안정적
 let recordPressTimer = null;
+let pressStartX = 0;
+let pressStartY = 0;
+let pressTargetLine = null;
 
-function startRecordLongPress(e){
+function beginRecordPress(e){
   const line = e.target.closest(".record-line");
   if(!line) return;
 
-  // 터치/마우스 스크롤 중 텍스트 선택 방지
-  e.preventDefault?.();
+  // 스크롤 방해 최소화: 롱프레스만 쓸 거면 preventDefault OK
+  // 클릭도 열리게 해놨으니 여기서는 굳이 막지 않아도 됨.
+  // e.preventDefault?.();
+
+  pressTargetLine = line;
+
+  const touch = e.touches?.[0];
+  pressStartX = touch ? touch.clientX : e.clientX;
+  pressStartY = touch ? touch.clientY : e.clientY;
 
   const lift = getActiveLift();
-  const ids = (line.dataset.ids || "").split(",").map(s=>s.trim()).filter(Boolean);
+  const ids = (line.dataset.ids || "")
+    .split(",")
+    .map(s=>s.trim())
+    .filter(Boolean);
   if(!ids.length) return;
 
   recordPressTimer = setTimeout(() => {
@@ -3036,23 +3048,38 @@ function startRecordLongPress(e){
   }, 550);
 }
 
-function clearRecordLongPress(){
+function moveRecordPress(e){
+  if(!recordPressTimer) return;
+
+  const touch = e.touches?.[0];
+  const x = touch ? touch.clientX : e.clientX;
+  const y = touch ? touch.clientY : e.clientY;
+
+  // ✅ 10px 이상 움직이면 “스크롤로 판단”하고 취소
+  const dx = Math.abs(x - pressStartX);
+  const dy = Math.abs(y - pressStartY);
+  if(dx > 10 || dy > 10){
+    clearRecordPress();
+  }
+}
+
+function clearRecordPress(){
   if(recordPressTimer){
     clearTimeout(recordPressTimer);
     recordPressTimer = null;
   }
+  pressTargetLine = null;
 }
 
-// PC
-document.addEventListener("mousedown", startRecordLongPress, { passive:false });
-document.addEventListener("mouseup", clearRecordLongPress);
-document.addEventListener("mousemove", clearRecordLongPress);
+// 모바일/PC 공통
+document.addEventListener("touchstart", beginRecordPress, { passive:true });
+document.addEventListener("touchmove",  moveRecordPress,  { passive:true });
+document.addEventListener("touchend",   clearRecordPress, { passive:true });
+document.addEventListener("touchcancel",clearRecordPress, { passive:true });
 
-// 모바일
-document.addEventListener("touchstart", startRecordLongPress, { passive:false });
-document.addEventListener("touchend", clearRecordLongPress);
-document.addEventListener("touchmove", clearRecordLongPress);
-
+document.addEventListener("mousedown", beginRecordPress);
+document.addEventListener("mousemove", moveRecordPress);
+document.addEventListener("mouseup",   clearRecordPress);
 
    
 async function deleteRecord(id){
@@ -3087,7 +3114,20 @@ async function deleteRecord(id){
   }
 }
 
+// ✅ 기록 줄 탭(클릭)으로도 액션시트 열기
+document.addEventListener("click", (e) => {
+  const line = e.target.closest(".record-line");
+  if (!line) return;
 
+  const lift = getActiveLift();
+  const ids = (line.dataset.ids || "")
+    .split(",")
+    .map(s => s.trim())
+    .filter(Boolean);
+
+  if (!ids.length) return;
+  openRecordSheet({ lift, ids });
+});
 
 
 const partScreen = document.getElementById('acc-part-screen');
@@ -3168,37 +3208,6 @@ bottomTabBtns.forEach(btn => {
 });
 
 
-
-
-
-
-
-
-tabBtns.forEach(btn => {
-  btn.addEventListener('click', () => {
-    calPopup.classList.add("hidden");
-
-    tabBtns.forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-
-    const target = btn.dataset.target;
-    tabContents.forEach(tc => {
-      const on = (tc.id === target);
-      tc.classList.toggle('active', on);
-      tc.style.display = on ? 'block' : 'none';
-    });
-document.querySelector('.app').scrollTo({ top: 0, behavior: 'auto' });
-
-    // Tip 탭 초기화
-    if (target === 'tab4') {
-      partScreen.style.display = 'block';
-      exerciseScreen.style.display = 'none';
-      detailScreen.style.display = 'none'; // ✅ 추가: 디테일도 닫기
-    } else {
-      detailScreen.style.display = 'none';
-    }
-  });
-});
 
 
 
