@@ -1150,46 +1150,47 @@ cursor: pointer;
 }
 
 /* ✅ 탑바 아래 라인에 붙는 삼각형 버튼 (tab2에서만 표시) */
-/* 탑바 안에서 삼각형을 '탑바 하단 라인'에 붙임 */
-.topBar{ position: fixed; } /* 이미 있지만 혹시 몰라 명시 */
+/* tab2 안에서만, 탑바 바로 아래에 붙는 '스크롤 영역용' */
+.threeStickyRow{
+  position: sticky;
+  top: 0;                 /* ✅ app의 스크롤 영역 기준 top */
+  z-index: 50;
+  
+  /* ✅ 탑바 아래처럼 보이게 */
+  margin-top: calc(-1 * (var(--topBarH) + env(safe-area-inset-top)));
+  padding-top: calc(var(--topBarH) + env(safe-area-inset-top));
 
+  height: 0;              /* 자리 거의 안 먹게 */
+  pointer-events: none;   /* ✅ row 자체는 클릭 막고 */
+}
+
+/* 버튼만 클릭 가능 */
 #threeToggleBtn{
-  all: unset;
-  position: absolute;
+  pointer-events: auto;
 
-  /* ✅ 왼쪽 10% 지점 */
+  position: relative;
   left: 10%;
   transform: translateX(-50%);
-
-  /* ✅ 탑바 하단 라인에 딱 붙게 (border-bottom 바로 아래로 살짝 걸치기) */
-  bottom: -10px;
 
   width: 28px;
   height: 28px;
 
-  display: none;                 /* 기본 숨김 */
+  display: flex;
   align-items: center;
   justify-content: center;
 
+  background: transparent;
+  border: none;
   color: #777;
   font-size: 16px;
   line-height: 1;
 
-  cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  z-index: 999999;               /* 탑바 안에서 최상단 */
 }
 
-/* ✅ 눌러도 "버튼 위치"는 안 움직이고, 아이콘만 살짝 줄어듦 */
-#threeToggleBtn .chev{
-  display: block;
-  transform: translateY(-1px);   /* 미세하게 위로(원하면 0px로) */
-  transform-origin: center;
-}
-
-#threeToggleBtn:active .chev{
-  transform: translateY(-1px) scale(0.95);
-}
+/* 눌러도 위치 안 움직이게: 아이콘만 scale */
+#threeToggleBtn .chev{ display:block; transform: translateY(-1px); }
+#threeToggleBtn:active .chev{ transform: translateY(-1px) scale(0.95); }
 
    
 /* .css ㅊㄴㄴ 붙여넣기 */
@@ -1357,9 +1358,7 @@ input[type="number"] {
     </path>
   </svg>
 </button>
-<button id="threeToggleBtn" class="top-divider-toggle" aria-label="3대 접기/펼치기">
-  ▼
-</button>
+
 </div>
 
 
@@ -1380,6 +1379,9 @@ input[type="number"] {
 <!-- 3대 -->
 <div id="tab2" class="tabContent">
 
+  <div class="threeStickyRow">
+    <button id="threeToggleBtn" aria-label="3대 접기/펼치기"><span class="chev">▼</span></button>
+  </div>
    
      <!-- 🔥 헤더 -->
 <div class="three-header">
