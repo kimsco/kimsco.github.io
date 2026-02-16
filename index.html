@@ -2016,42 +2016,45 @@ function updateTotal3(){
 /* save3Btn: 전체(3대) 저장 — 항상 보이지만 Firestore는 로그인 있을 때만 저장 */
 save3Btn.addEventListener('click', async ()=>{
 
-    const user = auth.currentUser;
+  const user = auth.currentUser;
 
-    if(!user){
-        showSave3Message('로그인 후 저장해주세요');
-        return;
-    }
+  if(!user){
+    showSave3Message('로그인 후 저장해주세요');
+    return;
+  }
 
-    const bench = parseInt(benchRM.value)||0;
-    const squat = parseInt(squatRM.value)||0;
-    const dead = parseInt(deadRM.value)||0;
-    const total = bench + squat + dead;
+  const bench = parseInt(benchRM.value)||0;
+  const squat = parseInt(squatRM.value)||0;
+  const dead  = parseInt(deadRM.value)||0;
+  const total = bench + squat + dead;
 
-    if(total === 0){
-        showSave3Message('값을 입력하세요');
-        return;
-    }
+  if(total === 0){
+    showSave3Message('값을 입력하세요');
+    return;
+  }
 
-    try{
-        await db
-          .collection('users')
-          .doc(user.uid)
-          .collection('threeRM') // 🔥 숫자 제거
-          .add({
-              bench,
-              squat,
-              dead,
-              total,
-              createdAt: firebase.firestore.FieldValue.serverTimestamp()
-          });
+  try{
+    const ref = db
+      .collection('users')
+      .doc(user.uid)
+      .collection('threeRM')
+      .doc('latest'); // ✅ 고정 1개 문서
 
-        showSave3Message('3대 기록 저장 완료!');
-    }catch(e){
-        console.error('3대 저장 에러:', e);
-        showSave3Message('저장 실패 (콘솔 확인)');
-    }
+    await ref.set({
+      bench,
+      squat,
+      dead,
+      total,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+
+    showSave3Message('3대 기록 저장 완료!');
+  }catch(e){
+    console.error('3대 저장 에러:', e);
+    showSave3Message('저장 실패 (콘솔 확인)');
+  }
 });
+
 
 /* 폴더 버튼 동작 (가로 버튼 → 하나의 박스만 active) */
 folderBtns.forEach(btn=>{
@@ -2334,21 +2337,21 @@ auth.onAuthStateChanged(async user => {
 
     /* 3대 최신값 */
     try {
-      const threeSnap = await db
-        .collection("users")
-        .doc(user.uid)
-        .collection("threeRM")
-        .orderBy("createdAt", "desc")
-        .limit(1)
-        .get();
+      const threeDoc = await db
+  .collection("users")
+  .doc(user.uid)
+  .collection("threeRM")
+  .doc("latest")
+  .get();
 
-      if (!threeSnap.empty) {
-        const data = threeSnap.docs[0].data();
-        benchRM.value = data.bench || 0;
-        squatRM.value = data.squat || 0;
-        deadRM.value = data.dead || 0;
-        updateTotal3();
-      }
+if (threeDoc.exists) {
+  const data = threeDoc.data();
+  benchRM.value = data.bench || 0;
+  squatRM.value = data.squat || 0;
+  deadRM.value  = data.dead  || 0;
+  updateTotal3();
+}
+
     } catch (e) {
       console.error("load threeRM err", e);
     }
