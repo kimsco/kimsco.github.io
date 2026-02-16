@@ -2041,12 +2041,12 @@ save3Btn.addEventListener('click', async ()=>{
       .doc('latest'); // ✅ 고정 1개 문서
 
     await ref.set({
-      bench,
-      squat,
-      dead,
-      total,
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-    }, { merge: true });
+  bench,
+  squat,
+  dead,
+  total,
+  createdAt: firebase.firestore.FieldValue.serverTimestamp()
+}, { merge: true });
 
     showSave3Message('3대 기록 저장 완료!');
   }catch(e){
