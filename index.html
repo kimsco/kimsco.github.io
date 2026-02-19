@@ -3427,53 +3427,176 @@ setInterval(updateYearProgress, 60 * 1000);
  * - 내용: 한글(5줄+)
  * - 단방향 동기화: 기록 폴더 변경 → 코칭 자동 오픈
  *********************************/
+/*********************************
+ * ✅ 코칭 데이터 (원본 스타일 유지)
+ * - title: 카드 제목(영문)
+ * - sections: 소제목 + 여러 줄
+ *********************************/
 const COACHING_DATA = {
   bench: {
     title: "BENCH",
-    lines: [
-      "견갑 세팅: 과도한 후인하강X, '넓게 깔리는 느낌'으로 고정.",
-      "흉추: 과한 아치보다 '흉추 신전 + 가슴 들림' 정도만 유지.",
-      "하체: 발을 몸쪽으로 당기고, 필요 시 중족으로 지면 밀어 레그드라이브.",
-      "호흡: 내려갈 때 들이마시고, 밀고 나서 강하게 내쉬기(코어 잠금).",
-      "그립/손목: 손목 꺾이지 않게 수직 지지, 손 전체로 바벨 하중 분산.",
-      "보강: 다리 올린 벤치/템포 벤치로 코어-바패스 안정화."
+    sections: [
+      {
+        label: "Setup (Scap & T-spine)",
+        lines: [
+          "견갑을 벤치에 평탄하게 고정",
+          "과도한 후인하강이 아니라 중하부 승모가 넓게 펴진 느낌 유지"
+        ]
+      },
+      {
+        label: "Arch & Chest Position",
+        lines: [
+          "억지 아치 금지, 세팅으로 자연스럽게 흉추 신전 유도",
+          "가슴이 편하게 들리는 높이에서 고정 유지"
+        ]
+      },
+      {
+        label: "Breathing & Bracing",
+        lines: [
+          "내려가며 흡기 → 하단에서 코어 강하게 잠그기",
+          "밀어낸 후 짧고 강하게 호기"
+        ]
+      },
+      {
+        label: "Leg Drive",
+        lines: [
+          "발을 몸쪽으로 당겨 하체 안정성 확보",
+          "중족골로 지면을 밀어 반발력 전달"
+        ]
+      },
+      {
+        label: "Grip & Wrist Stack",
+        lines: [
+          "요골·척골에 힘을 분배해 바를 단단히 파지",
+          "손목이 바 아래에서 수직으로 받치게 유지"
+        ]
+      }
     ]
   },
+
   squat: {
     title: "SQUAT",
-    lines: [
-      "브레이싱: 복압을 '옆/뒤'까지 채우고, 동작 내내 풀리지 않게.",
-      "무릎/발: 무릎은 발끝 방향으로 트래킹, 발바닥 3점(엄지/새끼/뒤꿈치) 고정.",
-      "상체: 바벨이 중족 위에 오게, 가슴 과도하게 들지 말고 '중립' 유지.",
-      "하강: 무릎 먼저 빼지 말고, 힙과 무릎이 같이 열리게(균형).",
-      "바닥: 반동으로 튀지 말고 바닥에서 '멈춤 0.5초' 연습 추천.",
-      "보강: 프론트 스쿼트/템포 스쿼트로 자세 붕괴 구간 잡기."
+    sections: [
+      {
+        label: "Stance & Foot Pressure",
+        lines: [
+          "발 전체로 지면을 균등하게 압박",
+          "중족부 중심 유지, 발끝 방향과 무릎 방향 일치"
+        ]
+      },
+      {
+        label: "Brace Before Descent",
+        lines: [
+          "하강 전에 복압을 먼저 잠그기",
+          "내려가는 동안 코어 텐션 절대 유지"
+        ]
+      },
+      {
+        label: "Hip & Knee Timing",
+        lines: [
+          "고관절과 무릎이 동시에 접히도록 시작",
+          "엉덩이만 먼저 빠지는 패턴 주의"
+        ]
+      },
+      {
+        label: "Depth Control",
+        lines: [
+          "반동으로 튕기지 말고 하단 텐션 유지",
+          "내려갈수록 힙 아래로 앉는 느낌"
+        ]
+      },
+      {
+        label: "Drive Up",
+        lines: [
+          "하단에서 가슴과 골반이 같이 상승",
+          "무릎과 고관절을 동시에 펴며 수직 상승"
+        ]
+      }
     ]
   },
+
   dead: {
     title: "DEADLIFT",
-    lines: [
-      "셋업: 바는 정강이 가까이, 견갑은 바 바로 위(앞으로 말림 X).",
-      "힌지: 허리로 숙이지 말고 엉덩이 접기(햄/둔근 텐션).",
-      "바패스: 바가 몸에서 멀어지면 바로 무너짐(가까이 긁듯이).",
-      "스타트: '바를 당겨서' 긴장 만든 뒤(슬랙 제거) 바닥을 민다는 느낌.",
-      "락아웃: 과신전 금지, 갈비뼈 내리고 둔근으로 마무리.",
-      "보강: RDL/하이퍼/햄스트링 컬로 힌지 유지력 강화."
+    sections: [
+      {
+        label: "Bar Position",
+        lines: [
+          "바벨을 정강이에 최대한 밀착",
+          "들기 전부터 바와 몸의 거리 최소화"
+        ]
+      },
+      {
+        label: "Pre-Tension",
+        lines: [
+          "당기기 전에 바 slack 제거",
+          "광배와 코어에 먼저 텐션 걸기"
+        ]
+      },
+      {
+        label: "Push the Floor",
+        lines: [
+          "허리로 들지 말고 지면을 밀어내기",
+          "초반은 레그 프레스 느낌으로 시작"
+        ]
+      },
+      {
+        label: "Bar Path",
+        lines: [
+          "동작 내내 바를 몸에 붙여 수직 이동",
+          "무릎 앞에서 바가 멀어지는 것 방지"
+        ]
+      },
+      {
+        label: "Lockout",
+        lines: [
+          "과신전 금지, 엉덩이만 앞으로 밀기",
+          "상단에서 갈비 들림 없이 마무리"
+        ]
+      }
     ]
   },
+
   ohp: {
     title: "OHP",
-    lines: [
-      "코어: 갈비뼈 과신전 금지, 엉덩이/복부 단단히 잠그기.",
-      "바패스: 턱을 빼서 바 길 확보, 바는 얼굴을 스치듯 '수직'으로.",
-      "그립: 손목 꺾이면 손상/힘 손실, 손목-전완 수직 유지.",
-      "하체: 완전 엄격 OHP면 무릎 반동 X, 대신 발바닥 3점 고정.",
-      "탑: 머리를 바 아래로 넣어(스택) 어깨에 부담 줄이기.",
-      "보강: 핀프레스/푸시프레스(가볍게)로 락아웃 구간 강화."
+    sections: [
+      {
+        label: "Rack Position",
+        lines: [
+          "바벨을 쇄골 위 안정적으로 거치",
+          "손목이 바 아래에서 수직 정렬"
+        ]
+      },
+      {
+        label: "Full Body Tension",
+        lines: [
+          "복압·둔근·대퇴 전체 동시 긴장",
+          "프레스 전 몸통 흔들림 완전 차단"
+        ]
+      },
+      {
+        label: "Bar Path",
+        lines: [
+          "얼굴을 살짝 뒤로 빼며 수직 상승",
+          "이마 통과 후 머리를 바 아래로 넣기"
+        ]
+      },
+      {
+        label: "Press Timing",
+        lines: [
+          "하체 반동 없이 상체 힘으로 시작",
+          "중량 올라갈수록 코어 잠금 유지"
+        ]
+      },
+      {
+        label: "Top Position",
+        lines: [
+          "귀 옆에서 바벨 정렬",
+          "상단에서 갈비 들림 없이 잠금 유지"
+        ]
+      }
     ]
   }
 };
-
 function renderCoachingAccordion(){
   const root = document.getElementById("coachAcc");
   if(!root) return;
@@ -3482,6 +3605,18 @@ function renderCoachingAccordion(){
 
   root.innerHTML = order.map(key => {
     const d = COACHING_DATA[key];
+
+    const sectionHTML = d.sections.map(sec => `
+      <div class="coach-line">
+        <div style="font-weight:700; margin-bottom:4px;">
+          ${sec.label}
+        </div>
+        ${sec.lines.map(t=>`
+          <div style="opacity:0.85;">${t}</div>
+        `).join("")}
+      </div>
+    `).join("");
+
     return `
       <div class="coach-card" data-lift="${key}">
         <button class="coach-head" type="button">
@@ -3489,19 +3624,18 @@ function renderCoachingAccordion(){
           <div class="coach-arrow">›</div>
         </button>
         <div class="coach-body">
-          ${d.lines.map(t=>`<div class="coach-line">${t}</div>`).join("")}
+          ${sectionHTML}
         </div>
       </div>
     `;
   }).join("");
 
-  // 클릭: 코칭 내부에서 열고 닫는건 허용(단, 기록 탭은 안 바뀜)
+  // 클릭 동작
   root.querySelectorAll(".coach-card .coach-head").forEach(btn=>{
     btn.addEventListener("click", ()=>{
       const card = btn.closest(".coach-card");
       if(!card) return;
-      const lift = card.dataset.lift;
-      openCoachCard(lift, /*closeOthers*/ true);
+      openCoachCard(card.dataset.lift, true);
     });
   });
 }
