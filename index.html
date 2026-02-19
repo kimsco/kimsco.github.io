@@ -3640,15 +3640,48 @@ function renderCoachingAccordion(){
   });
 }
 
-function openCoachCard(lift, closeOthers=true){
+/*********************************
+ * ✅ 코칭 아코디언: 전체 접기(=토글) 허용
+ * - 같은 카드 다시 누르면 닫힘
+ * - 다른 카드 누르면 그 카드만 열림
+ * - allowClose=true면 "0개 열림" 상태 가능
+ *********************************/
+function openCoachCard(liftKey, syncToRecord=false, allowClose=true){
   const cards = document.querySelectorAll(".coach-card");
-  if(closeOthers){
-    cards.forEach(c => c.classList.toggle("open", c.dataset.lift === lift));
-  }else{
-    // 필요하면 나중에 확장
-    cards.forEach(c => {
-      if(c.dataset.lift === lift) c.classList.add("open");
+  if(!cards.length) return;
+
+  const target = Array.from(cards).find(c => c.dataset.lift === liftKey);
+  if(!target) return;
+
+  const body = target.querySelector(".coach-body");
+  const isOpen = target.classList.contains("open") || (body && body.style.display === "block");
+
+  // ✅ 이미 열려있으면 -> 닫기(전체 접기 가능)
+  if(isOpen && allowClose){
+    cards.forEach(c=>{
+      c.classList.remove("open");
+      const b = c.querySelector(".coach-body");
+      if(b) b.style.display = "none";
+      const a = c.querySelector(".coach-arrow");
+      if(a) a.style.transform = "rotate(0deg)";
     });
+    return;
+  }
+
+  // ✅ 기본: 하나만 열기
+  cards.forEach(c=>{
+    const b = c.querySelector(".coach-body");
+    if(b) b.style.display = (c === target) ? "block" : "none";
+    c.classList.toggle("open", c === target);
+
+    const a = c.querySelector(".coach-arrow");
+    if(a) a.style.transform = (c === target) ? "rotate(90deg)" : "rotate(0deg)";
+  });
+
+  // ✅ 단방향 동기화(코칭 -> 기록) 옵션
+  if(syncToRecord){
+    // 네가 이미 갖고 있는 "기록 탭 폴더 전환" 함수/로직을 여기서 호출하면 됨
+    // 예: setActiveRecordFolder(liftKey);
   }
 }
 
