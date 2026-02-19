@@ -1149,7 +1149,66 @@ cursor: pointer;
   color: #666;
 }
 
+/* ===============================
+   ✅ 코칭 아코디언 (블랙/화이트)
+================================ */
+.coach-card{
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 14px;
+  background: #0b0b0b;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
 
+.coach-head{
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: #fff;
+  padding: 14px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  text-align: left;
+}
+
+.coach-title{
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+.coach-arrow{
+  color: rgba(255,255,255,0.6);
+  font-size: 18px;
+  line-height: 1;
+  transform: rotate(0deg);
+  transition: transform 0.18s ease;
+}
+
+.coach-card.open .coach-arrow{
+  transform: rotate(90deg);
+}
+
+.coach-body{
+  display: none;
+  padding: 0 14px 14px;
+  color: rgba(255,255,255,0.85);
+  font-size: 13px;
+  line-height: 1.75;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.coach-card.open .coach-body{
+  display: block;
+}
+
+.coach-line{
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.coach-line:last-child{ border-bottom: none; }
 
    
 /* .css ㅊㄴㄴ 붙여넣기 */
@@ -1388,7 +1447,13 @@ input[type="number"] {
     <div id="recordMessage"
          style="font-size:12px; color:#FFD700; margin-top:6px;">
     </div>
-
+<!-- ✅ 코칭(아코디언) - tab2 맨 아래 -->
+<div id="coachWrap" style="margin-top:18px;">
+  <div style="font-size:12px; color:#777; margin-bottom:10px;">
+    COACHING
+  </div>
+  <div id="coachAcc"></div>
+</div>
 
         
 </div>
@@ -3356,7 +3421,129 @@ updateYearProgress();
 setInterval(updateYearProgress, 60 * 1000);
 
    
+/*********************************
+ * ✅ 코칭(하드코딩 / DB 없음)
+ * - 제목: 영문
+ * - 내용: 한글(5줄+)
+ * - 단방향 동기화: 기록 폴더 변경 → 코칭 자동 오픈
+ *********************************/
+const COACHING_DATA = {
+  bench: {
+    title: "BENCH",
+    lines: [
+      "견갑 세팅: 과도한 후인하강X, '넓게 깔리는 느낌'으로 고정.",
+      "흉추: 과한 아치보다 '흉추 신전 + 가슴 들림' 정도만 유지.",
+      "하체: 발을 몸쪽으로 당기고, 필요 시 중족으로 지면 밀어 레그드라이브.",
+      "호흡: 내려갈 때 들이마시고, 밀고 나서 강하게 내쉬기(코어 잠금).",
+      "그립/손목: 손목 꺾이지 않게 수직 지지, 손 전체로 바벨 하중 분산.",
+      "보강: 다리 올린 벤치/템포 벤치로 코어-바패스 안정화."
+    ]
+  },
+  squat: {
+    title: "SQUAT",
+    lines: [
+      "브레이싱: 복압을 '옆/뒤'까지 채우고, 동작 내내 풀리지 않게.",
+      "무릎/발: 무릎은 발끝 방향으로 트래킹, 발바닥 3점(엄지/새끼/뒤꿈치) 고정.",
+      "상체: 바벨이 중족 위에 오게, 가슴 과도하게 들지 말고 '중립' 유지.",
+      "하강: 무릎 먼저 빼지 말고, 힙과 무릎이 같이 열리게(균형).",
+      "바닥: 반동으로 튀지 말고 바닥에서 '멈춤 0.5초' 연습 추천.",
+      "보강: 프론트 스쿼트/템포 스쿼트로 자세 붕괴 구간 잡기."
+    ]
+  },
+  dead: {
+    title: "DEADLIFT",
+    lines: [
+      "셋업: 바는 정강이 가까이, 견갑은 바 바로 위(앞으로 말림 X).",
+      "힌지: 허리로 숙이지 말고 엉덩이 접기(햄/둔근 텐션).",
+      "바패스: 바가 몸에서 멀어지면 바로 무너짐(가까이 긁듯이).",
+      "스타트: '바를 당겨서' 긴장 만든 뒤(슬랙 제거) 바닥을 민다는 느낌.",
+      "락아웃: 과신전 금지, 갈비뼈 내리고 둔근으로 마무리.",
+      "보강: RDL/하이퍼/햄스트링 컬로 힌지 유지력 강화."
+    ]
+  },
+  ohp: {
+    title: "OHP",
+    lines: [
+      "코어: 갈비뼈 과신전 금지, 엉덩이/복부 단단히 잠그기.",
+      "바패스: 턱을 빼서 바 길 확보, 바는 얼굴을 스치듯 '수직'으로.",
+      "그립: 손목 꺾이면 손상/힘 손실, 손목-전완 수직 유지.",
+      "하체: 완전 엄격 OHP면 무릎 반동 X, 대신 발바닥 3점 고정.",
+      "탑: 머리를 바 아래로 넣어(스택) 어깨에 부담 줄이기.",
+      "보강: 핀프레스/푸시프레스(가볍게)로 락아웃 구간 강화."
+    ]
+  }
+};
 
+function renderCoachingAccordion(){
+  const root = document.getElementById("coachAcc");
+  if(!root) return;
+
+  const order = ["bench","squat","dead","ohp"];
+
+  root.innerHTML = order.map(key => {
+    const d = COACHING_DATA[key];
+    return `
+      <div class="coach-card" data-lift="${key}">
+        <button class="coach-head" type="button">
+          <div class="coach-title">${d.title}</div>
+          <div class="coach-arrow">›</div>
+        </button>
+        <div class="coach-body">
+          ${d.lines.map(t=>`<div class="coach-line">${t}</div>`).join("")}
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  // 클릭: 코칭 내부에서 열고 닫는건 허용(단, 기록 탭은 안 바뀜)
+  root.querySelectorAll(".coach-card .coach-head").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const card = btn.closest(".coach-card");
+      if(!card) return;
+      const lift = card.dataset.lift;
+      openCoachCard(lift, /*closeOthers*/ true);
+    });
+  });
+}
+
+function openCoachCard(lift, closeOthers=true){
+  const cards = document.querySelectorAll(".coach-card");
+  if(closeOthers){
+    cards.forEach(c => c.classList.toggle("open", c.dataset.lift === lift));
+  }else{
+    // 필요하면 나중에 확장
+    cards.forEach(c => {
+      if(c.dataset.lift === lift) c.classList.add("open");
+    });
+  }
+}
+
+// ✅ 단방향 동기화: 기록 폴더 버튼 클릭 → 코칭 자동 오픈
+function syncCoachingFromActiveFolder(){
+  const activeBtn = document.querySelector('.folderBtn.active');
+  const target = activeBtn ? activeBtn.dataset.target : 'benchBox';
+
+  const lift =
+    target === 'benchBox' ? 'bench' :
+    target === 'squatBox' ? 'squat' :
+    target === 'deadBox'  ? 'dead'  : 'ohp';
+
+  openCoachCard(lift, true);
+}
+
+// 1) 최초 1회 렌더
+renderCoachingAccordion();
+// 2) 최초 상태도 기록 active와 맞춤(단방향)
+syncCoachingFromActiveFolder();
+
+// 3) 기존 폴더 버튼 클릭 이벤트 안에서 마지막에 이 한 줄만 추가해도 되는데,
+//    여기서 “추가 리스너”로 안전하게 붙여놓음.
+document.querySelectorAll('.folderBtn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    // 기록 폴더가 바뀐 뒤 코칭을 맞춘다
+    syncCoachingFromActiveFolder();
+  });
+});
 
    
 </script>
