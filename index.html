@@ -2327,14 +2327,10 @@ recordAdd.addEventListener('click', async ()=>{
         .doc(docId);
 
       await ref.set({
-        lift,
-        date,
-        weight,
-        reps,
-        sets: firebase.firestore.FieldValue.increment(1),
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-        createdAt: firebase.firestore.FieldValue.serverTimestamp() // merge면 최초 1회만 실질 의미
-      }, { merge: true });
+  lift, date, weight, reps,
+  sets: firebase.firestore.FieldValue.increment(1),
+  updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+}, { merge: true });
 
       // 로컬에 firestoreId 매핑(있으면 해두면 깔끔)
       const mapped = arr.find(x => x.date === date && makeKey(x.weight, x.reps) === key);
@@ -2427,6 +2423,7 @@ if (threeDoc.exists) {
   .collection("users")
   .doc(user.uid)
   .collection("records")
+  .orderBy("createdAt", "asc")   // 또는 updatedAt
   .get();
 
 records.bench = [];
