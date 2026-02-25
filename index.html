@@ -2291,32 +2291,25 @@ recordAdd.addEventListener('click', async ()=>{
     target === 'squatBox' ? 'squat' :
     target === 'deadBox'  ? 'dead'  : 'ohp';
 
-  // (A) 로컬 반영
-  const key = makeKey(weight, reps);
+  // ✅ (A) 로컬: "항상 1세트 새로 추가" (절대 합치지 않음)
+  const nowMs = Date.now();
+  const newItem = {
+    firestoreId: null,
+    localId: nowMs + "_" + Math.random(),
+    date,
+    weight,
+    reps,
+    sets: 1,            // 항상 1
+    createdAt: nowMs,
+    firstAt: nowMs,
+    lastAt:  nowMs,
+    updatedAt: nowMs
+  };
+
   const arr = records[lift] || (records[lift] = []);
+  arr.unshift(newItem);
 
-  const found = arr.find(x => x.date === date && makeKey(x.weight, x.reps) === key);
-
-  if(found){
-    found.sets = (parseInt(found.sets,10) || 1) + 1;
-    found.lastAt = Date.now();
-    found.updatedAt = Date.now();
-  }else{
-    const nowMs = Date.now();
-    arr.unshift({
-      firestoreId: null,
-      localId: nowMs + Math.random(),
-      date,
-      weight,
-      reps,
-      sets: 1,
-      firstAt: nowMs,
-      lastAt:  nowMs,
-      createdAt: nowMs,
-      updatedAt: nowMs
-    });
-  }
-
+  // 입력칸 정리 + UI
   recordWeight.value = '';
   recordReps.value = '';
   fadeTempMsg(recordMessage, '기록 추가 완료', 700, 600);
@@ -2324,45 +2317,25 @@ recordAdd.addEventListener('click', async ()=>{
   renderActiveBox();
   saveRecordsToLocal();
 
-  // (B) 로그인 상태면 Firestore에도 누적 저장
+  // ✅ (B) 로그인 상태면 Firestore에도 "항상 새 문서 add()"
   const user = auth.currentUser;
   if(user){
     try{
-      const docId = makeRecordDocId(lift, date, weight, reps);
-      const ref = db
+      const docRef = await db
         .collection('users')
         .doc(user.uid)
         .collection('records')
-        .doc(docId);
+        .add({
+          lift, date, weight, reps,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
 
-      const nowMs = Date.now();
-
-      await db.runTransaction(async (tx) => {
-        const snap = await tx.get(ref);
-
-        if(!snap.exists){
-          tx.set(ref, {
-            lift, date, weight, reps,
-            sets: 1,
-            firstAt: nowMs,
-            lastAt:  nowMs,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-          }, { merge: true });
-        }else{
-          tx.update(ref, {
-            sets: firebase.firestore.FieldValue.increment(1),
-            lastAt: nowMs,
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-          });
-        }
-      });
-
-      const mapped = arr.find(x => x.date === date && makeKey(x.weight, x.reps) === key);
-      if(mapped) mapped.firestoreId = docId;
+      // 로컬 항목에 firestoreId 연결
+      newItem.firestoreId = docRef.id;
+      saveRecordsToLocal();
 
     }catch(e){
-      console.error('Firestore upsert err', e);
+      console.error('Firestore add err', e);
     }
   }
 });
@@ -2461,16 +2434,16 @@ try {
     if (!d || !d.lift) return;
 
     const item = {
-      firestoreId: doc.id,
-      date: d.date,
-      weight: d.weight,
-      reps: d.reps,
-      sets: parseInt(d.sets, 10) || 1,
-      firstAt: typeof d.firstAt === "number" ? d.firstAt : 0,
-      lastAt:  typeof d.lastAt  === "number" ? d.lastAt  : 0,
-      createdAt: d.createdAt?.toMillis?.() || 0,
-      updatedAt: d.updatedAt?.toMillis?.() || 0
-    };
+  firestoreId: doc.id,
+  date: d.date,
+  weight: d.weight,
+  reps: d.reps,
+  sets: 1,
+  createdAt: d.createdAt?.toMillis?.() || 0,
+  firstAt:  d.createdAt?.toMillis?.() || 0,
+  lastAt:   d.createdAt?.toMillis?.() || 0,
+  updatedAt: d.createdAt?.toMillis?.() || 0
+};
 
     if (d.lift === "bench") records.bench.push(item);
     if (d.lift === "squat") records.squat.push(item);
@@ -2515,13 +2488,6 @@ try {
 
 
 
-function makeRecordDocId(lift, date, weight, reps){
-  // date: "26.02.16" -> "26_02_16" (Firestore docId 안전)
-  const safeDate = String(date).replace(/\./g, "_");
-  const w = formatKgSmart(weight);          // "90" or "90.5"
-  const r = parseInt(reps, 10);
-  return `${lift}__${safeDate}__${w}__${r}`;
-}
 
 
  
