@@ -2291,32 +2291,30 @@ recordAdd.addEventListener('click', async ()=>{
     target === 'squatBox' ? 'squat' :
     target === 'deadBox'  ? 'dead'  : 'ohp';
 
-  // ✅ (A) 로컬(게스트/로그인 공통) 먼저 반영: 같은 date+lift+weight+reps면 sets+1
+  // (A) 로컬 반영
   const key = makeKey(weight, reps);
   const arr = records[lift] || (records[lift] = []);
 
-  // 같은 날/같은 세트 찾기
   const found = arr.find(x => x.date === date && makeKey(x.weight, x.reps) === key);
 
   if(found){
     found.sets = (parseInt(found.sets,10) || 1) + 1;
-   found.lastAt = Date.now();  
+    found.lastAt = Date.now();
     found.updatedAt = Date.now();
   }else{
     const nowMs = Date.now();
-
-arr.unshift({
-  firestoreId: null,
-  localId: nowMs + Math.random(),
-  date,
-  weight,
-  reps,
-  sets: 1,
-  firstAt: nowMs,   // ✅ 입력 순서(고정)
-  lastAt:  nowMs,   // ✅ 최근 갱신
-  createdAt: nowMs,
-  updatedAt: nowMs
-});
+    arr.unshift({
+      firestoreId: null,
+      localId: nowMs + Math.random(),
+      date,
+      weight,
+      reps,
+      sets: 1,
+      firstAt: nowMs,
+      lastAt:  nowMs,
+      createdAt: nowMs,
+      updatedAt: nowMs
+    });
   }
 
   recordWeight.value = '';
@@ -2326,7 +2324,7 @@ arr.unshift({
   renderActiveBox();
   saveRecordsToLocal();
 
-  // ✅ (B) 로그인 상태면 Firestore에도 "누적 저장"
+  // (B) 로그인 상태면 Firestore에도 누적 저장
   const user = auth.currentUser;
   if(user){
     try{
@@ -2337,50 +2335,29 @@ arr.unshift({
         .collection('records')
         .doc(docId);
 
-      // ✅ (B) 로그인 상태면 Firestore에도 "누적 저장" (순서 필드 포함)
-const user = auth.currentUser;
-if(user){
-  try{
-    const docId = makeRecordDocId(lift, date, weight, reps);
-    const ref = db
-      .collection('users')
-      .doc(user.uid)
-      .collection('records')
-      .doc(docId);
+      const nowMs = Date.now();
 
-    const nowMs = Date.now();
+      await db.runTransaction(async (tx) => {
+        const snap = await tx.get(ref);
 
-    await db.runTransaction(async (tx) => {
-      const snap = await tx.get(ref);
+        if(!snap.exists){
+          tx.set(ref, {
+            lift, date, weight, reps,
+            sets: 1,
+            firstAt: nowMs,
+            lastAt:  nowMs,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          }, { merge: true });
+        }else{
+          tx.update(ref, {
+            sets: firebase.firestore.FieldValue.increment(1),
+            lastAt: nowMs,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+        }
+      });
 
-      if(!snap.exists){
-        tx.set(ref, {
-          lift, date, weight, reps,
-          sets: 1,
-          firstAt: nowMs,     // ✅ 처음 저장된 순서(고정)
-          lastAt:  nowMs,     // ✅ 마지막 업데이트(갱신)
-          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
-      }else{
-        tx.update(ref, {
-          sets: firebase.firestore.FieldValue.increment(1),
-          lastAt: nowMs,
-          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-      }
-    });
-
-    // 로컬 매핑
-    const mapped = arr.find(x => x.date === date && makeKey(x.weight, x.reps) === key);
-    if(mapped) mapped.firestoreId = docId;
-
-  }catch(e){
-    console.error('Firestore upsert err', e);
-  }
-}
-
-      // 로컬에 firestoreId 매핑(있으면 해두면 깔끔)
       const mapped = arr.find(x => x.date === date && makeKey(x.weight, x.reps) === key);
       if(mapped) mapped.firestoreId = docId;
 
@@ -2466,78 +2443,46 @@ if (threeDoc.exists) {
     }
 
     /* records */
-    try {
-      const snap = await db
-  .collection("users")
-  .doc(user.uid)
-const snap = await db
-  .collection("users")
-  .doc(user.uid)
-  .collection("records")
-  .get();
+    /* records */
+try {
+  const snap = await db
+    .collection("users")
+    .doc(user.uid)
+    .collection("records")
+    .get();
 
-records.bench = [];
-records.squat = [];
-records.dead  = [];
-records.ohp   = [];
+  records.bench = [];
+  records.squat = [];
+  records.dead  = [];
+  records.ohp   = [];
 
-snap.forEach(doc => {
-  const d = doc.data();
-  if (!d || !d.lift) return;
+  snap.forEach(doc => {
+    const d = doc.data();
+    if (!d || !d.lift) return;
 
-  const item = {
-    firestoreId: doc.id,
-    date: d.date,
-    weight: d.weight,
-    reps: d.reps,
-    sets: parseInt(d.sets, 10) || 1,
-    firstAt: typeof d.firstAt === "number" ? d.firstAt : 0,
-    lastAt:  typeof d.lastAt  === "number" ? d.lastAt  : 0,
-    createdAt: d.createdAt?.toMillis?.() || 0,
-    updatedAt: d.updatedAt?.toMillis?.() || 0
-  };
+    const item = {
+      firestoreId: doc.id,
+      date: d.date,
+      weight: d.weight,
+      reps: d.reps,
+      sets: parseInt(d.sets, 10) || 1,
+      firstAt: typeof d.firstAt === "number" ? d.firstAt : 0,
+      lastAt:  typeof d.lastAt  === "number" ? d.lastAt  : 0,
+      createdAt: d.createdAt?.toMillis?.() || 0,
+      updatedAt: d.updatedAt?.toMillis?.() || 0
+    };
 
-  if (d.lift === "bench") records.bench.push(item);
-  if (d.lift === "squat") records.squat.push(item);
-  if (d.lift === "dead")  records.dead.push(item);
-  if (d.lift === "ohp")   records.ohp.push(item);
-});
+    if (d.lift === "bench") records.bench.push(item);
+    if (d.lift === "squat") records.squat.push(item);
+    if (d.lift === "dead")  records.dead.push(item);
+    if (d.lift === "ohp")   records.ohp.push(item);
+  });
 
-// ✅ 여기서 정렬(날짜 최신 → firstAt 오름차순은 렌더에서 처리)
-renderActiveBox();
-saveRecordsToLocal();
-
-records.bench = [];
-records.squat = [];
-records.dead  = [];
-records.ohp   = [];
-
-snap.forEach(doc => {
-  const d = doc.data();
-  if (!d || !d.lift) return;
-
-  const item = {
-    firestoreId: doc.id, // ✅ 이제 doc.id가 곧 recordId(고정)
-    date: d.date,
-    weight: d.weight,
-    reps: d.reps,
-    sets: parseInt(d.sets, 10) || 1,
-    createdAt: d.createdAt?.toMillis?.() || 0,
-    updatedAt: d.updatedAt?.toMillis?.() || 0
-  };
-
-  if (d.lift === "bench") records.bench.push(item);
-  if (d.lift === "squat") records.squat.push(item);
-  if (d.lift === "dead")  records.dead.push(item);
-  if (d.lift === "ohp")   records.ohp.push(item);
-});
-
-renderActiveBox();
-saveRecordsToLocal(); // (옵션) 로그인 상태에서도 로컬 캐시 업데이트
-
-    } catch (e) {
-      console.error("load records err", e);
-    }
+  renderActiveBox();
+  saveRecordsToLocal();
+} catch (e) {
+  console.error("load records err", e);
+}
 
     /* 달력 */
     try {
