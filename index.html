@@ -1,35 +1,16 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-
-<!-- 🔥 초기 페인트 방지 (제일 위) -->
-<style>
-html,body{
-background:#000;
-margin:0;
-padding:0;
-}
-</style>
-
-<!-- 🔥 splash 이미지 선로드 -->
-<link rel="preload" as="image" href="/icons/splash.png">
-
-<meta name="apple-mobile-web-app-capable" content="yes">
-
-<link rel="apple-touch-startup-image" href="/icons/splash.png">
-
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#000000">
-
+<meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="MuscleFlow">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
-
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-
 <title>1RM</title>
 
 <style>
@@ -1229,31 +1210,6 @@ cursor: pointer;
 }
 .coach-line:last-child{ border-bottom: none; }
 
-
-#splashScreen{
-
- position:fixed;
- inset:0;
-
- background:#000;
-
- display:flex;
- align-items:center;
- justify-content:center;
-
- z-index:999999;
-
-}
-
-#splashScreen img{
-
- width:28vw;
- max-width:140px;
-
-}
-
-
-
    
 /* .css ㅊㄴㄴ 붙여넣기 */
    
@@ -1370,9 +1326,7 @@ input[type="number"] {
 </head>
 
 <body>
-<div id="splashScreen">
-<img src="/icons/splash.png" fetchpriority="high" decoding="async">
-</div>
+
 
 <div class="app">
    
@@ -1716,8 +1670,6 @@ input[type="number"] {
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <script>
-   
-   const SPLASH_START = Date.now();
    
 /* 기록 박스 데이터 (로컬 mock) 및 렌더 함수 */
 const records = { bench: [], squat: [], dead: [], ohp: [] };
@@ -2532,7 +2484,6 @@ try {
     currentExercises = [];
     renderExercises();
   }
-hideSplash();
 });
 
 
@@ -3749,43 +3700,6 @@ document.querySelectorAll('.folderBtn').forEach(btn=>{
     syncCoachingFromActiveFolder();
   });
 });
-
-function hideSplash(minMs = 1000, fadeMs = 450){
-  const s = document.getElementById("splashScreen");
-  if(!s) return;
-
-  const elapsed = Date.now() - (window.SPLASH_START || SPLASH_START || Date.now());
-  const wait = Math.max(0, minMs - elapsed);
-
-  // 깜빡임 방지: 이미 제거 중이면 재실행 막기
-  if(s.dataset.hiding === "1") return;
-  s.dataset.hiding = "1";
-
-  setTimeout(() => {
-    s.style.transition = `opacity ${fadeMs}ms ease`;
-    s.style.opacity = "0";
-    setTimeout(() => s.remove(), fadeMs);
-  }, wait);
-}
-
-(function bootSplash(){
-  const img = document.querySelector('#splashScreen img');
-  if(!img){
-    document.body.classList.add('ready');
-    return;
-  }
-
-  const done = () => {
-    document.body.classList.add('ready');
-    setTimeout(()=> document.getElementById('splashScreen')?.remove(), 260);
-  };
-
-  if (img.complete) done();
-  else img.addEventListener('load', done, { once:true });
-})();
-
-
-
 
    
 </script>
