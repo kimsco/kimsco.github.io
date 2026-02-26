@@ -1705,6 +1705,8 @@ input[type="number"] {
 
 <script>
    
+   const SPLASH_START = Date.now();
+   
 /* 기록 박스 데이터 (로컬 mock) 및 렌더 함수 */
 const records = { bench: [], squat: [], dead: [], ohp: [] };
      let calData = {}; // 🔥 Firestore에서 채울 예정
@@ -3736,18 +3738,22 @@ document.querySelectorAll('.folderBtn').forEach(btn=>{
   });
 });
 
-function hideSplash(){
+function hideSplash(minMs = 1000, fadeMs = 450){
+  const s = document.getElementById("splashScreen");
+  if(!s) return;
 
- const s = document.getElementById("splashScreen");
- if(!s) return;
+  const elapsed = Date.now() - (window.SPLASH_START || SPLASH_START || Date.now());
+  const wait = Math.max(0, minMs - elapsed);
 
- s.style.opacity=0;
- s.style.transition="opacity 0.3s";
+  // 깜빡임 방지: 이미 제거 중이면 재실행 막기
+  if(s.dataset.hiding === "1") return;
+  s.dataset.hiding = "1";
 
- setTimeout(()=>{
-  s.remove();
- },300);
-
+  setTimeout(() => {
+    s.style.transition = `opacity ${fadeMs}ms ease`;
+    s.style.opacity = "0";
+    setTimeout(() => s.remove(), fadeMs);
+  }, wait);
 }
 
 
