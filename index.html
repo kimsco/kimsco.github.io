@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-   
+   <link rel="preload" as="image" href="/icons/splash.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 
 <link rel="apple-touch-startup-image" href="/icons/splash.png">
@@ -1357,9 +1357,7 @@ input[type="number"] {
 
 <body>
 <div id="splashScreen">
-
-  <img src="/icons/splash.png">
-
+  <img src="/icons/splash.png" fetchpriority="high" decoding="async">
 </div>
 
 <div class="app">
