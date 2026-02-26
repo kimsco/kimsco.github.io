@@ -1,9 +1,14 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+   
+   <meta name="apple-mobile-web-app-capable" content="yes">
+
+<link rel="apple-touch-startup-image" href="/icons/splash.png">
+   
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#000000">
-<meta name="apple-mobile-web-app-capable" content="yes">
+
 <meta name="mobile-web-app-capable" content="yes">
 
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -1210,6 +1215,31 @@ cursor: pointer;
 }
 .coach-line:last-child{ border-bottom: none; }
 
+
+#splashScreen{
+
+ position:fixed;
+ inset:0;
+
+ background:#000;
+
+ display:flex;
+ align-items:center;
+ justify-content:center;
+
+ z-index:999999;
+
+}
+
+#splashScreen img{
+
+ width:28vw;
+ max-width:140px;
+
+}
+
+
+
    
 /* .css ㅊㄴㄴ 붙여넣기 */
    
@@ -1326,7 +1356,11 @@ input[type="number"] {
 </head>
 
 <body>
+<div id="splashScreen">
 
+  <img src="/icons/splash.png">
+
+</div>
 
 <div class="app">
    
@@ -2484,6 +2518,7 @@ try {
     currentExercises = [];
     renderExercises();
   }
+hideSplash();
 });
 
 
@@ -3700,6 +3735,22 @@ document.querySelectorAll('.folderBtn').forEach(btn=>{
     syncCoachingFromActiveFolder();
   });
 });
+
+function hideSplash(){
+
+ const s = document.getElementById("splashScreen");
+ if(!s) return;
+
+ s.style.opacity=0;
+ s.style.transition="opacity 0.3s";
+
+ setTimeout(()=>{
+  s.remove();
+ },300);
+
+}
+
+
 
    
 </script>
