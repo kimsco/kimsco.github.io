@@ -1,11 +1,23 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-   <link rel="preload" as="image" href="/icons/splash.png">
+
+<!-- 🔥 초기 페인트 방지 (제일 위) -->
+<style>
+html,body{
+background:#000;
+margin:0;
+padding:0;
+}
+</style>
+
+<!-- 🔥 splash 이미지 선로드 -->
+<link rel="preload" as="image" href="/icons/splash.png">
+
 <meta name="apple-mobile-web-app-capable" content="yes">
 
 <link rel="apple-touch-startup-image" href="/icons/splash.png">
-   
+
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#000000">
 
@@ -14,8 +26,10 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="MuscleFlow">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+
 <title>1RM</title>
 
 <style>
@@ -1357,7 +1371,7 @@ input[type="number"] {
 
 <body>
 <div id="splashScreen">
-  <img src="/icons/splash.png" fetchpriority="high" decoding="async">
+<img src="/icons/splash.png" fetchpriority="high" decoding="async">
 </div>
 
 <div class="app">
@@ -3753,6 +3767,23 @@ function hideSplash(minMs = 1000, fadeMs = 450){
     setTimeout(() => s.remove(), fadeMs);
   }, wait);
 }
+
+(function bootSplash(){
+  const img = document.querySelector('#splashScreen img');
+  if(!img){
+    document.body.classList.add('ready');
+    return;
+  }
+
+  const done = () => {
+    document.body.classList.add('ready');
+    setTimeout(()=> document.getElementById('splashScreen')?.remove(), 260);
+  };
+
+  if (img.complete) done();
+  else img.addEventListener('load', done, { once:true });
+})();
+
 
 
 
