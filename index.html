@@ -1419,6 +1419,51 @@ body.sheet-open .app{
   touch-action: none;
 }
 
+/* ✅ B안: 그래프(스크롤) + 우측 고정 Y축 */
+.graphWrap{
+  display: flex;
+  gap: 0;
+  width: 100%;
+  align-items: stretch;
+
+  border-radius: 12px;
+  background: #0a0a0a;
+  border: 1px solid rgba(255,255,255,0.06);
+  overflow: hidden; /* 축 배경까지 깔끔 */
+}
+
+/* 기존 graphScroll 배경/보더는 graphWrap로 옮겼으니, graphScroll은 단순 스크롤만 */
+.graphScroll{
+  flex: 1;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding: 10px 0 8px;
+  background: transparent;
+  border: none;
+}
+
+/* ✅ 우측 고정 축 영역 */
+.yAxis{
+  width: 56px;                 /* 숫자 들어갈 폭 */
+  position: relative;          /* 내부 tick absolute 배치 */
+  background: rgba(0,0,0,0.35);
+  border-left: 1px solid rgba(255,255,255,0.06);
+  flex: 0 0 auto;
+  pointer-events: none;        /* 스크롤 방해 X */
+}
+
+/* tick 한 줄 */
+.yTick{
+  position: absolute;
+  right: 10px;
+  transform: translateY(50%);
+  font-size: 12px;
+  color: rgba(255,255,255,0.6);
+  line-height: 1;
+  white-space: nowrap;
+}
+
 /* .css ㅊㄴㄴ 붙여넣기 */
    
 
@@ -1896,16 +1941,21 @@ input[type="number"] {
   </div>
 
   <!-- ✅ 가로 스크롤 컨테이너 -->
+<!-- 그래프 영역 -->
+<div class="graphWrap" id="graphWrap">
+
   <div class="graphScroll" id="graphScroll">
     <canvas id="liftChart"></canvas>
   </div>
 
-  <div class="graphHint" id="graphHint">
-    점을 누르면 값이 뜹니다. 좌우로 밀면 과거 기록을 볼 수 있습니다.
-  </div>
+  <!-- 우측 고정 Y축 -->
+  <div class="yAxis" id="yAxis"></div>
+
 </div>
-    </div>
-  </div>
+
+<!-- 힌트 문구 (그대로 유지) -->
+<div class="graphHint" id="graphHint">
+  점을 누르면 값이 뜹니다. 좌우로 밀면 과거 기록을 볼 수 있습니다.
 </div>
    
 <!--  </body> 끝나기 전에 아래 팝업-->
@@ -4311,15 +4361,10 @@ function renderGraphForLift(liftKey){
 
       // ✅ Y축을 오른쪽으로 + 눈금 가독성 강화
       y: {
-        position: "right",
-        beginAtZero: false,
-        grid: { color: "rgba(255,255,255,0.06)" },
-        ticks: {
-          padding: 10,                 // 숫자와 축 사이 여백
-          color: "rgba(255,255,255,0.70)",
-          callback: (v)=> `${v}`
-        }
-      }
+  beginAtZero: false,
+  grid: { color: "rgba(255,255,255,0.06)" },
+  ticks: { display: false } // ✅ 캔버스 Y축 숫자 숨김
+}
     }
   }
 });
@@ -4327,10 +4372,46 @@ function renderGraphForLift(liftKey){
   // ✅ 패널 열릴 때는 “최근(오른쪽)”이 보이게 스크롤 맨끝으로
   // (원하면 왼쪽부터 보이게 이 줄을 0으로 바꾸면 됨)
   requestAnimationFrame(()=>{
-    if(graphScroll) graphScroll.scrollLeft = graphScroll.scrollWidth;
+  if(graphScroll) graphScroll.scrollLeft = graphScroll.scrollWidth;
+});
+
+// ✅ C단계: 차트 생성 끝난 직후 y축 DOM 렌더
+requestAnimationFrame(()=>{
+  renderFixedYAxis(chartInstance);
+});
+}
+const yAxisEl = document.getElementById("yAxis");
+
+// ✅ 차트의 y스케일을 읽어서 우측 고정축(DOM)을 만든다
+function renderFixedYAxis(){
+  if(!chartInstance || !yAxisEl) return;
+
+  const y = chartInstance.scales?.y;
+  if(!y) return;
+
+  // 축 영역 높이를 시각적으로 차트 영역과 맞춤
+  const chartH = chartCanvas.height;         // 240으로 고정해둔 값
+  yAxisEl.style.height = chartH + "px";
+
+  yAxisEl.innerHTML = "";
+
+  // Chart.js가 만든 tick 목록을 사용
+  const ticks = y.ticks || [];
+  ticks.forEach(t=>{
+    const val = t.value;                     // 숫자 값
+    const px  = y.getPixelForValue(val);     // 캔버스 기준 y픽셀
+
+    // px는 캔버스 상단=0 기준이므로 그대로 사용 가능(높이도 동일하게 맞춰놨음)
+    const tick = document.createElement("div");
+    tick.className = "yTick";
+    tick.textContent = String(val);
+
+    // 숫자가 grid 라인 근처에 오도록 약간 보정
+    tick.style.top = (px - 10) + "px";
+
+    yAxisEl.appendChild(tick);
   });
 }
-
    
 </script>
 <!-- ⚠️ 여기 아래에 네가 쓰던 JS ㅓㄴ 그대로 유지 -->
