@@ -4318,7 +4318,7 @@ function renderGraphForLift(liftKey){
       fill: false
     }]
   },
-  plugins: [yAxisBg], // ✅ 추가
+  
   options: {
     responsive: false,
     maintainAspectRatio: false,
@@ -4326,17 +4326,14 @@ function renderGraphForLift(liftKey){
 
     // ✅ 오른쪽에 y축 배경 바 들어갈 자리 확보
     layout: {
-      padding: { right: 56 } // ← yAxisBg width랑 맞춰
+      padding: { right: 0 } // ← yAxisBg width랑 맞춰
     },
 
     plugins: {
       legend: { display: false },
 
       // ✅ y축 배경 바(우측 고정 바탕)
-      yAxisBg: {
-        width: 56,
-        color: "rgba(0,0,0,0.55)"
-      },
+      
 
       tooltip: {
         callbacks: {
