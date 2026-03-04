@@ -1406,7 +1406,12 @@ cursor: pointer;
   line-height: 1.4;
 }
 
-
+/* ✅ 바텀시트 열렸을 때 뒤 스크롤 잠금 */
+body.sheet-open{
+  overflow: hidden;
+  height: 100%;
+  touch-action: none;
+}
 
 /* .css ㅊㄴㄴ 붙여넣기 */
    
@@ -3961,6 +3966,7 @@ function getActiveLiftKey(){
 }
 
 function openSheet(liftKey){
+   document.body.classList.add("sheet-open");
   lastLiftKey = liftKey;
 
   // 타이틀
@@ -3987,6 +3993,7 @@ renderGraphForLift(liftKey);
 }
 
 function closeSheet(){
+   document.body.classList.remove("sheet-open");
   if(!sheetOpen) return;
 
   graphOverlay.classList.remove("show");
