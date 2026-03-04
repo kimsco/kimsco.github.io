@@ -1412,6 +1412,12 @@ body.sheet-open{
   height: 100%;
   touch-action: none;
 }
+/* ✅ 시트 열렸을 때 "실제 스크롤 주체(.app)" 잠금 */
+body.sheet-open .app{
+  overflow: hidden !important;
+  -webkit-overflow-scrolling: auto !important;
+  touch-action: none;
+}
 
 /* .css ㅊㄴㄴ 붙여넣기 */
    
