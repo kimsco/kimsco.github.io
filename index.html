@@ -3966,7 +3966,7 @@ function getActiveLiftKey(){
 }
 
 function openSheet(liftKey){
-   document.body.classList.add("sheet-open");
+  document.body.classList.add("sheet-open");
   lastLiftKey = liftKey;
 
   // 타이틀
@@ -3975,23 +3975,30 @@ function openSheet(liftKey){
     liftKey === "squat" ? "SQUAT" :
     liftKey === "dead"  ? "DEADLIFT" : "OHP";
 
-  // overlay show
-  graphOverlay.classList.remove("hidden");
-  requestAnimationFrame(()=> graphOverlay.classList.add("show"));
+  // ✅ 1) overlay + sheet: show 초기화(점프 방지)
+  graphOverlay.classList.remove("show");
+  graphSheet.classList.remove("show");
 
-  // sheet show
+  // ✅ 2) 숨김 해제
+  graphOverlay.classList.remove("hidden");
   graphSheet.classList.remove("hidden");
   graphSheet.setAttribute("aria-hidden", "false");
-  requestAnimationFrame(()=> graphSheet.classList.add("show"));
 
-  sheetOpen = true;
+  // ✅ 3) 리플로우 강제 (이게 핵심)
+  void graphSheet.offsetHeight;
 
-  // ✅ 여기서 다음 단계(Chart.js)에서 그래프 렌더 호출하면 됨
-  // renderGraphForLift(liftKey);
-renderGraphForLift(liftKey);
+  // ✅ 4) 다음 프레임(2프레임)에서 show 추가
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      graphOverlay.classList.add("show");
+      graphSheet.classList.add("show");
+      sheetOpen = true;
 
+      // 그래프 렌더 (시트가 열린 뒤)
+      renderGraphForLift(liftKey);
+    });
+  });
 }
-
 function closeSheet(){
    document.body.classList.remove("sheet-open");
   if(!sheetOpen) return;
