@@ -4091,7 +4091,8 @@ lastLiftKey = getActiveLiftKey();
       setTimeout(()=>{
         graphOverlay.classList.add("hidden");
         graphSheet.classList.add("hidden");
-        graphSheet.style.transform = `translateX(-50%) translateY(0)`;
+        graphSheet.style.transform = "";     // ✅ inline transform 제거 (CSS가 다시 지배)
+graphOverlay.style.background = "";  // ✅ inline background 제거 (CSS로 복귀)
         graphOverlay.style.background = `rgba(0,0,0,0.35)`;
       }, 230);
       sheetOpen = false;
@@ -4100,8 +4101,8 @@ lastLiftKey = getActiveLiftKey();
     }
 
     // 다시 원위치
-    graphSheet.style.transform = `translateX(-50%) translateY(0)`;
-    graphOverlay.style.background = `rgba(0,0,0,0.35)`;
+    graphSheet.style.transform = "";     // ✅ class(.show)의 transform(0)로 돌아감
+graphOverlay.style.background = "";  // ✅ CSS 기본값으로
   };
 
   handle.addEventListener("mousedown", onStart);
