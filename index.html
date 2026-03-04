@@ -3876,6 +3876,21 @@ function renderCoachingAccordion(){
   });
 }
 
+// ✅ y축 뒤 "우측 고정 바탕" 그리는 플러그인
+const yAxisBg = {
+  id: "yAxisBg",
+  beforeDraw(chart, args, opts) {
+    const { ctx, chartArea } = chart;
+    if (!chartArea) return;
+
+    const w = opts?.width ?? 56; // 우측 바 넓이
+    ctx.save();
+    ctx.fillStyle = opts?.color ?? "rgba(0,0,0,0.55)";
+    ctx.fillRect(chartArea.right, chartArea.top, w, chartArea.bottom - chartArea.top);
+    ctx.restore();
+  }
+};
+
 /*********************************
  * ✅ 코칭 아코디언: 전체 접기(=토글) 허용
  * - 같은 카드 다시 누르면 닫힘
@@ -4240,54 +4255,74 @@ function renderGraphForLift(liftKey){
   const ctx = chartCanvas.getContext("2d");
 
   chartInstance = new Chart(ctx, {
-    type: "line",
-    data: {
-      labels,
-      datasets: [{
-        label: (mode === "weight") ? "Weight (kg)" : "Est 1RM (kg)",
-        data: values,
-        tension: 0.25,
-        pointRadius: 3,
-        pointHoverRadius: 5,
-        borderWidth: 2,
-        fill: false
-      }]
+  type: "line",
+  data: {
+    labels,
+    datasets: [{
+      label: (mode === "weight") ? "Weight (kg)" : "Est 1RM (kg)",
+      data: values,
+      tension: 0.25,
+      pointRadius: 3,
+      pointHoverRadius: 5,
+      borderWidth: 2,
+      fill: false
+    }]
+  },
+  plugins: [yAxisBg], // ✅ 추가
+  options: {
+    responsive: false,
+    maintainAspectRatio: false,
+    interaction: { mode: "nearest", intersect: true },
+
+    // ✅ 오른쪽에 y축 배경 바 들어갈 자리 확보
+    layout: {
+      padding: { right: 56 } // ← yAxisBg width랑 맞춰
     },
-    options: {
-      responsive: false, // ✅ 우리가 canvas width를 직접 제어(가로 스크롤)
-      maintainAspectRatio: false,
-      interaction: { mode: "nearest", intersect: true },
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: (ctx)=>{
-              const v = ctx.parsed.y;
-              if(mode === "weight") return ` ${v} kg`;
-              return ` ${v} kg (est)`;
-            }
-          }
-        }
+
+    plugins: {
+      legend: { display: false },
+
+      // ✅ y축 배경 바(우측 고정 바탕)
+      yAxisBg: {
+        width: 56,
+        color: "rgba(0,0,0,0.55)"
       },
-      scales: {
-        x: {
-          ticks: {
-            maxRotation: 0,
-            autoSkip: true,
-            maxTicksLimit: 8
-          },
-          grid: { display: false }
-        },
-        y: {
-          beginAtZero: false,
-          grid: { color: "rgba(255,255,255,0.06)" },
-          ticks: {
-            callback: (v)=> `${v}`
+
+      tooltip: {
+        callbacks: {
+          label: (ctx)=>{
+            const v = ctx.parsed.y;
+            if(mode === "weight") return ` ${v} kg`;
+            return ` ${v} kg (est)`;
           }
         }
       }
+    },
+
+    scales: {
+      x: {
+        ticks: {
+          maxRotation: 0,
+          autoSkip: true,
+          maxTicksLimit: 8
+        },
+        grid: { display: false }
+      },
+
+      // ✅ Y축을 오른쪽으로 + 눈금 가독성 강화
+      y: {
+        position: "right",
+        beginAtZero: false,
+        grid: { color: "rgba(255,255,255,0.06)" },
+        ticks: {
+          padding: 10,                 // 숫자와 축 사이 여백
+          color: "rgba(255,255,255,0.70)",
+          callback: (v)=> `${v}`
+        }
+      }
     }
-  });
+  }
+});
 
   // ✅ 패널 열릴 때는 “최근(오른쪽)”이 보이게 스크롤 맨끝으로
   // (원하면 왼쪽부터 보이게 이 줄을 0으로 바꾸면 됨)
