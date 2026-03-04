@@ -4084,6 +4084,7 @@ lastLiftKey = getActiveLiftKey();
 
     // 일정 거리 이상 내려오면 닫기
     if(curY > 120){
+      document.body.classList.remove("sheet-open");
       // 원위치 대신 닫기 애니메이션
       graphSheet.classList.remove("show");
       graphOverlay.classList.remove("show");
