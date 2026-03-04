@@ -1236,7 +1236,6 @@ cursor: pointer;
 .sheet{
   position: fixed;
   left: 50%;
-  transform: translateX(-50%);
   bottom: 0;
 
   width: 390px;
@@ -1254,19 +1253,22 @@ cursor: pointer;
 
   z-index: 150001;
 
-  /* ✅ 애니메이션: 밑에서 슥 올라오기 */
   opacity: 0;
-  transform: translateX(-50%) translateY(18px);
-  transition: transform 220ms ease, opacity 220ms ease;
+
+  /* ✅ 처음엔 화면 아래에 숨김 */
+  transform: translateX(-50%) translateY(100%);
+
+  /* ✅ 애니메이션 */
+  transition: transform 320ms cubic-bezier(.22,1,.36,1), opacity 200ms ease;
 
   display: flex;
   flex-direction: column;
 
-  /* iOS 스크롤/터치 */
   -webkit-overflow-scrolling: touch;
-  touch-action: none; /* 드래그 제어는 JS에서 */
+  touch-action: none;
 }
 
+/* ✅ 열릴 때 */
 .sheet.show{
   opacity: 1;
   transform: translateX(-50%) translateY(0);
