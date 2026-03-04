@@ -12,7 +12,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
 <title>1RM</title>
-
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
 /* ===============================
    🔥 전체 레이아웃 (폰 비율 고정)
@@ -1336,6 +1336,76 @@ cursor: pointer;
 }
 
    
+   
+   /* ===============================
+   ✅ Graph UI
+================================ */
+.graphTopRow{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom: 10px;
+}
+
+.seg{
+  display:flex;
+  gap:6px;
+  background:#0f0f0f;
+  border:1px solid rgba(255,255,255,0.10);
+  padding:4px;
+  border-radius: 999px;
+}
+
+.segBtn{
+  all: unset;
+  cursor: pointer;
+  padding: 8px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  color: rgba(255,255,255,0.65);
+}
+
+.segBtn.active{
+  background:#fff;
+  color:#000;
+}
+
+.graphMeta{
+  font-size:12px;
+  color:#777;
+  white-space:nowrap;
+}
+
+.graphScroll{
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 8px;
+  border-radius: 12px;
+  background: #0a0a0a;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+.graphScroll::-webkit-scrollbar{ display:none; }
+
+#liftChart{
+  display:block;
+  height: 240px;      /* ✅ 고정 높이 */
+}
+
+.graphHint{
+  margin-top: 10px;
+  font-size: 12px;
+  color: #666;
+  line-height: 1.4;
+}
+
+
+
 /* .css ㅊㄴㄴ 붙여넣기 */
    
 
@@ -1803,7 +1873,24 @@ input[type="number"] {
   <div class="sheetBody">
     <!-- 여기 아래에 나중에 Chart.js 캔버스/요약/탭(Weight/1RM) 들어감 -->
     <div style="color:#777;font-size:13px;line-height:1.6;">
-      그래프 영역(다음 단계에서 Chart.js 붙임)
+      <div class="sheetBody">
+  <div class="graphTopRow">
+    <div class="seg">
+      <button class="segBtn active" data-mode="weight">WEIGHT</button>
+      <button class="segBtn" data-mode="e1rm">EST 1RM</button>
+    </div>
+    <div class="graphMeta" id="graphMeta">0 pts</div>
+  </div>
+
+  <!-- ✅ 가로 스크롤 컨테이너 -->
+  <div class="graphScroll" id="graphScroll">
+    <canvas id="liftChart"></canvas>
+  </div>
+
+  <div class="graphHint" id="graphHint">
+    점을 누르면 값이 뜹니다. 좌우로 밀면 과거 기록을 볼 수 있습니다.
+  </div>
+</div>
     </div>
   </div>
 </div>
@@ -3893,6 +3980,8 @@ function openSheet(liftKey){
 
   // ✅ 여기서 다음 단계(Chart.js)에서 그래프 렌더 호출하면 됨
   // renderGraphForLift(liftKey);
+renderGraphForLift(liftKey);
+
 }
 
 function closeSheet(){
@@ -4001,7 +4090,187 @@ lastLiftKey = getActiveLiftKey();
   document.addEventListener("touchend", onEnd);
 })();
 
+/*********************************
+ * ✅ Chart.js (Bottom Sheet Graph)
+ *********************************/
+let chartInstance = null;
+let graphMode = "weight"; // "weight" | "e1rm"
 
+const chartCanvas = document.getElementById("liftChart");
+const graphMetaEl = document.getElementById("graphMeta");
+const graphScroll = document.getElementById("graphScroll");
+
+document.querySelectorAll(".segBtn").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    document.querySelectorAll(".segBtn").forEach(b=>b.classList.remove("active"));
+    btn.classList.add("active");
+    graphMode = btn.dataset.mode || "weight";
+    if(lastLiftKey) renderGraphForLift(lastLiftKey);
+  });
+});
+
+// 'yy.mm.dd' -> Date 객체 (20yy 가정)
+function parseYYMMDD(s){
+  if(!s || typeof s !== "string") return null;
+  const m = s.match(/^(\d{2})\.(\d{2})\.(\d{2})$/);
+  if(!m) return null;
+  const yy = 2000 + parseInt(m[1],10);
+  const mm = parseInt(m[2],10) - 1;
+  const dd = parseInt(m[3],10);
+  const d = new Date(yy, mm, dd);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+// 표시 라벨: "MM.DD" (너 스타일)
+function labelMMDD(dateObj){
+  const mm = String(dateObj.getMonth()+1).padStart(2,"0");
+  const dd = String(dateObj.getDate()).padStart(2,"0");
+  return `${mm}.${dd}`;
+}
+
+// Epley 추정 1RM(너 기존 계산식 동일)
+function est1RM(weight, reps){
+  const w = parseFloat(weight);
+  const r = parseInt(reps,10);
+  if(!Number.isFinite(w) || !Number.isFinite(r) || r<=0) return NaN;
+  return w * (1 + r * 0.0333);
+}
+
+// 날짜별 최고값 집계
+function buildDailySeries(liftKey, mode){
+  const arr = records[liftKey] || [];
+  if(!arr.length) return { labels: [], values: [] };
+
+  // dateKey(yy.mm.dd) -> maxValue
+  const map = new Map();
+
+  for(const it of arr){
+    const d = parseYYMMDD(it.date);
+    if(!d) continue;
+
+    let v = NaN;
+    if(mode === "weight"){
+      v = parseFloat(it.weight);
+    }else{
+      v = est1RM(it.weight, it.reps);
+    }
+    if(!Number.isFinite(v)) continue;
+
+    const key = it.date;
+    const prev = map.get(key);
+    if(prev == null || v > prev) map.set(key, v);
+  }
+
+  // 날짜 오름차순 정렬
+  const items = Array.from(map.entries())
+    .map(([dateKey, v]) => ({ dateKey, dateObj: parseYYMMDD(dateKey), v }))
+    .filter(x => x.dateObj)
+    .sort((a,b)=> a.dateObj - b.dateObj);
+
+  const labels = items.map(x => labelMMDD(x.dateObj));
+  const values = items.map(x => Math.round(x.v * 10) / 10); // 1자리
+
+  return { labels, values };
+}
+
+// 캔버스 폭을 점 개수에 따라 늘려 가로 스크롤 되게
+function setCanvasWidthForPoints(n){
+  // 점 1개당 44px 정도 + 여백
+  const base = 320; // 최소
+  const per = 44;
+  const w = Math.max(base, 40 + n * per);
+
+  chartCanvas.style.width = w + "px";
+  chartCanvas.width = w;            // ✅ 실제 캔버스 픽셀 폭
+  chartCanvas.height = 240;         // 높이 고정
+}
+
+// 실제 렌더
+function renderGraphForLift(liftKey){
+  if(!chartCanvas) return;
+
+  const mode = graphMode;
+  const { labels, values } = buildDailySeries(liftKey, mode);
+
+  // UI 메타
+  if(graphMetaEl) graphMetaEl.textContent = `${labels.length} pts`;
+
+  // 캔버스 폭 설정(가로 스크롤)
+  setCanvasWidthForPoints(labels.length);
+
+  // 기존 차트 제거
+  if(chartInstance){
+    chartInstance.destroy();
+    chartInstance = null;
+  }
+
+  // 데이터 없으면 힌트만 남기고 종료
+  if(!labels.length){
+    const ctx = chartCanvas.getContext("2d");
+    ctx.clearRect(0,0,chartCanvas.width,chartCanvas.height);
+    // 스크롤도 맨앞
+    if(graphScroll) graphScroll.scrollLeft = 0;
+    return;
+  }
+
+  const ctx = chartCanvas.getContext("2d");
+
+  chartInstance = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels,
+      datasets: [{
+        label: (mode === "weight") ? "Weight (kg)" : "Est 1RM (kg)",
+        data: values,
+        tension: 0.25,
+        pointRadius: 3,
+        pointHoverRadius: 5,
+        borderWidth: 2,
+        fill: false
+      }]
+    },
+    options: {
+      responsive: false, // ✅ 우리가 canvas width를 직접 제어(가로 스크롤)
+      maintainAspectRatio: false,
+      interaction: { mode: "nearest", intersect: true },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (ctx)=>{
+              const v = ctx.parsed.y;
+              if(mode === "weight") return ` ${v} kg`;
+              return ` ${v} kg (est)`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: {
+            maxRotation: 0,
+            autoSkip: true,
+            maxTicksLimit: 8
+          },
+          grid: { display: false }
+        },
+        y: {
+          beginAtZero: false,
+          grid: { color: "rgba(255,255,255,0.06)" },
+          ticks: {
+            callback: (v)=> `${v}`
+          }
+        }
+      }
+    }
+  });
+
+  // ✅ 패널 열릴 때는 “최근(오른쪽)”이 보이게 스크롤 맨끝으로
+  // (원하면 왼쪽부터 보이게 이 줄을 0으로 바꾸면 됨)
+  requestAnimationFrame(()=>{
+    if(graphScroll) graphScroll.scrollLeft = graphScroll.scrollWidth;
+  });
+}
 
    
 </script>
