@@ -1419,49 +1419,54 @@ body.sheet-open .app{
   touch-action: none;
 }
 
-/* ✅ B안: 그래프(스크롤) + 우측 고정 Y축 */
+/* ✅ 그래프 영역: "칸" 없이, Y축 숫자만 오버레이 */
 .graphWrap{
-  display: flex;
-  gap: 0;
+  position: relative;         /* 오버레이 기준 */
   width: 100%;
-  align-items: stretch;
-
   border-radius: 12px;
   background: #0a0a0a;
   border: 1px solid rgba(255,255,255,0.06);
-  overflow: hidden; /* 축 배경까지 깔끔 */
+  overflow: hidden;
 }
 
-/* 기존 graphScroll 배경/보더는 graphWrap로 옮겼으니, graphScroll은 단순 스크롤만 */
+/* 스크롤은 그래프만 담당 */
 .graphScroll{
-  flex: 1;
+  width: 100%;
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
-  padding: 10px 0 8px;
+  padding: 0;                 /* ✅ padding 제거(정렬 꼬임 방지) */
   background: transparent;
   border: none;
 }
+.graphScroll::-webkit-scrollbar{ display:none; }
 
-/* ✅ 우측 고정 축 영역 */
-.yAxis{
-  width: 56px;                 /* 숫자 들어갈 폭 */
-  position: relative;          /* 내부 tick absolute 배치 */
-  background: rgba(0,0,0,0.35);
-  border-left: 1px solid rgba(255,255,255,0.06);
-  flex: 0 0 auto;
-  pointer-events: none;        /* 스크롤 방해 X */
+/* 캔버스: "CSS 높이"도 고정(추가로 JS에서 height 속성도 고정할 거임) */
+#liftChart{
+  display:block;
+  height: 240px;
 }
 
-/* tick 한 줄 */
+/* ✅ 우측 고정 Y축: 칸을 만들지 말고 '겹쳐' 올리기 */
+.yAxis{
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 52px;               /* 숫자 들어갈 최소 폭 */
+  height: 240px;             /* JS에서도 동일 값으로 맞춤 */
+  pointer-events: none;
+  background: transparent;    /* ✅ 검은 바 제거 */
+}
+
+/* tick 텍스트 */
 .yTick{
   position: absolute;
-  right: 10px;
-  transform: translateY(50%);
+  right: 8px;
   font-size: 12px;
   color: rgba(255,255,255,0.6);
   line-height: 1;
   white-space: nowrap;
+  transform: translateY(-50%); /* ✅ 중앙 정렬이 더 자연스러움 */
 }
 
 /* .css ㅊㄴㄴ 붙여넣기 */
@@ -4264,14 +4269,23 @@ function buildDailySeries(liftKey, mode){
 
 // 캔버스 폭을 점 개수에 따라 늘려 가로 스크롤 되게
 function setCanvasWidthForPoints(n){
+  const H = 240; // ✅ 고정 높이
+
   // 점 1개당 44px 정도 + 여백
-  const base = 320; // 최소
+  const base = 320;
   const per = 44;
   const w = Math.max(base, 40 + n * per);
 
+  // ✅ 컨테이너도 높이 고정(로그인 시 늘어나는 것 방지)
+  if(graphScroll) graphScroll.style.height = H + "px";
+  if(yAxisEl) yAxisEl.style.height = H + "px";
+
+  // canvas는 "속성"으로 고정해야 진짜로 고정됨
+  chartCanvas.width  = w;
+  chartCanvas.height = H;
+
+  // (선택) CSS 폭만 따로 주고 싶으면 유지
   chartCanvas.style.width = w + "px";
-  chartCanvas.width = w;            // ✅ 실제 캔버스 픽셀 폭
-  chartCanvas.height = 240;         // 높이 고정
 }
 
 // 실제 렌더
@@ -4404,7 +4418,7 @@ function renderFixedYAxis(){
     tick.textContent = String(val);
 
     // 숫자가 grid 라인 근처에 오도록 약간 보정
-    tick.style.top = (px - 10) + "px";
+    tick.style.top = px + "px";
 
     yAxisEl.appendChild(tick);
   });
