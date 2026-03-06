@@ -1381,26 +1381,37 @@ cursor: pointer;
   white-space:nowrap;
 }
 
+/* ===============================
+   그래프 스크롤 영역
+================================ */
 .graphScroll{
   width: 100%;
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
-  padding-bottom: 8px;
-  border-radius: 12px;
-  background: #0a0a0a;
-  border: 1px solid rgba(255,255,255,0.06);
 
-touch-action: pan-x;   /* ✅ 한손 좌우 스크
+  padding: 0;                 
+  background: transparent;
+  border: none;
+
+  touch-action: pan-x;        /* 한손 좌우 스크롤 */
 }
 
-.graphScroll::-webkit-scrollbar{ display:none; }
+.graphScroll::-webkit-scrollbar{
+  display: none;
+}
 
+/* ===============================
+   그래프 캔버스
+================================ */
 #liftChart{
-  display:block;
-  height: 240px;      /* ✅ 고정 높이 */
+  display: block;
+  height: 240px;              /* 고정 높이 */
 }
 
+/* ===============================
+   그래프 힌트 문구
+================================ */
 .graphHint{
   margin-top: 10px;
   font-size: 12px;
@@ -1408,56 +1419,49 @@ touch-action: pan-x;   /* ✅ 한손 좌우 스크
   line-height: 1.4;
 }
 
-/* ✅ 바텀시트 열렸을 때 뒤 스크롤 잠금 */
+/* ===============================
+   바텀시트 열렸을 때 뒤 스크롤 잠금
+================================ */
 body.sheet-open{
   overflow: hidden;
   height: 100%;
   touch-action: none;
 }
-/* ✅ 시트 열렸을 때 "실제 스크롤 주체(.app)" 잠금 */
+
+/* 실제 스크롤 주체(.app) 잠금 */
 body.sheet-open .app{
   overflow: hidden !important;
   -webkit-overflow-scrolling: auto !important;
   touch-action: none;
 }
 
-/* ✅ 그래프 영역: "칸" 없이, Y축 숫자만 오버레이 */
+/* ===============================
+   그래프 전체 영역
+================================ */
 .graphWrap{
-  position: relative;         /* 오버레이 기준 */
+  position: relative;
   width: 100%;
+
   border-radius: 12px;
   background: #0a0a0a;
   border: 1px solid rgba(255,255,255,0.06);
+
   overflow: hidden;
 }
 
-/* 스크롤은 그래프만 담당 */
-.graphScroll{
-  width: 100%;
-  overflow-x: auto;
-  overflow-y: hidden;
-  -webkit-overflow-scrolling: touch;
-  padding: 0;                 /* ✅ padding 제거(정렬 꼬임 방지) */
-  background: transparent;
-  border: none;
-}
-.graphScroll::-webkit-scrollbar{ display:none; }
-
-/* 캔버스: "CSS 높이"도 고정(추가로 JS에서 height 속성도 고정할 거임) */
-#liftChart{
-  display:block;
-  height: 240px;
-}
-
-/* ✅ 우측 고정 Y축: 칸을 만들지 말고 '겹쳐' 올리기 */
+/* ===============================
+   우측 고정 Y축
+================================ */
 .yAxis{
   position: absolute;
   top: 0;
   right: 0;
-  width: 52px;               /* 숫자 들어갈 최소 폭 */
-  height: 240px;             /* JS에서도 동일 값으로 맞춤 */
+
+  width: 52px;
+  height: 240px;
+
   pointer-events: none;
-  background: transparent;    /* ✅ 검은 바 제거 */
+  background: transparent;
 }
 
 /* tick 텍스트 */
@@ -4466,11 +4470,8 @@ function updateChartZoom(){
 
   if(!chartInstance) return;
 
-  const y = chartInstance.scales.y;
-
-  const range = (y.max - y.min) / zoomLevel;
-
-  const center = (y.max + y.min) / 2;
+  const range = (baseYMax - baseYMin) / zoomLevel;
+  const center = (baseYMax + baseYMin) / 2;
 
   const newMin = center - range/2;
   const newMax = center + range/2;
@@ -4483,7 +4484,7 @@ function updateChartZoom(){
   renderFixedYAxis();
 }
 
-
+zoomLevel = Math.min(6, Math.max(0.4, zoomLevel * scale));
    
 </script>
 <!-- ⚠️ 여기 아래에 네가 쓰던 JS ㅓㄴ 그대로 유지 -->
