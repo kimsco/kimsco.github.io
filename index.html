@@ -4063,7 +4063,8 @@ function openSheet(liftKey){
       graphSheet.classList.add("show");
       sheetOpen = true;
 
-      // 그래프 렌더 (시트가 열린 뒤)
+          // 그래프 렌더 (시트가 열린 뒤)
+      resetGraphZoomState();
       renderGraphForLift(liftKey);
     });
   });
@@ -4179,6 +4180,9 @@ graphOverlay.style.background = "";  // ✅ CSS 기본값으로
 
 /*********************************
  * ✅ Chart.js (Bottom Sheet Graph)
+ * - 1손가락: 좌우 스크롤 유지
+ * - 2손가락: Y축 핀치줌
+ * - 종목/모드 변경 시 줌 초기화
  *********************************/
 let chartInstance = null;
 let graphMode = "weight"; // "weight" | "e1rm"
@@ -4186,12 +4190,26 @@ let graphMode = "weight"; // "weight" | "e1rm"
 const chartCanvas = document.getElementById("liftChart");
 const graphMetaEl = document.getElementById("graphMeta");
 const graphScroll = document.getElementById("graphScroll");
+const yAxisEl = document.getElementById("yAxis");
+
+/* ===== 핀치줌 상태 ===== */
+let zoomLevel = 1;
+let baseYMin = null;
+let baseYMax = null;
+let minYSpan = 4;
+let isPinching = false;
+let pinchStartDist = 0;
+let pinchStartZoom = 1;
+
+const ZOOM_OUT_LIMIT = 1.18; // 기본 범위보다 최대 18%까지만 더 넓힘
 
 document.querySelectorAll(".segBtn").forEach(btn=>{
   btn.addEventListener("click", ()=>{
     document.querySelectorAll(".segBtn").forEach(b=>b.classList.remove("active"));
     btn.classList.add("active");
     graphMode = btn.dataset.mode || "weight";
+
+    resetGraphZoomState(); // ✅ 모드 바뀌면 줌 초기화
     if(lastLiftKey) renderGraphForLift(lastLiftKey);
   });
 });
@@ -4208,18 +4226,18 @@ function parseYYMMDD(s){
   return isNaN(d.getTime()) ? null : d;
 }
 
-// 표시 라벨: "MM.DD" (너 스타일)
+// 표시 라벨: "MM.DD"
 function labelMMDD(dateObj){
   const mm = String(dateObj.getMonth()+1).padStart(2,"0");
   const dd = String(dateObj.getDate()).padStart(2,"0");
   return `${mm}.${dd}`;
 }
 
-// Epley 추정 1RM(너 기존 계산식 동일)
+// Epley 추정 1RM
 function est1RM(weight, reps){
   const w = parseFloat(weight);
   const r = parseInt(reps,10);
-  if(!Number.isFinite(w) || !Number.isFinite(r) || r<=0) return NaN;
+  if(!Number.isFinite(w) || !Number.isFinite(r) || r <= 0) return NaN;
   return w * (1 + r * 0.0333);
 }
 
@@ -4228,7 +4246,6 @@ function buildDailySeries(liftKey, mode){
   const arr = records[liftKey] || [];
   if(!arr.length) return { labels: [], values: [] };
 
-  // dateKey(yy.mm.dd) -> maxValue
   const map = new Map();
 
   for(const it of arr){
@@ -4248,36 +4265,96 @@ function buildDailySeries(liftKey, mode){
     if(prev == null || v > prev) map.set(key, v);
   }
 
-  // 날짜 오름차순 정렬
   const items = Array.from(map.entries())
     .map(([dateKey, v]) => ({ dateKey, dateObj: parseYYMMDD(dateKey), v }))
     .filter(x => x.dateObj)
     .sort((a,b)=> a.dateObj - b.dateObj);
 
   const labels = items.map(x => labelMMDD(x.dateObj));
-  const values = items.map(x => Math.round(x.v * 10) / 10); // 1자리
+  const values = items.map(x => Math.round(x.v * 10) / 10);
 
   return { labels, values };
 }
 
-// 캔버스 폭을 점 개수에 따라 늘려 가로 스크롤 되게
-function setCanvasWidthForPoints(n){
-  const H = 240; // ✅ 고정 높이
+function resetGraphZoomState(){
+  zoomLevel = 1;
+  baseYMin = null;
+  baseYMax = null;
+  minYSpan = 4;
+  isPinching = false;
+  pinchStartDist = 0;
+  pinchStartZoom = 1;
+}
 
-  // 점 1개당 44px 정도 + 여백
+function clamp(v, min, max){
+  return Math.min(max, Math.max(min, v));
+}
+
+function getTouchDistance(t1, t2){
+  const dx = t1.clientX - t2.clientX;
+  const dy = t1.clientY - t2.clientY;
+  return Math.sqrt(dx * dx + dy * dy);
+}
+
+function captureBaseYRange(){
+  if(!chartInstance) return;
+
+  const y = chartInstance.scales?.y;
+  if(!y) return;
+
+  baseYMin = y.min;
+  baseYMax = y.max;
+
+  const baseSpan = Math.max(1, baseYMax - baseYMin);
+
+  // 너무 미세하게까지 확대되지 않도록 최소 span 제한
+  minYSpan = Math.max(4, Math.round(baseSpan * 0.12 * 10) / 10);
+}
+
+function getMinZoomLevel(){
+  // 줌아웃 최소치
+  return 1 / ZOOM_OUT_LIMIT;
+}
+
+function getMaxZoomLevel(){
+  if(baseYMin == null || baseYMax == null) return 1;
+
+  const baseSpan = Math.max(1, baseYMax - baseYMin);
+  return Math.max(1, baseSpan / minYSpan);
+}
+
+function applyZoomLevel(){
+  if(!chartInstance) return;
+  if(baseYMin == null || baseYMax == null) return;
+
+  const baseSpan = Math.max(1, baseYMax - baseYMin);
+  const center = (baseYMin + baseYMax) / 2;
+
+  const maxSpan = baseSpan * ZOOM_OUT_LIMIT;
+  const targetSpan = clamp(baseSpan / zoomLevel, minYSpan, maxSpan);
+
+  const newMin = center - targetSpan / 2;
+  const newMax = center + targetSpan / 2;
+
+  chartInstance.options.scales.y.min = Number(newMin.toFixed(2));
+  chartInstance.options.scales.y.max = Number(newMax.toFixed(2));
+
+  chartInstance.update("none");
+  renderFixedYAxis();
+}
+
+// 캔버스 폭을 점 개수에 따라 늘려 가로 스크롤
+function setCanvasWidthForPoints(n){
+  const H = 240;
   const base = 320;
   const per = 44;
   const w = Math.max(base, 40 + n * per);
 
-  // ✅ 컨테이너도 높이 고정(로그인 시 늘어나는 것 방지)
   if(graphScroll) graphScroll.style.height = H + "px";
   if(yAxisEl) yAxisEl.style.height = H + "px";
 
-  // canvas는 "속성"으로 고정해야 진짜로 고정됨
-  chartCanvas.width  = w;
+  chartCanvas.width = w;
   chartCanvas.height = H;
-
-  // (선택) CSS 폭만 따로 주고 싶으면 유지
   chartCanvas.style.width = w + "px";
 }
 
@@ -4285,137 +4362,172 @@ function setCanvasWidthForPoints(n){
 function renderGraphForLift(liftKey){
   if(!chartCanvas) return;
 
+  resetGraphZoomState(); // ✅ 종목 바뀌면 줌 초기화
+
   const mode = graphMode;
   const { labels, values } = buildDailySeries(liftKey, mode);
 
-  // UI 메타
   if(graphMetaEl) graphMetaEl.textContent = `${labels.length} pts`;
 
-  // 캔버스 폭 설정(가로 스크롤)
   setCanvasWidthForPoints(labels.length);
 
-  // 기존 차트 제거
   if(chartInstance){
     chartInstance.destroy();
     chartInstance = null;
   }
 
-  // 데이터 없으면 힌트만 남기고 종료
   if(!labels.length){
     const ctx = chartCanvas.getContext("2d");
-    ctx.clearRect(0,0,chartCanvas.width,chartCanvas.height);
-    // 스크롤도 맨앞
+    ctx.clearRect(0, 0, chartCanvas.width, chartCanvas.height);
     if(graphScroll) graphScroll.scrollLeft = 0;
+    if(yAxisEl) yAxisEl.innerHTML = "";
     return;
   }
 
   const ctx = chartCanvas.getContext("2d");
 
   chartInstance = new Chart(ctx, {
-  type: "line",
-  data: {
-    labels,
-    datasets: [{
-      label: (mode === "weight") ? "Weight (kg)" : "Est 1RM (kg)",
-      data: values,
-      tension: 0.25,
-      pointRadius: 3,
-      pointHoverRadius: 5,
-      borderWidth: 2,
-      fill: false
-    }]
-  },
-  
-  options: {
-    responsive: false,
-    maintainAspectRatio: false,
-    interaction: { mode: "nearest", intersect: true },
-
-    // ✅ 오른쪽에 y축 배경 바 들어갈 자리 확보
-    layout: {
-      padding: { right: 0 } // ← yAxisBg width랑 맞춰
+    type: "line",
+    data: {
+      labels,
+      datasets: [{
+        label: (mode === "weight") ? "Weight (kg)" : "Est 1RM (kg)",
+        data: values,
+        tension: 0.25,
+        pointRadius: 3,
+        pointHoverRadius: 5,
+        borderWidth: 2,
+        fill: false
+      }]
     },
 
-    plugins: {
-      legend: { display: false },
+    options: {
+      responsive: false,
+      maintainAspectRatio: false,
+      interaction: { mode: "nearest", intersect: true },
 
-      // ✅ y축 배경 바(우측 고정 바탕)
-      
-
-      tooltip: {
-        callbacks: {
-          label: (ctx)=>{
-            const v = ctx.parsed.y;
-            if(mode === "weight") return ` ${v} kg`;
-            return ` ${v} kg (est)`;
-          }
-        }
-      }
-    },
-
-    scales: {
-      x: {
-        ticks: {
-          maxRotation: 0,
-          autoSkip: true,
-          maxTicksLimit: 8
-        },
-        grid: { display: false }
+      layout: {
+        padding: { right: 0 }
       },
 
-      // ✅ Y축을 오른쪽으로 + 눈금 가독성 강화
-      y: {
-  beginAtZero: false,
-  grid: { color: "rgba(255,255,255,0.06)" },
-  ticks: { display: false } // ✅ 캔버스 Y축 숫자 숨김
-}
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (ctx)=>{
+              const v = ctx.parsed.y;
+              return mode === "weight" ? ` ${v} kg` : ` ${v} kg (est)`;
+            }
+          }
+        }
+      },
+
+      scales: {
+        x: {
+          ticks: {
+            maxRotation: 0,
+            autoSkip: true,
+            maxTicksLimit: 8
+          },
+          grid: { display: false }
+        },
+        y: {
+          beginAtZero: false,
+          grid: { color: "rgba(255,255,255,0.06)" },
+          ticks: { display: false }
+        }
+      }
     }
-  }
-});
+  });
 
-  // ✅ 패널 열릴 때는 “최근(오른쪽)”이 보이게 스크롤 맨끝으로
-  // (원하면 왼쪽부터 보이게 이 줄을 0으로 바꾸면 됨)
   requestAnimationFrame(()=>{
-  if(graphScroll) graphScroll.scrollLeft = graphScroll.scrollWidth;
-});
+    captureBaseYRange();   // ✅ 기본 자동 y범위 저장
+    renderFixedYAxis();
 
-// ✅ C단계: 차트 생성 끝난 직후 y축 DOM 렌더
-requestAnimationFrame(()=>{
-  renderFixedYAxis(chartInstance);
-});
+    // 최근 기록이 오른쪽에 보이게
+    if(graphScroll) graphScroll.scrollLeft = graphScroll.scrollWidth;
+  });
 }
-const yAxisEl = document.getElementById("yAxis");
 
-// ✅ 차트의 y스케일을 읽어서 우측 고정축(DOM)을 만든다
 function renderFixedYAxis(){
   if(!chartInstance || !yAxisEl) return;
 
   const y = chartInstance.scales?.y;
   if(!y) return;
 
-  // 축 영역 높이를 시각적으로 차트 영역과 맞춤
-  const chartH = chartCanvas.height;         // 240으로 고정해둔 값
+  const chartH = chartCanvas.height;
   yAxisEl.style.height = chartH + "px";
-
   yAxisEl.innerHTML = "";
 
-  // Chart.js가 만든 tick 목록을 사용
   const ticks = y.ticks || [];
   ticks.forEach(t=>{
-    const val = t.value;                     // 숫자 값
-    const px  = y.getPixelForValue(val);     // 캔버스 기준 y픽셀
+    const val = t.value;
+    const px = y.getPixelForValue(val);
 
-    // px는 캔버스 상단=0 기준이므로 그대로 사용 가능(높이도 동일하게 맞춰놨음)
     const tick = document.createElement("div");
     tick.className = "yTick";
     tick.textContent = String(val);
-
-    // 숫자가 grid 라인 근처에 오도록 약간 보정
     tick.style.top = px + "px";
 
     yAxisEl.appendChild(tick);
   });
 }
+
+/* =========================
+   PINCH ZOOM
+   - 1손가락: 기존 좌우 스크롤 유지
+   - 2손가락: y축 줌
+========================= */
+
+graphScroll.addEventListener("touchstart", (e)=>{
+  if(!chartInstance) return;
+  if(e.touches.length !== 2) return;
+
+  isPinching = true;
+  pinchStartDist = getTouchDistance(e.touches[0], e.touches[1]);
+  pinchStartZoom = zoomLevel;
+
+  // 2손가락 줌 시작 시 브라우저 기본처리 막기
+  e.preventDefault();
+}, { passive:false });
+
+graphScroll.addEventListener("touchmove", (e)=>{
+  if(!chartInstance) return;
+  if(!isPinching) return;
+  if(e.touches.length !== 2) return;
+
+  const dist = getTouchDistance(e.touches[0], e.touches[1]);
+  if(!pinchStartDist) return;
+
+  const scale = dist / pinchStartDist;
+  const nextZoom = clamp(
+    pinchStartZoom * scale,
+    getMinZoomLevel(),
+    getMaxZoomLevel()
+  );
+
+  if(Math.abs(nextZoom - zoomLevel) < 0.01) return;
+
+  zoomLevel = nextZoom;
+  applyZoomLevel();
+
+  // 2손가락 중에는 가로스크롤보다 줌 우선
+  e.preventDefault();
+}, { passive:false });
+
+graphScroll.addEventListener("touchend", (e)=>{
+  if(e.touches.length < 2){
+    isPinching = false;
+    pinchStartDist = 0;
+    pinchStartZoom = zoomLevel;
+  }
+}, { passive:true });
+
+graphScroll.addEventListener("touchcancel", ()=>{
+  isPinching = false;
+  pinchStartDist = 0;
+  pinchStartZoom = zoomLevel;
+}, { passive:true });
    
 </script>
 <!-- ⚠️ 여기 아래에 네가 쓰던 JS ㅓㄴ 그대로 유지 -->
