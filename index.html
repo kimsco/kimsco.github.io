@@ -1394,7 +1394,7 @@ cursor: pointer;
   background: transparent;
   border: none;
 
-  touch-action: pan-x;        /* 한손 좌우 스크롤 */
+  touch-action: none;      /* 한손 좌우 스크롤 */
 }
 
 .graphScroll::-webkit-scrollbar{
@@ -4293,7 +4293,8 @@ function setCanvasWidthForPoints(n){
   // (선택) CSS 폭만 따로 주고 싶으면 유지
   chartCanvas.style.width = w + "px";
 }
-
+let baseCanvasWidth = 0;
+let baseCanvasHeight = 240;
 // 실제 렌더
 function renderGraphForLift(liftKey){
   if(!chartCanvas) return;
@@ -4306,7 +4307,7 @@ function renderGraphForLift(liftKey){
 
   // 캔버스 폭 설정(가로 스크롤)
   setCanvasWidthForPoints(labels.length);
-
+baseCanvasWidth = chartCanvas.width;
   // 기존 차트 제거
   if(chartInstance){
     chartInstance.destroy();
@@ -4458,7 +4459,7 @@ graphScroll.addEventListener("touchmove",(e)=>{
 
   const scale = dist / pinchStartDist;
 
-  zoomLevel = Math.min(3, Math.max(0.6, zoomLevel * scale));
+  zoomLevel = Math.min(4, Math.max(0.5, zoomLevel * scale));
 
   updateChartZoom();
 
@@ -4470,21 +4471,19 @@ function updateChartZoom(){
 
   if(!chartInstance) return;
 
-  const range = (baseYMax - baseYMin) / zoomLevel;
-  const center = (baseYMax + baseYMin) / 2;
+  const newWidth = baseCanvasWidth * zoomLevel;
+  const newHeight = baseCanvasHeight * zoomLevel;
 
-  const newMin = center - range/2;
-  const newMax = center + range/2;
+  chartCanvas.width = newWidth;
+  chartCanvas.height = newHeight;
 
-  chartInstance.options.scales.y.min = newMin;
-  chartInstance.options.scales.y.max = newMax;
+  chartCanvas.style.width = newWidth + "px";
+  chartCanvas.style.height = newHeight + "px";
 
-  chartInstance.update("none");
+  chartInstance.resize();
 
-  renderFixedYAxis();
 }
 
-zoomLevel = Math.min(6, Math.max(0.4, zoomLevel * scale));
    
 </script>
 <!-- ⚠️ 여기 아래에 네가 쓰던 JS ㅓㄴ 그대로 유지 -->
