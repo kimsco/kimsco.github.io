@@ -1383,20 +1383,20 @@ cursor: pointer;
 
 .graphScroll{
   width: 100%;
-  overflow: hidden;              /* ✅ 실제 네이티브 스크롤 제거 */
-  -webkit-overflow-scrolling: auto;
-  padding: 0;
-  background: transparent;
-  border: none;
-  touch-action: none;           /* ✅ 제스처는 JS가 직접 처리 */
-}
-.graphScroll::-webkit-scrollbar{
-  display: none;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 8px;
+  border-radius: 12px;
+  background: #0a0a0a;
+  border: 1px solid rgba(255,255,255,0.06);
 }
 
+.graphScroll::-webkit-scrollbar{ display:none; }
+
 #liftChart{
-  display: block;
-  height: 240px; /* 고정 높이 */
+  display:block;
+  height: 240px;      /* ✅ 고정 높이 */
 }
 
 .graphHint{
@@ -1406,29 +1406,40 @@ cursor: pointer;
   line-height: 1.4;
 }
 
-/* 바텀시트 열렸을 때 뒤 스크롤 잠금 */
+/* ✅ 바텀시트 열렸을 때 뒤 스크롤 잠금 */
 body.sheet-open{
   overflow: hidden;
   height: 100%;
   touch-action: none;
 }
-
-/* 시트 열렸을 때 실제 스크롤 주체(.app) 잠금 */
+/* ✅ 시트 열렸을 때 "실제 스크롤 주체(.app)" 잠금 */
 body.sheet-open .app{
   overflow: hidden !important;
   -webkit-overflow-scrolling: auto !important;
   touch-action: none;
 }
 
-/* 그래프 영역 */
+/* ✅ 그래프 영역: "칸" 없이, Y축 숫자만 오버레이 */
 .graphWrap{
-  position: relative;
+  position: relative;         /* 오버레이 기준 */
   width: 100%;
   border-radius: 12px;
   background: #0a0a0a;
   border: 1px solid rgba(255,255,255,0.06);
   overflow: hidden;
 }
+
+/* 스크롤은 그래프만 담당 */
+.graphScroll{
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding: 0;                 /* ✅ padding 제거(정렬 꼬임 방지) */
+  background: transparent;
+  border: none;
+}
+.graphScroll::-webkit-scrollbar{ display:none; }
 
 /* 캔버스: "CSS 높이"도 고정(추가로 JS에서 height 속성도 고정할 거임) */
 #liftChart{
@@ -4059,8 +4070,7 @@ function openSheet(liftKey){
       graphSheet.classList.add("show");
       sheetOpen = true;
 
-          // 그래프 렌더 (시트가 열린 뒤)
-      resetGraphZoomState();
+      // 그래프 렌더 (시트가 열린 뒤)
       renderGraphForLift(liftKey);
     });
   });
@@ -4174,12 +4184,8 @@ graphOverlay.style.background = "";  // ✅ CSS 기본값으로
   document.addEventListener("touchend", onEnd);
 })();
 
-
 /*********************************
  * ✅ Chart.js (Bottom Sheet Graph)
- * - X축 구간 핀치줌
- * - 한손 좌우 팬
- * - 화면 밖 최신값 우측 태그 표시
  *********************************/
 let chartInstance = null;
 let graphMode = "weight"; // "weight" | "e1rm"
@@ -4187,36 +4193,17 @@ let graphMode = "weight"; // "weight" | "e1rm"
 const chartCanvas = document.getElementById("liftChart");
 const graphMetaEl = document.getElementById("graphMeta");
 const graphScroll = document.getElementById("graphScroll");
-const graphWrap = document.getElementById("graphWrap");
-const yAxisEl = document.getElementById("yAxis");
 
-const graphState = {
-  liftKey: null,
-  fullLabels: [],
-  fullValues: [],
-  zoomX: 1,          // 1 = 전체 보기
-  minZoomX: 1,
-  maxZoomX: 6,
-  startIndex: 0,     // 현재 보이는 구간의 시작 index
-};
-
-let edgeValueTagEl = null;
-
-// seg 버튼
 document.querySelectorAll(".segBtn").forEach(btn=>{
   btn.addEventListener("click", ()=>{
     document.querySelectorAll(".segBtn").forEach(b=>b.classList.remove("active"));
     btn.classList.add("active");
     graphMode = btn.dataset.mode || "weight";
-
-    if(lastLiftKey){
-      // 모드만 바뀔 때는 현재 줌/구간 유지
-      renderGraphForLift(lastLiftKey, { keepView: true });
-    }
+    if(lastLiftKey) renderGraphForLift(lastLiftKey);
   });
 });
 
-// 'yy.mm.dd' -> Date 객체
+// 'yy.mm.dd' -> Date 객체 (20yy 가정)
 function parseYYMMDD(s){
   if(!s || typeof s !== "string") return null;
   const m = s.match(/^(\d{2})\.(\d{2})\.(\d{2})$/);
@@ -4228,16 +4215,18 @@ function parseYYMMDD(s){
   return isNaN(d.getTime()) ? null : d;
 }
 
+// 표시 라벨: "MM.DD" (너 스타일)
 function labelMMDD(dateObj){
   const mm = String(dateObj.getMonth()+1).padStart(2,"0");
   const dd = String(dateObj.getDate()).padStart(2,"0");
   return `${mm}.${dd}`;
 }
 
+// Epley 추정 1RM(너 기존 계산식 동일)
 function est1RM(weight, reps){
   const w = parseFloat(weight);
   const r = parseInt(reps,10);
-  if(!Number.isFinite(w) || !Number.isFinite(r) || r <= 0) return NaN;
+  if(!Number.isFinite(w) || !Number.isFinite(r) || r<=0) return NaN;
   return w * (1 + r * 0.0333);
 }
 
@@ -4246,6 +4235,7 @@ function buildDailySeries(liftKey, mode){
   const arr = records[liftKey] || [];
   if(!arr.length) return { labels: [], values: [] };
 
+  // dateKey(yy.mm.dd) -> maxValue
   const map = new Map();
 
   for(const it of arr){
@@ -4265,376 +4255,174 @@ function buildDailySeries(liftKey, mode){
     if(prev == null || v > prev) map.set(key, v);
   }
 
+  // 날짜 오름차순 정렬
   const items = Array.from(map.entries())
     .map(([dateKey, v]) => ({ dateKey, dateObj: parseYYMMDD(dateKey), v }))
     .filter(x => x.dateObj)
     .sort((a,b)=> a.dateObj - b.dateObj);
 
-  return {
-    labels: items.map(x => labelMMDD(x.dateObj)),
-    values: items.map(x => Math.round(x.v * 100) / 100)
-  };
+  const labels = items.map(x => labelMMDD(x.dateObj));
+  const values = items.map(x => Math.round(x.v * 10) / 10); // 1자리
+
+  return { labels, values };
 }
 
-function getVisibleCount(total){
-  if(total <= 0) return 0;
-  return Math.max(2, Math.min(total, Math.round(total / graphState.zoomX)));
-}
+// 캔버스 폭을 점 개수에 따라 늘려 가로 스크롤 되게
+function setCanvasWidthForPoints(n){
+  const H = 240; // ✅ 고정 높이
 
-function clampStartIndex(total, startIndex){
-  const visibleCount = getVisibleCount(total);
-  const maxStart = Math.max(0, total - visibleCount);
-  return Math.max(0, Math.min(startIndex, maxStart));
-}
+  // 점 1개당 44px 정도 + 여백
+  const base = 320;
+  const per = 44;
+  const w = Math.max(base, 40 + n * per);
 
-function getVisibleSlice(){
-  const total = graphState.fullValues.length;
-  const visibleCount = getVisibleCount(total);
-  const start = clampStartIndex(total, graphState.startIndex);
-  const end = Math.min(total, start + visibleCount);
-
-  return {
-    start,
-    end,
-    total,
-    visibleCount,
-    labels: graphState.fullLabels.slice(start, end),
-    values: graphState.fullValues.slice(start, end)
-  };
-}
-
-function setCanvasFixedSize(){
-  const H = 240;
-  const wrapW = graphWrap ? graphWrap.clientWidth : 320;
-
+  // ✅ 컨테이너도 높이 고정(로그인 시 늘어나는 것 방지)
   if(graphScroll) graphScroll.style.height = H + "px";
   if(yAxisEl) yAxisEl.style.height = H + "px";
 
-  chartCanvas.width = Math.max(280, Math.floor(wrapW));
+  // canvas는 "속성"으로 고정해야 진짜로 고정됨
+  chartCanvas.width  = w;
   chartCanvas.height = H;
-  chartCanvas.style.width = "100%";
-  chartCanvas.style.height = H + "px";
+
+  // (선택) CSS 폭만 따로 주고 싶으면 유지
+  chartCanvas.style.width = w + "px";
 }
 
-function calcYRange(values){
-  if(!values.length){
-    return { min: 0, max: 1 };
-  }
-
-  let min = Math.min(...values);
-  let max = Math.max(...values);
-
-  if(min === max){
-    const pad = Math.max(1, Math.abs(min) * 0.03);
-    return { min: min - pad, max: max + pad };
-  }
-
-  const range = max - min;
-  const pad = Math.max(range * 0.18, 0.8);
-  return { min: min - pad, max: max + pad };
-}
-
-function ensureEdgeValueTag(){
-  if(edgeValueTagEl) return edgeValueTagEl;
-
-  edgeValueTagEl = document.createElement("div");
-  edgeValueTagEl.id = "edgeValueTag";
-  edgeValueTagEl.style.position = "absolute";
-  edgeValueTagEl.style.right = "8px";
-  edgeValueTagEl.style.padding = "5px 9px";
-  edgeValueTagEl.style.borderRadius = "8px";
-  edgeValueTagEl.style.background = "rgba(220, 82, 82, 0.95)";
-  edgeValueTagEl.style.color = "#fff";
-  edgeValueTagEl.style.fontSize = "12px";
-  edgeValueTagEl.style.fontWeight = "700";
-  edgeValueTagEl.style.lineHeight = "1";
-  edgeValueTagEl.style.pointerEvents = "none";
-  edgeValueTagEl.style.transform = "translateY(-50%)";
-  edgeValueTagEl.style.display = "none";
-  edgeValueTagEl.style.zIndex = "40";
-
-  graphWrap.appendChild(edgeValueTagEl);
-  return edgeValueTagEl;
-}
-
-function hideEdgeValueTag(){
-  const el = ensureEdgeValueTag();
-  el.style.display = "none";
-}
-
-function showEdgeValueTag(value){
-  if(!chartInstance || !graphWrap) return;
-
-  const el = ensureEdgeValueTag();
-  const yScale = chartInstance.scales?.y;
-  if(!yScale) return;
-
-  const yPx = yScale.getPixelForValue(value);
-  const topMin = 14;
-  const topMax = chartCanvas.height - 14;
-  const top = Math.max(topMin, Math.min(topMax, yPx));
-
-  el.textContent = `${formatKgSmart(value)}`;
-  el.style.top = top + "px";
-  el.style.display = "block";
-}
-
-function renderGraphForLift(liftKey, opts = {}){
+// 실제 렌더
+function renderGraphForLift(liftKey){
   if(!chartCanvas) return;
 
-  const { keepView = false } = opts;
   const mode = graphMode;
   const { labels, values } = buildDailySeries(liftKey, mode);
 
-  const liftChanged = graphState.liftKey !== liftKey;
+  // UI 메타
+  if(graphMetaEl) graphMetaEl.textContent = `${labels.length} pts`;
 
-  graphState.liftKey = liftKey;
-  graphState.fullLabels = labels;
-  graphState.fullValues = values;
+  // 캔버스 폭 설정(가로 스크롤)
+  setCanvasWidthForPoints(labels.length);
 
-  if(liftChanged || !keepView){
-    graphState.zoomX = 1;
-    graphState.startIndex = 0;
-  }
-
-  graphState.startIndex = clampStartIndex(values.length, graphState.startIndex);
-
-  const slice = getVisibleSlice();
-
-  if(graphMetaEl) graphMetaEl.textContent = `${values.length} pts`;
-
-  setCanvasFixedSize();
-
+  // 기존 차트 제거
   if(chartInstance){
     chartInstance.destroy();
     chartInstance = null;
   }
 
-  if(!slice.labels.length){
+  // 데이터 없으면 힌트만 남기고 종료
+  if(!labels.length){
     const ctx = chartCanvas.getContext("2d");
     ctx.clearRect(0,0,chartCanvas.width,chartCanvas.height);
-    if(yAxisEl) yAxisEl.innerHTML = "";
-    hideEdgeValueTag();
+    // 스크롤도 맨앞
+    if(graphScroll) graphScroll.scrollLeft = 0;
     return;
   }
 
   const ctx = chartCanvas.getContext("2d");
-  const yRange = calcYRange(slice.values);
 
   chartInstance = new Chart(ctx, {
-    type: "line",
-    data: {
-      labels: slice.labels,
-      datasets: [{
-        label: (mode === "weight") ? "Weight (kg)" : "Est 1RM (kg)",
-        data: slice.values,
-        tension: 0.25,
-        pointRadius: 4,
-        pointHoverRadius: 6,
-        borderWidth: 2,
-        fill: false
-      }]
-    },
-    options: {
-      responsive: false,
-      maintainAspectRatio: false,
-      animation: false,
-      interaction: { mode: "nearest", intersect: true },
+  type: "line",
+  data: {
+    labels,
+    datasets: [{
+      label: (mode === "weight") ? "Weight (kg)" : "Est 1RM (kg)",
+      data: values,
+      tension: 0.25,
+      pointRadius: 3,
+      pointHoverRadius: 5,
+      borderWidth: 2,
+      fill: false
+    }]
+  },
+  
+  options: {
+    responsive: false,
+    maintainAspectRatio: false,
+    interaction: { mode: "nearest", intersect: true },
 
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: (ctx)=>{
-              const v = ctx.parsed.y;
-              if(mode === "weight") return ` ${formatKgSmart(v)} kg`;
-              return ` ${formatKgSmart(v)} kg (est)`;
-            }
+    // ✅ 오른쪽에 y축 배경 바 들어갈 자리 확보
+    layout: {
+      padding: { right: 0 } // ← yAxisBg width랑 맞춰
+    },
+
+    plugins: {
+      legend: { display: false },
+
+      // ✅ y축 배경 바(우측 고정 바탕)
+      
+
+      tooltip: {
+        callbacks: {
+          label: (ctx)=>{
+            const v = ctx.parsed.y;
+            if(mode === "weight") return ` ${v} kg`;
+            return ` ${v} kg (est)`;
           }
         }
+      }
+    },
+
+    scales: {
+      x: {
+        ticks: {
+          maxRotation: 0,
+          autoSkip: true,
+          maxTicksLimit: 8
+        },
+        grid: { display: false }
       },
 
-      scales: {
-        x: {
-          ticks: {
-            maxRotation: 0,
-            autoSkip: true,
-            maxTicksLimit: Math.min(6, slice.visibleCount)
-          },
-          grid: { display: false }
-        },
-        y: {
-          min: yRange.min,
-          max: yRange.max,
-          beginAtZero: false,
-          grid: { color: "rgba(255,255,255,0.06)" },
-          ticks: { display: false }
-        }
-      }
-    }
-  });
-
-  renderFixedYAxis();
-
-  // 최신값이 오른쪽 화면 밖에 있으면 우측 참고값 태그 표시
-  if(slice.end < slice.total){
-    const latestValue = values[values.length - 1];
-    showEdgeValueTag(latestValue);
-  }else{
-    hideEdgeValueTag();
-  }
+      // ✅ Y축을 오른쪽으로 + 눈금 가독성 강화
+      y: {
+  beginAtZero: false,
+  grid: { color: "rgba(255,255,255,0.06)" },
+  ticks: { display: false } // ✅ 캔버스 Y축 숫자 숨김
 }
+    }
+  }
+});
 
+  // ✅ 패널 열릴 때는 “최근(오른쪽)”이 보이게 스크롤 맨끝으로
+  // (원하면 왼쪽부터 보이게 이 줄을 0으로 바꾸면 됨)
+  requestAnimationFrame(()=>{
+  if(graphScroll) graphScroll.scrollLeft = graphScroll.scrollWidth;
+});
+
+// ✅ C단계: 차트 생성 끝난 직후 y축 DOM 렌더
+requestAnimationFrame(()=>{
+  renderFixedYAxis(chartInstance);
+});
+}
+const yAxisEl = document.getElementById("yAxis");
+
+// ✅ 차트의 y스케일을 읽어서 우측 고정축(DOM)을 만든다
 function renderFixedYAxis(){
   if(!chartInstance || !yAxisEl) return;
 
   const y = chartInstance.scales?.y;
   if(!y) return;
 
-  yAxisEl.style.height = chartCanvas.height + "px";
+  // 축 영역 높이를 시각적으로 차트 영역과 맞춤
+  const chartH = chartCanvas.height;         // 240으로 고정해둔 값
+  yAxisEl.style.height = chartH + "px";
+
   yAxisEl.innerHTML = "";
 
+  // Chart.js가 만든 tick 목록을 사용
   const ticks = y.ticks || [];
   ticks.forEach(t=>{
-    const val = t.value;
-    const px = y.getPixelForValue(val);
+    const val = t.value;                     // 숫자 값
+    const px  = y.getPixelForValue(val);     // 캔버스 기준 y픽셀
 
+    // px는 캔버스 상단=0 기준이므로 그대로 사용 가능(높이도 동일하게 맞춰놨음)
     const tick = document.createElement("div");
     tick.className = "yTick";
-    tick.textContent = formatKgSmart(val);
+    tick.textContent = String(val);
+
+    // 숫자가 grid 라인 근처에 오도록 약간 보정
     tick.style.top = px + "px";
 
     yAxisEl.appendChild(tick);
   });
 }
-
-/*********************************
- * ✅ Gesture: 핀치줌 / 한손 팬
- *********************************/
-let pinchActive = false;
-let pinchStartDist = 0;
-let pinchStartZoomX = 1;
-let pinchAnchorRatio = 0.5;
-
-let panActive = false;
-let panStartX = 0;
-let panStartIndex = 0;
-
-function getTouchDistance(t1, t2){
-  const dx = t1.clientX - t2.clientX;
-  const dy = t1.clientY - t2.clientY;
-  return Math.sqrt(dx * dx + dy * dy);
-}
-
-function getTouchMidRatio(t1, t2, el){
-  const rect = el.getBoundingClientRect();
-  const midX = (t1.clientX + t2.clientX) / 2;
-  return Math.max(0, Math.min(1, (midX - rect.left) / rect.width));
-}
-
-function applyZoomX(nextZoomX, anchorRatio = 0.5){
-  const total = graphState.fullValues.length;
-  if(total <= 1) return;
-
-  const oldVisibleCount = getVisibleCount(total);
-  const oldStart = graphState.startIndex;
-
-  // 핀치 기준점이 현재 보이는 구간 내에서 어느 위치인지 계산
-  const anchorGlobalIndex = oldStart + anchorRatio * (oldVisibleCount - 1);
-
-  graphState.zoomX = Math.max(graphState.minZoomX, Math.min(graphState.maxZoomX, nextZoomX));
-
-  const newVisibleCount = getVisibleCount(total);
-  const newStart = Math.round(anchorGlobalIndex - anchorRatio * (newVisibleCount - 1));
-
-  graphState.startIndex = clampStartIndex(total, newStart);
-
-  if(graphState.liftKey){
-    renderGraphForLift(graphState.liftKey, { keepView: true });
-  }
-}
-
-function applyPanX(deltaX){
-  const total = graphState.fullValues.length;
-  if(total <= 1) return;
-
-  const visibleCount = getVisibleCount(total);
-  const maxStart = Math.max(0, total - visibleCount);
-  if(maxStart <= 0) return;
-
-  const width = graphWrap ? graphWrap.clientWidth : 300;
-  const pxPerIndex = width / Math.max(visibleCount - 1, 1);
-
-  // 손가락을 왼쪽으로 밀면 -> 더 최신 구간 보이기(start 증가)
-  // 손가락을 오른쪽으로 밀면 -> 과거 구간 보이기(start 감소)
-  const moveIndex = Math.round(-deltaX / Math.max(pxPerIndex, 1));
-
-  graphState.startIndex = clampStartIndex(total, panStartIndex + moveIndex);
-
-  if(graphState.liftKey){
-    renderGraphForLift(graphState.liftKey, { keepView: true });
-  }
-}
-
-if(graphScroll){
-  graphScroll.addEventListener("touchstart", (e)=>{
-    if(!graphState.liftKey) return;
-
-    if(e.touches.length === 2){
-      pinchActive = true;
-      panActive = false;
-
-      pinchStartDist = getTouchDistance(e.touches[0], e.touches[1]);
-      pinchStartZoomX = graphState.zoomX;
-      pinchAnchorRatio = getTouchMidRatio(e.touches[0], e.touches[1], graphScroll);
-      return;
-    }
-
-    if(e.touches.length === 1 && graphState.zoomX > 1){
-      panActive = true;
-      pinchActive = false;
-      panStartX = e.touches[0].clientX;
-      panStartIndex = graphState.startIndex;
-    }
-  }, { passive: true });
-
-  graphScroll.addEventListener("touchmove", (e)=>{
-    if(!graphState.liftKey) return;
-
-    // 핀치줌
-    if(pinchActive && e.touches.length === 2){
-      const dist = getTouchDistance(e.touches[0], e.touches[1]);
-      if(!pinchStartDist) return;
-
-      const scale = dist / pinchStartDist;
-      const nextZoomX = pinchStartZoomX * scale;
-
-      applyZoomX(nextZoomX, pinchAnchorRatio);
-      return;
-    }
-
-    // 한손 좌우 팬
-    if(panActive && e.touches.length === 1 && graphState.zoomX > 1){
-      const dx = e.touches[0].clientX - panStartX;
-      applyPanX(dx);
-    }
-  }, { passive: true });
-
-  graphScroll.addEventListener("touchend", (e)=>{
-    if(e.touches.length < 2){
-      pinchActive = false;
-    }
-    if(e.touches.length === 0){
-      panActive = false;
-    }
-  }, { passive: true });
-
-  graphScroll.addEventListener("touchcancel", ()=>{
-    pinchActive = false;
-    panActive = false;
-  }, { passive: true });
-}
-
    
 </script>
 <!-- ⚠️ 여기 아래에 네가 쓰던 JS ㅓㄴ 그대로 유지 -->
