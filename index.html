@@ -1481,31 +1481,31 @@ body.sheet-open .app{
 .refDashed{
   position: absolute;
   height: 0;
-  border-top: 1.5px dashed rgba(255,255,255,0.45);
+  border-top: 1px dashed rgba(86,156,255,0.9);
   display: none;
 }
 
 .refTag{
   position: absolute;
-  right: 8px;
+  right: 6px;
   transform: translateY(-50%);
-  min-width: 62px;
-  height: 32px;
-  padding: 0 10px;
+
+  height: 22px;
+  padding: 0 8px;
   box-sizing: border-box;
 
   display: none;
   align-items: center;
   justify-content: center;
 
-  background: #0f0f10;
-  border: 1px solid rgba(255,255,255,0.22);
-  border-radius: 9px;
+  background: #3b82f6;
+  border: none;
+  border-radius: 4px;
 
   color: #fff;
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: 0.1px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
   white-space: nowrap;
 }
 
@@ -4340,20 +4340,25 @@ function updateRightReferenceTag(){
     return;
   }
 
-  const tagRightInset = 8;
-  const tagApproxWidth = 74;
-  const lineEndX = graphWrapEl.clientWidth - tagApproxWidth - tagRightInset - 6;
-  const lineStartX = Math.max(10, xInWrap);
+  
+   const tagRightInset = 6;
+const tagApproxWidth = 58;   // ✅ 작은 박스 기준
+const lineEndX = graphWrapEl.clientWidth - tagApproxWidth - tagRightInset - 4;
+    const lineStartX = Math.max(10, xInWrap);
   const lineWidth = Math.max(0, lineEndX - lineStartX);
 
-  refDashedEl.style.display = "block";
-  refDashedEl.style.left = `${lineStartX}px`;
-  refDashedEl.style.top = `${yInWrap}px`;
-  refDashedEl.style.width = `${lineWidth}px`;
-
   refTagEl.style.display = "flex";
-  refTagEl.style.top = `${yInWrap}px`;
-  refTagEl.textContent = formatGraphKg(target.value);
+refTagEl.style.top = `${yInWrap}px`;
+refTagEl.textContent = formatGraphKg(target.value);
+
+const actualTagWidth = refTagEl.offsetWidth || 58;
+const lineEndX2 = graphWrapEl.clientWidth - actualTagWidth - tagRightInset - 4;
+const lineWidth2 = Math.max(0, lineEndX2 - lineStartX);
+
+refDashedEl.style.display = "block";
+refDashedEl.style.left = `${lineStartX}px`;
+refDashedEl.style.top = `${yInWrap}px`;
+refDashedEl.style.width = `${lineWidth2}px`;
 }
 
 document.querySelectorAll(".segBtn").forEach(btn=>{
