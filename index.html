@@ -1469,6 +1469,37 @@ body.sheet-open .app{
   transform: translateY(-50%); /* ✅ 중앙 정렬이 더 자연스러움 */
 }
 
+.coachToggleRow{
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-top: 8px;
+  margin-bottom: 2px;
+}
+
+.coachToggleBtn{
+  all: unset;
+  cursor: pointer;
+  color: rgba(255,255,255,0.88);
+  font-size: 18px;
+  line-height: 1;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(0deg);
+  transition: transform 0.18s ease, opacity 0.18s ease;
+}
+
+.coachToggleBtn:active{
+  opacity: 0.65;
+}
+
+#coachWrap{
+  display: none; /* 기본 숨김 */
+}
+
 /* .css ㅊㄴㄴ 붙여넣기 */
    
 
@@ -1705,6 +1736,9 @@ input[type="number"] {
     <div id="recordMessage"
          style="font-size:12px; color:#FFD700; margin-top:6px;">
     </div>
+   <div class="coachToggleRow">
+  <button id="coachToggleBtn" class="coachToggleBtn" aria-label="코칭 열기/닫기">▽</button>
+</div>
 <!-- ✅ 코칭(아코디언) - tab2 맨 아래 -->
 <div id="coachWrap" style="margin-top:18px;">
   <div style="font-size:12px; color:#777; margin-bottom:10px;">
@@ -4423,7 +4457,31 @@ function renderFixedYAxis(){
     yAxisEl.appendChild(tick);
   });
 }
-   
+   const coachWrap = document.getElementById("coachWrap");
+const coachToggleBtn = document.getElementById("coachToggleBtn");
+
+let coachVisible = false; // 기본 숨김
+
+function setCoachVisible(show){
+  coachVisible = show;
+
+  if(coachWrap){
+    coachWrap.style.display = show ? "block" : "none";
+  }
+
+  if(coachToggleBtn){
+    coachToggleBtn.textContent = show ? "△" : "▽";
+  }
+}
+
+if(coachToggleBtn){
+  coachToggleBtn.addEventListener("click", ()=>{
+    setCoachVisible(!coachVisible);
+  });
+}
+
+// 처음엔 숨김
+setCoachVisible(false);
 </script>
 <!-- ⚠️ 여기 아래에 네가 쓰던 JS ㅓㄴ 그대로 유지 -->
 <script>
