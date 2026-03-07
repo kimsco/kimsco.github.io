@@ -271,21 +271,22 @@ td, th {
     display: none;
     margin-top: 10px;
 
-    background:#000;
-    border:1px solid rgba(255,255,255,0.08);  /* 흰 테두리 */
+    background: #000;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
 
-    border-radius: 8px;
-    padding: 10px;
+    padding: 12px 14px;
 
-    height: 488px;
+    height: 450px;
     overflow: auto;
 
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
-    font-size: 16px;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+    font-size: 15px;
     font-weight: 400;
-    line-height: 1.9;
-    letter-spacing: 0.2px;
-    color: #E5E5E7;
+    line-height: 1.55;
+    letter-spacing: -0.1px;
+
+    color: rgba(255,255,255,0.92);
 }
 
 .folderContent.active {
@@ -1497,6 +1498,12 @@ body.sheet-open .app{
 
 #coachWrap{
   display: none; /* 기본 숨김 */
+}
+
+.record-line{
+    font-size:15px;
+    line-height:1.5;
+    color:rgba(255,255,255,0.92);
 }
 
 /* .css ㅊㄴㄴ 붙여넣기 */
