@@ -1468,6 +1468,46 @@ body.sheet-open .app{
   white-space: nowrap;
   transform: translateY(-50%); /* ✅ 중앙 정렬이 더 자연스러움 */
 }
+/* ===============================
+   ✅ 우측 기준선 + 값 박스
+================================ */
+.refOverlay{
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 6;
+}
+
+.refDashed{
+  position: absolute;
+  height: 0;
+  border-top: 1.5px dashed rgba(255,255,255,0.45);
+  display: none;
+}
+
+.refTag{
+  position: absolute;
+  right: 8px;
+  transform: translateY(-50%);
+  min-width: 62px;
+  height: 32px;
+  padding: 0 10px;
+  box-sizing: border-box;
+
+  display: none;
+  align-items: center;
+  justify-content: center;
+
+  background: #0f0f10;
+  border: 1px solid rgba(255,255,255,0.22);
+  border-radius: 9px;
+
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.1px;
+  white-space: nowrap;
+}
 
 /* .css ㅊㄴㄴ 붙여넣기 */
    
@@ -4194,6 +4234,128 @@ const chartCanvas = document.getElementById("liftChart");
 const graphMetaEl = document.getElementById("graphMeta");
 const graphScroll = document.getElementById("graphScroll");
 
+const graphWrapEl = document.getElementById("graphWrap");
+
+let graphRenderCache = {
+  labels: [],
+  values: []
+};
+
+let refOverlayEl = null;
+let refDashedEl = null;
+let refTagEl = null;
+let refUpdateRaf = null;
+
+function ensureReferenceOverlay(){
+  if(refOverlayEl) return;
+
+  refOverlayEl = document.createElement("div");
+  refOverlayEl.className = "refOverlay";
+
+  refDashedEl = document.createElement("div");
+  refDashedEl.className = "refDashed";
+
+  refTagEl = document.createElement("div");
+  refTagEl.className = "refTag";
+
+  refOverlayEl.appendChild(refDashedEl);
+  refOverlayEl.appendChild(refTagEl);
+  graphWrapEl.appendChild(refOverlayEl);
+}
+
+function hideRightReferenceTag(){
+  ensureReferenceOverlay();
+  refDashedEl.style.display = "none";
+  refTagEl.style.display = "none";
+}
+
+function formatGraphKg(v){
+  const n = Math.round(Number(v) * 10) / 10;
+  if(!Number.isFinite(n)) return "";
+  const s = n.toFixed(1);
+  return s.endsWith(".0") ? `${s.slice(0, -2)}kg` : `${s}kg`;
+}
+
+function requestUpdateRightReferenceTag(){
+  if(refUpdateRaf) return;
+  refUpdateRaf = requestAnimationFrame(() => {
+    refUpdateRaf = null;
+    updateRightReferenceTag();
+  });
+}
+
+function updateRightReferenceTag(){
+  ensureReferenceOverlay();
+
+  if(!chartInstance || !graphRenderCache.values.length){
+    hideRightReferenceTag();
+    return;
+  }
+
+  const xScale = chartInstance.scales?.x;
+  const yScale = chartInstance.scales?.y;
+
+  if(!xScale || !yScale){
+    hideRightReferenceTag();
+    return;
+  }
+
+  const scrollLeft = graphScroll.scrollLeft;
+  const viewW = graphScroll.clientWidth;
+  const visibleLeft = scrollLeft;
+  const visibleRight = scrollLeft + viewW;
+
+  const points = graphRenderCache.values.map((v, i) => ({
+    index: i,
+    value: v,
+    x: xScale.getPixelForValue(i)
+  }));
+
+  if(!points.length){
+    hideRightReferenceTag();
+    return;
+  }
+
+  // 현재 화면 안에 보이는 점들
+  const visiblePoints = points.filter(p => p.x >= visibleLeft && p.x <= visibleRight);
+
+  // 화면 안의 가장 오른쪽 점을 기준으로 사용
+  let target = null;
+
+  if(visiblePoints.length){
+    target = visiblePoints[visiblePoints.length - 1];
+  } else {
+    // 예외 상황: 화면 안 점이 하나도 안 잡히면 가장 가까운 오른쪽 점 선택
+    target = points.reduce((best, cur) => {
+      return Math.abs(cur.x - visibleRight) < Math.abs(best.x - visibleRight) ? cur : best;
+    }, points[0]);
+  }
+
+  const xInWrap = target.x - scrollLeft;
+  const yInWrap = yScale.getPixelForValue(target.value);
+
+  // 그래프 영역 밖이면 숨김
+  if(xInWrap < -20 || xInWrap > graphWrapEl.clientWidth + 20){
+    hideRightReferenceTag();
+    return;
+  }
+
+  const tagRightInset = 8;
+  const tagApproxWidth = 74;
+  const lineEndX = graphWrapEl.clientWidth - tagApproxWidth - tagRightInset - 6;
+  const lineStartX = Math.max(10, xInWrap);
+  const lineWidth = Math.max(0, lineEndX - lineStartX);
+
+  refDashedEl.style.display = "block";
+  refDashedEl.style.left = `${lineStartX}px`;
+  refDashedEl.style.top = `${yInWrap}px`;
+  refDashedEl.style.width = `${lineWidth}px`;
+
+  refTagEl.style.display = "flex";
+  refTagEl.style.top = `${yInWrap}px`;
+  refTagEl.textContent = formatGraphKg(target.value);
+}
+
 document.querySelectorAll(".segBtn").forEach(btn=>{
   btn.addEventListener("click", ()=>{
     document.querySelectorAll(".segBtn").forEach(b=>b.classList.remove("active"));
@@ -4295,101 +4457,98 @@ function renderGraphForLift(liftKey){
   const mode = graphMode;
   const { labels, values } = buildDailySeries(liftKey, mode);
 
-  // UI 메타
+  graphRenderCache = {
+    labels: [...labels],
+    values: [...values]
+  };
+
   if(graphMetaEl) graphMetaEl.textContent = `${labels.length} pts`;
 
-  // 캔버스 폭 설정(가로 스크롤)
   setCanvasWidthForPoints(labels.length);
 
-  // 기존 차트 제거
   if(chartInstance){
     chartInstance.destroy();
     chartInstance = null;
   }
 
-  // 데이터 없으면 힌트만 남기고 종료
   if(!labels.length){
     const ctx = chartCanvas.getContext("2d");
     ctx.clearRect(0,0,chartCanvas.width,chartCanvas.height);
-    // 스크롤도 맨앞
     if(graphScroll) graphScroll.scrollLeft = 0;
+    hideRightReferenceTag();
     return;
   }
 
   const ctx = chartCanvas.getContext("2d");
 
   chartInstance = new Chart(ctx, {
-  type: "line",
-  data: {
-    labels,
-    datasets: [{
-      label: (mode === "weight") ? "Weight (kg)" : "Est 1RM (kg)",
-      data: values,
-      tension: 0.25,
-      pointRadius: 3,
-      pointHoverRadius: 5,
-      borderWidth: 2,
-      fill: false
-    }]
-  },
-  
-  options: {
-    responsive: false,
-    maintainAspectRatio: false,
-    interaction: { mode: "nearest", intersect: true },
-
-    // ✅ 오른쪽에 y축 배경 바 들어갈 자리 확보
-    layout: {
-      padding: { right: 0 } // ← yAxisBg width랑 맞춰
+    type: "line",
+    data: {
+      labels,
+      datasets: [{
+        label: (mode === "weight") ? "Weight (kg)" : "Est 1RM (kg)",
+        data: values,
+        tension: 0.25,
+        pointRadius: 3,
+        pointHoverRadius: 5,
+        borderWidth: 2,
+        fill: false
+      }]
     },
 
-    plugins: {
-      legend: { display: false },
+    options: {
+      responsive: false,
+      maintainAspectRatio: false,
+      interaction: { mode: "nearest", intersect: true },
 
-      // ✅ y축 배경 바(우측 고정 바탕)
-      
-
-      tooltip: {
-        callbacks: {
-          label: (ctx)=>{
-            const v = ctx.parsed.y;
-            if(mode === "weight") return ` ${v} kg`;
-            return ` ${v} kg (est)`;
-          }
+      // ✅ 핵심: 첫 시작 시 오른쪽에 숨 쉴 여백
+      layout: {
+        padding: {
+          right: 84
         }
-      }
-    },
-
-    scales: {
-      x: {
-        ticks: {
-          maxRotation: 0,
-          autoSkip: true,
-          maxTicksLimit: 8
-        },
-        grid: { display: false }
       },
 
-      // ✅ Y축을 오른쪽으로 + 눈금 가독성 강화
-      y: {
-  beginAtZero: false,
-  grid: { color: "rgba(255,255,255,0.06)" },
-  ticks: { display: false } // ✅ 캔버스 Y축 숫자 숨김
-}
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (ctx)=>{
+              const v = ctx.parsed.y;
+              if(mode === "weight") return ` ${v} kg`;
+              return ` ${v} kg (est)`;
+            }
+          }
+        }
+      },
+
+      scales: {
+        x: {
+          ticks: {
+            maxRotation: 0,
+            autoSkip: true,
+            maxTicksLimit: 8
+          },
+          grid: { display: false }
+        },
+
+        y: {
+          beginAtZero: false,
+          grid: { color: "rgba(255,255,255,0.06)" },
+          ticks: { display: false }
+        }
+      }
     }
-  }
-});
+  });
 
-  // ✅ 패널 열릴 때는 “최근(오른쪽)”이 보이게 스크롤 맨끝으로
-  // (원하면 왼쪽부터 보이게 이 줄을 0으로 바꾸면 됨)
+  // ✅ 처음 열릴 때 최신 데이터가 보이되,
+  // 마지막 점이 오른쪽 끝에 딱 붙지 않게 여백 포함 상태로 시작
   requestAnimationFrame(()=>{
-  if(graphScroll) graphScroll.scrollLeft = graphScroll.scrollWidth;
-});
-
-// ✅ C단계: 차트 생성 끝난 직후 y축 DOM 렌더
-requestAnimationFrame(()=>{
-  renderFixedYAxis(chartInstance);
-});
+    if(graphScroll){
+      graphScroll.scrollLeft = graphScroll.scrollWidth - graphScroll.clientWidth;
+    }
+    renderFixedYAxis();
+    requestUpdateRightReferenceTag();
+  });
 }
 const yAxisEl = document.getElementById("yAxis");
 
@@ -4423,7 +4582,9 @@ function renderFixedYAxis(){
     yAxisEl.appendChild(tick);
   });
 }
-   
+   graphScroll.addEventListener("scroll", requestUpdateRightReferenceTag, { passive: true });
+window.addEventListener("resize", requestUpdateRightReferenceTag);
+
 </script>
 <!-- ⚠️ 여기 아래에 네가 쓰던 JS ㅓㄴ 그대로 유지 -->
 <script>
