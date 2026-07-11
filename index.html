@@ -219,7 +219,7 @@ td, th {
 /* ===============================
    ✅ 기록 탭(벤치/스쿼트/데드/OHP) - iOS 메모장 느낌
 ================================ */
-.recordFolders{
+.recordFolders, .recordFolders5{
   display: flex;
   gap: 18px;
   justify-content: space-between;
@@ -232,7 +232,7 @@ td, th {
 }
 
 /* 버튼 기본 */
-.folderBtn{
+.folderBtn, .folderBtn5{
   flex: 1;
   background: transparent;
   border: none;
@@ -251,13 +251,13 @@ td, th {
 }
 
 /* ✅ 활성: 글자 흰색 */
-.folderBtn.active{
+.folderBtn.active, .folderBtn5.active{
   color: #fff;
 }
 
 /* ✅ 활성 밑줄 (흰색) */
 /* 활성 밑줄 */
-.folderBtn.active::after{
+.folderBtn.active::after, .folderBtn5.active::after{
   content: "";
   position: absolute;
   left: 0;
@@ -1847,19 +1847,15 @@ input[type="number"] {
     🧪 연습용 탭 (자유롭게 수정 연습해보세요 · 로컬 저장만 사용)
   </div>
 
-  <div id="acc-part-screen5">
-    <button class="part-btn5" data-part="chest">chest</button>
-    <button class="part-btn5" data-part="back">back</button>
-    <button class="part-btn5" data-part="shoulder">shoulder</button>
-    <button class="part-btn5" data-part="leg">leg</button>
-    <button class="part-btn5" data-part="arm">arm</button>
+  <div class="recordFolders5">
+    <button class="folderBtn5 active" data-part="chest">가슴</button>
+    <button class="folderBtn5" data-part="back">등</button>
+    <button class="folderBtn5" data-part="shoulder">어깨</button>
+    <button class="folderBtn5" data-part="leg">하체</button>
+    <button class="folderBtn5" data-part="arm">팔</button>
   </div>
 
-  <div id="exercise-screen5" style="display:none;">
-    <div id="exercise-header5" style="margin-bottom:10px; cursor:pointer;">
-      ← <span id="current-part-name5"></span>
-    </div>
-
+  <div id="exercise-screen5">
     <div class="search-wrap">
       <input
         id="exercise-search5"
@@ -4506,28 +4502,26 @@ function savePractice(){
   }
 }
 
-const partScreen5 = document.getElementById('acc-part-screen5');
 const exerciseScreen5 = document.getElementById('exercise-screen5');
 const detailScreen5 = document.getElementById('exercise-detail-screen5');
 const exerciseListEl5 = document.getElementById('exercise-list5');
-const currentPartNameEl5 = document.getElementById('current-part-name5');
 
-document.querySelectorAll('.part-btn5').forEach(btn => {
+function switchPart5(part){
+  currentPart5 = part;
+  currentExercises5 = JSON.parse(localStorage.getItem('practice_list_' + currentPart5) || '[]');
+  renderExercises5();
+}
+
+document.querySelectorAll('.folderBtn5').forEach(btn => {
   btn.addEventListener('click', () => {
-    currentPart5 = btn.dataset.part;
-    currentPartNameEl5.textContent = currentPart5;
-    partScreen5.style.display = 'none';
-    exerciseScreen5.style.display = 'block';
-
-    currentExercises5 = JSON.parse(localStorage.getItem('practice_list_' + currentPart5) || '[]');
-    renderExercises5();
+    document.querySelectorAll('.folderBtn5').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    switchPart5(btn.dataset.part);
   });
 });
 
-document.getElementById('exercise-header5').addEventListener('click', () => {
-  exerciseScreen5.style.display = 'none';
-  partScreen5.style.display = 'block';
-});
+// 초기 진입 시 기본 부위(가슴) 로드
+switchPart5('chest');
 
 document.getElementById('add-exercise-btn5').addEventListener('click', () => {
   if (!currentPart5) return alert('먼저 부위를 선택하세요.');
@@ -4691,12 +4685,11 @@ function deleteExercise5(exerciseName) {
   if (currentExerciseName5 === exerciseName) closeExerciseDetail5();
 }
 
-// 탭5로 이동할 때 항상 부위 선택 화면부터 시작
+// 탭5로 이동할 때 항상 목록 화면부터 시작 (상세화면 닫기)
 bottomTabBtns.forEach(btn => {
   if (btn.dataset.target === 'tab5') {
     btn.addEventListener('click', () => {
-      partScreen5.style.display = 'block';
-      exerciseScreen5.style.display = 'none';
+      exerciseScreen5.style.display = 'block';
       detailScreen5.style.display = 'none';
     });
   }
