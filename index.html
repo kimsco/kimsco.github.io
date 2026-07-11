@@ -4558,7 +4558,6 @@ function renderExercises5() {
 
     card.innerHTML = `
       <div class="exercise-name">${name}</div>
-      <div class="exercise-sub">${getAccessorySummary5(name)}</div>
       <button class="delete-btn" aria-label="삭제">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"
              stroke-linecap="round" stroke-linejoin="round">
@@ -4619,36 +4618,31 @@ function renderAccessoryRecords5(exerciseName) {
 
   el.innerHTML = dates.map(date => {
     // 같은 날짜 안에서는 입력한 순서 그대로(오래된 것 -> 최신)
-    const sets = grouped[date]
+    const raw = grouped[date]
       .slice()
-      .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0))
-      .map(r => `
-        <div style="line-height:1.6; font-size:17px; color:#eee;">
-          ${formatSetLine(r.weight, r.reps, 1)}
-        </div>
-      `).join('');
+      .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
 
     return `
       <div style="margin-bottom:13px;">
-        <div style="font-size:12px; color:#FFD700; margin-bottom:4px;">${date}</div>
-        ${sets}
+        ${raw.map((r, idx) => `
+          <div style="display:flex; align-items:center; line-height:1.6;">
+            <div class="record-line" style="flex:1; text-align:left;">
+              ${formatSetLine(r.weight, r.reps, 1)}
+            </div>
+            <div style="
+              width:90px;
+              text-align:right;
+              color:rgba(255,255,255,0.75);
+              font-size:13px;
+            ">
+              ${idx === 0 ? date : ''}
+            </div>
+          </div>
+        `).join('')}
+        <div style="border-bottom:1px solid rgba(255,255,255,0.12); margin-top:10px;"></div>
       </div>
     `;
   }).join('');
-}
-
-function getAccessorySummary5(exerciseName) {
-  const list = accRecordsByExercise5[exerciseName] || [];
-  if (!list.length) return '기록 없음';
-
-  const sorted = [...list].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-  const latestDate = sorted[0].date;
-  if (!latestDate) return '기록 없음';
-
-  const sameDateSets = sorted.filter(r => r.date === latestDate);
-  const lines = sameDateSets.slice().reverse().map(r => `${r.weight}kg × ${r.reps}회`);
-
-  return `${latestDate}<br>${lines.join('<br>')}`;
 }
 
 function addAccessorySet5() {
