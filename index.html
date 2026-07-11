@@ -4517,6 +4517,12 @@ const exerciseListEl5 = document.getElementById('exercise-list5');
 function switchPart5(part){
   currentPart5 = part;
   currentExercises5 = JSON.parse(localStorage.getItem('practice_list_' + currentPart5) || '[]');
+
+  // 🔥 상세화면이 열려있으면 닫고 목록화면으로
+  detailScreen5.style.display = 'none';
+  exerciseScreen5.style.display = 'block';
+  currentExerciseName5 = null;
+
   renderExercises5();
 }
 
