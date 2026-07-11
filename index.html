@@ -1506,11 +1506,7 @@ body.sheet-open .app{
     color:rgba(255,255,255,0.92);
 }
 
-/* .css ㅊㄴㄴ 붙여넣기 */
-   
 
-
-   
 /* 🔥 number input +/- 버튼 제거 */
 input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button {
@@ -1585,10 +1581,7 @@ input[type="number"] {
   right: 0;
   top: 50%;
   transform: translateY(-50%);
-}
 
-
-.three-toggle {
   width: 18px;
   height: 18px;
   border-radius: 50%;
@@ -1614,9 +1607,7 @@ input[type="number"] {
 
 
 
-   
 
-    /* 스타일 맨밑 */
 </style>
 </head>
 
@@ -2003,10 +1994,7 @@ input[type="number"] {
   점을 누르면 값이 뜹니다. 좌우로 밀면 과거 기록을 볼 수 있습니다.
 </div>
    
-<!--  </body> 끝나기 전에 아래 팝업-->
 
-
-<!-- 🔥 JS는 네 기존 그대로 붙이면 정상 작동 -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
@@ -2135,14 +2123,6 @@ function formatSetLine(w, r, sets){
 }
 
 /* 페이드 텍스트 유틸 */
-function fadeOutElem(el, timeout=1000, fadeDur=800){
-    el.style.opacity = 1;
-    setTimeout(()=>{
-        el.style.transition = `opacity ${fadeDur}ms ease`;
-        el.style.opacity = 0;
-        setTimeout(()=>{ el.innerHTML=''; el.style.opacity=1; el.style.transition=''; }, fadeDur);
-    }, timeout);
-}
 function fadeTempMsg(el, msg, timeout=1000, fadeDur=800){
     el.innerHTML = msg;
     el.style.opacity = 1; 
@@ -2235,20 +2215,7 @@ function loadAccListFromLocal(part){
   return lsGet(LS_KEYS.accessoriesList(part), []);
 }
 
-/* ✅ 게스트용 createdAt 숫자 통일 */
-function normalizeCreatedAt(v){
-  if(!v) return 0;
-  // Firestore Timestamp 형태면 .toMillis 있을 수 있음
-  if(typeof v?.toMillis === "function") return v.toMillis();
-  // 이미 숫자면
-  if(typeof v === "number") return v;
-  // 기타면 0
-  return 0;
-}
-
-
-   
-   /* ===============================
+/* ===============================
    🔥 보조운동(4번째 탭) 로직
 ================================ */
 
@@ -3215,15 +3182,7 @@ threeToggleBtn.addEventListener("click", () => {
 
    
 
-function getToday() {
-  const d = new Date();
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}.${m}.${day}`;
-}
-
-   function formatAccDate(){
+function formatAccDate(){
   const d = new Date();
   const yy = String(d.getFullYear()).slice(2);
   const mm = String(d.getMonth()+1).padStart(2,'0');
@@ -4489,7 +4448,6 @@ if(coachToggleBtn){
 // 처음엔 숨김
 setCoachVisible(false);
 </script>
-<!-- ⚠️ 여기 아래에 네가 쓰던 JS ㅓㄴ 그대로 유지 -->
 <script>
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
