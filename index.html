@@ -1879,7 +1879,7 @@ input[type="number"] {
       <button class="recordAddBtn" onclick="addAccessorySet5()">저 장</button>
     </div>
 
-    <div id="acc-records5" class="record-horizontal"></div>
+    <div id="acc-records5" class="folderContent active" style="height:420px;"></div>
   </div>
 </div>
 
@@ -4603,30 +4603,34 @@ function renderAccessoryRecords5(exerciseName) {
 
   const list = accRecordsByExercise5[exerciseName] || [];
   if (!list.length) {
-    el.innerHTML = `<div style="color:#777;font-size:13px;">기록 없음</div>`;
+    el.innerHTML = `<div style="color:#777;font-size:13px;">기록이 여기에 쌓입니다</div>`;
     return;
   }
 
-  const sorted = [...list].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
   const grouped = {};
-  sorted.forEach(r => {
+  list.forEach(r => {
     const dateKey = r.date || '날짜없음';
     if (!grouped[dateKey]) grouped[dateKey] = [];
     grouped[dateKey].push(r);
   });
 
+  // 최신 날짜가 위로
   const dates = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
 
   el.innerHTML = dates.map(date => {
-    const sets = grouped[date].slice().reverse().map(r => `
-      <div class="set record-set" data-id="${r.id}">
-        ${r.weight}kg × ${r.reps}회
-      </div>
-    `).join('');
+    // 같은 날짜 안에서는 입력한 순서 그대로(오래된 것 -> 최신)
+    const sets = grouped[date]
+      .slice()
+      .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0))
+      .map(r => `
+        <div style="line-height:1.6; font-size:17px; color:#eee;">
+          ${formatSetLine(r.weight, r.reps, 1)}
+        </div>
+      `).join('');
 
     return `
-      <div class="record-day">
-        <div class="date">${date}</div>
+      <div style="margin-bottom:13px;">
+        <div style="font-size:12px; color:#FFD700; margin-bottom:4px;">${date}</div>
         ${sets}
       </div>
     `;
