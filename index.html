@@ -518,7 +518,7 @@ td, th {
   -webkit-touch-callout: none; /* iOS 복사 메뉴 차단 */
 }
 
-.part-btn {
+.part-btn, .part-btn5 {
   background: #111;
   color: #eee;
   border: 1px solid #2a2a2a;
@@ -1841,10 +1841,49 @@ input[type="number"] {
 
     </div>
 </div>
-<!-- 예정 -->
+<!-- 예정 (연습용 수정 탭 - 기록탭과 동일 기능, 로컬 저장만 사용) -->
 <div id="tab5" class="tabContent">
-  <div style="padding:20px 0; text-align:center; color:#777; font-size:13px;">
-    예정(준비중)
+  <div style="padding:10px 0 16px; text-align:center; color:#777; font-size:12px;">
+    🧪 연습용 탭 (자유롭게 수정 연습해보세요 · 로컬 저장만 사용)
+  </div>
+
+  <div id="acc-part-screen5">
+    <button class="part-btn5" data-part="chest">chest</button>
+    <button class="part-btn5" data-part="back">back</button>
+    <button class="part-btn5" data-part="shoulder">shoulder</button>
+    <button class="part-btn5" data-part="leg">leg</button>
+    <button class="part-btn5" data-part="arm">arm</button>
+  </div>
+
+  <div id="exercise-screen5" style="display:none;">
+    <div id="exercise-header5" style="margin-bottom:10px; cursor:pointer;">
+      ← <span id="current-part-name5"></span>
+    </div>
+
+    <div class="search-wrap">
+      <input
+        id="exercise-search5"
+        class="exercise-search"
+        placeholder="종목 검색"
+      />
+      <button id="add-exercise-btn5" class="add-btn">+</button>
+    </div>
+
+    <div id="exercise-list5"></div>
+  </div>
+
+  <div id="exercise-detail-screen5" style="display:none;">
+    <div style="margin-bottom:10px; cursor:pointer;" onclick="closeExerciseDetail5()">
+      ← <span id="detail-exercise-name5"></span>
+    </div>
+
+    <div class="recordFormRow">
+      <input id="acc-weight5" type="number" placeholder="kg">
+      <input id="acc-reps5" type="number" placeholder="회">
+      <button class="recordAddBtn" onclick="addAccessorySet5()">저 장</button>
+    </div>
+
+    <div id="acc-records5" class="record-horizontal"></div>
   </div>
 </div>
 
@@ -4447,6 +4486,221 @@ if(coachToggleBtn){
 
 // 처음엔 숨김
 setCoachVisible(false);
+
+/* ================================
+   🧪 연습용 탭(tab5) 로직
+   - 기록 탭(tab4)과 동일한 기능 구조
+   - Firestore/로그인 전혀 사용 안 함, localStorage에만 저장
+   - 자유롭게 수정 연습해도 기존 기록탭에는 영향 없음
+================================ */
+
+let accRecordsByExercise5 = JSON.parse(localStorage.getItem('practice_accRecords') || '{}');
+let currentExerciseName5 = null;
+let currentPart5 = null;
+let currentExercises5 = [];
+
+function savePractice(){
+  localStorage.setItem('practice_accRecords', JSON.stringify(accRecordsByExercise5));
+  if (currentPart5) {
+    localStorage.setItem('practice_list_' + currentPart5, JSON.stringify(currentExercises5));
+  }
+}
+
+const partScreen5 = document.getElementById('acc-part-screen5');
+const exerciseScreen5 = document.getElementById('exercise-screen5');
+const detailScreen5 = document.getElementById('exercise-detail-screen5');
+const exerciseListEl5 = document.getElementById('exercise-list5');
+const currentPartNameEl5 = document.getElementById('current-part-name5');
+
+document.querySelectorAll('.part-btn5').forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentPart5 = btn.dataset.part;
+    currentPartNameEl5.textContent = currentPart5;
+    partScreen5.style.display = 'none';
+    exerciseScreen5.style.display = 'block';
+
+    currentExercises5 = JSON.parse(localStorage.getItem('practice_list_' + currentPart5) || '[]');
+    renderExercises5();
+  });
+});
+
+document.getElementById('exercise-header5').addEventListener('click', () => {
+  exerciseScreen5.style.display = 'none';
+  partScreen5.style.display = 'block';
+});
+
+document.getElementById('add-exercise-btn5').addEventListener('click', () => {
+  if (!currentPart5) return alert('먼저 부위를 선택하세요.');
+
+  const name = prompt('운동 종목을 입력하시오');
+  if (!name) return;
+  const clean = name.trim();
+  if (!clean) return;
+
+  currentExercises5 = (currentExercises5 || []).filter(x => typeof x === 'string' && x.trim());
+  if (currentExercises5.includes(clean)) {
+    alert('이미 존재하는 종목입니다.');
+    return;
+  }
+
+  currentExercises5.unshift(clean);
+  renderExercises5();
+  savePractice();
+});
+
+function renderExercises5() {
+  currentExercises5 = (currentExercises5 || []).filter(x => typeof x === 'string' && x.trim());
+
+  if (!currentExercises5.length) {
+    exerciseListEl5.innerHTML = `<div style="color:#777;font-size:13px;">아직 추가된 종목이 없습니다</div>`;
+    return;
+  }
+
+  exerciseListEl5.innerHTML = '';
+
+  currentExercises5.forEach(name => {
+    const card = document.createElement('div');
+    card.className = 'exercise-card';
+
+    card.innerHTML = `
+      <div class="exercise-name">${name}</div>
+      <div class="exercise-sub">${getAccessorySummary5(name)}</div>
+      <button class="delete-btn" aria-label="삭제">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round">
+          <line x1="3" y1="4" x2="21" y2="4"></line>
+          <rect x="6" y="6" width="12" height="14" rx="2"></rect>
+          <line x1="10" y1="10" x2="10" y2="18"></line>
+          <line x1="14" y1="10" x2="14" y2="18"></line>
+        </svg>
+      </button>
+    `;
+
+    card.addEventListener('click', () => openExerciseDetail5(name));
+    card.querySelector('.delete-btn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      deleteExercise5(name);
+    });
+
+    exerciseListEl5.appendChild(card);
+  });
+}
+
+function openExerciseDetail5(name) {
+  currentExerciseName5 = name;
+  if (!accRecordsByExercise5[name]) accRecordsByExercise5[name] = [];
+
+  exerciseScreen5.style.display = 'none';
+  detailScreen5.style.display = 'block';
+  document.getElementById('detail-exercise-name5').textContent = name;
+
+  renderAccessoryRecords5(name);
+}
+
+function closeExerciseDetail5() {
+  detailScreen5.style.display = 'none';
+  exerciseScreen5.style.display = 'block';
+  currentExerciseName5 = null;
+}
+
+function renderAccessoryRecords5(exerciseName) {
+  const el = document.getElementById('acc-records5');
+  if (!el) return;
+
+  const list = accRecordsByExercise5[exerciseName] || [];
+  if (!list.length) {
+    el.innerHTML = `<div style="color:#777;font-size:13px;">기록 없음</div>`;
+    return;
+  }
+
+  const sorted = [...list].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  const grouped = {};
+  sorted.forEach(r => {
+    const dateKey = r.date || '날짜없음';
+    if (!grouped[dateKey]) grouped[dateKey] = [];
+    grouped[dateKey].push(r);
+  });
+
+  const dates = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
+
+  el.innerHTML = dates.map(date => {
+    const sets = grouped[date].slice().reverse().map(r => `
+      <div class="set record-set" data-id="${r.id}">
+        ${r.weight}kg × ${r.reps}회
+      </div>
+    `).join('');
+
+    return `
+      <div class="record-day">
+        <div class="date">${date}</div>
+        ${sets}
+      </div>
+    `;
+  }).join('');
+}
+
+function getAccessorySummary5(exerciseName) {
+  const list = accRecordsByExercise5[exerciseName] || [];
+  if (!list.length) return '기록 없음';
+
+  const sorted = [...list].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  const latestDate = sorted[0].date;
+  if (!latestDate) return '기록 없음';
+
+  const sameDateSets = sorted.filter(r => r.date === latestDate);
+  const lines = sameDateSets.slice().reverse().map(r => `${r.weight}kg × ${r.reps}회`);
+
+  return `${latestDate}<br>${lines.join('<br>')}`;
+}
+
+function addAccessorySet5() {
+  if (!currentExerciseName5) return alert('종목을 먼저 선택하세요.');
+
+  const w = parseFloat(document.getElementById('acc-weight5').value);
+  const r = parseInt(document.getElementById('acc-reps5').value, 10);
+  if (!w || !r) return alert('kg / 회를 입력하세요.');
+
+  const item = {
+    id: 'practice_' + Date.now() + '_' + Math.random(),
+    exercise: currentExerciseName5,
+    part: currentPart5 || '',
+    weight: w,
+    reps: r,
+    date: formatTodayYYMMDD(),
+    createdAt: Date.now()
+  };
+
+  if (!accRecordsByExercise5[currentExerciseName5]) accRecordsByExercise5[currentExerciseName5] = [];
+  accRecordsByExercise5[currentExerciseName5].push(item);
+  savePractice();
+
+  document.getElementById('acc-weight5').value = '';
+  document.getElementById('acc-reps5').value = '';
+  renderAccessoryRecords5(currentExerciseName5);
+  renderExercises5();
+}
+
+function deleteExercise5(exerciseName) {
+  if (!confirm('연습용 탭에서 이 종목의 모든 기록을 삭제할까요?')) return;
+
+  delete accRecordsByExercise5[exerciseName];
+  currentExercises5 = (currentExercises5 || []).filter(n => n !== exerciseName);
+  savePractice();
+
+  renderExercises5();
+  if (currentExerciseName5 === exerciseName) closeExerciseDetail5();
+}
+
+// 탭5로 이동할 때 항상 부위 선택 화면부터 시작
+bottomTabBtns.forEach(btn => {
+  if (btn.dataset.target === 'tab5') {
+    btn.addEventListener('click', () => {
+      partScreen5.style.display = 'block';
+      exerciseScreen5.style.display = 'none';
+      detailScreen5.style.display = 'none';
+    });
+  }
+});
 </script>
 <script>
 if ("serviceWorker" in navigator) {
