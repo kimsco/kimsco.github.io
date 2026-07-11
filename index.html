@@ -219,7 +219,7 @@ td, th {
 /* ===============================
    ✅ 기록 탭(벤치/스쿼트/데드/OHP) - iOS 메모장 느낌
 ================================ */
-.recordFolders, .recordFolders5{
+.recordFolders, .recordFolders4{
   display: flex;
   gap: 18px;
   justify-content: space-between;
@@ -232,7 +232,7 @@ td, th {
 }
 
 /* 버튼 기본 */
-.folderBtn, .folderBtn5{
+.folderBtn, .folderBtn4{
   flex: 1;
   background: transparent;
   border: none;
@@ -251,13 +251,13 @@ td, th {
 }
 
 /* ✅ 활성: 글자 흰색 */
-.folderBtn.active, .folderBtn5.active{
+.folderBtn.active, .folderBtn4.active{
   color: #fff;
 }
 
 /* ✅ 활성 밑줄 (흰색) */
 /* 활성 밑줄 */
-.folderBtn.active::after, .folderBtn5.active::after{
+.folderBtn.active::after, .folderBtn4.active::after{
   content: "";
   position: absolute;
   left: 0;
@@ -518,36 +518,6 @@ td, th {
   -webkit-touch-callout: none; /* iOS 복사 메뉴 차단 */
 }
 
-.part-btn, .part-btn5 {
-  background: #111;
-  color: #eee;
-  border: 1px solid #2a2a2a;
-  border-radius: 14px;
-  padding: 14px;
-  font-size: 15px;
-  font-weight: 500;
-  letter-spacing: 0.3px;
-}
-
-.exercise-search {
-  width: 100%;
-  height: 36px;          /* ← 핵심 (보통 52~56px에서 줄임) */
-  background: #111;      /* 완전 블랙 ❌ 살짝 밝은 블랙 */
-  color: #fff;
-  border: 1px solid #333;
-  border-radius: 8px;
-  padding: 0 12px;
-  font-size: 14px;
-}
-
-.exercise-search::placeholder {
-  color: #777;
-}
-
-.exercise-search:focus {
-  outline: none;
-  border-color: #fff;
-}
 .search-wrap {
   margin-bottom: 12px;
 }
@@ -556,17 +526,6 @@ td, th {
   display: flex;
   gap: 8px;
   margin-bottom: 12px;
-}
-
-.exercise-search {
-  flex: 1;
-  height: 36px;
-  background: #111;
-  color: #fff;
-  border: 1px solid #333;
-  border-radius: 8px;
-  padding: 0 12px;
-  font-size: 14px;
 }
 
 .add-btn {
@@ -617,11 +576,6 @@ cursor: pointer;
   font-weight: 600;
   color: #fff;
   letter-spacing: 0.3px;
-}
-
-.exercise-sub {
-  font-size: 13px;
-  color: #777;
 }
 
 .calendar-toggle {
@@ -691,75 +645,16 @@ cursor: pointer;
   font-weight: 400;
 }
 
-/* 날짜 모드는 절대 영향 안 받음 */
-.record-horizontal {
-  display: flex;
-  gap: 12px;
-  overflow-x: auto;
-  padding: 10px 0;
-}
-
-.record-day {
-  min-width: 120px;
-  background: #111;
-  border: 1px solid #222;
-  border-radius: 12px;
-  padding: 10px;
-}
-
-.record-day .date {
-  font-size: 12px;
-  color: #FFD700;
-  text-align: center;
-  margin-bottom: 8px;
-}
-
-.record-day .set {
-  font-size: 17px;
-  color: #eee;
-  line-height: 1.6;
-}
 /* recordAdd 버튼만 작게 */
-#recordAdd, #acc-add5 {
+#recordAdd, #acc-add4 {
   height: 40px;        /* kg / 회 보다 2/3 */
   padding: 0 12px;
   font-size: 14px;
   border-radius: 8px;
   font-weight: 500;
 }
-.recordAddBtn {
-  height: 40px;
-  padding: 0 14px;
-  font-size: 13px;
-  border-radius: 999px;   /* 알약형 */
-  font-weight: 500;
-  letter-spacing: 0.5px;
-
-  background: #000;
-  color: #fff;
-  border: 1px solid #fff;
-}
 .exercise-card {
   position: relative;  /* 버튼 위치 지정 위해 필요 */
-}
-
-.delete-btn {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 28px;      /* 조금 키움 */
-  height: 28px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-}
-
-.delete-btn:hover svg {
-  stroke: #ff5555; /* 호버 시 빨강 */
 }
 
 
@@ -1749,50 +1644,49 @@ input[type="number"] {
 </div>
 <div id="tab4" class="tabContent">
 
-<div id="acc-part-screen">
-  <button class="part-btn" data-part="chest">chest</button>
-  <button class="part-btn" data-part="back">back</button>
-  <button class="part-btn" data-part="shoulder">shoulder</button>
-  <button class="part-btn" data-part="leg">leg</button>
-  <button class="part-btn" data-part="arm">arm</button>
+<div class="recordFolders4">
+  <button class="folderBtn4 active" data-part="chest">가슴</button>
+  <button class="folderBtn4" data-part="back">등</button>
+  <button class="folderBtn4" data-part="shoulder">어깨</button>
+  <button class="folderBtn4" data-part="leg">하체</button>
+  <button class="folderBtn4" data-part="arm">팔</button>
 </div>
 
-<div id="exercise-screen" style="display:none;">
-  <div id="exercise-header" style="margin-bottom:10px; cursor:pointer;">
-    ← <span id="current-part-name"></span>
-  </div>
-
+<div id="exercise-screen">
 <div class="search-wrap">
-  <input
-    id="exercise-search"
-    class="exercise-search"
-    placeholder="종목 검색"
-  />
+  <div style="flex:1;"></div>
   <button id="add-exercise-btn" class="add-btn">+</button>
 </div>
-
 
   <div id="exercise-list"></div>
 </div>
 
    <div id="exercise-detail-screen" style="display:none;">
 
-  <div style="margin-bottom:10px; cursor:pointer;"
-       onclick="closeExerciseDetail()">
-    ← <span id="detail-exercise-name"></span>
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-top:16px; margin-bottom:10px;">
+    <div style="cursor:pointer;" onclick="closeExerciseDetail()">
+      ← <span id="detail-exercise-name"></span>
+    </div>
+    <button id="delete-exercise-btn4" class="add-btn" aria-label="삭제">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <line x1="3" y1="4" x2="21" y2="4"></line>
+        <rect x="6" y="6" width="12" height="14" rx="2"></rect>
+        <line x1="10" y1="10" x2="10" y2="18"></line>
+        <line x1="14" y1="10" x2="14" y2="18"></line>
+      </svg>
+    </button>
   </div>
+
+  <!-- 기록 영역 -->
+  <div id="acc-records" class="folderContent active" style="height:420px;"></div>
 
   <!-- 기록 입력 -->
   <div class="recordFormRow">
     <input id="acc-weight" type="number" placeholder="kg">
     <input id="acc-reps" type="number" placeholder="회">
-     <button id="add-btn" class="recordAddBtn" onclick="addAccessorySet()">저 장</button>
-
-
+     <button id="acc-add4" onclick="addAccessorySet()">저장</button>
   </div>
-
-  <!-- 가로 기록 영역 -->
-  <div id="acc-records" class="record-horizontal"></div>
 
 </div>
 </div>
@@ -1844,55 +1738,9 @@ input[type="number"] {
 </div>
 <!-- 예정 (연습용 수정 탭 - 기록탭과 동일 기능, 로컬 저장만 사용) -->
 <div id="tab5" class="tabContent">
-  <div style="padding:10px 0 16px; text-align:center; color:#777; font-size:12px;">
-    🧪 연습용 탭 (자유롭게 수정 연습해보세요 · 로컬 저장만 사용)
+  <div style="padding:20px 0; text-align:center; color:#777; font-size:13px;">
+    예정(준비중)
   </div>
-
-  <div class="recordFolders5">
-    <button class="folderBtn5 active" data-part="chest">가슴</button>
-    <button class="folderBtn5" data-part="back">등</button>
-    <button class="folderBtn5" data-part="shoulder">어깨</button>
-    <button class="folderBtn5" data-part="leg">하체</button>
-    <button class="folderBtn5" data-part="arm">팔</button>
-  </div>
-
-  <div id="exercise-screen5">
-    <div class="search-wrap">
-      <div style="flex:1;"></div>
-      <button id="add-exercise-btn5" class="add-btn">+</button>
-    </div>
-
-    <div id="exercise-list5"></div>
-  </div>
-
-  <div id="exercise-detail-screen5" style="display:none;">
-    <div style="display:flex; align-items:center; justify-content:space-between; margin-top:16px; margin-bottom:10px;">
-      <div style="cursor:pointer;" onclick="closeExerciseDetail5()">
-        ← <span id="detail-exercise-name5"></span>
-      </div>
-      <button id="delete-exercise-btn5" class="add-btn" aria-label="삭제">
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"
-             stroke-linecap="round" stroke-linejoin="round">
-          <line x1="3" y1="4" x2="21" y2="4"></line>
-          <rect x="6" y="6" width="12" height="14" rx="2"></rect>
-          <line x1="10" y1="10" x2="10" y2="18"></line>
-          <line x1="14" y1="10" x2="14" y2="18"></line>
-        </svg>
-      </button>
-    </div>
-
-    <div id="acc-records5" class="folderContent active" style="height:420px;"></div>
-
-    <div class="recordFormRow">
-      <input id="acc-weight5" type="number" placeholder="kg">
-      <input id="acc-reps5" type="number" placeholder="회">
-      <button id="acc-add5" onclick="addAccessorySet5()">저장</button>
-    </div>
-  </div>
-</div>
-
-
-   
 </div>
 
 <!-- ✅ 하단 탭바 (새로 추가/이동) -->
@@ -2273,17 +2121,19 @@ const exerciseListEl = document.getElementById('exercise-list');
 const addExerciseBtn = document.getElementById('add-exercise-btn');
    
 addExerciseBtn.addEventListener('click', addExercise);
-const partButtons = document.querySelectorAll('.part-btn');
+const partButtons = document.querySelectorAll('.folderBtn4');
 
-
-const currentPartNameEl = document.getElementById('current-part-name');
-
-partButtons.forEach(btn => {
+document.querySelectorAll('.folderBtn4').forEach(btn => {
   btn.addEventListener('click', async ()=>{
+    document.querySelectorAll('.folderBtn4').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
     currentPart = btn.dataset.part;   // 🔥 현재 선택한 종목 저장
-    currentPartNameEl.textContent = currentPart;
-    partScreen.style.display = 'none';
+
+    // 🔥 상세화면이 열려있으면 닫고 목록화면으로
+    detailScreen.style.display = 'none';
     exerciseScreen.style.display = 'block';
+    currentExerciseName = null;
 
     // Firestore에서 해당 종목 불러오기
     await loadExercises(currentPart);
@@ -2318,6 +2168,11 @@ function closeExerciseDetail() {
   currentExerciseName = null;
 }
 
+document.getElementById('delete-exercise-btn4').addEventListener('click', (e) => {
+  e.stopPropagation();
+  if (currentExerciseName) deleteExercise(currentExerciseName);
+});
+
 
 
 /* ===============================
@@ -2330,42 +2185,45 @@ function renderAccessoryRecords(exerciseName) {
   const list = accRecordsByExercise[exerciseName] || [];
 
   if (!list.length) {
-    el.innerHTML = `<div style="color:#777;font-size:13px;">기록 없음</div>`;
+    el.innerHTML = `<div style="color:#777;font-size:13px;">기록이 여기에 쌓입니다</div>`;
     return;
   }
 
-  // ✅ 최신 기록이 먼저 오도록 정렬 (내림차순)
-  const sorted = [...list].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-
-  // ✅ 날짜별 그룹화 (정렬된 상태 유지)
+  // ✅ 날짜별 그룹화
   const grouped = {};
-  sorted.forEach(r => {
+  list.forEach(r => {
     const dateKey = r.date || "날짜없음";
     if (!grouped[dateKey]) grouped[dateKey] = [];
     grouped[dateKey].push(r);
   });
 
-  // ✅ 날짜도 최신이 왼쪽(먼저) 나오게: 내림차순
+  // ✅ 최신 날짜가 위로
   const dates = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
 
-  // ✅ 날짜 1개당 카드 1개, 그 안에 세트 여러 줄 (최신이 위 → 아래로 누적)
   el.innerHTML = dates.map(date => {
-    // grouped[date]는 이미 최신순으로 들어가 있음
-    // "최신이 아래"로 하고 싶으면 reverse() 하면 됨
-   const sets = grouped[date]
-  .slice()
-  .reverse()
-  .map(r => `
-    <div class="set record-set" data-id="${r.id}">
-      ${r.weight}kg × ${r.reps}회
-    </div>
-  `)
-  .join("");
+    // 같은 날짜 안에서는 입력한 순서 그대로(오래된 것 -> 최신)
+    const raw = grouped[date]
+      .slice()
+      .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
 
     return `
-      <div class="record-day">
-        <div class="date">${date}</div>
-        ${sets}
+      <div style="margin-bottom:13px;">
+        ${raw.map((r, idx) => `
+          <div style="display:flex; align-items:center; line-height:1.6;">
+            <div class="record-line record-set" data-id="${r.id}" style="flex:1; text-align:left;">
+              ${formatSetLine(r.weight, r.reps, 1)}
+            </div>
+            <div style="
+              width:90px;
+              text-align:right;
+              color:rgba(255,255,255,0.75);
+              font-size:13px;
+            ">
+              ${idx === 0 ? date : ''}
+            </div>
+          </div>
+        `).join("")}
+        <div style="border-bottom:1px solid rgba(255,255,255,0.12); margin-top:10px;"></div>
       </div>
     `;
   }).join("");
@@ -2620,6 +2478,10 @@ function renderActiveBox(){
     }).join('');
 }
 renderActiveBox();
+
+// 🔥 기록탭: 페이지 진입 시 기본 부위(가슴) 자동 로드
+currentPart = 'chest';
+loadExercises(currentPart);
 
 /* 기록 추가 (가로 폼에서 저장) */
 recordAdd.addEventListener('click', async ()=>{
@@ -3199,18 +3061,8 @@ async function deleteRecord(id){
 
 
 
-const partScreen = document.getElementById('acc-part-screen');
 const exerciseScreen = document.getElementById('exercise-screen');
-const partTitle = document.getElementById('current-part-name');
-const partBtns = document.querySelectorAll('.part-btn');
 
-
-
-
-document.getElementById('exercise-header').addEventListener('click', () => {
-  exerciseScreen.style.display = 'none';
-  partScreen.style.display = 'block';
-});
 const threeToggleBtn = document.getElementById("threeToggleBtn");
 const threeDetail = document.getElementById("threeDetail");
 
@@ -3259,8 +3111,7 @@ bottomTabBtns.forEach(btn => {
 
     // Tip 탭 초기화
     if (target === 'tab4') {
-      partScreen.style.display = 'block';
-      exerciseScreen.style.display = 'none';
+      exerciseScreen.style.display = 'block';
       detailScreen.style.display = 'none';
     } else {
       detailScreen.style.display = 'none';
@@ -3295,24 +3146,9 @@ function renderExercises() {
 
     card.innerHTML = `
       <div class="exercise-name">${name}</div>
-      <div class="exercise-sub">${getAccessorySummary(name)}</div>
-      <button class="delete-btn" aria-label="삭제">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"
-             stroke-linecap="round" stroke-linejoin="round">
-          <line x1="3" y1="4" x2="21" y2="4"></line>
-          <rect x="6" y="6" width="12" height="14" rx="2"></rect>
-          <line x1="10" y1="10" x2="10" y2="18"></line>
-          <line x1="14" y1="10" x2="14" y2="18"></line>
-        </svg>
-      </button>
     `;
 
     card.addEventListener('click', () => openExerciseDetail(name));
-
-    card.querySelector('.delete-btn').addEventListener('click', (e) => {
-      e.stopPropagation();
-      deleteExercise(name);
-    });
 
     exerciseListEl.appendChild(card);
   });
@@ -3458,30 +3294,6 @@ async function loadExercises(part) {
   renderExercises();
 }
 
-
-function getAccessorySummary(exerciseName) {
-  const list = accRecordsByExercise[exerciseName] || [];
-  if (!list.length) return '기록 없음';
-
-  // createdAt 기준 최신순 정렬
-  const sorted = [...list].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-
-  // 최신 날짜(첫 레코드의 date)
-  const latestDate = sorted[0].date;
-  if (!latestDate) return '기록 없음';
-
-  // 최신 날짜에 해당하는 세트만 모으기
-  const sameDateSets = sorted.filter(r => r.date === latestDate);
-
-  // 같은 날짜 내에서는 "저장 순서(누적)"로 보이게 최신을 아래로
-  const lines = sameDateSets
-    .slice()
-    .reverse()
-    .map(r => `${r.weight}kg × ${r.reps}회`);
-
-  // 줄바꿈 렌더링
-  return `${latestDate}<br>${lines.join('<br>')}`;
-}
 
 
 async function addAccessorySet() {
@@ -4490,214 +4302,6 @@ if(coachToggleBtn){
 
 // 처음엔 숨김
 setCoachVisible(false);
-
-/* ================================
-   🧪 연습용 탭(tab5) 로직
-   - 기록 탭(tab4)과 동일한 기능 구조
-   - Firestore/로그인 전혀 사용 안 함, localStorage에만 저장
-   - 자유롭게 수정 연습해도 기존 기록탭에는 영향 없음
-================================ */
-
-let accRecordsByExercise5 = JSON.parse(localStorage.getItem('practice_accRecords') || '{}');
-let currentExerciseName5 = null;
-let currentPart5 = null;
-let currentExercises5 = [];
-
-function savePractice(){
-  localStorage.setItem('practice_accRecords', JSON.stringify(accRecordsByExercise5));
-  if (currentPart5) {
-    localStorage.setItem('practice_list_' + currentPart5, JSON.stringify(currentExercises5));
-  }
-}
-
-const exerciseScreen5 = document.getElementById('exercise-screen5');
-const detailScreen5 = document.getElementById('exercise-detail-screen5');
-const exerciseListEl5 = document.getElementById('exercise-list5');
-
-function switchPart5(part){
-  currentPart5 = part;
-  currentExercises5 = JSON.parse(localStorage.getItem('practice_list_' + currentPart5) || '[]');
-
-  // 🔥 상세화면이 열려있으면 닫고 목록화면으로
-  detailScreen5.style.display = 'none';
-  exerciseScreen5.style.display = 'block';
-  currentExerciseName5 = null;
-
-  renderExercises5();
-}
-
-document.querySelectorAll('.folderBtn5').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.folderBtn5').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    switchPart5(btn.dataset.part);
-  });
-});
-
-// 초기 진입 시 기본 부위(가슴) 로드
-switchPart5('chest');
-
-document.getElementById('add-exercise-btn5').addEventListener('click', () => {
-  if (!currentPart5) return alert('먼저 부위를 선택하세요.');
-
-  const name = prompt('운동 종목을 입력하시오');
-  if (!name) return;
-  const clean = name.trim();
-  if (!clean) return;
-
-  currentExercises5 = (currentExercises5 || []).filter(x => typeof x === 'string' && x.trim());
-  if (currentExercises5.includes(clean)) {
-    alert('이미 존재하는 종목입니다.');
-    return;
-  }
-
-  currentExercises5.unshift(clean);
-  renderExercises5();
-  savePractice();
-});
-
-function renderExercises5() {
-  currentExercises5 = (currentExercises5 || []).filter(x => typeof x === 'string' && x.trim());
-
-  if (!currentExercises5.length) {
-    exerciseListEl5.innerHTML = `<div style="color:#777;font-size:13px;">아직 추가된 종목이 없습니다</div>`;
-    return;
-  }
-
-  exerciseListEl5.innerHTML = '';
-
-  currentExercises5.forEach(name => {
-    const card = document.createElement('div');
-    card.className = 'exercise-card';
-
-    card.innerHTML = `
-      <div class="exercise-name">${name}</div>
-    `;
-
-    card.addEventListener('click', () => openExerciseDetail5(name));
-
-    exerciseListEl5.appendChild(card);
-  });
-}
-
-function openExerciseDetail5(name) {
-  currentExerciseName5 = name;
-  if (!accRecordsByExercise5[name]) accRecordsByExercise5[name] = [];
-
-  exerciseScreen5.style.display = 'none';
-  detailScreen5.style.display = 'block';
-  document.getElementById('detail-exercise-name5').textContent = name;
-
-  renderAccessoryRecords5(name);
-}
-
-document.getElementById('delete-exercise-btn5').addEventListener('click', (e) => {
-  e.stopPropagation();
-  if (currentExerciseName5) deleteExercise5(currentExerciseName5);
-});
-
-function closeExerciseDetail5() {
-  detailScreen5.style.display = 'none';
-  exerciseScreen5.style.display = 'block';
-  currentExerciseName5 = null;
-}
-
-function renderAccessoryRecords5(exerciseName) {
-  const el = document.getElementById('acc-records5');
-  if (!el) return;
-
-  const list = accRecordsByExercise5[exerciseName] || [];
-  if (!list.length) {
-    el.innerHTML = `<div style="color:#777;font-size:13px;">기록이 여기에 쌓입니다</div>`;
-    return;
-  }
-
-  const grouped = {};
-  list.forEach(r => {
-    const dateKey = r.date || '날짜없음';
-    if (!grouped[dateKey]) grouped[dateKey] = [];
-    grouped[dateKey].push(r);
-  });
-
-  // 최신 날짜가 위로
-  const dates = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
-
-  el.innerHTML = dates.map(date => {
-    // 같은 날짜 안에서는 입력한 순서 그대로(오래된 것 -> 최신)
-    const raw = grouped[date]
-      .slice()
-      .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
-
-    return `
-      <div style="margin-bottom:13px;">
-        ${raw.map((r, idx) => `
-          <div style="display:flex; align-items:center; line-height:1.6;">
-            <div class="record-line" style="flex:1; text-align:left;">
-              ${formatSetLine(r.weight, r.reps, 1)}
-            </div>
-            <div style="
-              width:90px;
-              text-align:right;
-              color:rgba(255,255,255,0.75);
-              font-size:13px;
-            ">
-              ${idx === 0 ? date : ''}
-            </div>
-          </div>
-        `).join('')}
-        <div style="border-bottom:1px solid rgba(255,255,255,0.12); margin-top:10px;"></div>
-      </div>
-    `;
-  }).join('');
-}
-
-function addAccessorySet5() {
-  if (!currentExerciseName5) return alert('종목을 먼저 선택하세요.');
-
-  const w = parseFloat(document.getElementById('acc-weight5').value);
-  const r = parseInt(document.getElementById('acc-reps5').value, 10);
-  if (!w || !r) return alert('kg / 회를 입력하세요.');
-
-  const item = {
-    id: 'practice_' + Date.now() + '_' + Math.random(),
-    exercise: currentExerciseName5,
-    part: currentPart5 || '',
-    weight: w,
-    reps: r,
-    date: formatTodayYYMMDD(),
-    createdAt: Date.now()
-  };
-
-  if (!accRecordsByExercise5[currentExerciseName5]) accRecordsByExercise5[currentExerciseName5] = [];
-  accRecordsByExercise5[currentExerciseName5].push(item);
-  savePractice();
-
-  document.getElementById('acc-weight5').value = '';
-  document.getElementById('acc-reps5').value = '';
-  renderAccessoryRecords5(currentExerciseName5);
-  renderExercises5();
-}
-
-function deleteExercise5(exerciseName) {
-  if (!confirm('연습용 탭에서 이 종목의 모든 기록을 삭제할까요?')) return;
-
-  delete accRecordsByExercise5[exerciseName];
-  currentExercises5 = (currentExercises5 || []).filter(n => n !== exerciseName);
-  savePractice();
-
-  renderExercises5();
-  if (currentExerciseName5 === exerciseName) closeExerciseDetail5();
-}
-
-// 탭5로 이동할 때 항상 목록 화면부터 시작 (상세화면 닫기)
-bottomTabBtns.forEach(btn => {
-  if (btn.dataset.target === 'tab5') {
-    btn.addEventListener('click', () => {
-      exerciseScreen5.style.display = 'block';
-      detailScreen5.style.display = 'none';
-    });
-  }
-});
 </script>
 <script>
 if ("serviceWorker" in navigator) {
