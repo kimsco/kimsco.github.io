@@ -2286,6 +2286,16 @@ function renderAccessoryRecords(exerciseName) {
 
   const list = accRecordsByExercise[exerciseName] || [];
 
+  // 🔥 id가 없는 옛 기록을 위한 자동 복구 (없으면 삭제가 안 먹힘)
+  let backfilled = false;
+  list.forEach(r => {
+    if (!r.id) {
+      r.id = "local_" + Date.now() + "_" + Math.random();
+      backfilled = true;
+    }
+  });
+  if (backfilled) saveAccRecordsToLocal();
+
   if (!list.length) {
     el.innerHTML = `<div style="color:#777;font-size:13px;">기록이 여기에 쌓입니다</div>`;
     return;
@@ -3566,14 +3576,24 @@ document.addEventListener("touchmove", e => {
 }, { passive: true });
 
 async function deleteAccessoryRecord(recordId) {
-  if (!recordId) return;
+  if (!recordId || recordId === "undefined" || recordId === "null") {
+    console.warn("deleteAccessoryRecord: invalid id", recordId);
+    return;
+  }
+
+  console.log("deleteAccessoryRecord 시도:", recordId);
 
   // 1) 로컬에서 제거 (게스트/로그인 공통)
+  let removedCount = 0;
   Object.keys(accRecordsByExercise).forEach(exName => {
+    const before = accRecordsByExercise[exName].length;
     accRecordsByExercise[exName] =
       (accRecordsByExercise[exName] || []).filter(r => r.id !== recordId);
+    removedCount += before - accRecordsByExercise[exName].length;
   });
   saveAccRecordsToLocal();
+
+  console.log("삭제된 로컬 항목 수:", removedCount);
 
   // 2) 로그인 상태면 Firestore에서도 삭제
   const user = auth.currentUser;
