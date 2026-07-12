@@ -2286,16 +2286,6 @@ function renderAccessoryRecords(exerciseName) {
 
   const list = accRecordsByExercise[exerciseName] || [];
 
-  // 🔥 id가 없는 옛 기록을 위한 자동 복구 (없으면 삭제가 안 먹힘)
-  let backfilled = false;
-  list.forEach(r => {
-    if (!r.id) {
-      r.id = "local_" + Date.now() + "_" + Math.random();
-      backfilled = true;
-    }
-  });
-  if (backfilled) saveAccRecordsToLocal();
-
   if (!list.length) {
     el.innerHTML = `<div style="color:#777;font-size:13px;">기록이 여기에 쌓입니다</div>`;
     return;
@@ -2642,9 +2632,6 @@ recordAdd.addEventListener('click', async ()=>{
 
   renderActiveBox();
   saveRecordsToLocal();
-
-  // 🔥 오늘 이 부위(lift) 운동했다는 걸 달력에 자동 체크
-  autoMarkCalendarToday(lift);
 
   // ✅ (B) 로그인 상태면 Firestore에도 "항상 새 문서 add()"
   const user = auth.currentUser;
@@ -3019,46 +3006,6 @@ calPopup.addEventListener("click", e => {
 
 
 
-
-/* ===============================
-   🔥 기록 저장 시 오늘 날짜 부위 자동 체크
-   - 이미 체크된 날짜(수동이든, 먼저 저장된 자동이든)는 건드리지 않음
-   - 수동 체크는 항상 우선하며, 언제든 수동으로 다시 바꿀 수 있음(기존 로직 그대로 유지)
-================================ */
-const PART_TO_MUSCLE = {
-  chest: "가슴", back: "등", shoulder: "어깨", leg: "하체", arm: "팔",
-  bench: "가슴", squat: "하체", dead: "등", ohp: "어깨"
-};
-
-function getCalendarKeyToday(){
-  const dt = new Date();
-  return `${dt.getFullYear()}-${dt.getMonth()+1}-${dt.getDate()}`;
-}
-
-async function autoMarkCalendarToday(partOrLift){
-  const muscle = PART_TO_MUSCLE[partOrLift];
-  if (!muscle) return;
-
-  const key = getCalendarKeyToday();
-
-  // 이미 뭔가 체크되어 있으면(수동 or 먼저 저장된 자동) 건드리지 않음
-  if (calData[key]?.muscles?.length) return;
-
-  calData[key] = { muscles: [muscle] };
-  saveCalendarToLocal();
-  calRender();
-
-  const user = auth.currentUser;
-  if (user) {
-    try {
-      await db.collection("users").doc(user.uid)
-        .collection("calendar").doc(key)
-        .set({ muscles: [muscle], updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
-    } catch (e) {
-      console.error("auto calendar mark err", e);
-    }
-  }
-}
 
    async function handleMuscleSelect(btn) {
   const user = auth.currentUser;
@@ -3488,9 +3435,6 @@ async function addAccessorySet() {
   accRecordsByExercise[currentExerciseName].push(localItem);
   saveAccRecordsToLocal(); // ✅ 게스트도 저장됨
 
-  // 🔥 오늘 이 부위(currentPart) 운동했다는 걸 달력에 자동 체크
-  autoMarkCalendarToday(currentPart);
-
   // ✅ 로그인 상태면 Firestore에도 저장 + id를 firestore id로 업데이트
   if (user) {
     const item = {
@@ -3526,8 +3470,6 @@ async function addAccessorySet() {
 
 
    let accDeleteTimer = null;
-   let accDeleteStartX = 0, accDeleteStartY = 0;
-   const ACC_DELETE_MOVE_TOLERANCE = 12; // 이 정도 미세한 움직임은 무시
 
 // PC
 document.addEventListener("mousedown", e => {
@@ -3550,50 +3492,29 @@ document.addEventListener("touchstart", e => {
   const setEl = e.target.closest(".record-set");
   if (!setEl) return;
 
-  const t = e.touches[0];
-  accDeleteStartX = t.clientX;
-  accDeleteStartY = t.clientY;
-
   accDeleteTimer = setTimeout(() => {
     if (confirm("이 기록을 삭제할까요?")) {
       deleteAccessoryRecord(setEl.dataset.id);
     }
   }, 600);
-}, { passive: true });
+});
 
 document.addEventListener("touchend", () => {
   clearTimeout(accDeleteTimer);
 });
-document.addEventListener("touchmove", e => {
-  if (!accDeleteTimer) return;
-  const t = e.touches[0];
-  const dx = Math.abs(t.clientX - accDeleteStartX);
-  const dy = Math.abs(t.clientY - accDeleteStartY);
-  // 미세한 흔들림이 아니라 실제로 움직였을 때만 취소(스크롤 의도로 판단)
-  if (dx > ACC_DELETE_MOVE_TOLERANCE || dy > ACC_DELETE_MOVE_TOLERANCE) {
-    clearTimeout(accDeleteTimer);
-  }
-}, { passive: true });
+document.addEventListener("touchmove", () => {
+  clearTimeout(accDeleteTimer);
+});
 
 async function deleteAccessoryRecord(recordId) {
-  if (!recordId || recordId === "undefined" || recordId === "null") {
-    console.warn("deleteAccessoryRecord: invalid id", recordId);
-    return;
-  }
-
-  console.log("deleteAccessoryRecord 시도:", recordId);
+  if (!recordId) return;
 
   // 1) 로컬에서 제거 (게스트/로그인 공통)
-  let removedCount = 0;
   Object.keys(accRecordsByExercise).forEach(exName => {
-    const before = accRecordsByExercise[exName].length;
     accRecordsByExercise[exName] =
       (accRecordsByExercise[exName] || []).filter(r => r.id !== recordId);
-    removedCount += before - accRecordsByExercise[exName].length;
   });
   saveAccRecordsToLocal();
-
-  console.log("삭제된 로컬 항목 수:", removedCount);
 
   // 2) 로그인 상태면 Firestore에서도 삭제
   const user = auth.currentUser;
