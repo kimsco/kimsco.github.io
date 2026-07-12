@@ -2137,6 +2137,9 @@ document.querySelectorAll('.folderBtn4').forEach(btn => {
     exerciseScreen.style.display = 'block';
     currentExerciseName = null;
 
+    const appEl0 = document.querySelector('.app');
+    if (appEl0) appEl0.style.overflowY = 'auto';
+
     // 🔥 클릭 즉시 이전 목록을 지우고 로딩 표시 (체감 딜레이 방지)
     exerciseListEl.innerHTML = `<div style="color:#777;font-size:13px;">불러오는 중...</div>`;
 
@@ -2164,6 +2167,10 @@ function openExerciseDetail(name) {
   detailScreen.style.display = 'block';
   document.getElementById('detail-exercise-name').textContent = name;
 
+  // 🔥 상세화면에서는 바깥(앱 전체) 스크롤을 잠그고, 기록 박스 안쪽만 스크롤되게
+  const appEl = document.querySelector('.app');
+  if (appEl) { appEl.scrollTop = 0; appEl.style.overflowY = 'hidden'; }
+
   renderAccessoryRecords(name); // ✅ "디테일 화면"에는 이걸 쓰자
 }
 
@@ -2171,6 +2178,10 @@ function closeExerciseDetail() {
   detailScreen.style.display = 'none';
   exerciseScreen.style.display = 'block';
   currentExerciseName = null;
+
+  // 🔥 목록화면으로 돌아가면 바깥 스크롤 다시 허용
+  const appEl = document.querySelector('.app');
+  if (appEl) appEl.style.overflowY = 'auto';
 }
 
 document.getElementById('delete-exercise-btn4').addEventListener('click', (e) => {
@@ -3121,6 +3132,8 @@ bottomTabBtns.forEach(btn => {
     } else {
       detailScreen.style.display = 'none';
     }
+
+    document.querySelector('.app').style.overflowY = 'auto';
   });
 });
 
