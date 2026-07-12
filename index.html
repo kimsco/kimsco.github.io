@@ -3516,6 +3516,8 @@ async function addAccessorySet() {
 
 
    let accDeleteTimer = null;
+   let accDeleteStartX = 0, accDeleteStartY = 0;
+   const ACC_DELETE_MOVE_TOLERANCE = 12; // 이 정도 미세한 움직임은 무시
 
 // PC
 document.addEventListener("mousedown", e => {
@@ -3538,19 +3540,30 @@ document.addEventListener("touchstart", e => {
   const setEl = e.target.closest(".record-set");
   if (!setEl) return;
 
+  const t = e.touches[0];
+  accDeleteStartX = t.clientX;
+  accDeleteStartY = t.clientY;
+
   accDeleteTimer = setTimeout(() => {
     if (confirm("이 기록을 삭제할까요?")) {
       deleteAccessoryRecord(setEl.dataset.id);
     }
   }, 600);
-});
+}, { passive: true });
 
 document.addEventListener("touchend", () => {
   clearTimeout(accDeleteTimer);
 });
-document.addEventListener("touchmove", () => {
-  clearTimeout(accDeleteTimer);
-});
+document.addEventListener("touchmove", e => {
+  if (!accDeleteTimer) return;
+  const t = e.touches[0];
+  const dx = Math.abs(t.clientX - accDeleteStartX);
+  const dy = Math.abs(t.clientY - accDeleteStartY);
+  // 미세한 흔들림이 아니라 실제로 움직였을 때만 취소(스크롤 의도로 판단)
+  if (dx > ACC_DELETE_MOVE_TOLERANCE || dy > ACC_DELETE_MOVE_TOLERANCE) {
+    clearTimeout(accDeleteTimer);
+  }
+}, { passive: true });
 
 async function deleteAccessoryRecord(recordId) {
   if (!recordId) return;
