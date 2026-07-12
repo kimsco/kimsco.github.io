@@ -2202,6 +2202,12 @@ document.getElementById('delete-exercise-btn4').addEventListener('click', (e) =>
   let dragging = false;   // 가로 드래그로 확정됨
 
   detailScreen.addEventListener('touchstart', (e) => {
+    // 🔥 기록 항목(길게 눌러 삭제) 위에서 시작한 터치는 스와이프 제스처가 관여하지 않음
+    if (e.target.closest('.record-set')) {
+      tracking = false;
+      return;
+    }
+
     const t = e.touches[0];
     if (t.clientX <= EDGE_ZONE) {
       startX = t.clientX;
