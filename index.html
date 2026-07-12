@@ -764,6 +764,10 @@ cursor: pointer;
   display: none;
 }
 
+#threeSummaryOverlay.hidden {
+  display: none;
+}
+
 .settings-panel {
   width: 82%;
   max-width: 320px;
@@ -1451,13 +1455,8 @@ input[type="number"] {
     sans-serif;
 }
 /* ===============================
-   3대 접기 UI
+   3대 총합 (설정 > 3대 총합 화면)
 ================================ */
-.three-header {
-  position: relative;
-  margin: 6px 0 6px;
-  text-align: center;
-}
 
 /* 3대 텍스트 */
 #total3{
@@ -1472,39 +1471,6 @@ input[type="number"] {
 
   color: #FFD700;
 }
-
-/* 오른쪽 버튼 */
-.three-toggle {
-  position: absolute;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
-
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: #333;
-  border: none;
-  cursor: pointer;
-}
-
-.three-toggle::after {
-  content: "";
-  width: 6px;
-  height: 6px;
-  background: #FFD700;
-  border-radius: 50%;
-  display: block;
-  margin: auto;
-}
-
-/* 접힌 상태 */
-#threeDetail {
-  display: none;
-}
-
-
-
 
 </style>
 </head>
@@ -1582,28 +1548,6 @@ input[type="number"] {
 <!-- 3대 -->
 <div id="tab2" class="tabContent">
 
-   
-     <!-- 🔥 헤더 -->
-<div class="three-header">
-  <button id="threeToggleBtn" class="three-toggle"></button>
-</div>
-
-<div id="threeDetail">
-
-  <div id="total3">3대: 0 kg</div>
-
-  <table>
-
-        <tr><th>벤치</th><th>스쿼트</th><th>데드</th></tr>
-        <tr>
-            <td><input id="benchRM" class="rmInput" type="number"></td>
-            <td><input id="squatRM" class="rmInput" type="number"></td>
-            <td><input id="deadRM" class="rmInput" type="number"></td>
-        </tr>
-    </table>
-
-    <button id="save3Btn">3대 기록 저장</button>
-</div>
     <div class="recordFolders">
         <button class="folderBtn active" data-target="benchBox">벤치</button>
         <button class="folderBtn" data-target="squatBox">스쿼트</button>
@@ -1770,6 +1714,32 @@ input[type="number"] {
     </div>
 </div>
 
+<div id="threeSummaryOverlay" class="hidden" style="
+    position:fixed; inset:0; background:#000; z-index:100000;
+    overflow:hidden;
+  ">
+  <div id="threeSummaryScreen" style="height:100%; overflow-y:auto; padding: calc(20px + env(safe-area-inset-top)) 20px 40px;">
+    <div style="display:flex; align-items:center; margin-bottom:20px; cursor:pointer;" onclick="closeThreeSummary()">
+      ← <span style="margin-left:6px; font-size:16px; font-weight:600; color:#fff;">3대 총합</span>
+    </div>
+
+    <div id="threeDetail">
+      <div id="total3">3대: 0 kg</div>
+
+      <table>
+        <tr><th>벤치</th><th>스쿼트</th><th>데드</th></tr>
+        <tr>
+            <td><input id="benchRM" class="rmInput" type="number"></td>
+            <td><input id="squatRM" class="rmInput" type="number"></td>
+            <td><input id="deadRM" class="rmInput" type="number"></td>
+        </tr>
+      </table>
+
+      <button id="save3Btn">3대 기록 저장</button>
+    </div>
+  </div>
+</div>
+
 <div id="settingsOverlay" class="settings-overlay hidden">
   <div class="settings-panel">
     
@@ -1804,6 +1774,7 @@ input[type="number"] {
  
      <!-- 메뉴 -->
     <div class="settings-list">
+      <button id="threeSummaryMenuBtn" class="settings-item" style="width:100%; text-align:left; background:none; border:none; color:#fff; cursor:pointer;">3대 총합</button>
       <div class="settings-item">문의</div>
       <div class="settings-item muted">김무진한테 문의하세요</div>
     </div>
@@ -3224,15 +3195,97 @@ async function deleteRecord(id){
 
 const exerciseScreen = document.getElementById('exercise-screen');
 
-const threeToggleBtn = document.getElementById("threeToggleBtn");
 const threeDetail = document.getElementById("threeDetail");
+const threeSummaryOverlay = document.getElementById("threeSummaryOverlay");
+const threeSummaryScreen = document.getElementById("threeSummaryScreen");
 
-threeToggleBtn.addEventListener("click", () => {
-  threeDetail.style.display =
-    threeDetail.style.display === "none" || !threeDetail.style.display
-      ? "block"
-      : "none";
+function openThreeSummary(){
+  threeSummaryOverlay.classList.remove("hidden");
+  threeSummaryScreen.style.transform = "translateX(0)";
+  threeSummaryScreen.scrollTop = 0;
+}
+
+function closeThreeSummary(){
+  threeSummaryOverlay.classList.add("hidden");
+  threeSummaryScreen.style.transform = "translateX(0)";
+}
+
+document.getElementById("threeSummaryMenuBtn").addEventListener("click", () => {
+  // 🔥 설정화면은 자연스럽게 닫히고, 3대 총합 화면이 새로 열림 (뒤로가기 X)
+  settingsOverlay.classList.add("hidden");
+  openThreeSummary();
 });
+
+/* 🔥 3대 총합 화면: 왼쪽 끝에서 오른쪽으로 드래그하면 손가락 따라 끌려가며 닫힘 */
+(function(){
+  const EDGE_ZONE = 30;
+  const COMMIT_MOVE = 8;
+  const CLOSE_RATIO = 0.3;
+  let startX = 0, startY = 0, tracking = false, dragging = false;
+
+  threeSummaryScreen.addEventListener('touchstart', (e) => {
+    const t = e.touches[0];
+    if (t.clientX <= EDGE_ZONE) {
+      startX = t.clientX;
+      startY = t.clientY;
+      tracking = true;
+      dragging = false;
+      threeSummaryScreen.style.transition = 'none';
+    } else {
+      tracking = false;
+    }
+  }, { passive: true });
+
+  threeSummaryScreen.addEventListener('touchmove', (e) => {
+    if (!tracking) return;
+    const t = e.touches[0];
+    const dx = t.clientX - startX;
+    const dy = t.clientY - startY;
+
+    if (!dragging) {
+      if (dx > COMMIT_MOVE && dx > Math.abs(dy) * 0.6) {
+        dragging = true;
+      } else if (Math.abs(dy) > COMMIT_MOVE && Math.abs(dy) > dx) {
+        tracking = false;
+        return;
+      } else {
+        return;
+      }
+    }
+
+    if (dragging) {
+      e.preventDefault();
+      threeSummaryScreen.style.transform = `translateX(${Math.max(0, dx)}px)`;
+    }
+  }, { passive: false });
+
+  function endDrag(e){
+    if (!tracking) return;
+    const wasDragging = dragging;
+    tracking = false;
+    dragging = false;
+    if (!wasDragging) return;
+
+    const width = threeSummaryScreen.offsetWidth || window.innerWidth;
+    const t = e.changedTouches[0];
+    const dx = Math.max(0, t.clientX - startX);
+
+    threeSummaryScreen.style.transition = 'transform 0.22s ease';
+
+    if (dx > width * CLOSE_RATIO) {
+      threeSummaryScreen.style.transform = `translateX(${width}px)`;
+      setTimeout(() => {
+        closeThreeSummary();
+        threeSummaryScreen.style.transition = 'none';
+      }, 220);
+    } else {
+      threeSummaryScreen.style.transform = 'translateX(0)';
+    }
+  }
+
+  threeSummaryScreen.addEventListener('touchend', endDrag, { passive: true });
+  threeSummaryScreen.addEventListener('touchcancel', endDrag, { passive: true });
+})();
 
 
 
