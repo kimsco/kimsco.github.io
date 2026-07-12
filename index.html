@@ -1398,7 +1398,7 @@ body.sheet-open .app{
   display: none; /* 기본 숨김 */
 }
 
-.record-line{
+.record-line, .acc-record-line{
     font-size:15px;
     line-height:1.5;
     color:rgba(255,255,255,0.92);
@@ -2328,7 +2328,7 @@ function renderAccessoryRecords(exerciseName) {
       <div style="margin-bottom:13px;">
         ${raw.map((r, idx) => `
           <div style="display:flex; align-items:center; line-height:1.6;">
-            <div class="record-line record-set" data-id="${r.id}" style="flex:1; text-align:left;">
+            <div class="acc-record-line record-set" data-id="${r.id}" style="flex:1; text-align:left;">
               ${formatSetLine(r.weight, r.reps, 1)}
             </div>
             <div style="
