@@ -279,6 +279,8 @@ td, th {
 
     height: 488px;
     overflow: auto;
+    overscroll-behavior: contain;      /* 🔥 스크롤이 바깥 페이지로 안 넘어가게 */
+    -webkit-overflow-scrolling: touch; /* 🔥 iOS 부드러운 스크롤 */
 
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
     font-size: 16px;
