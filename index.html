@@ -768,6 +768,10 @@ cursor: pointer;
   display: none;
 }
 
+#mySpecOverlay.hidden {
+  display: none;
+}
+
 .settings-panel {
   width: 82%;
   max-width: 320px;
@@ -1472,6 +1476,218 @@ input[type="number"] {
   color: #FFD700;
 }
 
+/* ===============================
+   내 정보 수정 / 예정(단백질) 탭
+================================ */
+.spec-row {
+  margin-bottom: 20px;
+}
+.spec-row label {
+  display: block;
+  font-size: 13px;
+  color: #999;
+  margin-bottom: 8px;
+}
+.spec-row input[type="number"] {
+  width: 100%;
+  height: 44px;
+  background: #111;
+  border: 1px solid #2a2a2a;
+  border-radius: 10px;
+  color: #fff;
+  padding: 0 14px;
+  font-size: 15px;
+  box-sizing: border-box;
+}
+
+.gender-toggle, .goal-toggle {
+  display: flex;
+  gap: 8px;
+}
+.genderBtn, .goalBtn {
+  flex: 1;
+  height: 44px;
+  border-radius: 10px;
+  border: 1px solid #2a2a2a;
+  background: #111;
+  color: #999;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.genderBtn.active, .goalBtn.active {
+  background: #FFD700;
+  color: #000;
+  border-color: #FFD700;
+}
+
+/* 활동계수 슬라이더 */
+.activity-slider-track {
+  position: relative;
+  height: 4px;
+  background: #2a2a2a;
+  border-radius: 2px;
+  margin: 30px 6px 14px;
+}
+.activity-slider-fill {
+  position: absolute;
+  left: 0; top: 0;
+  height: 100%;
+  background: #FFD700;
+  border-radius: 2px;
+}
+.activity-slider-handle {
+  position: absolute;
+  top: 50%;
+  width: 24px; height: 24px;
+  background: #FFD700;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+  cursor: grab;
+  touch-action: none;
+}
+.activity-level-label {
+  text-align: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: #FFD700;
+}
+
+.spec-summary-box {
+  margin-top: 24px;
+  padding: 16px;
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 14px;
+  font-size: 13px;
+  color: #ccc;
+  line-height: 1.8;
+}
+
+#saveSpecBtn {
+  width: 100%;
+  height: 46px;
+  border-radius: 10px;
+  border: none;
+  background: #FFD700;
+  color: #000;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+/* 예정탭: 오늘의 목표 */
+.macro-summary-box {
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 16px;
+  padding: 18px;
+  text-align: center;
+  margin-bottom: 18px;
+}
+.protein-target-big {
+  font-size: 26px;
+  font-weight: 800;
+  color: #FFD700;
+}
+.protein-progress-track {
+  height: 8px;
+  background: #262626;
+  border-radius: 4px;
+  margin: 12px 0 10px;
+  overflow: hidden;
+}
+.protein-progress-fill {
+  height: 100%;
+  background: #FFD700;
+  border-radius: 4px;
+  transition: width 0.25s ease;
+}
+.carb-fat-small {
+  font-size: 12px;
+  color: #888;
+}
+
+.food-template-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+.food-template-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+}
+.food-template-macro {
+  font-size: 12px;
+  color: #888;
+  margin-top: 2px;
+}
+.food-template-plus {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  background: #FFD700;
+  color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.meal-log-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.meal-log-name {
+  font-size: 14px;
+  color: #eee;
+}
+.meal-log-time {
+  font-size: 11px;
+  color: #666;
+  margin-top: 2px;
+}
+.meal-log-protein {
+  font-size: 13px;
+  color: #FFD700;
+  font-weight: 700;
+}
+
+/* 식단 템플릿 추가 모달 폼 */
+.food-modal-form {
+  padding: 14px 16px 16px;
+}
+.food-modal-form input {
+  width: 100%;
+  height: 42px;
+  background: #111;
+  border: 1px solid #2a2a2a;
+  border-radius: 10px;
+  color: #fff;
+  padding: 0 12px;
+  font-size: 14px;
+  box-sizing: border-box;
+  margin-bottom: 10px;
+}
+.food-modal-form label {
+  font-size: 12px;
+  color: #888;
+  display: block;
+  margin: -6px 0 6px 2px;
+}
+
 </style>
 </head>
 
@@ -1684,9 +1900,24 @@ input[type="number"] {
 </div>
 <!-- 예정 (연습용 수정 탭 - 기록탭과 동일 기능, 로컬 저장만 사용) -->
 <div id="tab5" class="tabContent">
-  <div style="padding:20px 0; text-align:center; color:#777; font-size:13px;">
-    예정(준비중)
+
+  <div class="macro-summary-box">
+    <div id="proteinTargetBig" class="protein-target-big">단백질 0 / 0 g</div>
+    <div class="protein-progress-track">
+      <div id="proteinProgressFill" class="protein-progress-fill" style="width:0%;"></div>
+    </div>
+    <div id="carbFatSmall" class="carb-fat-small">탄수화물 0/0g · 지방 0/0g · 0/0kcal</div>
   </div>
+
+  <div style="display:flex; justify-content:space-between; align-items:center; margin:4px 0 10px;">
+    <div style="font-size:14px; color:#aaa; font-weight:600;">내 식단 템플릿</div>
+    <button id="addFoodTemplateBtn" class="add-btn">+</button>
+  </div>
+  <div id="foodTemplateList"></div>
+
+  <div style="font-size:14px; color:#aaa; font-weight:600; margin:22px 0 10px;">오늘 먹은 것</div>
+  <div id="todayMealList" class="folderContent active" style="height:260px;"></div>
+
 </div>
 
 <!-- ✅ 하단 탭바 (새로 추가/이동) -->
@@ -1712,6 +1943,62 @@ input[type="number"] {
             <button data-muscle="어깨">어깨</button>
         </div>
     </div>
+</div>
+
+<div id="mySpecOverlay" class="hidden" style="
+    position:fixed; inset:0; background:#000; z-index:100000;
+    overflow:hidden;
+  ">
+  <div id="mySpecScreen" style="height:100%; overflow-y:auto; padding: calc(20px + env(safe-area-inset-top)) 20px 40px;">
+    <div style="display:flex; align-items:center; margin-bottom:24px; cursor:pointer;" onclick="closeMySpec()">
+      ← <span style="margin-left:6px; font-size:16px; font-weight:600; color:#fff;">내 정보 수정</span>
+    </div>
+
+    <div class="spec-row">
+      <label>성별</label>
+      <div class="gender-toggle">
+        <button type="button" class="genderBtn active" data-gender="male">남</button>
+        <button type="button" class="genderBtn" data-gender="female">여</button>
+      </div>
+    </div>
+
+    <div class="spec-row">
+      <label>키 (cm)</label>
+      <input id="specHeight" type="number" placeholder="예: 175">
+    </div>
+
+    <div class="spec-row">
+      <label>몸무게 (kg)</label>
+      <input id="specWeight" type="number" placeholder="예: 70">
+    </div>
+
+    <div class="spec-row">
+      <label>나이</label>
+      <input id="specAge" type="number" placeholder="예: 25">
+    </div>
+
+    <div class="spec-row">
+      <label>활동량</label>
+      <div id="activitySliderTrack" class="activity-slider-track">
+        <div id="activitySliderFill" class="activity-slider-fill"></div>
+        <div id="activitySliderHandle" class="activity-slider-handle"></div>
+      </div>
+      <div id="activityLevelLabel" class="activity-level-label">보통</div>
+    </div>
+
+    <div class="spec-row">
+      <label>목표</label>
+      <div class="goal-toggle">
+        <button type="button" class="goalBtn" data-goal="cut">다이어트</button>
+        <button type="button" class="goalBtn active" data-goal="maintain">유지</button>
+        <button type="button" class="goalBtn" data-goal="bulk">벌크업</button>
+      </div>
+    </div>
+
+    <button id="saveSpecBtn">저장</button>
+
+    <div id="specSummaryBox" class="spec-summary-box"></div>
+  </div>
 </div>
 
 <div id="threeSummaryOverlay" class="hidden" style="
@@ -1774,6 +2061,7 @@ input[type="number"] {
  
      <!-- 메뉴 -->
     <div class="settings-list">
+      <button id="mySpecMenuBtn" class="settings-item" style="width:100%; text-align:left; background:none; border:none; color:#fff; cursor:pointer;">내 정보 수정</button>
       <button id="threeSummaryMenuBtn" class="settings-item" style="width:100%; text-align:left; background:none; border:none; color:#fff; cursor:pointer;">3대 총합</button>
       <div class="settings-item">문의</div>
       <div class="settings-item muted">김무진한테 문의하세요</div>
@@ -1795,6 +2083,30 @@ input[type="number"] {
 </div>
 
 <!-- ✅ 로그아웃 확인 팝업 -->
+<div id="foodTemplateModal" class="modal hidden">
+  <div class="modal-box">
+    <div class="modal-title">무엇을 저장하시겠습니까?</div>
+    <div class="food-modal-form">
+      <label>음식 이름</label>
+      <input id="foodModalName" type="text" placeholder="예: 닭가슴살 100g">
+
+      <label>단백질 (g) *필수</label>
+      <input id="foodModalProtein" type="number" placeholder="예: 24">
+
+      <label>탄수화물 (g) - 선택</label>
+      <input id="foodModalCarb" type="number" placeholder="비워도 됨">
+
+      <label>지방 (g) - 선택</label>
+      <input id="foodModalFat" type="number" placeholder="비워도 됨">
+    </div>
+
+    <div class="modal-actions">
+      <button id="foodModalCancel" class="modal-btn">취소</button>
+      <button id="foodModalSave" class="modal-btn">저장</button>
+    </div>
+  </div>
+</div>
+
 <div id="logoutModal" class="modal hidden">
   <div class="modal-box">
     <div class="modal-title">로그아웃</div>
@@ -2005,7 +2317,10 @@ const LS_KEYS = {
   records: "mf_records_v1",              // bench/squat/dead
   calendar: "mf_calendar_v1",            // calData
   accessoriesList: (part) => `mf_acc_list_${part}_v1`,   // part별 종목 리스트
-  accessoryRecords: "mf_acc_records_v1"  // 보조운동 기록 전체
+  accessoryRecords: "mf_acc_records_v1", // 보조운동 기록 전체
+  userSpec: "mf_user_spec_v1",           // 키/몸무게/나이/활동계수/목표
+  foodTemplates: "mf_food_templates_v1", // 자주 먹는 식단 템플릿
+  meals: "mf_meals_v1"                   // 날짜별 식사 기록
 };
 
 function lsGet(key, fallback){
@@ -2782,10 +3097,16 @@ try {
     }
 
     await loadAccessoryRecords();
+    await loadUserSpecFromFirestore(user.uid);
+    await loadFoodTemplatesFromFirestore(user.uid);
+    await loadMealsFromFirestore(user.uid);
 
   } else {
     // ✅ 게스트: 로컬에서 전부 복원
     loadAllFromLocal();
+    loadUserSpecFromLocal();
+    loadFoodTemplatesFromLocal();
+    loadMealsFromLocal();
 
     currentExercises = [];
     renderExercises();
@@ -4553,6 +4874,521 @@ if(coachToggleBtn){
 
 // 처음엔 숨김
 setCoachVisible(false);
+
+/* ================================================
+   🥩 내 정보 수정 / 예정 탭 (단백질·매크로 계산 & 기록)
+================================================ */
+
+const ACTIVITY_LEVELS = [
+  { key: "sedentary",   label: "좌식",       factor: 1.2 },
+  { key: "light",       label: "가벼운 운동", factor: 1.375 },
+  { key: "moderate",    label: "보통",       factor: 1.55 },
+  { key: "active",      label: "활발",       factor: 1.725 },
+  { key: "veryActive",  label: "매우활발",   factor: 1.9 }
+];
+
+const GOAL_ADJUST = {
+  cut: -0.20,       // 다이어트: -20%
+  maintain: 0,      // 유지
+  bulk: 0.15        // 벌크업: +15%
+};
+
+let userSpec = {
+  gender: "male",
+  height: null,
+  weight: null,
+  age: null,
+  activityIndex: 2,   // 기본: 보통
+  goal: "maintain"
+};
+
+let foodTemplates = [];      // [{id, name, protein, carb, fat}]
+let mealsAll = [];           // [{id, name, protein, carb, fat, date, time, createdAt}]
+
+/* ---------- 로컬 저장/로드 ---------- */
+function saveUserSpecToLocal(){ lsSet(LS_KEYS.userSpec, userSpec); }
+function loadUserSpecFromLocal(){
+  const saved = lsGet(LS_KEYS.userSpec, null);
+  if (saved && typeof saved === "object") userSpec = { ...userSpec, ...saved };
+  applySpecToUI();
+  renderMacroSummary();
+}
+
+function saveFoodTemplatesToLocal(){ lsSet(LS_KEYS.foodTemplates, foodTemplates); }
+function loadFoodTemplatesFromLocal(){
+  foodTemplates = lsGet(LS_KEYS.foodTemplates, []);
+  if (!Array.isArray(foodTemplates)) foodTemplates = [];
+  renderFoodTemplateList();
+}
+
+function saveMealsToLocal(){ lsSet(LS_KEYS.meals, mealsAll); }
+function loadMealsFromLocal(){
+  mealsAll = lsGet(LS_KEYS.meals, []);
+  if (!Array.isArray(mealsAll)) mealsAll = [];
+  renderTodayMealList();
+  renderMacroSummary();
+}
+
+/* ---------- Firestore 저장/로드 (로그인 시) ---------- */
+async function saveUserSpecToFirestore(){
+  const user = auth.currentUser;
+  if (!user) return;
+  try {
+    await db.collection("users").doc(user.uid)
+      .collection("profile").doc("spec")
+      .set(userSpec, { merge: true });
+  } catch (e) { console.error("spec save err", e); }
+}
+
+async function loadUserSpecFromFirestore(uid){
+  try {
+    const doc = await db.collection("users").doc(uid)
+      .collection("profile").doc("spec").get();
+    if (doc.exists) {
+      userSpec = { ...userSpec, ...doc.data() };
+    }
+  } catch (e) { console.error("spec load err", e); }
+  applySpecToUI();
+  renderMacroSummary();
+}
+
+async function saveFoodTemplateToFirestore(item){
+  const user = auth.currentUser;
+  if (!user) return;
+  try {
+    await db.collection("users").doc(user.uid)
+      .collection("foodTemplates").doc(item.id).set(item);
+  } catch (e) { console.error("template save err", e); }
+}
+
+async function deleteFoodTemplateFromFirestore(id){
+  const user = auth.currentUser;
+  if (!user) return;
+  try {
+    await db.collection("users").doc(user.uid)
+      .collection("foodTemplates").doc(id).delete();
+  } catch (e) { console.error("template delete err", e); }
+}
+
+async function loadFoodTemplatesFromFirestore(uid){
+  try {
+    const snap = await db.collection("users").doc(uid)
+      .collection("foodTemplates").get();
+    foodTemplates = [];
+    snap.forEach(doc => foodTemplates.push(doc.data()));
+  } catch (e) { console.error("template load err", e); }
+  renderFoodTemplateList();
+}
+
+async function saveMealToFirestore(item){
+  const user = auth.currentUser;
+  if (!user) return;
+  try {
+    await db.collection("users").doc(user.uid)
+      .collection("meals").doc(item.id).set(item);
+  } catch (e) { console.error("meal save err", e); }
+}
+
+async function deleteMealFromFirestore(id){
+  const user = auth.currentUser;
+  if (!user) return;
+  try {
+    await db.collection("users").doc(user.uid)
+      .collection("meals").doc(id).delete();
+  } catch (e) { console.error("meal delete err", e); }
+}
+
+async function loadMealsFromFirestore(uid){
+  try {
+    const snap = await db.collection("users").doc(uid)
+      .collection("meals").get();
+    mealsAll = [];
+    snap.forEach(doc => mealsAll.push(doc.data()));
+  } catch (e) { console.error("meal load err", e); }
+  renderTodayMealList();
+  renderMacroSummary();
+}
+
+/* ---------- 계산 로직 ---------- */
+function calcTargets(spec){
+  const { gender, height, weight, age, activityIndex, goal } = spec;
+
+  if (!height || !weight || !age) return null;
+
+  const bmr = gender === "female"
+    ? 655.1 + (9.56 * weight) + (1.85 * height) - (4.68 * age)
+    : 66.47 + (13.75 * weight) + (5 * height) - (6.76 * age);
+
+  const activity = ACTIVITY_LEVELS[activityIndex] || ACTIVITY_LEVELS[2];
+  const tdee = bmr * activity.factor;
+
+  const adjust = GOAL_ADJUST[goal] ?? 0;
+  const targetCalories = tdee * (1 + adjust);
+
+  const proteinTarget = Math.round(weight * 2.0);           // 체중 x 2.0g
+  const proteinKcal = proteinTarget * 4;
+
+  const fatTarget = Math.round((targetCalories * 0.25) / 9); // 목표칼로리 25%
+  const fatKcal = fatTarget * 9;
+
+  const carbKcal = Math.max(0, targetCalories - proteinKcal - fatKcal);
+  const carbTarget = Math.round(carbKcal / 4);
+
+  return {
+    bmr: Math.round(bmr),
+    tdee: Math.round(tdee),
+    targetCalories: Math.round(targetCalories),
+    proteinTarget, carbTarget, fatTarget
+  };
+}
+
+/* ---------- 내 정보 수정 화면 UI ---------- */
+const mySpecOverlay = document.getElementById("mySpecOverlay");
+const mySpecScreen = document.getElementById("mySpecScreen");
+const specHeight = document.getElementById("specHeight");
+const specWeight = document.getElementById("specWeight");
+const specAge = document.getElementById("specAge");
+const activitySliderTrack = document.getElementById("activitySliderTrack");
+const activitySliderFill = document.getElementById("activitySliderFill");
+const activitySliderHandle = document.getElementById("activitySliderHandle");
+const activityLevelLabel = document.getElementById("activityLevelLabel");
+const specSummaryBox = document.getElementById("specSummaryBox");
+
+function openMySpec(){
+  mySpecOverlay.classList.remove("hidden");
+  mySpecScreen.style.transform = "translateX(0)";
+  mySpecScreen.scrollTop = 0;
+  applySpecToUI();
+}
+function closeMySpec(){
+  mySpecOverlay.classList.add("hidden");
+  mySpecScreen.style.transform = "translateX(0)";
+}
+
+document.getElementById("mySpecMenuBtn").addEventListener("click", () => {
+  settingsOverlay.classList.add("hidden");
+  openMySpec();
+});
+
+document.querySelectorAll(".genderBtn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".genderBtn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    userSpec.gender = btn.dataset.gender;
+    renderSpecSummaryPreview();
+  });
+});
+
+document.querySelectorAll(".goalBtn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".goalBtn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    userSpec.goal = btn.dataset.goal;
+    renderSpecSummaryPreview();
+  });
+});
+
+function setActivityIndex(idx){
+  idx = Math.max(0, Math.min(ACTIVITY_LEVELS.length - 1, idx));
+  userSpec.activityIndex = idx;
+  const pct = (idx / (ACTIVITY_LEVELS.length - 1)) * 100;
+  activitySliderFill.style.width = pct + "%";
+  activitySliderHandle.style.left = pct + "%";
+  activityLevelLabel.textContent = ACTIVITY_LEVELS[idx].label;
+  renderSpecSummaryPreview();
+}
+
+(function(){
+  let dragging = false;
+
+  function posToIndex(clientX){
+    const rect = activitySliderTrack.getBoundingClientRect();
+    const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+    return Math.round(ratio * (ACTIVITY_LEVELS.length - 1));
+  }
+
+  function startDrag(e){
+    dragging = true;
+    const x = e.touches ? e.touches[0].clientX : e.clientX;
+    setActivityIndex(posToIndex(x));
+  }
+  function moveDrag(e){
+    if (!dragging) return;
+    const x = e.touches ? e.touches[0].clientX : e.clientX;
+    setActivityIndex(posToIndex(x));
+  }
+  function endDrag(){ dragging = false; }
+
+  activitySliderHandle.addEventListener("mousedown", startDrag);
+  activitySliderTrack.addEventListener("mousedown", startDrag);
+  document.addEventListener("mousemove", moveDrag);
+  document.addEventListener("mouseup", endDrag);
+
+  activitySliderHandle.addEventListener("touchstart", startDrag, { passive: true });
+  activitySliderTrack.addEventListener("touchstart", startDrag, { passive: true });
+  document.addEventListener("touchmove", moveDrag, { passive: true });
+  document.addEventListener("touchend", endDrag);
+})();
+
+function applySpecToUI(){
+  document.querySelectorAll(".genderBtn").forEach(b =>
+    b.classList.toggle("active", b.dataset.gender === userSpec.gender));
+  document.querySelectorAll(".goalBtn").forEach(b =>
+    b.classList.toggle("active", b.dataset.goal === userSpec.goal));
+
+  specHeight.value = userSpec.height || "";
+  specWeight.value = userSpec.weight || "";
+  specAge.value = userSpec.age || "";
+
+  setActivityIndex(userSpec.activityIndex ?? 2);
+  renderSpecSummaryPreview();
+}
+
+function renderSpecSummaryPreview(){
+  const targets = calcTargets(userSpec);
+  if (!targets) {
+    specSummaryBox.innerHTML = `키·몸무게·나이를 입력하면<br>자동으로 목표치를 계산해드려요.`;
+    return;
+  }
+  specSummaryBox.innerHTML = `
+    기초대사량(BMR): <b>${targets.bmr}</b> kcal<br>
+    활동대사량(TDEE): <b>${targets.tdee}</b> kcal<br>
+    목표 칼로리: <b style="color:#FFD700;">${targets.targetCalories}</b> kcal<br><br>
+    단백질 목표: <b style="color:#FFD700;">${targets.proteinTarget}g</b><br>
+    탄수화물 목표: ${targets.carbTarget}g · 지방 목표: ${targets.fatTarget}g
+  `;
+}
+
+document.getElementById("saveSpecBtn").addEventListener("click", () => {
+  userSpec.height = parseFloat(specHeight.value) || null;
+  userSpec.weight = parseFloat(specWeight.value) || null;
+  userSpec.age = parseInt(specAge.value, 10) || null;
+
+  saveUserSpecToLocal();
+  saveUserSpecToFirestore();
+  renderSpecSummaryPreview();
+  renderMacroSummary();
+  alert("저장됐어요!");
+});
+
+/* 🔥 내 정보 수정 화면: 왼쪽 끝 스와이프로 닫기 */
+(function(){
+  const EDGE_ZONE = 30, COMMIT_MOVE = 8, CLOSE_RATIO = 0.3;
+  let startX = 0, startY = 0, tracking = false, dragging = false;
+
+  mySpecScreen.addEventListener('touchstart', (e) => {
+    const t = e.touches[0];
+    if (t.clientX <= EDGE_ZONE) {
+      startX = t.clientX; startY = t.clientY;
+      tracking = true; dragging = false;
+      mySpecScreen.style.transition = 'none';
+    } else { tracking = false; }
+  }, { passive: true });
+
+  mySpecScreen.addEventListener('touchmove', (e) => {
+    if (!tracking) return;
+    const t = e.touches[0];
+    const dx = t.clientX - startX, dy = t.clientY - startY;
+    if (!dragging) {
+      if (dx > COMMIT_MOVE && dx > Math.abs(dy) * 0.6) dragging = true;
+      else if (Math.abs(dy) > COMMIT_MOVE && Math.abs(dy) > dx) { tracking = false; return; }
+      else return;
+    }
+    if (dragging) {
+      e.preventDefault();
+      mySpecScreen.style.transform = `translateX(${Math.max(0, dx)}px)`;
+    }
+  }, { passive: false });
+
+  function endDrag(e){
+    if (!tracking) return;
+    const wasDragging = dragging;
+    tracking = false; dragging = false;
+    if (!wasDragging) return;
+
+    const width = mySpecScreen.offsetWidth || window.innerWidth;
+    const t = e.changedTouches[0];
+    const dx = Math.max(0, t.clientX - startX);
+    mySpecScreen.style.transition = 'transform 0.22s ease';
+
+    if (dx > width * CLOSE_RATIO) {
+      mySpecScreen.style.transform = `translateX(${width}px)`;
+      setTimeout(() => { closeMySpec(); mySpecScreen.style.transition = 'none'; }, 220);
+    } else {
+      mySpecScreen.style.transform = 'translateX(0)';
+    }
+  }
+  mySpecScreen.addEventListener('touchend', endDrag, { passive: true });
+  mySpecScreen.addEventListener('touchcancel', endDrag, { passive: true });
+})();
+
+/* ---------- 예정 탭: 오늘의 목표 요약 ---------- */
+function getTodayMeals(){
+  const today = formatTodayYYMMDD();
+  return mealsAll.filter(m => m.date === today);
+}
+
+function renderMacroSummary(){
+  const targets = calcTargets(userSpec);
+  const todayMeals = getTodayMeals();
+
+  const sum = todayMeals.reduce((acc, m) => {
+    acc.protein += Number(m.protein) || 0;
+    acc.carb += Number(m.carb) || 0;
+    acc.fat += Number(m.fat) || 0;
+    return acc;
+  }, { protein: 0, carb: 0, fat: 0 });
+
+  const proteinTargetEl = document.getElementById("proteinTargetBig");
+  const proteinFillEl = document.getElementById("proteinProgressFill");
+  const carbFatEl = document.getElementById("carbFatSmall");
+
+  if (!targets) {
+    proteinTargetEl.textContent = `단백질 ${sum.protein}g (목표: 설정에서 내 정보 입력)`;
+    proteinFillEl.style.width = "0%";
+    carbFatEl.textContent = `탄수화물 ${sum.carb}g · 지방 ${sum.fat}g`;
+    return;
+  }
+
+  proteinTargetEl.textContent = `단백질 ${sum.protein} / ${targets.proteinTarget} g`;
+  const pct = Math.min(100, (sum.protein / targets.proteinTarget) * 100 || 0);
+  proteinFillEl.style.width = pct + "%";
+
+  const kcal = sum.protein * 4 + sum.carb * 4 + sum.fat * 9;
+  carbFatEl.textContent =
+    `탄수화물 ${sum.carb}/${targets.carbTarget}g · 지방 ${sum.fat}/${targets.fatTarget}g · ${kcal}/${targets.targetCalories}kcal`;
+}
+
+/* ---------- 식단 템플릿 ---------- */
+function renderFoodTemplateList(){
+  const el = document.getElementById("foodTemplateList");
+  if (!foodTemplates.length) {
+    el.innerHTML = `<div style="color:#777; font-size:13px; padding:8px 0;">+ 버튼으로 자주 먹는 음식을 등록해보세요</div>`;
+    return;
+  }
+
+  el.innerHTML = "";
+  foodTemplates.forEach(item => {
+    const card = document.createElement("div");
+    card.className = "food-template-card";
+
+    const macroParts = [`단백질 ${item.protein}g`];
+    if (item.carb) macroParts.push(`탄수 ${item.carb}g`);
+    if (item.fat) macroParts.push(`지방 ${item.fat}g`);
+
+    card.innerHTML = `
+      <div>
+        <div class="food-template-name">${item.name}</div>
+        <div class="food-template-macro">${macroParts.join(" · ")}</div>
+      </div>
+      <div class="food-template-plus">+</div>
+    `;
+    card.addEventListener("click", () => addMealFromTemplate(item));
+    el.appendChild(card);
+  });
+}
+
+const foodTemplateModal = document.getElementById("foodTemplateModal");
+document.getElementById("addFoodTemplateBtn").addEventListener("click", () => {
+  document.getElementById("foodModalName").value = "";
+  document.getElementById("foodModalProtein").value = "";
+  document.getElementById("foodModalCarb").value = "";
+  document.getElementById("foodModalFat").value = "";
+  foodTemplateModal.classList.remove("hidden");
+});
+document.getElementById("foodModalCancel").addEventListener("click", () => {
+  foodTemplateModal.classList.add("hidden");
+});
+document.getElementById("foodModalSave").addEventListener("click", () => {
+  const name = document.getElementById("foodModalName").value.trim();
+  const protein = parseFloat(document.getElementById("foodModalProtein").value);
+  const carb = parseFloat(document.getElementById("foodModalCarb").value) || 0;
+  const fat = parseFloat(document.getElementById("foodModalFat").value) || 0;
+
+  if (!name || !protein) {
+    alert("음식 이름과 단백질(g)은 꼭 입력해주세요.");
+    return;
+  }
+
+  const item = {
+    id: "food_" + Date.now() + "_" + Math.random().toString(16).slice(2),
+    name, protein, carb, fat
+  };
+
+  foodTemplates.unshift(item);
+  saveFoodTemplatesToLocal();
+  saveFoodTemplateToFirestore(item);
+  renderFoodTemplateList();
+  foodTemplateModal.classList.add("hidden");
+});
+
+/* ---------- 오늘 기록 ---------- */
+function addMealFromTemplate(item){
+  const now = new Date();
+  const meal = {
+    id: "meal_" + Date.now() + "_" + Math.random().toString(16).slice(2),
+    name: item.name,
+    protein: Number(item.protein) || 0,
+    carb: Number(item.carb) || 0,
+    fat: Number(item.fat) || 0,
+    date: formatTodayYYMMDD(),
+    time: `${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}`,
+    createdAt: Date.now()
+  };
+
+  mealsAll.push(meal);
+  saveMealsToLocal();
+  saveMealToFirestore(meal);
+
+  renderTodayMealList();
+  renderMacroSummary();
+}
+
+function deleteMeal(id){
+  mealsAll = mealsAll.filter(m => m.id !== id);
+  saveMealsToLocal();
+  deleteMealFromFirestore(id);
+  renderTodayMealList();
+  renderMacroSummary();
+}
+
+function renderTodayMealList(){
+  const el = document.getElementById("todayMealList");
+  const todayMeals = getTodayMeals().slice().sort((a,b) => (b.createdAt||0) - (a.createdAt||0));
+
+  if (!todayMeals.length) {
+    el.innerHTML = `<div style="color:#777; font-size:13px;">오늘 먹은 걸 템플릿에서 눌러서 기록해보세요</div>`;
+    return;
+  }
+
+  el.innerHTML = "";
+  todayMeals.forEach(m => {
+    const row = document.createElement("div");
+    row.className = "meal-log-row";
+    row.innerHTML = `
+      <div>
+        <div class="meal-log-name">${m.name}</div>
+        <div class="meal-log-time">${m.time || ""}</div>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <div class="meal-log-protein">${m.protein}g</div>
+        <button class="mealDeleteBtn" data-id="${m.id}" style="background:none; border:none; color:#666; font-size:16px; cursor:pointer; padding:4px;">×</button>
+      </div>
+    `;
+    el.appendChild(row);
+  });
+
+  el.querySelectorAll(".mealDeleteBtn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      if (confirm("이 기록을 삭제할까요?")) deleteMeal(btn.dataset.id);
+    });
+  });
+}
+
+// 초기 로드 (게스트 기본값 — 로그인 시 auth 핸들러가 다시 덮어씀)
+loadUserSpecFromLocal();
+loadFoodTemplatesFromLocal();
+loadMealsFromLocal();
 </script>
 <script>
 if ("serviceWorker" in navigator) {
