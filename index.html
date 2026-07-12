@@ -1478,198 +1478,215 @@ input[type="number"] {
 
 /* ===============================
    내 정보 수정 / 예정(단백질) 탭
+   — 선(Line) 중심, 면(Fill) 최소화, Flat 디자인
 ================================ */
 .spec-row {
-  margin-bottom: 12px;
+  margin-bottom: 18px;
 }
 .spec-row label {
   display: block;
-  font-size: 12px;
-  color: #888;
-  margin-bottom: 6px;
+  font-size: 11px;
+  color: rgba(255,255,255,0.4);
+  margin-bottom: 8px;
+  letter-spacing: 0.4px;
 }
 .spec-row input[type="number"] {
   width: 100%;
-  height: 38px;
-  background: #111;
-  border: 1px solid #2a2a2a;
-  border-radius: 9px;
+  height: 40px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255,255,255,0.18);
   color: #fff;
-  padding: 0 12px;
-  font-size: 14px;
+  padding: 0 2px;
+  font-size: 15px;
   box-sizing: border-box;
+}
+.spec-row input[type="number"]:focus {
+  outline: none;
+  border-bottom-color: #fff;
 }
 
 /* 키/몸무게/나이 한 줄 배치 */
 .spec-row-grid3 {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: 16px;
+  margin-bottom: 18px;
 }
 .spec-row-grid3 > div label {
   display: block;
-  font-size: 11px;
-  color: #888;
-  margin-bottom: 6px;
+  font-size: 10px;
+  color: rgba(255,255,255,0.4);
+  margin-bottom: 8px;
   text-align: center;
+  letter-spacing: 0.4px;
 }
 .spec-row-grid3 input[type="number"] {
   width: 100%;
-  height: 38px;
-  background: #111;
-  border: 1px solid #2a2a2a;
-  border-radius: 9px;
+  height: 40px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255,255,255,0.18);
   color: #fff;
-  padding: 0 8px;
-  font-size: 14px;
+  padding: 0;
+  font-size: 15px;
   text-align: center;
   box-sizing: border-box;
+}
+.spec-row-grid3 input[type="number"]:focus {
+  outline: none;
+  border-bottom-color: #fff;
 }
 
 .gender-toggle, .goal-toggle {
   display: flex;
-  gap: 6px;
+  gap: 0;
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 8px;
+  overflow: hidden;
 }
 .genderBtn, .goalBtn {
   flex: 1;
   height: 38px;
-  border-radius: 9px;
-  border: 1px solid #2a2a2a;
-  background: #111;
-  color: #888;
+  border: none;
+  border-right: 1px solid rgba(255,255,255,0.18);
+  background: transparent;
+  color: rgba(255,255,255,0.4);
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
 }
+.genderBtn:last-child, .goalBtn:last-child {
+  border-right: none;
+}
 .genderBtn.active, .goalBtn.active {
-  background: #fff;
-  color: #000;
-  border-color: #fff;
+  color: #fff;
+  font-weight: 700;
 }
 
 /* 활동계수 슬라이더 */
 .activity-slider-track {
   position: relative;
-  height: 4px;
-  background: #2a2a2a;
-  border-radius: 2px;
-  margin: 22px 6px 10px;
+  height: 1px;
+  background: rgba(255,255,255,0.18);
+  margin: 26px 10px 12px;
 }
 .activity-slider-fill {
   position: absolute;
   left: 0; top: 0;
   height: 100%;
-  background: #ccc;
-  border-radius: 2px;
+  background: rgba(255,255,255,0.6);
 }
 .activity-slider-handle {
   position: absolute;
   top: 50%;
-  width: 20px; height: 20px;
-  background: #fff;
+  width: 16px; height: 16px;
+  background: #000;
+  border: 1.5px solid #fff;
   border-radius: 50%;
   transform: translate(-50%, -50%);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.5);
   cursor: grab;
   touch-action: none;
 }
 .activity-level-label {
   text-align: center;
-  font-size: 13px;
-  font-weight: 700;
-  color: #fff;
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.7);
+  letter-spacing: 0.4px;
 }
 
 .spec-summary-box {
-  margin-top: 14px;
-  padding: 12px 14px;
-  background: #111;
-  border: 1px solid #222;
-  border-radius: 12px;
+  margin-top: 22px;
+  padding: 16px 0 0;
+  border-top: 1px solid rgba(255,255,255,0.14);
   font-size: 12px;
-  color: #aaa;
-  line-height: 1.6;
+  color: rgba(255,255,255,0.45);
+  line-height: 1.9;
 }
 .spec-summary-box b {
   color: #fff;
+  font-weight: 600;
 }
 
 #saveSpecBtn {
   width: 100%;
   height: 42px;
-  border-radius: 10px;
-  border: none;
-  background: #fff;
-  color: #000;
-  font-size: 14px;
-  font-weight: 800;
+  border-radius: 8px;
+  border: 1px solid #fff;
+  background: transparent;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
   cursor: pointer;
-  margin-top: 4px;
+  margin-top: 6px;
 }
 
 /* 예정탭: 오늘의 목표 */
 .macro-summary-box {
-  background: #111;
-  border: 1px solid #222;
-  border-radius: 16px;
-  padding: 18px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255,255,255,0.14);
+  padding: 4px 0 20px;
   text-align: center;
-  margin-bottom: 18px;
+  margin-bottom: 22px;
 }
 .protein-target-big {
-  font-size: 26px;
-  font-weight: 800;
-  color: #FFD700;
+  font-size: 24px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.3px;
 }
 .protein-progress-track {
-  height: 8px;
-  background: #262626;
-  border-radius: 4px;
-  margin: 12px 0 10px;
+  height: 1px;
+  background: rgba(255,255,255,0.18);
+  margin: 14px 0 10px;
   overflow: hidden;
 }
 .protein-progress-fill {
   height: 100%;
-  background: #FFD700;
-  border-radius: 4px;
+  background: rgba(255,255,255,0.7);
   transition: width 0.25s ease;
 }
 .carb-fat-small {
-  font-size: 12px;
-  color: #888;
+  font-size: 11px;
+  color: rgba(255,255,255,0.4);
+  letter-spacing: 0.2px;
 }
 
 .food-template-card {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #111;
-  border: 1px solid #222;
-  border-radius: 12px;
-  padding: 12px 14px;
-  margin-bottom: 8px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  padding: 12px 2px;
+  margin-bottom: 0;
   cursor: pointer;
 }
 .food-template-name {
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
   color: #fff;
 }
 .food-template-macro {
-  font-size: 12px;
-  color: #888;
-  margin-top: 2px;
+  font-size: 11px;
+  color: rgba(255,255,255,0.4);
+  margin-top: 3px;
 }
 .food-template-plus {
-  width: 26px; height: 26px;
+  width: 22px; height: 22px;
   border-radius: 50%;
-  background: #FFD700;
-  color: #000;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.35);
+  color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 800;
+  font-weight: 500;
+  font-size: 14px;
   flex-shrink: 0;
 }
 
@@ -1686,13 +1703,13 @@ input[type="number"] {
 }
 .meal-log-time {
   font-size: 11px;
-  color: #666;
+  color: rgba(255,255,255,0.35);
   margin-top: 2px;
 }
 .meal-log-protein {
   font-size: 13px;
-  color: #FFD700;
-  font-weight: 700;
+  color: #fff;
+  font-weight: 600;
 }
 
 /* 식단 템플릿 추가 모달 폼 */
