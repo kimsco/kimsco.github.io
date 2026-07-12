@@ -2135,6 +2135,9 @@ document.querySelectorAll('.folderBtn4').forEach(btn => {
     exerciseScreen.style.display = 'block';
     currentExerciseName = null;
 
+    // 🔥 클릭 즉시 이전 목록을 지우고 로딩 표시 (체감 딜레이 방지)
+    exerciseListEl.innerHTML = `<div style="color:#777;font-size:13px;">불러오는 중...</div>`;
+
     // Firestore에서 해당 종목 불러오기
     await loadExercises(currentPart);
   });
@@ -3280,7 +3283,12 @@ async function loadExercises(part) {
     return;
   }
 
-  // ✅ 로그인: Firestore
+  // ✅ 로그인: 일단 로컬 캐시로 즉시 화면부터 채우고(딜레이 체감 제거),
+  //    Firestore 최신 데이터로 뒤이어 갱신
+  const cached = loadAccListFromLocal(part);
+  currentExercises = (cached || []).filter(x => typeof x === "string" && x.trim());
+  renderExercises();
+
   const uid = user.uid;
   const doc = await db
     .collection('users')
@@ -3289,8 +3297,12 @@ async function loadExercises(part) {
     .doc(part)
     .get();
 
+  // 그 사이에 다른 부위탭으로 넘어갔으면 화면 갱신하지 않음(엉뚱한 부위 덮어쓰기 방지)
+  if (currentPart !== part) return;
+
   currentExercises = doc.exists ? (doc.data().list || []) : [];
   currentExercises = currentExercises.filter(x => typeof x === "string" && x.trim());
+  saveAccListToLocal(part, currentExercises); // 다음 진입을 위해 캐시 갱신
   renderExercises();
 }
 
