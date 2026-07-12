@@ -2190,12 +2190,16 @@ document.getElementById('delete-exercise-btn4').addEventListener('click', (e) =>
 });
 
 /* ===============================
-   🔥 상세화면: 왼쪽 끝에서 오른쪽으로 스와이프 → 뒤로가기 (iOS 엣지 스와이프)
+   🔥 상세화면: 왼쪽 끝에서 오른쪽으로 드래그 → 화면이 손가락 따라 끌려가며 뒤로가기 (iOS 스타일)
 ================================ */
 (function(){
-  const EDGE_ZONE = 30;     // 화면 왼쪽 끝 30px 안에서 시작해야 인식
-  const SWIPE_THRESHOLD = 80; // 최소 이동 거리
-  let startX = 0, startY = 0, tracking = false;
+  const EDGE_ZONE = 30;        // 화면 왼쪽 끝 30px 안에서 시작해야 인식
+  const COMMIT_MOVE = 8;       // 이 정도 움직이면 방향을 판단
+  const CLOSE_RATIO = 0.3;     // 화면 너비의 30% 이상 끌면 닫기로 확정
+
+  let startX = 0, startY = 0;
+  let tracking = false;   // 왼쪽 끝에서 터치 시작함
+  let dragging = false;   // 가로 드래그로 확정됨
 
   detailScreen.addEventListener('touchstart', (e) => {
     const t = e.touches[0];
@@ -2203,24 +2207,72 @@ document.getElementById('delete-exercise-btn4').addEventListener('click', (e) =>
       startX = t.clientX;
       startY = t.clientY;
       tracking = true;
+      dragging = false;
+      detailScreen.style.transition = 'none';
     } else {
       tracking = false;
     }
   }, { passive: true });
 
-  detailScreen.addEventListener('touchend', (e) => {
+  detailScreen.addEventListener('touchmove', (e) => {
     if (!tracking) return;
-    tracking = false;
 
-    const t = e.changedTouches[0];
+    const t = e.touches[0];
     const dx = t.clientX - startX;
     const dy = t.clientY - startY;
 
-    // 가로로 충분히, 세로 움직임은 적을 때만 (순수 좌->우 스와이프)
-    if (dx > SWIPE_THRESHOLD && Math.abs(dy) < 60) {
-      closeExerciseDetail();
+    if (!dragging) {
+      // 아직 방향 확정 전: 조금이라도 오른쪽으로 더 많이 움직였으면 가로드래그로 확정
+      // (왼손 엄지의 곡선 스와이프도 인식되도록 세로 제한을 엄격하게 두지 않음)
+      if (dx > COMMIT_MOVE && dx > Math.abs(dy) * 0.6) {
+        dragging = true;
+      } else if (Math.abs(dy) > COMMIT_MOVE && Math.abs(dy) > dx) {
+        // 세로로 확실히 움직이면(스크롤 의도) 추적 취소
+        tracking = false;
+        return;
+      } else {
+        return;
+      }
     }
-  }, { passive: true });
+
+    if (dragging) {
+      e.preventDefault(); // 드래그 확정되면 안쪽 스크롤 등과 충돌 방지
+      const moveX = Math.max(0, dx);
+      detailScreen.style.transform = `translateX(${moveX}px)`;
+    }
+  }, { passive: false });
+
+  function endDrag(e) {
+    if (!tracking) return;
+
+    const wasDragging = dragging;
+    tracking = false;
+    dragging = false;
+
+    if (!wasDragging) return;
+
+    const width = detailScreen.offsetWidth || window.innerWidth;
+    const t = e.changedTouches[0];
+    const dx = Math.max(0, t.clientX - startX);
+
+    detailScreen.style.transition = 'transform 0.22s ease';
+
+    if (dx > width * CLOSE_RATIO) {
+      // 충분히 끌었으면 끝까지 밀어서 닫기
+      detailScreen.style.transform = `translateX(${width}px)`;
+      setTimeout(() => {
+        closeExerciseDetail();
+        detailScreen.style.transition = 'none';
+        detailScreen.style.transform = 'translateX(0)';
+      }, 220);
+    } else {
+      // 덜 끌었으면 제자리로 복귀
+      detailScreen.style.transform = 'translateX(0)';
+    }
+  }
+
+  detailScreen.addEventListener('touchend', endDrag, { passive: true });
+  detailScreen.addEventListener('touchcancel', endDrag, { passive: true });
 })();
 
 
