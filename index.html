@@ -2189,6 +2189,40 @@ document.getElementById('delete-exercise-btn4').addEventListener('click', (e) =>
   if (currentExerciseName) deleteExercise(currentExerciseName);
 });
 
+/* ===============================
+   🔥 상세화면: 왼쪽 끝에서 오른쪽으로 스와이프 → 뒤로가기 (iOS 엣지 스와이프)
+================================ */
+(function(){
+  const EDGE_ZONE = 30;     // 화면 왼쪽 끝 30px 안에서 시작해야 인식
+  const SWIPE_THRESHOLD = 80; // 최소 이동 거리
+  let startX = 0, startY = 0, tracking = false;
+
+  detailScreen.addEventListener('touchstart', (e) => {
+    const t = e.touches[0];
+    if (t.clientX <= EDGE_ZONE) {
+      startX = t.clientX;
+      startY = t.clientY;
+      tracking = true;
+    } else {
+      tracking = false;
+    }
+  }, { passive: true });
+
+  detailScreen.addEventListener('touchend', (e) => {
+    if (!tracking) return;
+    tracking = false;
+
+    const t = e.changedTouches[0];
+    const dx = t.clientX - startX;
+    const dy = t.clientY - startY;
+
+    // 가로로 충분히, 세로 움직임은 적을 때만 (순수 좌->우 스와이프)
+    if (dx > SWIPE_THRESHOLD && Math.abs(dy) < 60) {
+      closeExerciseDetail();
+    }
+  }, { passive: true });
+})();
+
 
 
 /* ===============================
