@@ -122,10 +122,23 @@ button {
   font-size: 0.66em;
   line-height: 1.4;
   opacity: 0.85;
+  text-align: center;
 }
 
 .settings-btn{
   flex: 0 0 auto;       /* ✅ 버튼은 절대 안 줄어듦 */
+  all: unset;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #ddd;
+}
+
+.menu-btn{
+  flex: 0 0 auto;
   all: unset;
   width: 24px;
   height: 24px;
@@ -761,6 +774,55 @@ cursor: pointer;
 
 #mySpecOverlay.hidden {
   display: none;
+}
+
+/* ===============================
+   좌측 슬라이드 내비게이션 드로어
+================================ */
+.nav-drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 100000;
+  display: flex;
+  justify-content: flex-start;
+}
+.nav-drawer-overlay.hidden {
+  display: none;
+}
+.nav-drawer {
+  width: 72%;
+  max-width: 280px;
+  height: 100%;
+  background: #000;
+  border-right: 1px solid rgba(255,255,255,0.14);
+  padding: calc(24px + env(safe-area-inset-top)) 20px 24px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+.nav-drawer-title {
+  font-size: 12px;
+  color: rgba(255,255,255,0.4);
+  letter-spacing: 0.5px;
+  margin-bottom: 18px;
+}
+.nav-drawer-item {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.7);
+  text-align: left;
+  font-size: 16px;
+  font-weight: 500;
+  padding: 16px 2px;
+  cursor: pointer;
+}
+.nav-drawer-item.active {
+  color: #fff;
+  font-weight: 700;
 }
 
 .settings-panel {
@@ -1826,6 +1888,15 @@ input[type="number"] {
    
     
 <div class="topBar">
+  <button id="openNavDrawerBtn" class="menu-btn" aria-label="메뉴">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round">
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </button>
+
   <div class="topText">
     <div>대부분의 문제는 돈이 없어서,</div>
     <div>그 외의 문제는 근육이 없어서 생긴다</div>
@@ -2168,6 +2239,17 @@ input[type="number"] {
 
       <button id="save3Btn">3대 기록 저장</button>
     </div>
+  </div>
+</div>
+
+<div id="navDrawerOverlay" class="nav-drawer-overlay hidden">
+  <div id="navDrawer" class="nav-drawer" onclick="event.stopPropagation()">
+    <div class="nav-drawer-title">메뉴</div>
+    <button class="nav-drawer-item" data-target="tab1">1RM</button>
+    <button class="nav-drawer-item" data-target="tab2">3대</button>
+    <button class="nav-drawer-item" data-target="tab4">기록</button>
+    <button class="nav-drawer-item" data-target="tab3">달력</button>
+    <button class="nav-drawer-item" data-target="tab5">예정</button>
   </div>
 </div>
 
@@ -3797,6 +3879,36 @@ bottomTabBtns.forEach(btn => {
     }
 
     document.querySelector('.app').style.overflowY = 'auto';
+  });
+});
+
+/* ===============================
+   좌측 슬라이드 내비게이션 드로어
+================================ */
+const navDrawerOverlay = document.getElementById("navDrawerOverlay");
+const navDrawer = document.getElementById("navDrawer");
+
+function openNavDrawer(){
+  // 현재 활성 탭에 맞춰 드로어 항목 하이라이트
+  const activeTarget = document.querySelector('.bottomTab .tabBtn.active')?.dataset.target;
+  document.querySelectorAll(".nav-drawer-item").forEach(item => {
+    item.classList.toggle("active", item.dataset.target === activeTarget);
+  });
+  navDrawerOverlay.classList.remove("hidden");
+}
+function closeNavDrawer(){
+  navDrawerOverlay.classList.add("hidden");
+}
+
+document.getElementById("openNavDrawerBtn").addEventListener("click", openNavDrawer);
+navDrawerOverlay.addEventListener("click", closeNavDrawer);
+
+document.querySelectorAll(".nav-drawer-item").forEach(item => {
+  item.addEventListener("click", () => {
+    const target = item.dataset.target;
+    const matchingBtn = Array.from(bottomTabBtns).find(b => b.dataset.target === target);
+    if (matchingBtn) matchingBtn.click();
+    closeNavDrawer();
   });
 });
 
@@ -5651,11 +5763,11 @@ function renderTodayMealList(){
     row.className = "meal-log-row";
     row.innerHTML = `
       <div>
-        <div class="meal-log-name">${nameLabel}</div>
+        <div class="meal-log-name" data-id="${m.id}">${nameLabel}</div>
         <div class="meal-log-time">${m.time || ""}</div>
       </div>
       <div style="display:flex; align-items:center; gap:10px;">
-        <div class="meal-log-protein" data-id="${m.id}">${totalProtein}g</div>
+        <div class="meal-log-protein">${totalProtein}g</div>
         <button class="mealDeleteBtn" data-id="${m.id}" style="background:none; border:none; color:#666; font-size:16px; cursor:pointer; padding:4px;">×</button>
       </div>
     `;
@@ -5668,31 +5780,31 @@ function renderTodayMealList(){
     });
   });
 
-  // 🔥 개수(단백질g 뱃지)를 길게 누르면 개수 수정
-  el.querySelectorAll(".meal-log-protein").forEach(badge => {
+  // 🔥 이름(예: "계란 x 2")을 길게 누르면 개수 수정
+  el.querySelectorAll(".meal-log-name").forEach(nameEl => {
     let holdTimer = null;
     let startX = 0, startY = 0;
     const TOL = 12;
 
     function start(x, y){
       startX = x; startY = y;
-      holdTimer = setTimeout(() => editMealCount(badge.dataset.id), 550);
+      holdTimer = setTimeout(() => editMealCount(nameEl.dataset.id), 550);
     }
     function cancel(){ clearTimeout(holdTimer); }
 
-    badge.addEventListener("mousedown", e => start(e.clientX, e.clientY));
-    badge.addEventListener("mouseup", cancel);
-    badge.addEventListener("mouseleave", cancel);
+    nameEl.addEventListener("mousedown", e => start(e.clientX, e.clientY));
+    nameEl.addEventListener("mouseup", cancel);
+    nameEl.addEventListener("mouseleave", cancel);
 
-    badge.addEventListener("touchstart", e => {
+    nameEl.addEventListener("touchstart", e => {
       const t = e.touches[0];
       start(t.clientX, t.clientY);
     }, { passive: true });
-    badge.addEventListener("touchmove", e => {
+    nameEl.addEventListener("touchmove", e => {
       const t = e.touches[0];
       if (Math.abs(t.clientX - startX) > TOL || Math.abs(t.clientY - startY) > TOL) cancel();
     }, { passive: true });
-    badge.addEventListener("touchend", cancel);
+    nameEl.addEventListener("touchend", cancel);
   });
 }
 
