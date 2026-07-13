@@ -78,24 +78,6 @@ button {
 }
 
 #result { margin-top:20px; font-size:22px; }
-table input {
-    width: 100%;
-    box-sizing: border-box;
-      padding: 8px;
-}
-table {
-    width:100%;
-    margin-top:15px;
-    border-collapse: collapse;
-    table-layout: fixed; /* 🔥 이거 중요 */
-}
-table, td, th {
-    border:1px solid white;
-}
-td, th {
-    padding:8px;
-    text-align:center;
-}
 
 /* ===============================
    로그인 영역
@@ -196,18 +178,27 @@ td, th {
 .tabContent { display:none; }
 .tabContent.active { display:block; }
 
+/* 🔥 예정탭: 상단 단백질 요약은 고정, 그 아래만 스크롤 */
+#tab5.tabContent.active {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - var(--topBarH) - var(--bottomTabH) - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+}
+#tab5 .macro-summary-box {
+  flex-shrink: 0;
+}
+#tab5ScrollArea {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
 /* ===============================
    3대 기록
 ================================ */
 
-
-.rmInput {
-    height:40px;
-    text-align:center;
-    background:#222;
-    color:white;
-    border-radius:8px;
-}
 
 /* ===============================
    기록 폴더
@@ -1465,15 +1456,58 @@ input[type="number"] {
 /* 3대 텍스트 */
 #total3{
   text-align: center;
-  font-size: 28px;
-  font-weight: 800;
-  letter-spacing: 0.5px;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
   line-height: 1.1;
+  margin: 0 0 20px;
+  color: #fff;
+}
 
-  margin: 0;             /* ✅ 내부 여백 제거 */
-  transform: translateY(-6px);  /* ✅ 확실히 위로 당김 (원하면 -10px도 가능) */
+.rm-grid3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.rm-grid3 > div label {
+  display: block;
+  font-size: 11px;
+  color: rgba(255,255,255,0.4);
+  margin-bottom: 8px;
+  text-align: center;
+  letter-spacing: 0.4px;
+}
+.rmInput {
+  width: 100%;
+  height: 38px;
+  text-align: center;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255,255,255,0.18);
+  color: #fff;
+  font-size: 15px;
+  box-sizing: border-box;
+  border-radius: 0;
+}
+.rmInput:focus {
+  outline: none;
+  border-bottom-color: #fff;
+}
 
-  color: #FFD700;
+#save3Btn {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 42px;
+  border-radius: 8px;
+  border: 1px solid #fff;
+  background: transparent;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  cursor: pointer;
 }
 
 /* ===============================
@@ -2003,20 +2037,24 @@ input[type="number"] {
     <div id="carbFatSmall" class="carb-fat-small">탄수화물 0/0g · 지방 0/0g · 0/0kcal</div>
   </div>
 
-  <div style="display:flex; justify-content:space-between; align-items:center; margin:4px 0 10px;">
-    <div style="font-size:14px; color:#aaa; font-weight:600;">내 식단 템플릿</div>
-    <button id="addFoodTemplateBtn" class="add-btn">+</button>
-  </div>
-  <div id="foodTemplateList"></div>
+  <div id="tab5ScrollArea">
 
-  <div class="food-template-etc-row">
-    <input id="etcFoodName" type="text" placeholder="품명">
-    <input id="etcFoodProtein" type="number" placeholder="단백질 g">
-    <button id="etcFoodAddBtn" type="button">+</button>
-  </div>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin:14px 0 10px;">
+      <div style="font-size:14px; color:#aaa; font-weight:600;">내 식단 템플릿</div>
+      <button id="addFoodTemplateBtn" class="add-btn">+</button>
+    </div>
+    <div id="foodTemplateList"></div>
 
-  <div style="font-size:14px; color:#aaa; font-weight:600; margin:22px 0 10px;">오늘 먹은 것</div>
-  <div id="todayMealList" class="folderContent active" style="height:260px;"></div>
+    <div class="food-template-etc-row">
+      <input id="etcFoodName" type="text" placeholder="품명">
+      <input id="etcFoodProtein" type="number" placeholder="단백질 g">
+      <button id="etcFoodAddBtn" type="button">+</button>
+    </div>
+
+    <div style="font-size:14px; color:#aaa; font-weight:600; margin:22px 0 10px;">오늘 먹은 것</div>
+    <div id="todayMealList"></div>
+
+  </div>
 
 </div>
 
@@ -2113,14 +2151,20 @@ input[type="number"] {
     <div id="threeDetail">
       <div id="total3">3대: 0 kg</div>
 
-      <table>
-        <tr><th>벤치</th><th>스쿼트</th><th>데드</th></tr>
-        <tr>
-            <td><input id="benchRM" class="rmInput" type="number"></td>
-            <td><input id="squatRM" class="rmInput" type="number"></td>
-            <td><input id="deadRM" class="rmInput" type="number"></td>
-        </tr>
-      </table>
+      <div class="rm-grid3">
+        <div>
+          <label>벤치</label>
+          <input id="benchRM" class="rmInput" type="number">
+        </div>
+        <div>
+          <label>스쿼트</label>
+          <input id="squatRM" class="rmInput" type="number">
+        </div>
+        <div>
+          <label>데드</label>
+          <input id="deadRM" class="rmInput" type="number">
+        </div>
+      </div>
 
       <button id="save3Btn">3대 기록 저장</button>
     </div>
@@ -5359,9 +5403,10 @@ function renderMacroSummary(){
   const todayMeals = getTodayMeals();
 
   const sum = todayMeals.reduce((acc, m) => {
-    acc.protein += Number(m.protein) || 0;
-    acc.carb += Number(m.carb) || 0;
-    acc.fat += Number(m.fat) || 0;
+    const c = m.count || 1;
+    acc.protein += (Number(m.protein) || 0) * c;
+    acc.carb += (Number(m.carb) || 0) * c;
+    acc.fat += (Number(m.fat) || 0) * c;
     return acc;
   }, { protein: 0, carb: 0, fat: 0 });
 
@@ -5496,22 +5541,66 @@ document.getElementById("foodModalSave").addEventListener("click", () => {
 
 /* ---------- 오늘 기록 ---------- */
 function addMealFromTemplate(item){
+  const today = formatTodayYYMMDD();
   const now = new Date();
-  const meal = {
-    id: "meal_" + Date.now() + "_" + Math.random().toString(16).slice(2),
-    name: item.name,
-    protein: Number(item.protein) || 0,
-    carb: Number(item.carb) || 0,
-    fat: Number(item.fat) || 0,
-    date: formatTodayYYMMDD(),
-    time: `${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}`,
-    createdAt: Date.now()
-  };
+  const nowLabel = `${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}`;
 
-  mealsAll.push(meal);
+  const protein = Number(item.protein) || 0;
+  const carb = Number(item.carb) || 0;
+  const fat = Number(item.fat) || 0;
+
+  // 🔥 오늘 이미 같은 음식(이름+매크로)이 있으면 개수만 +1
+  const existing = mealsAll.find(m =>
+    m.date === today &&
+    m.name === item.name &&
+    (Number(m.protein) || 0) === protein &&
+    (Number(m.carb) || 0) === carb &&
+    (Number(m.fat) || 0) === fat
+  );
+
+  if (existing) {
+    existing.count = (existing.count || 1) + 1;
+    existing.time = nowLabel;
+    saveMealsToLocal();
+    saveMealToFirestore(existing);
+  } else {
+    const meal = {
+      id: "meal_" + Date.now() + "_" + Math.random().toString(16).slice(2),
+      name: item.name,
+      protein, carb, fat,
+      count: 1,
+      date: today,
+      time: nowLabel,
+      createdAt: Date.now()
+    };
+    mealsAll.push(meal);
+    saveMealsToLocal();
+    saveMealToFirestore(meal);
+  }
+
+  renderTodayMealList();
+  renderMacroSummary();
+}
+
+/* 🔥 개수 직접 수정 (길게 누르면 호출됨) */
+function editMealCount(id){
+  const meal = mealsAll.find(m => m.id === id);
+  if (!meal) return;
+
+  const input = prompt(`${meal.name} 개수를 입력하세요`, meal.count || 1);
+  if (input === null) return;
+
+  const newCount = parseInt(input, 10);
+  if (!newCount || newCount < 1) {
+    if (confirm("개수를 0으로 하면 기록이 삭제됩니다. 삭제할까요?")) {
+      deleteMeal(id);
+    }
+    return;
+  }
+
+  meal.count = newCount;
   saveMealsToLocal();
   saveMealToFirestore(meal);
-
   renderTodayMealList();
   renderMacroSummary();
 }
@@ -5554,15 +5643,19 @@ function renderTodayMealList(){
 
   el.innerHTML = "";
   todayMeals.forEach(m => {
+    const count = m.count || 1;
+    const totalProtein = (Number(m.protein) || 0) * count;
+    const nameLabel = count > 1 ? `${m.name} x ${count}` : m.name;
+
     const row = document.createElement("div");
     row.className = "meal-log-row";
     row.innerHTML = `
       <div>
-        <div class="meal-log-name">${m.name}</div>
+        <div class="meal-log-name">${nameLabel}</div>
         <div class="meal-log-time">${m.time || ""}</div>
       </div>
       <div style="display:flex; align-items:center; gap:10px;">
-        <div class="meal-log-protein">${m.protein}g</div>
+        <div class="meal-log-protein" data-id="${m.id}">${totalProtein}g</div>
         <button class="mealDeleteBtn" data-id="${m.id}" style="background:none; border:none; color:#666; font-size:16px; cursor:pointer; padding:4px;">×</button>
       </div>
     `;
@@ -5573,6 +5666,33 @@ function renderTodayMealList(){
     btn.addEventListener("click", () => {
       if (confirm("이 기록을 삭제할까요?")) deleteMeal(btn.dataset.id);
     });
+  });
+
+  // 🔥 개수(단백질g 뱃지)를 길게 누르면 개수 수정
+  el.querySelectorAll(".meal-log-protein").forEach(badge => {
+    let holdTimer = null;
+    let startX = 0, startY = 0;
+    const TOL = 12;
+
+    function start(x, y){
+      startX = x; startY = y;
+      holdTimer = setTimeout(() => editMealCount(badge.dataset.id), 550);
+    }
+    function cancel(){ clearTimeout(holdTimer); }
+
+    badge.addEventListener("mousedown", e => start(e.clientX, e.clientY));
+    badge.addEventListener("mouseup", cancel);
+    badge.addEventListener("mouseleave", cancel);
+
+    badge.addEventListener("touchstart", e => {
+      const t = e.touches[0];
+      start(t.clientX, t.clientY);
+    }, { passive: true });
+    badge.addEventListener("touchmove", e => {
+      const t = e.touches[0];
+      if (Math.abs(t.clientX - startX) > TOL || Math.abs(t.clientY - startY) > TOL) cancel();
+    }, { passive: true });
+    badge.addEventListener("touchend", cancel);
   });
 }
 
