@@ -800,6 +800,13 @@ cursor: pointer;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
+
+  transform: translateX(-100%);
+  animation: slideInLeft 0.25s ease forwards;
+}
+
+@keyframes slideInLeft {
+  to { transform: translateX(0); }
 }
 .nav-drawer-title {
   font-size: 12px;
@@ -1833,6 +1840,13 @@ input[type="number"] {
   padding: 0;
 }
 
+.today-meal-box {
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 14px;
+  padding: 4px 14px;
+}
+
 .meal-log-row {
   display: flex;
   justify-content: space-between;
@@ -2123,7 +2137,7 @@ input[type="number"] {
     </div>
 
     <div style="font-size:14px; color:#aaa; font-weight:600; margin:22px 0 10px;">오늘 먹은 것</div>
-    <div id="todayMealList"></div>
+    <div id="todayMealList" class="today-meal-box"></div>
 
   </div>
 
@@ -2250,6 +2264,7 @@ input[type="number"] {
     <button class="nav-drawer-item" data-target="tab4">기록</button>
     <button class="nav-drawer-item" data-target="tab3">달력</button>
     <button class="nav-drawer-item" data-target="tab5">예정</button>
+    <button id="navThreeSummaryBtn" class="nav-drawer-item">3대 총합</button>
   </div>
 </div>
 
@@ -2288,7 +2303,6 @@ input[type="number"] {
      <!-- 메뉴 -->
     <div class="settings-list">
       <button id="mySpecMenuBtn" class="settings-item" style="width:100%; text-align:left; background:none; border:none; color:#fff; cursor:pointer;">내 정보 수정</button>
-      <button id="threeSummaryMenuBtn" class="settings-item" style="width:100%; text-align:left; background:none; border:none; color:#fff; cursor:pointer;">3대 총합</button>
       <div class="settings-item">문의</div>
       <div class="settings-item muted">김무진한테 문의하세요</div>
     </div>
@@ -3757,9 +3771,9 @@ function closeThreeSummary(){
   threeSummaryScreen.style.transform = "translateX(0)";
 }
 
-document.getElementById("threeSummaryMenuBtn").addEventListener("click", () => {
-  // 🔥 설정화면은 자연스럽게 닫히고, 3대 총합 화면이 새로 열림 (뒤로가기 X)
-  settingsOverlay.classList.add("hidden");
+document.getElementById("navThreeSummaryBtn").addEventListener("click", () => {
+  // 🔥 메뉴 드로어는 자연스럽게 닫히고, 3대 총합 화면이 새로 열림
+  closeNavDrawer();
   openThreeSummary();
 });
 
