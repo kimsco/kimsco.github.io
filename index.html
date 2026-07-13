@@ -1542,10 +1542,7 @@ input[type="number"] {
 
 .gender-toggle, .goal-toggle {
   display: flex;
-  gap: 4px;
-  border: 1px solid rgba(255,255,255,0.18);
-  border-radius: 999px;
-  padding: 3px;
+  align-items: stretch;
 }
 .genderBtn, .goalBtn {
   -webkit-appearance: none !important;
@@ -1555,7 +1552,6 @@ input[type="number"] {
   flex: 1;
   height: 34px;
   border: none;
-  border-radius: 999px;
   background: transparent;
   color: rgba(255,255,255,0.4);
   font-size: 13px;
@@ -1563,9 +1559,17 @@ input[type="number"] {
   cursor: pointer;
 }
 .genderBtn.active, .goalBtn.active {
-  border: 1px solid #fff;
   color: #fff;
   font-weight: 700;
+}
+.toggle-divider {
+  flex-shrink: 0;
+  overflow: visible;
+}
+.toggle-divider path {
+  fill: none;
+  stroke: rgba(255,255,255,0.4);
+  stroke-width: 1.5;
 }
 
 /* 활동계수 슬라이더 */
@@ -2007,8 +2011,9 @@ input[type="number"] {
 
     <div class="spec-row">
       <label>성별</label>
-      <div class="gender-toggle">
+      <div class="gender-toggle" id="genderToggle">
         <button type="button" class="genderBtn active" data-gender="male">남</button>
+        <svg class="toggle-divider" data-idx="0" width="12" height="24" viewBox="0 0 12 24"><path d="M6,3 L6,21" /></svg>
         <button type="button" class="genderBtn" data-gender="female">여</button>
       </div>
     </div>
@@ -2039,9 +2044,11 @@ input[type="number"] {
 
     <div class="spec-row">
       <label>목표</label>
-      <div class="goal-toggle">
+      <div class="goal-toggle" id="goalToggle">
         <button type="button" class="goalBtn" data-goal="cut">다이어트</button>
+        <svg class="toggle-divider" data-idx="0" width="12" height="24" viewBox="0 0 12 24"><path d="M6,3 L6,21" /></svg>
         <button type="button" class="goalBtn active" data-goal="maintain">유지</button>
+        <svg class="toggle-divider" data-idx="1" width="12" height="24" viewBox="0 0 12 24"><path d="M6,3 L6,21" /></svg>
         <button type="button" class="goalBtn" data-goal="bulk">벌크업</button>
       </div>
     </div>
@@ -5121,11 +5128,40 @@ document.getElementById("mySpecMenuBtn").addEventListener("click", () => {
   openMySpec();
 });
 
+/* 선택 방향에 따라 구분선이 괄호처럼 휘는 로직 */
+function updateToggleDividers(containerId, activeIndex){
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  container.querySelectorAll(".toggle-divider").forEach(svg => {
+    const idx = parseInt(svg.dataset.idx, 10); // 이 구분선 왼쪽 버튼의 인덱스
+    const path = svg.querySelector("path");
+
+    if (activeIndex === idx) {
+      // 왼쪽 옵션이 선택됨 → ')' 모양 (왼쪽을 감싸듯 오른쪽으로 볼록)
+      path.setAttribute("d", "M6,3 Q10,12 6,21");
+      path.setAttribute("stroke", "#fff");
+    } else if (activeIndex === idx + 1) {
+      // 오른쪽 옵션이 선택됨 → '(' 모양 (오른쪽을 감싸듯 왼쪽으로 볼록)
+      path.setAttribute("d", "M6,3 Q2,12 6,21");
+      path.setAttribute("stroke", "#fff");
+    } else {
+      // 이 구분선과 무관한 선택 → 직선
+      path.setAttribute("d", "M6,3 L6,21");
+      path.setAttribute("stroke", "rgba(255,255,255,0.3)");
+    }
+  });
+}
+
 document.querySelectorAll(".genderBtn").forEach(btn => {
   btn.addEventListener("click", () => {
     document.querySelectorAll(".genderBtn").forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
     userSpec.gender = btn.dataset.gender;
+
+    const allGenderBtns = Array.from(document.querySelectorAll(".genderBtn"));
+    updateToggleDividers("genderToggle", allGenderBtns.indexOf(btn));
+
     renderSpecSummaryPreview();
   });
 });
@@ -5135,6 +5171,10 @@ document.querySelectorAll(".goalBtn").forEach(btn => {
     document.querySelectorAll(".goalBtn").forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
     userSpec.goal = btn.dataset.goal;
+
+    const allGoalBtns = Array.from(document.querySelectorAll(".goalBtn"));
+    updateToggleDividers("goalToggle", allGoalBtns.indexOf(btn));
+
     renderSpecSummaryPreview();
   });
 });
@@ -5186,6 +5226,12 @@ function applySpecToUI(){
     b.classList.toggle("active", b.dataset.gender === userSpec.gender));
   document.querySelectorAll(".goalBtn").forEach(b =>
     b.classList.toggle("active", b.dataset.goal === userSpec.goal));
+
+  const genderBtns = Array.from(document.querySelectorAll(".genderBtn"));
+  updateToggleDividers("genderToggle", genderBtns.findIndex(b => b.dataset.gender === userSpec.gender));
+
+  const goalBtns = Array.from(document.querySelectorAll(".goalBtn"));
+  updateToggleDividers("goalToggle", goalBtns.findIndex(b => b.dataset.goal === userSpec.goal));
 
   specHeight.value = userSpec.height || "";
   specWeight.value = userSpec.weight || "";
