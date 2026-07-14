@@ -208,6 +208,23 @@ button {
   overscroll-behavior: contain;
 }
 
+/* 🔥 달력탭: 달력 부분은 고정, 1년 진행률만 스크롤 */
+#tab3.tabContent.active {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - var(--topBarH) - var(--bottomTabH) - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+}
+#tab3 .calendar {
+  flex-shrink: 0;
+}
+#tab3ScrollArea {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
 /* ===============================
    3대 기록
 ================================ */
@@ -2093,6 +2110,9 @@ input[type="number"] {
      
   <div id="calendarToggle" class="toggle-switch"></div>
 </div>
+    </div>
+
+    <div id="tab3ScrollArea">
 <!-- ✅ 1년 진행률 (달력 아래) -->
 <div class="year-progress" id="yearProgress">
   <div class="year-progress-title" id="yearProgressTitle">2026년 진행률</div>
@@ -2104,11 +2124,6 @@ input[type="number"] {
     <span id="yearProgressCount">0/365</span>
   </div>
 </div>
-
-
-    
-
-
     </div>
 </div>
 <!-- 예정 (연습용 수정 탭 - 기록탭과 동일 기능, 로컬 저장만 사용) -->
