@@ -2442,6 +2442,21 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
+
+/* 🔥 오프라인 저장/자동 동기화
+   - 네트워크 없을 때 저장한 내용도 기기에 큐로 쌓아두고,
+     인터넷 재연결되면 자동으로 Firestore에 반영됨
+   - 실패하더라도(여러 탭 동시 사용, 미지원 브라우저 등) 기존 기능엔 전혀 영향 없음 */
+db.enablePersistence({ synchronizeTabs: true }).catch((err) => {
+  if (err.code === "failed-precondition") {
+    console.warn("Firestore persistence: 여러 탭이 열려있어 이 탭에서는 오프라인 캐시가 비활성화됩니다.");
+  } else if (err.code === "unimplemented") {
+    console.warn("Firestore persistence: 이 브라우저에서는 지원되지 않습니다.");
+  } else {
+    console.error("Firestore persistence 오류:", err);
+  }
+});
+
 let currentExercises = [];
 /* 요소 참조 */
 
