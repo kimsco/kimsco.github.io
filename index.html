@@ -793,6 +793,70 @@ cursor: pointer;
   display: none;
 }
 
+#exerciseDexOverlay.hidden {
+  display: none;
+}
+
+/* ===============================
+   운동도감: FAB + 팝업 메뉴
+   — 선(Line) 중심, 면(Fill) 최소화
+================================ */
+.dex-fab {
+  -webkit-appearance: none;
+  appearance: none;
+  position: fixed;
+  right: 20px;
+  bottom: calc(24px + env(safe-area-inset-bottom));
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: #000;
+  border: 1px solid rgba(255,255,255,0.5);
+  color: #fff;
+  font-size: 24px;
+  font-weight: 300;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 100002;
+}
+
+.dex-fab-menu {
+  position: fixed;
+  right: 20px;
+  bottom: calc(24px + 52px + 8px + env(safe-area-inset-bottom));
+  min-width: 150px;
+  background: #000;
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 14px;
+  border-bottom-right-radius: 26px;
+  overflow: hidden;
+  z-index: 100002;
+}
+.dex-fab-menu.hidden {
+  display: none;
+}
+.dex-fab-menu-item {
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.75);
+  text-align: left;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 14px 16px;
+  cursor: pointer;
+}
+.dex-fab-menu-item:last-child {
+  border-bottom: none;
+}
+
 /* ===============================
    좌측 슬라이드 내비게이션 드로어
 ================================ */
@@ -2183,6 +2247,28 @@ input[type="number"] {
     </div>
 </div>
 
+<div id="exerciseDexOverlay" class="hidden" style="
+    position:fixed; inset:0; background:#000; z-index:100000;
+    overflow:hidden;
+  ">
+  <div id="exerciseDexScreen" style="height:100%; overflow-y:auto; padding: calc(16px + env(safe-area-inset-top)) 18px 24px; position:relative;">
+    <div style="display:flex; align-items:center; margin-bottom:16px; cursor:pointer;" onclick="closeExerciseDex()">
+      ← <span style="margin-left:6px; font-size:15px; font-weight:600; color:#fff;">운동도감</span>
+    </div>
+
+    <div id="exerciseDexEmpty" style="color:rgba(255,255,255,0.35); font-size:13px; text-align:center; margin-top:100px;">
+      아직 등록된 내용이 없습니다
+    </div>
+  </div>
+
+  <button id="exerciseDexFab" class="dex-fab" aria-label="추가">+</button>
+
+  <div id="exerciseDexMenu" class="dex-fab-menu hidden">
+    <button id="dexAddFolderBtn" class="dex-fab-menu-item">폴더 추가</button>
+    <button id="dexWritePostBtn" class="dex-fab-menu-item">글쓰기</button>
+  </div>
+</div>
+
 <div id="mySpecOverlay" class="hidden" style="
     position:fixed; inset:0; background:#000; z-index:100000;
     overflow:hidden;
@@ -2275,6 +2361,7 @@ input[type="number"] {
   <div id="navDrawer" class="nav-drawer" onclick="event.stopPropagation()">
     <div class="nav-drawer-title">메뉴</div>
     <button id="navThreeSummaryBtn" class="nav-drawer-item">3대 총합</button>
+    <button id="navExerciseDexBtn" class="nav-drawer-item">운동도감</button>
   </div>
 </div>
 
@@ -3801,6 +3888,106 @@ document.getElementById("navThreeSummaryBtn").addEventListener("click", () => {
   closeNavDrawer();
   openThreeSummary();
 });
+
+/* ===============================
+   운동도감
+================================ */
+const exerciseDexOverlay = document.getElementById("exerciseDexOverlay");
+const exerciseDexScreen = document.getElementById("exerciseDexScreen");
+const exerciseDexMenu = document.getElementById("exerciseDexMenu");
+const exerciseDexFab = document.getElementById("exerciseDexFab");
+
+function openExerciseDex(){
+  exerciseDexOverlay.classList.remove("hidden");
+  exerciseDexScreen.style.transform = "translateX(0)";
+  exerciseDexMenu.classList.add("hidden");
+  exerciseDexScreen.scrollTop = 0;
+}
+function closeExerciseDex(){
+  exerciseDexOverlay.classList.add("hidden");
+  exerciseDexScreen.style.transform = "translateX(0)";
+  exerciseDexMenu.classList.add("hidden");
+}
+
+document.getElementById("navExerciseDexBtn").addEventListener("click", () => {
+  closeNavDrawer();
+  openExerciseDex();
+});
+
+exerciseDexFab.addEventListener("click", (e) => {
+  e.stopPropagation();
+  exerciseDexMenu.classList.toggle("hidden");
+});
+
+// 메뉴 바깥을 누르면 닫힘
+exerciseDexScreen.addEventListener("click", () => {
+  exerciseDexMenu.classList.add("hidden");
+});
+
+document.getElementById("dexAddFolderBtn").addEventListener("click", (e) => {
+  e.stopPropagation();
+  exerciseDexMenu.classList.add("hidden");
+  // TODO: 권한 체크 + 폴더 추가 기능은 다음 단계에서 구현
+  alert("폴더 추가 기능은 준비 중이에요.");
+});
+
+document.getElementById("dexWritePostBtn").addEventListener("click", (e) => {
+  e.stopPropagation();
+  exerciseDexMenu.classList.add("hidden");
+  // TODO: 권한 체크 + 글쓰기 기능은 다음 단계에서 구현
+  alert("글쓰기 기능은 준비 중이에요.");
+});
+
+/* 🔥 운동도감 화면: 왼쪽 끝에서 오른쪽으로 드래그하면 손가락 따라 끌려가며 닫힘 */
+(function(){
+  const EDGE_ZONE = 30, COMMIT_MOVE = 8, CLOSE_RATIO = 0.3;
+  let startX = 0, startY = 0, tracking = false, dragging = false;
+
+  exerciseDexScreen.addEventListener('touchstart', (e) => {
+    const t = e.touches[0];
+    if (t.clientX <= EDGE_ZONE) {
+      startX = t.clientX; startY = t.clientY;
+      tracking = true; dragging = false;
+      exerciseDexScreen.style.transition = 'none';
+    } else { tracking = false; }
+  }, { passive: true });
+
+  exerciseDexScreen.addEventListener('touchmove', (e) => {
+    if (!tracking) return;
+    const t = e.touches[0];
+    const dx = t.clientX - startX, dy = t.clientY - startY;
+    if (!dragging) {
+      if (dx > COMMIT_MOVE && dx > Math.abs(dy) * 0.6) dragging = true;
+      else if (Math.abs(dy) > COMMIT_MOVE && Math.abs(dy) > dx) { tracking = false; return; }
+      else return;
+    }
+    if (dragging) {
+      e.preventDefault();
+      exerciseDexScreen.style.transform = `translateX(${Math.max(0, dx)}px)`;
+    }
+  }, { passive: false });
+
+  function endDrag(e){
+    if (!tracking) return;
+    const wasDragging = dragging;
+    tracking = false; dragging = false;
+    if (!wasDragging) return;
+
+    const width = exerciseDexScreen.offsetWidth || window.innerWidth;
+    const t = e.changedTouches[0];
+    const dx = Math.max(0, t.clientX - startX);
+    exerciseDexScreen.style.transition = 'transform 0.22s ease';
+
+    if (dx > width * CLOSE_RATIO) {
+      exerciseDexScreen.style.transform = `translateX(${width}px)`;
+      setTimeout(() => { closeExerciseDex(); exerciseDexScreen.style.transition = 'none'; }, 220);
+    } else {
+      exerciseDexScreen.style.transform = 'translateX(0)';
+    }
+  }
+  exerciseDexScreen.addEventListener('touchend', endDrag, { passive: true });
+  exerciseDexScreen.addEventListener('touchcancel', endDrag, { passive: true });
+})();
 
 /* 🔥 3대 총합 화면: 왼쪽 끝에서 오른쪽으로 드래그하면 손가락 따라 끌려가며 닫힘 */
 (function(){
