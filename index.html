@@ -4616,7 +4616,7 @@ document.getElementById("dexPostCreateBtn").addEventListener("click", async () =
 
     if (dx > width * CLOSE_RATIO) {
       exerciseDexScreen.style.transform = `translateX(${width}px)`;
-      setTimeout(() => { closeExerciseDex(); exerciseDexScreen.style.transition = 'none'; }, 220);
+      setTimeout(() => { dexGoBack(); exerciseDexScreen.style.transition = 'none'; exerciseDexScreen.style.transform = 'translateX(0)'; }, 220);
     } else {
       exerciseDexScreen.style.transform = 'translateX(0)';
     }
