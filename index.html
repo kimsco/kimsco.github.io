@@ -914,6 +914,173 @@ cursor: pointer;
 }
 
 /* ===============================
+   운동도감: 목록(List) UI
+================================ */
+.dex-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 4px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  cursor: pointer;
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+}
+.dex-row::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0);
+  transition: background 0.15s ease-out;
+  pointer-events: none;
+}
+.dex-row.pressed::after {
+  background: rgba(255,255,255,0.1);
+}
+.dex-row-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255,255,255,0.55);
+}
+.dex-row-label {
+  flex: 1;
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 400;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dex-row-chevron {
+  flex-shrink: 0;
+  color: rgba(255,255,255,0.25);
+}
+.dex-section-gap {
+  height: 18px;
+}
+
+/* ===============================
+   운동도감: 팝업(폴더 추가/글쓰기)
+================================ */
+.dex-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  z-index: 100005;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.dex-modal-overlay.hidden {
+  display: none;
+}
+.dex-modal-box {
+  width: 100%;
+  max-width: 320px;
+  background: #0d0d0d;
+  border: 1px solid rgba(255,255,255,0.16);
+  border-radius: 16px;
+  padding: 20px;
+  box-sizing: border-box;
+
+  opacity: 0;
+  transform: scale(0.96);
+  animation: dexModalIn 0.24s ease-out forwards;
+}
+.dex-modal-overlay.closing .dex-modal-box {
+  animation: dexModalOut 0.18s ease-in forwards;
+}
+@keyframes dexModalIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes dexModalOut {
+  from { opacity: 1; transform: scale(1); }
+  to   { opacity: 0; transform: scale(0.96); }
+}
+.dex-modal-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 16px;
+}
+.dex-modal-input {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 42px;
+  background: #111;
+  border: 1px solid rgba(255,255,255,0.16);
+  border-radius: 10px;
+  color: #fff;
+  font-size: 14px;
+  padding: 0 12px;
+  box-sizing: border-box;
+  margin-bottom: 12px;
+}
+.dex-modal-input:focus {
+  outline: none;
+  border-color: rgba(255,255,255,0.45);
+}
+.dex-modal-input::placeholder {
+  color: rgba(255,255,255,0.3);
+}
+.dex-modal-textarea {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  min-height: 120px;
+  background: #111;
+  border: 1px solid rgba(255,255,255,0.16);
+  border-radius: 10px;
+  color: #fff;
+  font-size: 14px;
+  padding: 10px 12px;
+  box-sizing: border-box;
+  margin-bottom: 12px;
+  line-height: 1.6;
+  resize: vertical;
+  font-family: inherit;
+}
+.dex-modal-textarea:focus {
+  outline: none;
+  border-color: rgba(255,255,255,0.45);
+}
+.dex-modal-textarea::placeholder {
+  color: rgba(255,255,255,0.3);
+}
+.dex-modal-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+.dex-modal-btn {
+  -webkit-appearance: none;
+  appearance: none;
+  flex: 1;
+  height: 40px;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 9px;
+  color: rgba(255,255,255,0.8);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.dex-modal-btn:last-child {
+  color: #fff;
+  border-color: rgba(255,255,255,0.5);
+}
+.dex-modal-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* ===============================
    좌측 슬라이드 내비게이션 드로어
 ================================ */
 .nav-drawer-overlay {
@@ -2308,13 +2475,16 @@ input[type="number"] {
     overflow:hidden;
   ">
   <div id="exerciseDexScreen" style="height:100%; overflow-y:auto; padding: calc(16px + env(safe-area-inset-top)) 18px 24px; position:relative;">
-    <div style="display:flex; align-items:center; margin-bottom:16px; cursor:pointer;" onclick="closeExerciseDex()">
-      ← <span style="margin-left:6px; font-size:15px; font-weight:600; color:#fff;">운동도감</span>
+    <div id="dexBackRow" style="display:flex; align-items:center; margin-bottom:16px; cursor:pointer;">
+      ← <span id="dexTitle" style="margin-left:6px; font-size:15px; font-weight:600; color:#fff;">운동도감</span>
     </div>
 
     <div id="exerciseDexEmpty" style="color:rgba(255,255,255,0.35); font-size:13px; text-align:center; margin-top:100px;">
-      아직 등록된 내용이 없습니다
+      <div style="color:rgba(255,255,255,0.55);">아직 등록된 내용이 없습니다.</div>
+      <div style="margin-top:6px; color:rgba(255,255,255,0.3);">우측 하단의 + 버튼을 눌러 추가해보세요.</div>
     </div>
+
+    <div id="dexListArea"></div>
   </div>
 
   <button id="exerciseDexFab" class="dex-fab" aria-label="추가">+</button>
@@ -2322,6 +2492,48 @@ input[type="number"] {
   <div id="exerciseDexMenu" class="dex-fab-menu hidden">
     <button id="dexAddFolderBtn" class="dex-fab-menu-item">폴더 추가</button>
     <button id="dexWritePostBtn" class="dex-fab-menu-item">글쓰기</button>
+  </div>
+</div>
+
+<!-- 게시물 상세 화면 -->
+<div id="dexPostDetailOverlay" class="hidden" style="
+    position:fixed; inset:0; background:#000; z-index:100001;
+    overflow:hidden;
+  ">
+  <div id="dexPostDetailScreen" style="height:100%; overflow-y:auto; padding: calc(16px + env(safe-area-inset-top)) 18px 24px;">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:22px;">
+      <div style="display:flex; align-items:center; cursor:pointer;" onclick="closeDexPostDetail()">
+        ← <span style="margin-left:6px; font-size:14px; color:rgba(255,255,255,0.5);">뒤로</span>
+      </div>
+      <button id="dexPostMoreBtn" style="-webkit-appearance:none; appearance:none; background:transparent; border:1px solid rgba(255,255,255,0.3); color:rgba(255,255,255,0.6); font-size:12px; padding:6px 12px; border-radius:8px; cursor:pointer;">더보기</button>
+    </div>
+    <div id="dexPostDetailTitle" style="font-size:20px; font-weight:700; color:#fff; margin-bottom:16px; line-height:1.4;"></div>
+    <div id="dexPostDetailContent" style="font-size:14px; font-weight:400; color:rgba(255,255,255,0.7); line-height:1.9; white-space:pre-wrap;"></div>
+  </div>
+</div>
+
+<!-- 새 폴더 팝업 -->
+<div id="dexFolderModal" class="dex-modal-overlay hidden">
+  <div class="dex-modal-box">
+    <div class="dex-modal-title">새 폴더</div>
+    <input id="dexFolderNameInput" class="dex-modal-input" type="text" placeholder="폴더 이름">
+    <div class="dex-modal-actions">
+      <button id="dexFolderCancelBtn" class="dex-modal-btn">취소</button>
+      <button id="dexFolderCreateBtn" class="dex-modal-btn">생성</button>
+    </div>
+  </div>
+</div>
+
+<!-- 새 글 작성 팝업 -->
+<div id="dexPostModal" class="dex-modal-overlay hidden">
+  <div class="dex-modal-box">
+    <div class="dex-modal-title">새 글 작성</div>
+    <input id="dexPostTitleInput" class="dex-modal-input" type="text" placeholder="제목">
+    <textarea id="dexPostContentInput" class="dex-modal-textarea" placeholder="내용을 입력하세요"></textarea>
+    <div class="dex-modal-actions">
+      <button id="dexPostCancelBtn" class="dex-modal-btn">취소</button>
+      <button id="dexPostCreateBtn" class="dex-modal-btn">등록하기</button>
+    </div>
   </div>
 </div>
 
@@ -2728,7 +2940,9 @@ const LS_KEYS = {
   accessoryRecords: "mf_acc_records_v1", // 보조운동 기록 전체
   userSpec: "mf_user_spec_v1",           // 키/몸무게/나이/활동계수/목표
   foodTemplates: "mf_food_templates_v1", // 자주 먹는 식단 템플릿
-  meals: "mf_meals_v1"                   // 날짜별 식사 기록
+  meals: "mf_meals_v1",                  // 날짜별 식사 기록
+  dexFolders: "mf_dex_folders_v1",       // 운동도감 폴더 (공용)
+  dexPosts: "mf_dex_posts_v1"            // 운동도감 게시물 (공용)
 };
 
 function lsGet(key, fallback){
@@ -3953,11 +4167,209 @@ const exerciseDexScreen = document.getElementById("exerciseDexScreen");
 const exerciseDexMenu = document.getElementById("exerciseDexMenu");
 const exerciseDexFab = document.getElementById("exerciseDexFab");
 
+/* ===============================
+   운동도감: 데이터 (전체 계정 공용)
+================================ */
+const dexFoldersCol = db.collection("dexFolders");
+const dexPostsCol = db.collection("dexPosts");
+
+let dexFolders = [];
+let dexPosts = [];
+let dexCurrentFolderId = null;   // null = 최상위(운동도감 루트)
+let dexFolderStack = [];         // 상위 폴더 경로 (뒤로가기용)
+let dexFoldersUnsub = null;
+let dexPostsUnsub = null;
+
+function escapeHtml(str){
+  return String(str == null ? "" : str).replace(/[&<>"']/g, ch => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  }[ch]));
+}
+
+function dexTimeValue(t){
+  if (!t) return 0;
+  if (typeof t === "number") return t;
+  if (typeof t.toMillis === "function") return t.toMillis();
+  if (t.seconds) return t.seconds * 1000;
+  return 0;
+}
+
+function loadDexFromLocal(){
+  dexFolders = lsGet(LS_KEYS.dexFolders, []);
+  dexPosts = lsGet(LS_KEYS.dexPosts, []);
+  if (!Array.isArray(dexFolders)) dexFolders = [];
+  if (!Array.isArray(dexPosts)) dexPosts = [];
+}
+function saveDexToLocal(){
+  lsSet(LS_KEYS.dexFolders, dexFolders);
+  lsSet(LS_KEYS.dexPosts, dexPosts);
+}
+loadDexFromLocal(); // 오프라인 대비 초기값
+
+/* 🔥 실시간 동기화: 다른 계정에서 추가/수정해도 새로고침 없이 자동 반영 */
+function startDexRealtimeSync(){
+  if (dexFoldersUnsub || dexPostsUnsub) return; // 중복 구독 방지
+  try {
+    dexFoldersUnsub = dexFoldersCol.onSnapshot(snap => {
+      dexFolders = [];
+      snap.forEach(doc => dexFolders.push(doc.data()));
+      saveDexToLocal();
+      renderDexList();
+    }, err => console.error("dexFolders 실시간 동기화 오류", err));
+
+    dexPostsUnsub = dexPostsCol.onSnapshot(snap => {
+      dexPosts = [];
+      snap.forEach(doc => dexPosts.push(doc.data()));
+      saveDexToLocal();
+      renderDexList();
+    }, err => console.error("dexPosts 실시간 동기화 오류", err));
+  } catch (e) {
+    console.error("운동도감 실시간 동기화 시작 실패", e);
+  }
+}
+
+/* ===============================
+   운동도감: 아이콘
+================================ */
+const DEX_FOLDER_ICON = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"></path></svg>`;
+const DEX_DOC_ICON = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"></path><path d="M14 2v6h6"></path></svg>`;
+const DEX_CHEVRON_ICON = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>`;
+
+/* ===============================
+   운동도감: 목록 렌더링
+================================ */
+function dexItemsForCurrentFolder(){
+  const folders = dexFolders
+    .filter(f => (f.parentFolderId || null) === dexCurrentFolderId)
+    .sort((a, b) => dexTimeValue(a.createdAt) - dexTimeValue(b.createdAt));
+  const posts = dexPosts
+    .filter(p => (p.parentFolderId || null) === dexCurrentFolderId)
+    .sort((a, b) => dexTimeValue(a.createdAt) - dexTimeValue(b.createdAt));
+  return { folders, posts };
+}
+
+function renderDexList(){
+  const { folders, posts } = dexItemsForCurrentFolder();
+  const listEl = document.getElementById("dexListArea");
+  const emptyEl = document.getElementById("exerciseDexEmpty");
+
+  if (!folders.length && !posts.length) {
+    emptyEl.style.display = "block";
+    listEl.innerHTML = "";
+    return;
+  }
+  emptyEl.style.display = "none";
+
+  let html = "";
+  folders.forEach(f => {
+    html += `
+      <div class="dex-row" data-type="folder" data-id="${f.id}">
+        <div class="dex-row-icon">${DEX_FOLDER_ICON}</div>
+        <div class="dex-row-label">${escapeHtml(f.name)}</div>
+        <div class="dex-row-chevron">${DEX_CHEVRON_ICON}</div>
+      </div>
+    `;
+  });
+  if (folders.length && posts.length) html += `<div class="dex-section-gap"></div>`;
+  posts.forEach(p => {
+    html += `
+      <div class="dex-row" data-type="post" data-id="${p.id}">
+        <div class="dex-row-icon">${DEX_DOC_ICON}</div>
+        <div class="dex-row-label">${escapeHtml(p.title)}</div>
+      </div>
+    `;
+  });
+
+  listEl.innerHTML = html;
+  wireDexRowInteractions();
+}
+
+/* 🔥 목록 행: iOS 스타일 터치 피드백(살짝 밝아짐) + 클릭 시 이동 */
+function wireDexRowInteractions(){
+  document.querySelectorAll(".dex-row").forEach(row => {
+    function press(){ row.classList.add("pressed"); }
+    function release(){ row.classList.remove("pressed"); }
+
+    row.addEventListener("mousedown", press);
+    row.addEventListener("mouseup", release);
+    row.addEventListener("mouseleave", release);
+    row.addEventListener("touchstart", press, { passive: true });
+    row.addEventListener("touchend", release);
+    row.addEventListener("touchcancel", release);
+
+    let navigating = false;
+    row.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (navigating) return; // 중복 클릭/중복 이동 방지
+      navigating = true;
+      setTimeout(() => { navigating = false; }, 400);
+
+      const type = row.dataset.type;
+      const id = row.dataset.id;
+      if (type === "folder") dexOpenFolder(id);
+      else dexOpenPost(id);
+    });
+  });
+}
+
+/* ===============================
+   운동도감: 폴더 이동 / 뒤로가기
+================================ */
+function dexOpenFolder(id){
+  const folder = dexFolders.find(f => f.id === id);
+  if (!folder) return;
+
+  dexFolderStack.push({ id: dexCurrentFolderId, name: document.getElementById("dexTitle").textContent });
+  dexCurrentFolderId = id;
+  document.getElementById("dexTitle").textContent = folder.name;
+  exerciseDexScreen.scrollTop = 0;
+  renderDexList();
+}
+
+function dexGoBack(){
+  if (dexFolderStack.length) {
+    const prev = dexFolderStack.pop();
+    dexCurrentFolderId = prev.id;
+    document.getElementById("dexTitle").textContent = prev.name;
+    exerciseDexScreen.scrollTop = 0;
+    renderDexList();
+  } else {
+    closeExerciseDex();
+  }
+}
+document.getElementById("dexBackRow").addEventListener("click", dexGoBack);
+
+/* ===============================
+   운동도감: 게시물 상세
+================================ */
+function dexOpenPost(id){
+  const post = dexPosts.find(p => p.id === id);
+  if (!post) return;
+
+  document.getElementById("dexPostDetailTitle").textContent = post.title;
+  document.getElementById("dexPostDetailContent").textContent = post.content || "";
+  document.getElementById("dexPostDetailOverlay").classList.remove("hidden");
+  document.getElementById("dexPostDetailScreen").scrollTop = 0;
+}
+function closeDexPostDetail(){
+  document.getElementById("dexPostDetailOverlay").classList.add("hidden");
+}
+document.getElementById("dexPostMoreBtn").addEventListener("click", () => {
+  alert("수정 기능은 준비 중이에요."); // TODO: 이후 확장
+});
+
 function openExerciseDex(){
   exerciseDexOverlay.classList.remove("hidden");
   exerciseDexScreen.style.transform = "translateX(0)";
   hideDexMenuInstant();
   exerciseDexScreen.scrollTop = 0;
+
+  dexCurrentFolderId = null;
+  dexFolderStack = [];
+  document.getElementById("dexTitle").textContent = "운동도감";
+
+  startDexRealtimeSync();
+  renderDexList();
 }
 function closeExerciseDex(){
   exerciseDexOverlay.classList.add("hidden");
@@ -4019,18 +4431,133 @@ exerciseDexScreen.addEventListener("click", () => {
   closeDexMenu();
 });
 
+/* ===============================
+   운동도감: 팝업 열기/닫기 공통
+================================ */
+function openDexModal(id){
+  const el = document.getElementById(id);
+  el.classList.remove("hidden", "closing");
+  void el.offsetWidth; // 애니메이션 재시작 보장
+}
+function closeDexModal(id){
+  const el = document.getElementById(id);
+  const box = el.querySelector(".dex-modal-box");
+  el.classList.add("closing");
+  const handler = () => {
+    el.classList.add("hidden");
+    el.classList.remove("closing");
+    box.removeEventListener("animationend", handler);
+  };
+  box.addEventListener("animationend", handler);
+}
+
+/* ===============================
+   운동도감: 폴더 추가
+================================ */
+let dexCreatingFolder = false;
+
 document.getElementById("dexAddFolderBtn").addEventListener("click", (e) => {
   e.stopPropagation();
   closeDexMenu();
-  // TODO: 권한 체크 + 폴더 추가 기능은 다음 단계에서 구현
-  alert("폴더 추가 기능은 준비 중이에요.");
+  document.getElementById("dexFolderNameInput").value = "";
+  openDexModal("dexFolderModal");
+  setTimeout(() => document.getElementById("dexFolderNameInput").focus(), 50);
 });
+
+document.getElementById("dexFolderCancelBtn").addEventListener("click", () => {
+  closeDexModal("dexFolderModal");
+});
+
+document.getElementById("dexFolderCreateBtn").addEventListener("click", async () => {
+  if (dexCreatingFolder) return;
+
+  const nameEl = document.getElementById("dexFolderNameInput");
+  const name = nameEl.value.trim();
+  if (!name) { nameEl.focus(); return; }
+
+  dexCreatingFolder = true;
+  const btn = document.getElementById("dexFolderCreateBtn");
+  btn.disabled = true;
+
+  const id = "folder_" + Date.now() + "_" + Math.random().toString(16).slice(2);
+  const item = {
+    id,
+    name,
+    parentFolderId: dexCurrentFolderId,
+    createdAt: Date.now(),
+    updatedAt: Date.now()
+  };
+
+  // ✅ 현재 보고 있는 위치(최상위 or 현재 폴더)에 즉시 반영
+  dexFolders.push(item);
+  saveDexToLocal();
+  renderDexList();
+
+  try {
+    await dexFoldersCol.doc(id).set(item);
+  } catch (e) {
+    console.error("폴더 생성 실패(로컬에는 저장됨, 서버 동기화만 실패)", e);
+  }
+
+  dexCreatingFolder = false;
+  btn.disabled = false;
+  closeDexModal("dexFolderModal");
+});
+
+/* ===============================
+   운동도감: 글쓰기
+================================ */
+let dexCreatingPost = false;
 
 document.getElementById("dexWritePostBtn").addEventListener("click", (e) => {
   e.stopPropagation();
   closeDexMenu();
-  // TODO: 권한 체크 + 글쓰기 기능은 다음 단계에서 구현
-  alert("글쓰기 기능은 준비 중이에요.");
+  document.getElementById("dexPostTitleInput").value = "";
+  document.getElementById("dexPostContentInput").value = "";
+  openDexModal("dexPostModal");
+  setTimeout(() => document.getElementById("dexPostTitleInput").focus(), 50);
+});
+
+document.getElementById("dexPostCancelBtn").addEventListener("click", () => {
+  closeDexModal("dexPostModal");
+});
+
+document.getElementById("dexPostCreateBtn").addEventListener("click", async () => {
+  if (dexCreatingPost) return;
+
+  const titleEl = document.getElementById("dexPostTitleInput");
+  const contentEl = document.getElementById("dexPostContentInput");
+  const title = titleEl.value.trim();
+  const content = contentEl.value;
+  if (!title) { titleEl.focus(); return; }
+
+  dexCreatingPost = true;
+  const btn = document.getElementById("dexPostCreateBtn");
+  btn.disabled = true;
+
+  const id = "post_" + Date.now() + "_" + Math.random().toString(16).slice(2);
+  const item = {
+    id,
+    title,
+    content,
+    parentFolderId: dexCurrentFolderId,
+    createdAt: Date.now(),
+    updatedAt: Date.now()
+  };
+
+  dexPosts.push(item);
+  saveDexToLocal();
+  renderDexList();
+
+  try {
+    await dexPostsCol.doc(id).set(item);
+  } catch (e) {
+    console.error("게시물 생성 실패(로컬에는 저장됨, 서버 동기화만 실패)", e);
+  }
+
+  dexCreatingPost = false;
+  btn.disabled = false;
+  closeDexModal("dexPostModal");
 });
 
 /* 🔥 운동도감 화면: 왼쪽 끝에서 오른쪽으로 드래그하면 손가락 따라 끌려가며 닫힘 */
