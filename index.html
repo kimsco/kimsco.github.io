@@ -850,13 +850,46 @@ cursor: pointer;
   position: fixed;
   right: 20px;
   bottom: calc(24px + env(safe-area-inset-bottom)); /* 🔥 FAB과 같은 하단 기준점 → 우측하단 코너 공유 */
-  min-width: 150px;
+  min-width: 210px; /* 🔥 기존 150px의 1.4배 */
   background: #000;
   border: 1px solid rgba(255,255,255,0.5);
   border-radius: 14px;
   border-bottom-right-radius: 26px;
   overflow: hidden;
   z-index: 100004;
+
+  /* 🔥 버튼 중심(우측하단에서 안쪽으로 26px)에서 확장되는 모프 애니메이션 기준점 */
+  transform-origin: calc(100% - 26px) calc(100% - 26px);
+}
+.dex-fab-menu.opening {
+  animation: dexMenuOpen 0.28s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.dex-fab-menu.closing {
+  animation: dexMenuClose 0.22s cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+@keyframes dexMenuOpen {
+  from {
+    transform: scale(0.12);
+    opacity: 0;
+    border-radius: 50%;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+    border-radius: 14px 14px 26px 14px;
+  }
+}
+@keyframes dexMenuClose {
+  from {
+    transform: scale(1);
+    opacity: 1;
+    border-radius: 14px 14px 26px 14px;
+  }
+  to {
+    transform: scale(0.12);
+    opacity: 0;
+    border-radius: 50%;
+  }
 }
 .dex-fab-menu.hidden {
   display: none;
@@ -3923,13 +3956,13 @@ const exerciseDexFab = document.getElementById("exerciseDexFab");
 function openExerciseDex(){
   exerciseDexOverlay.classList.remove("hidden");
   exerciseDexScreen.style.transform = "translateX(0)";
-  exerciseDexMenu.classList.add("hidden");
+  hideDexMenuInstant();
   exerciseDexScreen.scrollTop = 0;
 }
 function closeExerciseDex(){
   exerciseDexOverlay.classList.add("hidden");
   exerciseDexScreen.style.transform = "translateX(0)";
-  exerciseDexMenu.classList.add("hidden");
+  hideDexMenuInstant();
 }
 
 document.getElementById("navExerciseDexBtn").addEventListener("click", () => {
@@ -3937,9 +3970,34 @@ document.getElementById("navExerciseDexBtn").addEventListener("click", () => {
   openExerciseDex();
 });
 
+/* 🔥 팝업 메뉴: 버튼에서 확장되며 나타나고, 버튼 속으로 흡수되듯 사라짐 */
+function hideDexMenuInstant(){
+  exerciseDexMenu.classList.remove("opening", "closing");
+  exerciseDexMenu.classList.add("hidden");
+}
+function openDexMenu(){
+  exerciseDexMenu.classList.remove("hidden", "closing");
+  void exerciseDexMenu.offsetWidth; // 강제 리플로우로 애니메이션 재시작 보장
+  exerciseDexMenu.classList.add("opening");
+}
+function closeDexMenu(){
+  if (exerciseDexMenu.classList.contains("hidden")) return;
+  exerciseDexMenu.classList.remove("opening");
+  exerciseDexMenu.classList.add("closing");
+  exerciseDexMenu.addEventListener("animationend", function handler(){
+    exerciseDexMenu.classList.add("hidden");
+    exerciseDexMenu.classList.remove("closing");
+    exerciseDexMenu.removeEventListener("animationend", handler);
+  });
+}
+
 exerciseDexFab.addEventListener("click", (e) => {
   e.stopPropagation();
-  exerciseDexMenu.classList.toggle("hidden");
+  if (exerciseDexMenu.classList.contains("hidden")) {
+    openDexMenu();
+  } else {
+    closeDexMenu();
+  }
 });
 
 /* 🔥 FAB 터치 피드백: 누르면 확대+밝아짐, 떼면 원상 복귀 */
@@ -3958,19 +4016,19 @@ exerciseDexFab.addEventListener("click", (e) => {
 
 // 메뉴 바깥을 누르면 닫힘
 exerciseDexScreen.addEventListener("click", () => {
-  exerciseDexMenu.classList.add("hidden");
+  closeDexMenu();
 });
 
 document.getElementById("dexAddFolderBtn").addEventListener("click", (e) => {
   e.stopPropagation();
-  exerciseDexMenu.classList.add("hidden");
+  closeDexMenu();
   // TODO: 권한 체크 + 폴더 추가 기능은 다음 단계에서 구현
   alert("폴더 추가 기능은 준비 중이에요.");
 });
 
 document.getElementById("dexWritePostBtn").addEventListener("click", (e) => {
   e.stopPropagation();
-  exerciseDexMenu.classList.add("hidden");
+  closeDexMenu();
   // TODO: 권한 체크 + 글쓰기 기능은 다음 단계에서 구현
   alert("글쓰기 기능은 준비 중이에요.");
 });
