@@ -924,7 +924,7 @@ cursor: pointer;
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 21px 4px;
+  padding: 16px 4px;
   border-bottom: 1px solid rgba(255,255,255,0.1);
   cursor: pointer;
   position: relative;
@@ -951,7 +951,7 @@ cursor: pointer;
 .dex-row-label {
   flex: 1;
   min-width: 0;
-  font-size: 22px;
+  font-size: 17px;
   font-weight: 400;
   color: #fff;
   white-space: nowrap;
@@ -2488,7 +2488,7 @@ input[type="number"] {
       <div style="margin-top:6px; color:rgba(255,255,255,0.3);">우측 하단의 + 버튼을 눌러 추가해보세요.</div>
     </div>
 
-    <div id="dexListArea"></div>
+    <div id="dexListArea" style="width:75%; margin:0 auto;"></div>
   </div>
 
   <button id="exerciseDexFab" class="dex-fab" aria-label="추가">+</button>
@@ -4235,9 +4235,9 @@ function startDexRealtimeSync(){
 /* ===============================
    운동도감: 아이콘
 ================================ */
-const DEX_FOLDER_ICON = `<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"></path></svg>`;
-const DEX_DOC_ICON = `<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"></path><path d="M14 2v6h6"></path></svg>`;
-const DEX_CHEVRON_ICON = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>`;
+const DEX_FOLDER_ICON = `<svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"></path></svg>`;
+const DEX_DOC_ICON = `<svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"></path><path d="M14 2v6h6"></path></svg>`;
+const DEX_CHEVRON_ICON = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>`;
 
 /* ===============================
    운동도감: 목록 렌더링
@@ -4363,6 +4363,15 @@ document.getElementById("dexPostMoreBtn").addEventListener("click", () => {
   alert("수정 기능은 준비 중이에요."); // TODO: 이후 확장
 });
 
+const DEX_EMPTY_DEFAULT_HTML = `
+  <div style="color:rgba(255,255,255,0.55);">아직 등록된 내용이 없습니다.</div>
+  <div style="margin-top:6px; color:rgba(255,255,255,0.3);">우측 하단의 + 버튼을 눌러 추가해보세요.</div>
+`;
+const DEX_EMPTY_LOGIN_HTML = `
+  <div style="color:rgba(255,255,255,0.55);">로그인 후 이용할 수 있어요.</div>
+  <div style="margin-top:6px; color:rgba(255,255,255,0.3);">운동도감은 로그인한 계정에서만 열람·작성이 가능해요.</div>
+`;
+
 function openExerciseDex(){
   exerciseDexOverlay.classList.remove("hidden");
   exerciseDexScreen.style.transform = "translateX(0)";
@@ -4377,6 +4386,19 @@ function openExerciseDex(){
   dexCurrentFolderId = null;
   dexFolderStack = [];
   document.getElementById("dexTitle").textContent = "운동도감";
+
+  // 🔥 로그인 필수: 비로그인 상태면 목록/작성 전부 막고 안내만 표시
+  if (!auth.currentUser) {
+    exerciseDexFab.style.display = "none";
+    document.getElementById("dexListArea").innerHTML = "";
+    const emptyEl = document.getElementById("exerciseDexEmpty");
+    emptyEl.innerHTML = DEX_EMPTY_LOGIN_HTML;
+    emptyEl.style.display = "block";
+    return;
+  }
+
+  exerciseDexFab.style.display = "flex";
+  document.getElementById("exerciseDexEmpty").innerHTML = DEX_EMPTY_DEFAULT_HTML;
 
   startDexRealtimeSync();
   renderDexList();
@@ -4484,6 +4506,7 @@ document.getElementById("dexFolderCancelBtn").addEventListener("click", () => {
 
 document.getElementById("dexFolderCreateBtn").addEventListener("click", async () => {
   if (dexCreatingFolder) return;
+  if (!auth.currentUser) { alert("로그인 후 이용할 수 있어요."); closeDexModal("dexFolderModal"); return; }
 
   const nameEl = document.getElementById("dexFolderNameInput");
   const name = nameEl.value.trim();
@@ -4538,6 +4561,7 @@ document.getElementById("dexPostCancelBtn").addEventListener("click", () => {
 
 document.getElementById("dexPostCreateBtn").addEventListener("click", async () => {
   if (dexCreatingPost) return;
+  if (!auth.currentUser) { alert("로그인 후 이용할 수 있어요."); closeDexModal("dexPostModal"); return; }
 
   const titleEl = document.getElementById("dexPostTitleInput");
   const contentEl = document.getElementById("dexPostContentInput");
