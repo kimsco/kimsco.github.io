@@ -804,6 +804,13 @@ cursor: pointer;
 #dexWriteOverlay.hidden {
   display: none;
 }
+#dexWriteScreen {
+  animation: dexWriteSlideIn 0.28s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+@keyframes dexWriteSlideIn {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
 #dexWriteScreen input::placeholder,
 #dexWriteScreen textarea::placeholder {
   color: rgba(255,255,255,0.3);
@@ -2542,34 +2549,37 @@ input[type="number"] {
 
 <!-- 새 글 작성 팝업 -->
 <div id="dexWriteOverlay" class="hidden" style="
-    position:fixed; inset:0; background:#000; z-index:100005;
+    position:fixed; inset:0; background:#1c1c1e; z-index:100005;
     overflow:hidden;
   ">
-  <div id="dexWriteScreen" style="height:100%; display:flex; flex-direction:column; overflow-y:auto; padding: calc(16px + env(safe-area-inset-top)) 18px calc(24px + env(safe-area-inset-bottom));">
+  <div id="dexWriteScreen" style="height:100%; display:flex; flex-direction:column; overflow-y:auto; padding: calc(16px + env(safe-area-inset-top)) 0 calc(24px + env(safe-area-inset-bottom));">
 
-    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:22px; flex-shrink:0;">
-      <div id="dexWriteBackRow" style="display:flex; align-items:center; cursor:pointer; flex-shrink:0; white-space:nowrap;">
-        ← <span style="margin-left:6px; font-size:14px; color:rgba(255,255,255,0.5);">새 글 작성</span>
-      </div>
-      <button id="dexWriteSubmitBtn" style="-webkit-appearance:none !important; appearance:none !important; flex-shrink:0; width:auto; background:transparent; border:none; color:#fff; font-size:14px; font-weight:700; padding:4px 2px; cursor:pointer;">등록하기</button>
+    <div style="display:flex; align-items:center; justify-content:space-between; padding:0 18px 14px; flex-shrink:0;">
+      <div id="dexWriteBackRow" style="cursor:pointer; flex-shrink:0; white-space:nowrap; font-size:15px; color:rgba(255,255,255,0.7);">취소</div>
+      <button id="dexWriteSubmitBtn" style="-webkit-appearance:none !important; appearance:none !important; flex-shrink:0; width:auto; background:transparent; border:none; color:#fff; font-size:15px; font-weight:700; padding:4px 2px; cursor:pointer;">등록</button>
     </div>
 
-    <input id="dexPostTitleInput" type="text" placeholder="제목" style="
-      -webkit-appearance:none; appearance:none;
-      width:100%; background:transparent; border:none;
-      color:#fff; font-size:20px; font-weight:700; padding:8px 2px; box-sizing:border-box;
-      flex-shrink:0;
-    ">
+    <div style="border-bottom:1px solid rgba(255,255,255,0.35); flex-shrink:0;"></div>
 
-    <div style="border-bottom:1px solid rgba(255,255,255,0.18); margin:12px 0 16px; flex-shrink:0;"></div>
+    <div style="padding:0 18px; display:flex; flex-direction:column; flex:1; min-height:0;">
 
-    <textarea id="dexPostContentInput" placeholder="내용을 입력하세요" style="
-      -webkit-appearance:none; appearance:none;
-      flex:1; width:100%; min-height:200px; background:transparent; border:none;
-      color:rgba(255,255,255,0.85); font-size:15px; line-height:1.9; padding:2px;
-      box-sizing:border-box; resize:none; font-family:inherit;
-    "></textarea>
+      <input id="dexPostTitleInput" type="text" placeholder="제목" style="
+        -webkit-appearance:none; appearance:none;
+        width:100%; background:transparent; border:none;
+        color:#fff; font-size:20px; font-weight:700; padding:14px 2px 8px; box-sizing:border-box;
+        flex-shrink:0;
+      ">
 
+      <div style="border-bottom:1px solid rgba(255,255,255,0.12); margin:8px 0 16px; flex-shrink:0;"></div>
+
+      <textarea id="dexPostContentInput" placeholder="내용을 입력하세요" style="
+        -webkit-appearance:none; appearance:none;
+        flex:1; width:100%; min-height:200px; background:transparent; border:none;
+        color:rgba(255,255,255,0.85); font-size:15px; line-height:1.9; padding:2px;
+        box-sizing:border-box; resize:none; font-family:inherit;
+      "></textarea>
+
+    </div>
   </div>
 </div>
 
@@ -4583,8 +4593,10 @@ const dexWriteScreen = document.getElementById("dexWriteScreen");
 function openDexWriteScreen(){
   document.getElementById("dexPostTitleInput").value = "";
   document.getElementById("dexPostContentInput").value = "";
+  dexWriteScreen.style.transition = "";
+  dexWriteScreen.style.transform = "";
   dexWriteOverlay.classList.remove("hidden");
-  dexWriteScreen.style.transform = "translateX(0)";
+  void dexWriteScreen.offsetWidth; // 애니메이션 재시작 보장
   dexWriteScreen.scrollTop = 0;
   setTimeout(() => document.getElementById("dexPostTitleInput").focus(), 50);
 }
