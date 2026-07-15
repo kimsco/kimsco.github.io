@@ -801,6 +801,21 @@ cursor: pointer;
   display: none;
 }
 
+#dexWriteOverlay.hidden {
+  display: none;
+}
+#dexWriteScreen input::placeholder,
+#dexWriteScreen textarea::placeholder {
+  color: rgba(255,255,255,0.3);
+}
+#dexWriteScreen input:focus,
+#dexWriteScreen textarea:focus {
+  outline: none;
+}
+#dexPostTitleInput:focus {
+  border-bottom-color: rgba(255,255,255,0.5) !important;
+}
+
 /* ===============================
    운동도감: FAB + 팝업 메뉴
    — 선(Line) 중심, 면(Fill) 최소화
@@ -2488,7 +2503,7 @@ input[type="number"] {
       <div style="margin-top:6px; color:rgba(255,255,255,0.3);">우측 하단의 + 버튼을 눌러 추가해보세요.</div>
     </div>
 
-    <div id="dexListArea" style="width:75%; margin:0 auto;"></div>
+    <div id="dexListArea"></div>
   </div>
 
   <button id="exerciseDexFab" class="dex-fab" aria-label="추가">+</button>
@@ -2529,15 +2544,33 @@ input[type="number"] {
 </div>
 
 <!-- 새 글 작성 팝업 -->
-<div id="dexPostModal" class="dex-modal-overlay hidden">
-  <div class="dex-modal-box">
-    <div class="dex-modal-title">새 글 작성</div>
-    <input id="dexPostTitleInput" class="dex-modal-input" type="text" placeholder="제목">
-    <textarea id="dexPostContentInput" class="dex-modal-textarea" placeholder="내용을 입력하세요"></textarea>
-    <div class="dex-modal-actions">
-      <button id="dexPostCancelBtn" class="dex-modal-btn">취소</button>
-      <button id="dexPostCreateBtn" class="dex-modal-btn">등록하기</button>
+<div id="dexWriteOverlay" class="hidden" style="
+    position:fixed; inset:0; background:#000; z-index:100005;
+    overflow:hidden;
+  ">
+  <div id="dexWriteScreen" style="height:100%; display:flex; flex-direction:column; overflow-y:auto; padding: calc(16px + env(safe-area-inset-top)) 18px calc(24px + env(safe-area-inset-bottom));">
+
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:22px; flex-shrink:0;">
+      <div id="dexWriteBackRow" style="display:flex; align-items:center; cursor:pointer; flex-shrink:0; white-space:nowrap;">
+        ← <span style="margin-left:6px; font-size:14px; color:rgba(255,255,255,0.5);">새 글 작성</span>
+      </div>
+      <button id="dexWriteSubmitBtn" style="-webkit-appearance:none; appearance:none; flex-shrink:0; background:transparent; border:1px solid rgba(255,255,255,0.5); color:#fff; font-size:13px; font-weight:600; padding:8px 16px; border-radius:9px; cursor:pointer;">등록하기</button>
     </div>
+
+    <input id="dexPostTitleInput" type="text" placeholder="제목" style="
+      -webkit-appearance:none; appearance:none;
+      width:100%; background:transparent; border:none; border-bottom:1px solid rgba(255,255,255,0.18);
+      color:#fff; font-size:20px; font-weight:700; padding:8px 2px 14px; box-sizing:border-box;
+      margin-bottom:16px; flex-shrink:0;
+    ">
+
+    <textarea id="dexPostContentInput" placeholder="내용을 입력하세요" style="
+      -webkit-appearance:none; appearance:none;
+      flex:1; width:100%; min-height:200px; background:transparent; border:none;
+      color:rgba(255,255,255,0.85); font-size:15px; line-height:1.9; padding:2px;
+      box-sizing:border-box; resize:none; font-family:inherit;
+    "></textarea>
+
   </div>
 </div>
 
@@ -4381,7 +4414,7 @@ function openExerciseDex(){
   // 🔥 혹시 이전 상태가 남아있어도 항상 목록 화면부터 시작하도록 강제 초기화
   document.getElementById("dexPostDetailOverlay").classList.add("hidden");
   document.getElementById("dexFolderModal").classList.add("hidden");
-  document.getElementById("dexPostModal").classList.add("hidden");
+  document.getElementById("dexWriteOverlay").classList.add("hidden");
 
   dexCurrentFolderId = null;
   dexFolderStack = [];
@@ -4410,7 +4443,7 @@ function closeExerciseDex(){
 
   document.getElementById("dexPostDetailOverlay").classList.add("hidden");
   document.getElementById("dexFolderModal").classList.add("hidden");
-  document.getElementById("dexPostModal").classList.add("hidden");
+  document.getElementById("dexWriteOverlay").classList.add("hidden");
 }
 
 document.getElementById("navExerciseDexBtn").addEventListener("click", () => {
@@ -4542,26 +4575,36 @@ document.getElementById("dexFolderCreateBtn").addEventListener("click", async ()
 });
 
 /* ===============================
-   운동도감: 글쓰기
+   운동도감: 글쓰기 (전체화면)
 ================================ */
 let dexCreatingPost = false;
+const dexWriteOverlay = document.getElementById("dexWriteOverlay");
+const dexWriteScreen = document.getElementById("dexWriteScreen");
+
+function openDexWriteScreen(){
+  document.getElementById("dexPostTitleInput").value = "";
+  document.getElementById("dexPostContentInput").value = "";
+  dexWriteOverlay.classList.remove("hidden");
+  dexWriteScreen.style.transform = "translateX(0)";
+  dexWriteScreen.scrollTop = 0;
+  setTimeout(() => document.getElementById("dexPostTitleInput").focus(), 50);
+}
+function closeDexWriteScreen(){
+  dexWriteOverlay.classList.add("hidden");
+  dexWriteScreen.style.transform = "translateX(0)";
+}
 
 document.getElementById("dexWritePostBtn").addEventListener("click", (e) => {
   e.stopPropagation();
   closeDexMenu();
-  document.getElementById("dexPostTitleInput").value = "";
-  document.getElementById("dexPostContentInput").value = "";
-  openDexModal("dexPostModal");
-  setTimeout(() => document.getElementById("dexPostTitleInput").focus(), 50);
+  openDexWriteScreen();
 });
 
-document.getElementById("dexPostCancelBtn").addEventListener("click", () => {
-  closeDexModal("dexPostModal");
-});
+document.getElementById("dexWriteBackRow").addEventListener("click", closeDexWriteScreen);
 
-document.getElementById("dexPostCreateBtn").addEventListener("click", async () => {
+document.getElementById("dexWriteSubmitBtn").addEventListener("click", async () => {
   if (dexCreatingPost) return;
-  if (!auth.currentUser) { alert("로그인 후 이용할 수 있어요."); closeDexModal("dexPostModal"); return; }
+  if (!auth.currentUser) { alert("로그인 후 이용할 수 있어요."); closeDexWriteScreen(); return; }
 
   const titleEl = document.getElementById("dexPostTitleInput");
   const contentEl = document.getElementById("dexPostContentInput");
@@ -4570,7 +4613,7 @@ document.getElementById("dexPostCreateBtn").addEventListener("click", async () =
   if (!title) { titleEl.focus(); return; }
 
   dexCreatingPost = true;
-  const btn = document.getElementById("dexPostCreateBtn");
+  const btn = document.getElementById("dexWriteSubmitBtn");
   btn.disabled = true;
 
   const id = "post_" + Date.now() + "_" + Math.random().toString(16).slice(2);
@@ -4595,8 +4638,63 @@ document.getElementById("dexPostCreateBtn").addEventListener("click", async () =
 
   dexCreatingPost = false;
   btn.disabled = false;
-  closeDexModal("dexPostModal");
+  closeDexWriteScreen();
 });
+
+/* 🔥 글쓰기 화면: 왼쪽 끝에서 오른쪽으로 드래그하면 손가락 따라 끌려가며 나가기 */
+(function(){
+  const EDGE_ZONE = 30, COMMIT_MOVE = 8, CLOSE_RATIO = 0.3;
+  let startX = 0, startY = 0, tracking = false, dragging = false;
+
+  dexWriteScreen.addEventListener('touchstart', (e) => {
+    const t = e.touches[0];
+    if (t.clientX <= EDGE_ZONE) {
+      startX = t.clientX; startY = t.clientY;
+      tracking = true; dragging = false;
+      dexWriteScreen.style.transition = 'none';
+    } else { tracking = false; }
+  }, { passive: true });
+
+  dexWriteScreen.addEventListener('touchmove', (e) => {
+    if (!tracking) return;
+    const t = e.touches[0];
+    const dx = t.clientX - startX, dy = t.clientY - startY;
+    if (!dragging) {
+      if (dx > COMMIT_MOVE && dx > Math.abs(dy) * 0.6) dragging = true;
+      else if (Math.abs(dy) > COMMIT_MOVE && Math.abs(dy) > dx) { tracking = false; return; }
+      else return;
+    }
+    if (dragging) {
+      e.preventDefault();
+      dexWriteScreen.style.transform = `translateX(${Math.max(0, dx)}px)`;
+    }
+  }, { passive: false });
+
+  function endDrag(e){
+    if (!tracking) return;
+    const wasDragging = dragging;
+    tracking = false; dragging = false;
+    if (!wasDragging) return;
+
+    const width = dexWriteScreen.offsetWidth || window.innerWidth;
+    const t = e.changedTouches[0];
+    const dx = Math.max(0, t.clientX - startX);
+    dexWriteScreen.style.transition = 'transform 0.22s ease';
+
+    if (dx > width * CLOSE_RATIO) {
+      dexWriteScreen.style.transform = `translateX(${width}px)`;
+      setTimeout(() => {
+        closeDexWriteScreen();
+        dexWriteScreen.style.transition = 'none';
+        dexWriteScreen.style.transform = 'translateX(0)';
+      }, 220);
+    } else {
+      dexWriteScreen.style.transform = 'translateX(0)';
+    }
+  }
+  dexWriteScreen.addEventListener('touchend', endDrag, { passive: true });
+  dexWriteScreen.addEventListener('touchcancel', endDrag, { passive: true });
+})();
 
 /* 🔥 운동도감 화면: 왼쪽 끝에서 오른쪽으로 드래그하면 손가락 따라 끌려가며 닫힘 */
 (function(){
