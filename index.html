@@ -797,6 +797,10 @@ cursor: pointer;
   display: none;
 }
 
+#dexPostDetailOverlay.hidden {
+  display: none;
+}
+
 /* ===============================
    운동도감: FAB + 팝업 메뉴
    — 선(Line) 중심, 면(Fill) 최소화
@@ -2501,11 +2505,11 @@ input[type="number"] {
     overflow:hidden;
   ">
   <div id="dexPostDetailScreen" style="height:100%; overflow-y:auto; padding: calc(16px + env(safe-area-inset-top)) 18px 24px;">
-    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:22px;">
-      <div style="display:flex; align-items:center; cursor:pointer;" onclick="closeDexPostDetail()">
-        ← <span style="margin-left:6px; font-size:14px; color:rgba(255,255,255,0.5);">뒤로</span>
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:22px; width:100%; box-sizing:border-box;">
+      <div id="dexPostBackRow" style="display:flex; align-items:center; cursor:pointer; flex-shrink:0; white-space:nowrap;" onclick="closeDexPostDetail()">
+        ← <span style="margin-left:6px; font-size:14px; color:rgba(255,255,255,0.5); white-space:nowrap;">뒤로</span>
       </div>
-      <button id="dexPostMoreBtn" style="-webkit-appearance:none; appearance:none; background:transparent; border:1px solid rgba(255,255,255,0.3); color:rgba(255,255,255,0.6); font-size:12px; padding:6px 12px; border-radius:8px; cursor:pointer;">더보기</button>
+      <button id="dexPostMoreBtn" style="-webkit-appearance:none; appearance:none; flex-shrink:0; width:auto; max-width:90px; background:transparent; border:1px solid rgba(255,255,255,0.3); color:rgba(255,255,255,0.6); font-size:12px; padding:6px 12px; border-radius:8px; cursor:pointer; white-space:nowrap;">더보기</button>
     </div>
     <div id="dexPostDetailTitle" style="font-size:20px; font-weight:700; color:#fff; margin-bottom:16px; line-height:1.4;"></div>
     <div id="dexPostDetailContent" style="font-size:14px; font-weight:400; color:rgba(255,255,255,0.7); line-height:1.9; white-space:pre-wrap;"></div>
@@ -4354,6 +4358,7 @@ function dexOpenPost(id){
 function closeDexPostDetail(){
   document.getElementById("dexPostDetailOverlay").classList.add("hidden");
 }
+document.getElementById("dexPostBackRow").addEventListener("click", closeDexPostDetail);
 document.getElementById("dexPostMoreBtn").addEventListener("click", () => {
   alert("수정 기능은 준비 중이에요."); // TODO: 이후 확장
 });
@@ -4363,6 +4368,11 @@ function openExerciseDex(){
   exerciseDexScreen.style.transform = "translateX(0)";
   hideDexMenuInstant();
   exerciseDexScreen.scrollTop = 0;
+
+  // 🔥 혹시 이전 상태가 남아있어도 항상 목록 화면부터 시작하도록 강제 초기화
+  document.getElementById("dexPostDetailOverlay").classList.add("hidden");
+  document.getElementById("dexFolderModal").classList.add("hidden");
+  document.getElementById("dexPostModal").classList.add("hidden");
 
   dexCurrentFolderId = null;
   dexFolderStack = [];
@@ -4375,6 +4385,10 @@ function closeExerciseDex(){
   exerciseDexOverlay.classList.add("hidden");
   exerciseDexScreen.style.transform = "translateX(0)";
   hideDexMenuInstant();
+
+  document.getElementById("dexPostDetailOverlay").classList.add("hidden");
+  document.getElementById("dexFolderModal").classList.add("hidden");
+  document.getElementById("dexPostModal").classList.add("hidden");
 }
 
 document.getElementById("navExerciseDexBtn").addEventListener("click", () => {
