@@ -2549,7 +2549,7 @@ input[type="number"] {
 
 <!-- 새 글 작성 팝업 -->
 <div id="dexWriteOverlay" class="hidden" style="
-    position:fixed; inset:0; background:#1c1c1e; z-index:100005;
+    position:fixed; inset:0; background:#111; z-index:100005;
     overflow:hidden;
   ">
   <div id="dexWriteScreen" style="height:100%; display:flex; flex-direction:column; overflow-y:auto; padding: calc(16px + env(safe-area-inset-top)) 0 calc(24px + env(safe-area-inset-bottom));">
@@ -4595,11 +4595,17 @@ function openDexWriteScreen(){
   document.getElementById("dexPostContentInput").value = "";
   dexWriteScreen.style.transition = "";
   dexWriteScreen.style.transform = "";
+  dexWriteScreen.style.animation = ""; // CSS 등장 애니메이션 다시 재생되도록 초기화
   dexWriteOverlay.classList.remove("hidden");
   void dexWriteScreen.offsetWidth; // 애니메이션 재시작 보장
   dexWriteScreen.scrollTop = 0;
   setTimeout(() => document.getElementById("dexPostTitleInput").focus(), 50);
 }
+// 🔥 등장 애니메이션이 끝나면 그 애니메이션이 transform을 계속 붙잡지 않도록 해제
+// (그래야 이후 스와이프 드래그의 inline transform이 정상적으로 먹힘)
+dexWriteScreen.addEventListener("animationend", () => {
+  dexWriteScreen.style.animation = "none";
+});
 function closeDexWriteScreen(){
   dexWriteOverlay.classList.add("hidden");
   dexWriteScreen.style.transform = "translateX(0)";
