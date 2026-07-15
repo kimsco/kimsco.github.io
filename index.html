@@ -924,7 +924,7 @@ cursor: pointer;
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 14px 4px;
+  padding: 21px 4px;
   border-bottom: 1px solid rgba(255,255,255,0.1);
   cursor: pointer;
   position: relative;
@@ -951,7 +951,7 @@ cursor: pointer;
 .dex-row-label {
   flex: 1;
   min-width: 0;
-  font-size: 15px;
+  font-size: 22px;
   font-weight: 400;
   color: #fff;
   white-space: nowrap;
@@ -4235,9 +4235,9 @@ function startDexRealtimeSync(){
 /* ===============================
    운동도감: 아이콘
 ================================ */
-const DEX_FOLDER_ICON = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"></path></svg>`;
-const DEX_DOC_ICON = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"></path><path d="M14 2v6h6"></path></svg>`;
-const DEX_CHEVRON_ICON = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>`;
+const DEX_FOLDER_ICON = `<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"></path></svg>`;
+const DEX_DOC_ICON = `<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"></path><path d="M14 2v6h6"></path></svg>`;
+const DEX_CHEVRON_ICON = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>`;
 
 /* ===============================
    운동도감: 목록 렌더링
@@ -4623,6 +4623,62 @@ document.getElementById("dexPostCreateBtn").addEventListener("click", async () =
   }
   exerciseDexScreen.addEventListener('touchend', endDrag, { passive: true });
   exerciseDexScreen.addEventListener('touchcancel', endDrag, { passive: true });
+})();
+
+/* 🔥 게시물 상세 화면: 왼쪽 끝에서 오른쪽으로 드래그하면 손가락 따라 끌려가며 뒤로가기 */
+(function(){
+  const screen = document.getElementById("dexPostDetailScreen");
+  const EDGE_ZONE = 30, COMMIT_MOVE = 8, CLOSE_RATIO = 0.3;
+  let startX = 0, startY = 0, tracking = false, dragging = false;
+
+  screen.addEventListener('touchstart', (e) => {
+    const t = e.touches[0];
+    if (t.clientX <= EDGE_ZONE) {
+      startX = t.clientX; startY = t.clientY;
+      tracking = true; dragging = false;
+      screen.style.transition = 'none';
+    } else { tracking = false; }
+  }, { passive: true });
+
+  screen.addEventListener('touchmove', (e) => {
+    if (!tracking) return;
+    const t = e.touches[0];
+    const dx = t.clientX - startX, dy = t.clientY - startY;
+    if (!dragging) {
+      if (dx > COMMIT_MOVE && dx > Math.abs(dy) * 0.6) dragging = true;
+      else if (Math.abs(dy) > COMMIT_MOVE && Math.abs(dy) > dx) { tracking = false; return; }
+      else return;
+    }
+    if (dragging) {
+      e.preventDefault();
+      screen.style.transform = `translateX(${Math.max(0, dx)}px)`;
+    }
+  }, { passive: false });
+
+  function endDrag(e){
+    if (!tracking) return;
+    const wasDragging = dragging;
+    tracking = false; dragging = false;
+    if (!wasDragging) return;
+
+    const width = screen.offsetWidth || window.innerWidth;
+    const t = e.changedTouches[0];
+    const dx = Math.max(0, t.clientX - startX);
+    screen.style.transition = 'transform 0.22s ease';
+
+    if (dx > width * CLOSE_RATIO) {
+      screen.style.transform = `translateX(${width}px)`;
+      setTimeout(() => {
+        closeDexPostDetail();
+        screen.style.transition = 'none';
+        screen.style.transform = 'translateX(0)';
+      }, 220);
+    } else {
+      screen.style.transform = 'translateX(0)';
+    }
+  }
+  screen.addEventListener('touchend', endDrag, { passive: true });
+  screen.addEventListener('touchcancel', endDrag, { passive: true });
 })();
 
 /* 🔥 3대 총합 화면: 왼쪽 끝에서 오른쪽으로 드래그하면 손가락 따라 끌려가며 닫힘 */
