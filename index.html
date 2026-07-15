@@ -820,13 +820,36 @@ cursor: pointer;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  z-index: 100002;
+  z-index: 100003;
+
+  /* 🔥 iOS 스타일 터치 피드백 */
+  overflow: hidden;
+  transform: scale(1);
+  transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1),
+              filter 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+  -webkit-tap-highlight-color: transparent;
+}
+.dex-fab::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba(255,255,255,0);
+  transition: background 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+.dex-fab.pressed {
+  transform: scale(1.1);
+  filter: brightness(1.15);
+}
+.dex-fab.pressed::after {
+  background: rgba(255,255,255,0.15);
 }
 
 .dex-fab-menu {
   position: fixed;
   right: 20px;
-  bottom: calc(24px + 52px + 8px + env(safe-area-inset-bottom));
+  bottom: calc(24px + env(safe-area-inset-bottom)); /* 🔥 FAB과 같은 하단 기준점 → 우측하단 코너 공유 */
   min-width: 150px;
   background: #000;
   border: 1px solid rgba(255,255,255,0.18);
@@ -3918,6 +3941,20 @@ exerciseDexFab.addEventListener("click", (e) => {
   e.stopPropagation();
   exerciseDexMenu.classList.toggle("hidden");
 });
+
+/* 🔥 FAB 터치 피드백: 누르면 확대+밝아짐, 떼면 원상 복귀 */
+(function(){
+  function press(){ exerciseDexFab.classList.add("pressed"); }
+  function release(){ exerciseDexFab.classList.remove("pressed"); }
+
+  exerciseDexFab.addEventListener("mousedown", press);
+  exerciseDexFab.addEventListener("mouseup", release);
+  exerciseDexFab.addEventListener("mouseleave", release);
+
+  exerciseDexFab.addEventListener("touchstart", press, { passive: true });
+  exerciseDexFab.addEventListener("touchend", release);
+  exerciseDexFab.addEventListener("touchcancel", release);
+})();
 
 // 메뉴 바깥을 누르면 닫힘
 exerciseDexScreen.addEventListener("click", () => {
