@@ -5178,10 +5178,15 @@ bottomTabBtns.forEach(btn => {
     btn.classList.add('active');
 
     const target = btn.dataset.target;
+    const FLEX_LAYOUT_TABS = ['tab2', 'tab3', 'tab5']; // 🔥 고정헤더+꽉채움 레이아웃을 쓰는 탭들
     bottomTabContents.forEach(tc => {
       const on = (tc.id === target);
       tc.classList.toggle('active', on);
-      tc.style.display = on ? 'block' : 'none';
+      if (!on) {
+        tc.style.display = 'none';
+      } else {
+        tc.style.display = FLEX_LAYOUT_TABS.includes(tc.id) ? 'flex' : 'block';
+      }
     });
 
     document.querySelector('.app').scrollTo({ top: 0, behavior: 'auto' });
