@@ -3756,6 +3756,10 @@ auth.onAuthStateChanged(async user => {
   // ✅ 여기부터는 네 기존 로직 그대로
   if (user) {
 
+    // 🔥 5개 부위 종목 리스트를 백그라운드에서 미리 불러와 캐시에 저장
+    //    (기다리지 않음 - 다른 로딩이랑 동시에 진행되어 첫 클릭 딜레이를 없앰)
+    prefetchAllExerciseParts(user.uid);
+
     /* 3대 최신값 */
     try {
       const threeDoc = await db
@@ -5450,6 +5454,27 @@ async function saveExerciseToDB(exerciseName) {
 
 
 
+
+/* 🔥 로그인 직후 5개 부위 종목 리스트를 전부 미리 불러와 로컬 캐시에 저장
+   (loadExercises의 "캐시 우선 표시" 로직이 이 캐시를 즉시 활용하게 됨) */
+async function prefetchAllExerciseParts(uid){
+  const parts = ['chest', 'back', 'shoulder', 'leg', 'arm'];
+  try {
+    await Promise.all(parts.map(async (part) => {
+      const doc = await db
+        .collection('users')
+        .doc(uid)
+        .collection('accessories')
+        .doc(part)
+        .get();
+      const list = doc.exists ? (doc.data().list || []) : [];
+      const cleaned = list.filter(x => typeof x === "string" && x.trim());
+      saveAccListToLocal(part, cleaned);
+    }));
+  } catch (e) {
+    console.error("부위별 종목 미리 불러오기 실패", e);
+  }
+}
 
 async function loadExercises(part) {
   const user = auth.currentUser;
