@@ -3174,6 +3174,14 @@ function openExerciseDetail(name) {
   const appEl = document.querySelector('.app');
   if (appEl) { appEl.scrollTop = 0; appEl.style.overflowY = 'hidden'; }
 
+  // 🔥 기록 박스 자체의 스크롤 위치도 초기화 (안 하면 이전 스크롤 위치가 남아
+  //    알약 저장바가 엉뚱한 곳에 걸쳐 보이는 버그가 있었음)
+  const accRecordsEl = document.getElementById('acc-records');
+  if (accRecordsEl) accRecordsEl.scrollTop = 0;
+
+  // 🔥 알약바 내부 상태 + 시각적 크기를 완전히 초기화
+  if (typeof accFloatingBar !== 'undefined' && accFloatingBar) accFloatingBar.reset();
+
   renderAccessoryRecords(name); // ✅ "디테일 화면"에는 이걸 쓰자
 }
 
@@ -6887,12 +6895,13 @@ document.querySelectorAll('.folderContent').forEach(el => {
    반대로 스크롤을 올리면 그만큼 서서히 다시 커짐
    (3대탭 + 기록탭 보조운동 상세화면, 둘 다 이 함수로 연결) */
 function wireFloatingSaveBar(bar, scrollEls){
-  if (!bar || !scrollEls.length) return;
+  if (!bar || !scrollEls.length) return null;
 
   const THRESHOLD = 50;      // 이 거리(px)만큼 스크롤하면 완전히 축소
   const MIN_SCALE = 0.8;
   const MIN_OPACITY = 0.55;
   let collapseAmount = 0;    // 0(완전 확대) ~ THRESHOLD(완전 축소)
+  const lastTops = new WeakMap();
 
   function render(withTransition){
     const p = collapseAmount / THRESHOLD;
@@ -6906,12 +6915,12 @@ function wireFloatingSaveBar(bar, scrollEls){
   }
 
   scrollEls.forEach(el => {
-    let lastTop = el.scrollTop || 0;
+    lastTops.set(el, el.scrollTop || 0);
 
     el.addEventListener('scroll', () => {
       const current = el.scrollTop;
-      const delta = current - lastTop;
-      lastTop = current;
+      const delta = current - (lastTops.get(el) || 0);
+      lastTops.set(el, current);
 
       if (current <= 4) {
         // 맨 위 근처면 무조건 완전히 확대 (부드럽게)
@@ -6939,13 +6948,22 @@ function wireFloatingSaveBar(bar, scrollEls){
       render(true);
     });
   });
+
+  // 🔥 외부(예: 화면 재진입)에서 내부 상태 + 시각적 크기를 완전히 초기화할 수 있도록 노출
+  return {
+    reset(){
+      collapseAmount = 0;
+      scrollEls.forEach(el => lastTops.set(el, el.scrollTop || 0));
+      render(false);
+    }
+  };
 }
 
 wireFloatingSaveBar(
   document.getElementById('recordFloatBarTab2'),
   Array.from(document.querySelectorAll('#tab2 .folderContent'))
 );
-wireFloatingSaveBar(
+const accFloatingBar = wireFloatingSaveBar(
   document.getElementById('recordFloatBarAcc'),
   [document.getElementById('acc-records')].filter(Boolean)
 );
