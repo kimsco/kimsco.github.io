@@ -993,13 +993,13 @@ cursor: pointer;
   -webkit-appearance: none;
   appearance: none;
   flex-shrink: 0;
-  width: 26px;
-  height: 26px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   background: transparent;
   border: 1px solid rgba(255,255,255,0.35);
   color: rgba(255,255,255,0.7);
-  font-size: 14px;
+  font-size: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1007,13 +1007,19 @@ cursor: pointer;
 }
 .dex-row-handle {
   flex-shrink: 0;
+  width: 22px;
+  height: 22px;
   color: rgba(255,255,255,0.35);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 4px 2px;
+  padding: 0;
   cursor: grab;
   touch-action: none;
+}
+.dex-row-handle svg {
+  width: 18px;
+  height: 18px;
 }
 .dex-row.dragging {
   position: relative;
