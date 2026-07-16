@@ -254,7 +254,7 @@ button {
   position: fixed;
   left: 20px;
   right: 20px;
-  bottom: calc(var(--bottomTabH) + 14px + env(safe-area-inset-bottom));
+  bottom: calc(var(--bottomTabH) + 7px + env(safe-area-inset-bottom));
   z-index: 500;   /* 🔥 설정/메뉴 등 오버레이(100000+)보다 낮게 — 오버레이 열리면 가려지도록 */
 
   display: flex;
@@ -281,7 +281,7 @@ button {
 .recordFloatBar input[type="number"] {
   flex: 1;
   min-width: 0;
-  height: 40px;
+  height: 32px;
   background: rgba(255,255,255,0.08);
   border: none;
   border-radius: 999px;
@@ -297,7 +297,7 @@ button {
   appearance: none;
   flex-shrink: 0;
   width: auto;      /* 🔥 전역 button{width:100%} 리셋 무력화 — 이게 진짜 원인이었음 */
-  height: 40px;
+  height: 32px;
   padding: 0 18px;
   border-radius: 999px;
   border: none;
