@@ -3628,10 +3628,6 @@ function renderActiveBox(){
 }
 renderActiveBox();
 
-// 🔥 기록탭: 페이지 진입 시 기본 부위(가슴) 자동 로드
-currentPart = 'chest';
-loadExercises(currentPart);
-
 /* 기록 추가 (가로 폼에서 저장) */
 recordAdd.addEventListener('click', async ()=>{
 
@@ -3846,6 +3842,10 @@ try {
     await loadFoodTemplatesFromFirestore(user.uid);
     await loadMealsFromFirestore(user.uid);
 
+    // 🔥 기록탭: 로그인 상태가 확정된 후에 기본 부위(가슴) 로드 (레이스 컨디션 방지)
+    currentPart = 'chest';
+    await loadExercises(currentPart);
+
   } else {
     // ✅ 게스트: 로컬에서 전부 복원
     loadAllFromLocal();
@@ -3853,8 +3853,9 @@ try {
     loadFoodTemplatesFromLocal();
     loadMealsFromLocal();
 
-    currentExercises = [];
-    renderExercises();
+    // 🔥 게스트도 마찬가지로 여기서 기본 부위(가슴) 로드
+    currentPart = 'chest';
+    await loadExercises(currentPart);
   }
 });
 
