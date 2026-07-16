@@ -226,6 +226,27 @@ button {
   overscroll-behavior: contain;
 }
 
+/* 🔥 3대탭: 위 종목탭바/아래 입력바는 고정, 기록 박스가 남는 공간을 꽉 채움 */
+#tab2.tabContent.active {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - var(--topBarH) - var(--bottomTabH) - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+}
+#tab2 .recordFolders {
+  flex-shrink: 0;
+}
+#tab2 .folderContent {
+  flex: 1;
+  min-height: 0;
+  height: auto;
+}
+#tab2 .recordFormRow {
+  flex-shrink: 0;
+}
+#tab2 #recordMessage {
+  flex-shrink: 0;
+}
+
 /* ===============================
    3대 기록
 ================================ */
