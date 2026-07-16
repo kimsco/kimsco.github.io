@@ -2576,7 +2576,7 @@ input[type="number"] {
 <div id="dexFolderModal" class="dex-modal-overlay hidden">
   <div class="dex-modal-box">
     <div class="dex-modal-title">새 폴더</div>
-    <input id="dexFolderNameInput" class="dex-modal-input" type="text" placeholder="폴더 이름">
+    <input id="dexFolderNameInput" class="dex-modal-input" type="text" placeholder="폴더 이름" maxlength="60">
     <div class="dex-modal-actions">
       <button id="dexFolderCancelBtn" class="dex-modal-btn">취소</button>
       <button id="dexFolderCreateBtn" class="dex-modal-btn">생성</button>
@@ -2630,7 +2630,7 @@ input[type="number"] {
 
     <div style="padding:0 18px; display:flex; flex-direction:column; flex:1; min-height:0;">
 
-      <input id="dexPostTitleInput" type="text" placeholder="제목" style="
+      <input id="dexPostTitleInput" type="text" placeholder="제목" maxlength="200" style="
         -webkit-appearance:none; appearance:none;
         width:100%; background:transparent; border:none;
         color:#fff; font-size:20px; font-weight:700; padding:14px 2px 8px; box-sizing:border-box;
@@ -2639,7 +2639,7 @@ input[type="number"] {
 
       <div style="border-bottom:1px solid rgba(255,255,255,0.12); margin:8px 0 16px; flex-shrink:0;"></div>
 
-      <textarea id="dexPostContentInput" placeholder="내용을 입력하세요" style="
+      <textarea id="dexPostContentInput" placeholder="내용을 입력하세요" maxlength="5000" style="
         -webkit-appearance:none; appearance:none;
         flex:1; width:100%; min-height:200px; background:transparent; border:none;
         color:rgba(255,255,255,0.85); font-size:15px; line-height:1.9; padding:2px;
@@ -4747,6 +4747,7 @@ document.getElementById("dexRowRenameBtn").addEventListener("click", (e) => {
   document.getElementById("dexRenameModalTitle").textContent = type === "folder" ? "폴더 이름 변경" : "제목 변경";
   const input = document.getElementById("dexRenameInput");
   input.value = type === "folder" ? item.name : item.title;
+  input.maxLength = type === "folder" ? 60 : 200;
   openDexModal("dexRenameModal");
   setTimeout(() => { input.focus(); input.select(); }, 50);
 });
