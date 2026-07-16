@@ -287,6 +287,7 @@ button {
   -webkit-appearance: none;
   appearance: none;
   flex-shrink: 0;
+  width: auto;      /* 🔥 전역 button{width:100%} 리셋 무력화 — 이게 진짜 원인이었음 */
   height: 38px;
   padding: 0 18px;
   border-radius: 999px;
@@ -6884,7 +6885,7 @@ if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("/sw.js");
   });
-} 
+}
 </script>
 </body>
 </html>
