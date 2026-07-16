@@ -6915,6 +6915,13 @@ document.querySelectorAll('.folderContent').forEach(el => {
       lastScrollTop = current;
     }, { passive: true });
   });
+
+  // 🔥 작아진 상태에서 kg/회 입력칸을 누르면(포커스) 위로 스크롤한 것처럼 원래 크기로 복귀
+  bar.querySelectorAll('input[type="number"]').forEach(input => {
+    input.addEventListener('focus', () => {
+      bar.classList.remove('collapsed');
+    });
+  });
 })();
 </script>
 <script>
