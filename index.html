@@ -300,7 +300,7 @@ button {
 
     height: 488px;
     overflow: auto;
-    overscroll-behavior: contain;      /* 🔥 스크롤이 바깥 페이지로 안 넘어가게 */
+    overscroll-behavior: none;         /* 🔥 스프링(고무줄) 바운스 자체를 막음 */
     -webkit-overflow-scrolling: touch; /* 🔥 iOS 부드러운 스크롤 */
 
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
@@ -6792,6 +6792,25 @@ function renderTodayMealList(){
 loadUserSpecFromLocal();
 loadFoodTemplatesFromLocal();
 loadMealsFromLocal();
+
+/* 🔥 기록 박스(.folderContent) 스프링(고무줄) 바운스 방지 - CSS 보완용 JS 가드 */
+document.querySelectorAll('.folderContent').forEach(el => {
+  let startY = 0;
+  el.addEventListener('touchstart', (e) => {
+    startY = e.touches[0].clientY;
+  }, { passive: true });
+
+  el.addEventListener('touchmove', (e) => {
+    const atTop = el.scrollTop <= 0;
+    const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 1;
+    const currentY = e.touches[0].clientY;
+    const movingDown = currentY > startY; // 손가락이 아래로 = 위쪽 끝에서 더 당기는 방향
+
+    if ((atTop && movingDown) || (atBottom && !movingDown)) {
+      e.preventDefault();
+    }
+  }, { passive: false });
+});
 </script>
 <script>
 if ("serviceWorker" in navigator) {
