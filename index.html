@@ -226,7 +226,7 @@ button {
   overscroll-behavior: contain;
 }
 
-/* 🔥 3대탭: 위 종목탭바/아래 입력바는 고정, 기록 박스가 남는 공간을 꽉 채움 */
+/* 🔥 3대탭: 위 종목탭바는 고정, 기록 박스가 남는 공간을 꽉 채움 (저장바는 위에 떠있음) */
 #tab2.tabContent.active {
   display: flex;
   flex-direction: column;
@@ -239,12 +239,63 @@ button {
   flex: 1;
   min-height: 0;
   height: auto;
-}
-#tab2 .recordFormRow {
-  flex-shrink: 0;
+  padding-bottom: 76px; /* 🔥 아래 떠있는 저장바에 마지막 기록이 가려지지 않도록 여유 확보 */
 }
 #tab2 #recordMessage {
+  position: fixed;
+  left: 0; right: 0;
+  bottom: calc(var(--bottomTabH) + 78px + env(safe-area-inset-bottom));
+  text-align: center;
+  z-index: 100002;
+}
+
+/* 🔥 떠있는 알약형 저장바 (인스타그램 하단바 느낌) */
+.recordFloatBar {
+  position: fixed;
+  left: 20px;
+  right: 20px;
+  bottom: calc(var(--bottomTabH) + 14px + env(safe-area-inset-bottom));
+  z-index: 100001;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 8px 10px;
+  border-radius: 999px;
+
+  background: rgba(20,20,20,0.62);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.14);
+}
+.recordFloatBar input[type="number"] {
+  flex: 1;
+  min-width: 0;
+  height: 38px;
+  background: rgba(255,255,255,0.08);
+  border: none;
+  border-radius: 999px;
+  color: #fff;
+  text-align: center;
+  font-size: 14px;
+}
+.recordFloatBar input[type="number"]::placeholder {
+  color: rgba(255,255,255,0.4);
+}
+.recordFloatBar #recordAdd {
+  -webkit-appearance: none;
+  appearance: none;
   flex-shrink: 0;
+  height: 38px;
+  padding: 0 18px;
+  border-radius: 999px;
+  border: none;
+  background: #fff;
+  color: #000;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
 }
 
 /* ===============================
@@ -2295,21 +2346,16 @@ input[type="number"] {
     <div id="deadBox" class="folderContent"></div>
    <div id="ohpBox" class="folderContent"></div>
 
-  <div class="recordFormRow">
+  <div class="recordFloatBar">
     <input type="hidden" id="recordDate">
-
-    <div class="dateDisplay">
-        <div class="dateYear" id="displayYear">2026</div>
-        <div class="dateMD" id="displayMD">01.09</div>
-    </div>
-<input id="recordWeight" type="number" placeholder="kg">
-        <input id="recordReps" type="number" placeholder="회">
-        <button id="recordAdd">저장</button>
-    </div>
-    <!-- ✅ 여기 -->
-    <div id="recordMessage"
-         style="font-size:12px; color:#FFD700; margin-top:6px;">
-    </div>
+    <input id="recordWeight" type="number" placeholder="kg">
+    <input id="recordReps" type="number" placeholder="회">
+    <button id="recordAdd">저장</button>
+  </div>
+  <!-- ✅ 여기 -->
+  <div id="recordMessage"
+       style="font-size:12px; color:#FFD700; margin-top:6px; text-align:center;">
+  </div>
 
         
 </div>
@@ -3809,17 +3855,7 @@ function showSave3Message(msg) {
     }, 1000);
 }
    
-function setTodayDisplay() {
-    const now = new Date();
-    const year = now.getFullYear();
-    const mm = String(now.getMonth() + 1).padStart(2, '0');
-    const dd = String(now.getDate()).padStart(2, '0');
-
-    document.getElementById("displayYear").textContent = `${year}`;
-    document.getElementById("displayMD").textContent = `${mm}.${dd}`;
-}
-
-setTodayDisplay();
+   
 
 /******** 달력 + long press 코드 여기 ********/
 /********************
