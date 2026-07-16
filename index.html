@@ -6889,37 +6889,61 @@ document.querySelectorAll('.folderContent').forEach(el => {
   }, { passive: false });
 });
 
-/* 🔥 3대탭 기록 박스: 아래로 스크롤하면 알약 저장바가 작아지고,
-   위로 스크롤(또는 맨 위 근처)하면 다시 원래 크기로 커짐 */
+/* 🔥 3대탭 기록 박스: 스크롤한 만큼 알약이 서서히 작아지다가,
+   일정 거리(임계점)를 넘기면 완전히 축소되고,
+   반대로 스크롤을 올리면 그만큼 서서히 다시 커짐 */
 (function(){
   const bar = document.querySelector('.recordFloatBar');
   if (!bar) return;
 
+  const THRESHOLD = 50;      // 이 거리(px)만큼 스크롤하면 완전히 축소
+  const MIN_SCALE = 0.8;
+  const MIN_OPACITY = 0.55;
+  let collapseAmount = 0;    // 0(완전 확대) ~ THRESHOLD(완전 축소)
+
+  function render(withTransition){
+    const p = collapseAmount / THRESHOLD;
+    const scale = 1 - p * (1 - MIN_SCALE);
+    const opacity = 1 - p * (1 - MIN_OPACITY);
+    bar.style.transition = withTransition
+      ? 'transform 0.22s cubic-bezier(0.22,1,0.36,1), opacity 0.22s cubic-bezier(0.22,1,0.36,1)'
+      : 'none'; // 스크롤에 실시간으로 딱 맞춰 따라가도록 트랜지션 끔
+    bar.style.transform = `scale(${scale})`;
+    bar.style.opacity = String(opacity);
+  }
+
   document.querySelectorAll('#tab2 .folderContent').forEach(el => {
-    let lastScrollTop = el.scrollTop || 0;
+    let lastTop = el.scrollTop || 0;
 
     el.addEventListener('scroll', () => {
       const current = el.scrollTop;
-      const goingDown = current > lastScrollTop;
-      const goingUp = current < lastScrollTop;
+      const delta = current - lastTop;
+      lastTop = current;
 
       if (current <= 4) {
-        // 맨 위 근처면 무조건 원래 크기로
-        bar.classList.remove('collapsed');
-      } else if (goingDown) {
-        bar.classList.add('collapsed');
-      } else if (goingUp) {
-        bar.classList.remove('collapsed');
+        // 맨 위 근처면 무조건 완전히 확대 (부드럽게)
+        collapseAmount = 0;
+        render(true);
+        return;
       }
 
-      lastScrollTop = current;
+      const prevAmount = collapseAmount;
+      collapseAmount = Math.max(0, Math.min(THRESHOLD, collapseAmount + delta));
+
+      // 임계점에 막 도달/이탈하는 순간에만 짧은 스냅 트랜지션, 그 사이 구간은 스크롤에 실시간 추종
+      const justHitEdge =
+        (prevAmount < THRESHOLD && collapseAmount >= THRESHOLD) ||
+        (prevAmount > 0 && collapseAmount <= 0);
+
+      render(justHitEdge);
     }, { passive: true });
   });
 
-  // 🔥 작아진 상태에서 kg/회 입력칸을 누르면(포커스) 위로 스크롤한 것처럼 원래 크기로 복귀
+  // 🔥 작아진 상태에서 kg/회 입력칸을 누르면(포커스) 부드럽게 원래 크기로 복귀
   bar.querySelectorAll('input[type="number"]').forEach(input => {
     input.addEventListener('focus', () => {
-      bar.classList.remove('collapsed');
+      collapseAmount = 0;
+      render(true);
     });
   });
 })();
