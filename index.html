@@ -2401,13 +2401,14 @@ input[type="number"] {
   <!-- 기록 영역 -->
   <div id="acc-records" class="folderContent active" style="height:420px; padding-bottom:76px;"></div>
 
-  <!-- 기록 입력 -->
-  <div id="recordFloatBarAcc" class="recordFloatBar">
-    <input id="acc-weight" type="number" placeholder="kg">
-    <input id="acc-reps" type="number" placeholder="회">
-    <button id="acc-add4" onclick="addAccessorySet()">저장</button>
-  </div>
+</div>
 
+<!-- 🔥 detailScreen 바깥에 둠: 스와이프 뒤로가기 애니메이션(transform)이
+     이 알약바의 position:fixed 기준점을 깨뜨리지 않도록 하기 위함 -->
+<div id="recordFloatBarAcc" class="recordFloatBar" style="display:none;">
+  <input id="acc-weight" type="number" placeholder="kg">
+  <input id="acc-reps" type="number" placeholder="회">
+  <button id="acc-add4" onclick="addAccessorySet()">저장</button>
 </div>
 </div>
 
@@ -3140,6 +3141,9 @@ document.querySelectorAll('.folderBtn4').forEach(btn => {
     exerciseScreen.style.display = 'block';
     currentExerciseName = null;
 
+    const accBarEl0 = document.getElementById('recordFloatBarAcc');
+    if (accBarEl0) accBarEl0.style.display = 'none';
+
     const appEl0 = document.querySelector('.app');
     if (appEl0) appEl0.style.overflowY = 'auto';
 
@@ -3170,6 +3174,10 @@ function openExerciseDetail(name) {
   detailScreen.style.display = 'block';
   document.getElementById('detail-exercise-name').textContent = name;
 
+  // 🔥 알약바는 detailScreen 바깥에 있으므로 여기서 직접 보여줌
+  const accBarEl = document.getElementById('recordFloatBarAcc');
+  if (accBarEl) accBarEl.style.display = 'flex';
+
   // 🔥 상세화면에서는 바깥(앱 전체) 스크롤을 잠그고, 기록 박스 안쪽만 스크롤되게
   const appEl = document.querySelector('.app');
   if (appEl) { appEl.scrollTop = 0; appEl.style.overflowY = 'hidden'; }
@@ -3189,6 +3197,10 @@ function closeExerciseDetail() {
   detailScreen.style.display = 'none';
   exerciseScreen.style.display = 'block';
   currentExerciseName = null;
+
+  // 🔥 알약바도 같이 숨김
+  const accBarEl = document.getElementById('recordFloatBarAcc');
+  if (accBarEl) accBarEl.style.display = 'none';
 
   // 🔥 목록화면으로 돌아가면 바깥 스크롤 다시 허용
   const appEl = document.querySelector('.app');
@@ -5245,6 +5257,8 @@ bottomTabBtns.forEach(btn => {
     } else {
       detailScreen.style.display = 'none';
     }
+    const accBarElTab = document.getElementById('recordFloatBarAcc');
+    if (accBarElTab) accBarElTab.style.display = 'none';
 
     document.querySelector('.app').style.overflowY = 'auto';
   });
@@ -6973,7 +6987,7 @@ if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("/sw.js");
   });
-} 
+}
 </script>
 </body>
 </html>
