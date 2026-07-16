@@ -4296,6 +4296,12 @@ const exerciseDexFab = document.getElementById("exerciseDexFab");
 const dexFoldersCol = db.collection("dexFolders");
 const dexPostsCol = db.collection("dexPosts");
 
+// 🔥 운동도감 관리자 (폴더생성/글쓰기/편집은 이 계정만 가능)
+const DEX_ADMIN_UID = "bM41lzCRrBMMizFcX6F1fMBVL712";
+function isDexAdmin(){
+  return !!(auth.currentUser && auth.currentUser.uid === DEX_ADMIN_UID);
+}
+
 let dexFolders = [];
 let dexPosts = [];
 let dexCurrentFolderId = null;   // null = 최상위(운동도감 루트)
@@ -4599,6 +4605,10 @@ exerciseDexFab.addEventListener("click", (e) => {
     setDexEditMode(false);
     return;
   }
+  if (!isDexAdmin()) {
+    alert("접근 권한이 없습니다.");
+    return;
+  }
   if (exerciseDexMenu.classList.contains("hidden")) {
     openDexMenu();
   } else {
@@ -4617,6 +4627,7 @@ function setDexEditMode(on){
 document.getElementById("dexEditModeBtn").addEventListener("click", (e) => {
   e.stopPropagation();
   closeDexMenu();
+  if (!isDexAdmin()) { alert("접근 권한이 없습니다."); return; }
   setDexEditMode(true);
 });
 
@@ -4678,7 +4689,7 @@ document.getElementById("dexFolderCancelBtn").addEventListener("click", () => {
 
 document.getElementById("dexFolderCreateBtn").addEventListener("click", async () => {
   if (dexCreatingFolder) return;
-  if (!auth.currentUser) { alert("로그인 후 이용할 수 있어요."); closeDexModal("dexFolderModal"); return; }
+  if (!isDexAdmin()) { alert("접근 권한이 없습니다."); closeDexModal("dexFolderModal"); return; }
 
   const nameEl = document.getElementById("dexFolderNameInput");
   const name = nameEl.value.trim();
@@ -4768,6 +4779,7 @@ document.getElementById("dexRenameCancelBtn").addEventListener("click", () => {
 
 document.getElementById("dexRenameSaveBtn").addEventListener("click", async () => {
   if (!dexRowMenuTarget) return;
+  if (!isDexAdmin()) { alert("접근 권한이 없습니다."); closeDexModal("dexRenameModal"); return; }
   const { type, id } = dexRowMenuTarget;
   const input = document.getElementById("dexRenameInput");
   const value = input.value.trim();
@@ -4821,6 +4833,11 @@ document.getElementById("dexDeleteCancelBtn").addEventListener("click", () => {
 
 document.getElementById("dexDeleteConfirmBtn").addEventListener("click", async () => {
   if (!dexRowMenuTarget) return;
+  if (!isDexAdmin()) {
+    alert("접근 권한이 없습니다.");
+    document.getElementById("dexDeleteConfirmModal").classList.add("hidden");
+    return;
+  }
   const { type, id } = dexRowMenuTarget;
 
   if (type === "folder") {
@@ -4989,7 +5006,7 @@ document.getElementById("dexWriteBackRow").addEventListener("click", closeDexWri
 
 document.getElementById("dexWriteSubmitBtn").addEventListener("click", async () => {
   if (dexCreatingPost) return;
-  if (!auth.currentUser) { alert("로그인 후 이용할 수 있어요."); closeDexWriteScreen(); return; }
+  if (!isDexAdmin()) { alert("접근 권한이 없습니다."); closeDexWriteScreen(); return; }
 
   const titleEl = document.getElementById("dexPostTitleInput");
   const contentEl = document.getElementById("dexPostContentInput");
