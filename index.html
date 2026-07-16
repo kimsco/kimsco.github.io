@@ -292,7 +292,7 @@ button {
 .recordFloatBar input[type="number"]::placeholder {
   color: rgba(255,255,255,0.4);
 }
-.recordFloatBar #recordAdd {
+.recordFloatBar button {
   -webkit-appearance: none;
   appearance: none;
   flex-shrink: 0;
@@ -752,13 +752,6 @@ cursor: pointer;
 }
 
 /* recordAdd 버튼만 작게 */
-#recordAdd, #acc-add4 {
-  height: 40px;        /* kg / 회 보다 2/3 */
-  padding: 0 12px;
-  font-size: 14px;
-  border-radius: 8px;
-  font-weight: 500;
-}
 .exercise-card {
   position: relative;  /* 버튼 위치 지정 위해 필요 */
 }
@@ -2356,7 +2349,7 @@ input[type="number"] {
     <div id="deadBox" class="folderContent"></div>
    <div id="ohpBox" class="folderContent"></div>
 
-  <div class="recordFloatBar">
+  <div id="recordFloatBarTab2" class="recordFloatBar">
     <input type="hidden" id="recordDate">
     <input id="recordWeight" type="number" placeholder="kg">
     <input id="recordReps" type="number" placeholder="회">
@@ -2406,13 +2399,13 @@ input[type="number"] {
   </div>
 
   <!-- 기록 영역 -->
-  <div id="acc-records" class="folderContent active" style="height:420px;"></div>
+  <div id="acc-records" class="folderContent active" style="height:420px; padding-bottom:76px;"></div>
 
   <!-- 기록 입력 -->
-  <div class="recordFormRow">
+  <div id="recordFloatBarAcc" class="recordFloatBar">
     <input id="acc-weight" type="number" placeholder="kg">
     <input id="acc-reps" type="number" placeholder="회">
-     <button id="acc-add4" onclick="addAccessorySet()">저장</button>
+    <button id="acc-add4" onclick="addAccessorySet()">저장</button>
   </div>
 
 </div>
@@ -6889,12 +6882,12 @@ document.querySelectorAll('.folderContent').forEach(el => {
   }, { passive: false });
 });
 
-/* 🔥 3대탭 기록 박스: 스크롤한 만큼 알약이 서서히 작아지다가,
+/* 🔥 알약형 저장바: 스크롤한 만큼 서서히 작아지다가,
    일정 거리(임계점)를 넘기면 완전히 축소되고,
-   반대로 스크롤을 올리면 그만큼 서서히 다시 커짐 */
-(function(){
-  const bar = document.querySelector('.recordFloatBar');
-  if (!bar) return;
+   반대로 스크롤을 올리면 그만큼 서서히 다시 커짐
+   (3대탭 + 기록탭 보조운동 상세화면, 둘 다 이 함수로 연결) */
+function wireFloatingSaveBar(bar, scrollEls){
+  if (!bar || !scrollEls.length) return;
 
   const THRESHOLD = 50;      // 이 거리(px)만큼 스크롤하면 완전히 축소
   const MIN_SCALE = 0.8;
@@ -6912,7 +6905,7 @@ document.querySelectorAll('.folderContent').forEach(el => {
     bar.style.opacity = String(opacity);
   }
 
-  document.querySelectorAll('#tab2 .folderContent').forEach(el => {
+  scrollEls.forEach(el => {
     let lastTop = el.scrollTop || 0;
 
     el.addEventListener('scroll', () => {
@@ -6946,7 +6939,16 @@ document.querySelectorAll('.folderContent').forEach(el => {
       render(true);
     });
   });
-})();
+}
+
+wireFloatingSaveBar(
+  document.getElementById('recordFloatBarTab2'),
+  Array.from(document.querySelectorAll('#tab2 .folderContent'))
+);
+wireFloatingSaveBar(
+  document.getElementById('recordFloatBarAcc'),
+  [document.getElementById('acc-records')].filter(Boolean)
+);
 </script>
 <script>
 if ("serviceWorker" in navigator) {
