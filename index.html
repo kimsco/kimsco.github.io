@@ -5279,17 +5279,19 @@ bottomTabBtns.forEach(btn => {
 const navDrawerOverlay = document.getElementById("navDrawerOverlay");
 const navDrawer = document.getElementById("navDrawer");
 
-// 🔥 navDrawerOverlay가 .app 내부에 중첩되어 있어서, .app을 밀 때 오버레이(어두운 배경+드로어)까지
-//    같이 밀려버리는 문제가 있었음. 오버레이에 반대 방향 상쇄 이동을 줘서 항상 제자리에 고정시킴.
+// 🔥 navDrawerOverlay가 원래 .app 내부에 중첩되어 있어서, .app에 transform이 걸리면
+//    이 안의 position:fixed 요소들의 기준점이 뷰포트가 아니라 .app으로 바뀌어버리는 문제가 있었음.
+//    body 바로 밑으로 옮겨서 항상 뷰포트 기준으로 고정되게 함.
+document.body.appendChild(navDrawerOverlay);
+
+// 🔥 navDrawerOverlay를 body 바로 밑으로 옮겼기 때문에, 이제 .app만 밀면 됨(상쇄 이동 불필요)
 function setAppPush(px){
   const appEl = document.querySelector('.app');
   if (appEl) appEl.style.transform = `translateX(${px}px)`;
-  if (navDrawerOverlay) navDrawerOverlay.style.transform = `translateX(${-px}px)`;
 }
 function setAppPushTransition(css){
   const appEl = document.querySelector('.app');
   if (appEl) appEl.style.transition = css;
-  if (navDrawerOverlay) navDrawerOverlay.style.transition = css;
 }
 
 function openNavDrawer(){
