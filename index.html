@@ -5285,20 +5285,20 @@ function openNavDrawer(){
   document.querySelectorAll(".nav-drawer-item").forEach(item => {
     item.classList.toggle("active", item.dataset.target === activeTarget);
   });
-  navDrawer.style.transition = "";
-  navDrawer.style.transform = "";
-  navDrawer.style.animation = ""; // 🔥 등장 애니메이션 다시 재생되도록 초기화
+
+  // 🔥 CSS 애니메이션에 의존하지 않고 JS로 직접 확실하게 슬라이드인 처리
+  navDrawer.style.animation = "none";
+  navDrawer.style.transition = "none";
+  navDrawer.style.transform = "translateX(-100%)";
   navDrawerOverlay.classList.remove("hidden");
-  void navDrawer.offsetWidth; // 애니메이션 재시작 보장
+  void navDrawer.offsetWidth; // 리플로우 강제
+
+  navDrawer.style.transition = "transform 0.25s ease";
+  navDrawer.style.transform = "translateX(0)";
 }
 function closeNavDrawer(){
   navDrawerOverlay.classList.add("hidden");
 }
-
-// 🔥 등장 애니메이션이 끝나면 해제 (그래야 이후 스와이프 드래그의 inline transform이 정상 작동)
-navDrawer.addEventListener("animationend", () => {
-  navDrawer.style.animation = "none";
-});
 
 document.getElementById("openNavDrawerBtn").addEventListener("click", openNavDrawer);
 navDrawerOverlay.addEventListener("click", closeNavDrawer);
