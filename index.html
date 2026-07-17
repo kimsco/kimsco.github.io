@@ -3224,6 +3224,8 @@ document.getElementById('delete-exercise-btn4').addEventListener('click', (e) =>
   let tracking = false;   // 왼쪽 끝에서 터치 시작함
   let dragging = false;   // 가로 드래그로 확정됨
 
+  const accBar = document.getElementById('recordFloatBarAcc'); // 🔥 화면 밖 알약바도 같이 움직이게 동기화
+
   detailScreen.addEventListener('touchstart', (e) => {
     // 🔥 기록 항목(길게 눌러 삭제) 위에서 시작한 터치는 스와이프 제스처가 관여하지 않음
     if (e.target.closest('.record-set')) {
@@ -3238,6 +3240,7 @@ document.getElementById('delete-exercise-btn4').addEventListener('click', (e) =>
       tracking = true;
       dragging = false;
       detailScreen.style.transition = 'none';
+      if (accBar) accBar.style.transition = 'none';
     } else {
       tracking = false;
     }
@@ -3268,6 +3271,7 @@ document.getElementById('delete-exercise-btn4').addEventListener('click', (e) =>
       e.preventDefault(); // 드래그 확정되면 안쪽 스크롤 등과 충돌 방지
       const moveX = Math.max(0, dx);
       detailScreen.style.transform = `translateX(${moveX}px)`;
+      if (accBar) accBar.style.transform = `translateX(${moveX}px)`;
     }
   }, { passive: false });
 
@@ -3285,18 +3289,22 @@ document.getElementById('delete-exercise-btn4').addEventListener('click', (e) =>
     const dx = Math.max(0, t.clientX - startX);
 
     detailScreen.style.transition = 'transform 0.22s ease';
+    if (accBar) accBar.style.transition = 'transform 0.22s ease';
 
     if (dx > width * CLOSE_RATIO) {
       // 충분히 끌었으면 끝까지 밀어서 닫기
       detailScreen.style.transform = `translateX(${width}px)`;
+      if (accBar) accBar.style.transform = `translateX(${width}px)`;
       setTimeout(() => {
         closeExerciseDetail();
         detailScreen.style.transition = 'none';
         detailScreen.style.transform = 'translateX(0)';
+        if (accBar) { accBar.style.transition = 'none'; accBar.style.transform = 'translateX(0)'; }
       }, 220);
     } else {
       // 덜 끌었으면 제자리로 복귀
       detailScreen.style.transform = 'translateX(0)';
+      if (accBar) accBar.style.transform = 'translateX(0)';
     }
   }
 
