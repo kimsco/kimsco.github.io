@@ -5279,6 +5279,19 @@ bottomTabBtns.forEach(btn => {
 const navDrawerOverlay = document.getElementById("navDrawerOverlay");
 const navDrawer = document.getElementById("navDrawer");
 
+// 🔥 navDrawerOverlay가 .app 내부에 중첩되어 있어서, .app을 밀 때 오버레이(어두운 배경+드로어)까지
+//    같이 밀려버리는 문제가 있었음. 오버레이에 반대 방향 상쇄 이동을 줘서 항상 제자리에 고정시킴.
+function setAppPush(px){
+  const appEl = document.querySelector('.app');
+  if (appEl) appEl.style.transform = `translateX(${px}px)`;
+  if (navDrawerOverlay) navDrawerOverlay.style.transform = `translateX(${-px}px)`;
+}
+function setAppPushTransition(css){
+  const appEl = document.querySelector('.app');
+  if (appEl) appEl.style.transition = css;
+  if (navDrawerOverlay) navDrawerOverlay.style.transition = css;
+}
+
 function openNavDrawer(){
   // 현재 활성 탭에 맞춰 드로어 항목 하이라이트
   const activeTarget = document.querySelector('.bottomTab .tabBtn.active')?.dataset.target;
@@ -5290,6 +5303,8 @@ function openNavDrawer(){
   navDrawer.style.animation = "none";
   navDrawer.style.transition = "none";
   navDrawer.style.transform = "translateX(-100%)";
+  setAppPushTransition("none");
+  setAppPush(0);
   navDrawerOverlay.classList.remove("hidden");
   void navDrawer.offsetWidth; // 리플로우 강제
 
@@ -5297,22 +5312,16 @@ function openNavDrawer(){
   navDrawer.style.transform = "translateX(0)";
 
   // 🔥 뒷배경(본문)도 같이 우측으로 살짝 밀림 (드로어 폭의 1/5 정도)
-  const appEl = document.querySelector('.app');
-  if (appEl) {
-    const pushAmount = Math.round((navDrawer.offsetWidth || 280) / 5);
-    appEl.style.transition = "transform 0.25s ease";
-    appEl.style.transform = `translateX(${pushAmount}px)`;
-  }
+  const pushAmount = Math.round((navDrawer.offsetWidth || 280) / 5);
+  setAppPushTransition("transform 0.25s ease");
+  setAppPush(pushAmount);
 }
 function closeNavDrawer(){
   navDrawer.style.transition = "transform 0.22s ease";
   navDrawer.style.transform = "translateX(-100%)";
 
-  const appEl = document.querySelector('.app');
-  if (appEl) {
-    appEl.style.transition = "transform 0.22s ease";
-    appEl.style.transform = "translateX(0)";
-  }
+  setAppPushTransition("transform 0.22s ease");
+  setAppPush(0);
 
   setTimeout(() => {
     navDrawerOverlay.classList.add("hidden");
@@ -5337,14 +5346,13 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
   const COMMIT_MOVE = 8;
   const CLOSE_RATIO = 0.3;
   let startX = 0, startY = 0, tracking = false, dragging = false;
-  const appEl = document.querySelector('.app');
 
   navDrawer.addEventListener('touchstart', (e) => {
     const t = e.touches[0];
     startX = t.clientX; startY = t.clientY;
     tracking = true; dragging = false;
     navDrawer.style.transition = 'none';
-    if (appEl) appEl.style.transition = 'none';
+    setAppPushTransition('none');
   }, { passive: true });
 
   navDrawer.addEventListener('touchmove', (e) => {
@@ -5366,11 +5374,9 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
       navDrawer.style.transform = `translateX(${moveX}px)`;
 
       // 드래그 진행률에 비례해서 뒷배경 밀림도 같이 줄어듦
-      if (appEl) {
-        const progress = Math.min(1, Math.abs(moveX) / width); // 0(완전 열림) ~ 1(완전 닫힘)
-        const maxPush = Math.round(width / 5);
-        appEl.style.transform = `translateX(${maxPush * (1 - progress)}px)`;
-      }
+      const progress = Math.min(1, Math.abs(moveX) / width); // 0(완전 열림) ~ 1(완전 닫힘)
+      const maxPush = Math.round(width / 5);
+      setAppPush(maxPush * (1 - progress));
     }
   }, { passive: false });
 
@@ -5384,11 +5390,11 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
     const t = e.changedTouches[0];
     const dx = Math.min(0, t.clientX - startX);
     navDrawer.style.transition = 'transform 0.22s ease';
-    if (appEl) appEl.style.transition = 'transform 0.22s ease';
+    setAppPushTransition('transform 0.22s ease');
 
     if (Math.abs(dx) > width * CLOSE_RATIO) {
       navDrawer.style.transform = `translateX(-${width}px)`;
-      if (appEl) appEl.style.transform = 'translateX(0)';
+      setAppPush(0);
       setTimeout(() => {
         closeNavDrawer();
         navDrawer.style.transition = 'none';
@@ -5396,10 +5402,8 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
       }, 220);
     } else {
       navDrawer.style.transform = 'translateX(0)';
-      if (appEl) {
-        const maxPush = Math.round(width / 5);
-        appEl.style.transform = `translateX(${maxPush}px)`;
-      }
+      const maxPush = Math.round(width / 5);
+      setAppPush(maxPush);
     }
   }
   navDrawer.addEventListener('touchend', endDrag, { passive: true });
