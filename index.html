@@ -1021,7 +1021,7 @@ cursor: pointer;
   display: flex;
   align-items: center;
   gap: 12px;
-  height: 55px;
+  height: 44px;
   padding: 0 4px;
   box-sizing: border-box;
   overflow: hidden;
@@ -1051,7 +1051,7 @@ cursor: pointer;
 .dex-row-label {
   flex: 1;
   min-width: 0;
-  font-size: 17px;
+  font-size: 15px;
   font-weight: 400;
   color: #fff;
   white-space: nowrap;
@@ -4415,7 +4415,6 @@ function renderDexList(){
     posts.forEach(p => {
       html += `
         <div class="dex-row${dexEditMode ? ' editing' : ''}" data-type="post" data-id="${p.id}">
-          <div class="dex-row-icon">${DEX_DOC_ICON}</div>
           <div class="dex-row-label">${escapeHtml(p.title)}</div>
           ${editExtras("post", p.id)}
         </div>
