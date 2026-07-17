@@ -5307,11 +5307,15 @@ function openNavDrawer(){
   navDrawer.style.transform = "translateX(-100%)";
   setAppPushTransition("none");
   setAppPush(0);
+  navDrawerOverlay.style.transition = "none";
+  navDrawerOverlay.style.opacity = "0";
   navDrawerOverlay.classList.remove("hidden");
   void navDrawer.offsetWidth; // 리플로우 강제
 
   navDrawer.style.transition = "transform 0.25s ease";
   navDrawer.style.transform = "translateX(0)";
+  navDrawerOverlay.style.transition = "opacity 0.25s ease";
+  navDrawerOverlay.style.opacity = "1";
 
   // 🔥 뒷배경(본문)도 같이 우측으로 살짝 밀림 (드로어 폭의 1/5 정도)
   const pushAmount = Math.round((navDrawer.offsetWidth || 280) / 5);
@@ -5321,6 +5325,8 @@ function openNavDrawer(){
 function closeNavDrawer(){
   navDrawer.style.transition = "transform 0.22s ease";
   navDrawer.style.transform = "translateX(-100%)";
+  navDrawerOverlay.style.transition = "opacity 0.22s ease";
+  navDrawerOverlay.style.opacity = "0";
 
   setAppPushTransition("transform 0.22s ease");
   setAppPush(0);
@@ -5354,6 +5360,7 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
     startX = t.clientX; startY = t.clientY;
     tracking = true; dragging = false;
     navDrawer.style.transition = 'none';
+    navDrawerOverlay.style.transition = 'none';
     setAppPushTransition('none');
   }, { passive: true });
 
@@ -5375,10 +5382,11 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
       const moveX = Math.min(0, dx);
       navDrawer.style.transform = `translateX(${moveX}px)`;
 
-      // 드래그 진행률에 비례해서 뒷배경 밀림도 같이 줄어듦
+      // 드래그 진행률에 비례해서 뒷배경 밀림 + 오버레이 어둠도 같이 줄어듦
       const progress = Math.min(1, Math.abs(moveX) / width); // 0(완전 열림) ~ 1(완전 닫힘)
       const maxPush = Math.round(width / 5);
       setAppPush(maxPush * (1 - progress));
+      navDrawerOverlay.style.opacity = String(1 - progress);
     }
   }, { passive: false });
 
@@ -5392,10 +5400,12 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
     const t = e.changedTouches[0];
     const dx = Math.min(0, t.clientX - startX);
     navDrawer.style.transition = 'transform 0.22s ease';
+    navDrawerOverlay.style.transition = 'opacity 0.22s ease';
     setAppPushTransition('transform 0.22s ease');
 
     if (Math.abs(dx) > width * CLOSE_RATIO) {
       navDrawer.style.transform = `translateX(-${width}px)`;
+      navDrawerOverlay.style.opacity = '0';
       setAppPush(0);
       setTimeout(() => {
         closeNavDrawer();
@@ -5404,6 +5414,7 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
       }, 220);
     } else {
       navDrawer.style.transform = 'translateX(0)';
+      navDrawerOverlay.style.opacity = '1';
       const maxPush = Math.round(width / 5);
       setAppPush(maxPush);
     }
