@@ -5285,11 +5285,20 @@ function openNavDrawer(){
   document.querySelectorAll(".nav-drawer-item").forEach(item => {
     item.classList.toggle("active", item.dataset.target === activeTarget);
   });
+  navDrawer.style.transition = "";
+  navDrawer.style.transform = "";
+  navDrawer.style.animation = ""; // 🔥 등장 애니메이션 다시 재생되도록 초기화
   navDrawerOverlay.classList.remove("hidden");
+  void navDrawer.offsetWidth; // 애니메이션 재시작 보장
 }
 function closeNavDrawer(){
   navDrawerOverlay.classList.add("hidden");
 }
+
+// 🔥 등장 애니메이션이 끝나면 해제 (그래야 이후 스와이프 드래그의 inline transform이 정상 작동)
+navDrawer.addEventListener("animationend", () => {
+  navDrawer.style.animation = "none";
+});
 
 document.getElementById("openNavDrawerBtn").addEventListener("click", openNavDrawer);
 navDrawerOverlay.addEventListener("click", closeNavDrawer);
@@ -5302,6 +5311,64 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
     closeNavDrawer();
   });
 });
+
+/* 🔥 메뉴(좌측 드로어): 오른쪽에서 왼쪽으로 스와이프하면 손가락 따라 끌려가며 닫힘 */
+(function(){
+  const COMMIT_MOVE = 8;
+  const CLOSE_RATIO = 0.3;
+  let startX = 0, startY = 0, tracking = false, dragging = false;
+
+  navDrawer.addEventListener('touchstart', (e) => {
+    const t = e.touches[0];
+    startX = t.clientX; startY = t.clientY;
+    tracking = true; dragging = false;
+    navDrawer.style.transition = 'none';
+  }, { passive: true });
+
+  navDrawer.addEventListener('touchmove', (e) => {
+    if (!tracking) return;
+    const t = e.touches[0];
+    const dx = t.clientX - startX, dy = t.clientY - startY;
+
+    if (!dragging) {
+      // 왼쪽으로 움직였을 때만(dx < 0) 닫기 드래그로 확정
+      if (dx < -COMMIT_MOVE && Math.abs(dx) > Math.abs(dy) * 0.6) dragging = true;
+      else if (Math.abs(dy) > COMMIT_MOVE && Math.abs(dy) > Math.abs(dx)) { tracking = false; return; }
+      else return;
+    }
+
+    if (dragging) {
+      e.preventDefault();
+      const moveX = Math.min(0, dx);
+      navDrawer.style.transform = `translateX(${moveX}px)`;
+    }
+  }, { passive: false });
+
+  function endDrag(e){
+    if (!tracking) return;
+    const wasDragging = dragging;
+    tracking = false; dragging = false;
+    if (!wasDragging) return;
+
+    const width = navDrawer.offsetWidth || window.innerWidth;
+    const t = e.changedTouches[0];
+    const dx = Math.min(0, t.clientX - startX);
+    navDrawer.style.transition = 'transform 0.22s ease';
+
+    if (Math.abs(dx) > width * CLOSE_RATIO) {
+      navDrawer.style.transform = `translateX(-${width}px)`;
+      setTimeout(() => {
+        closeNavDrawer();
+        navDrawer.style.transition = 'none';
+        navDrawer.style.transform = 'translateX(0)';
+      }, 220);
+    } else {
+      navDrawer.style.transform = 'translateX(0)';
+    }
+  }
+  navDrawer.addEventListener('touchend', endDrag, { passive: true });
+  navDrawer.addEventListener('touchcancel', endDrag, { passive: true });
+})();
 
 
 
