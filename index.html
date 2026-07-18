@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ko"> 
 <head>
@@ -2317,6 +2318,54 @@ input[type="number"] {
   color: rgba(255,255,255,0.6);
   line-height: 1.8;
 }
+.my-routine-detail-sublabel {
+  font-size: 11px;
+  color: rgba(255,255,255,0.35);
+  letter-spacing: 0.4px;
+  margin-bottom: 4px;
+}
+.my-routine-today-set {
+  color: #fff;
+}
+.my-routine-input-row {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+.my-routine-input {
+  -webkit-appearance: none;
+  appearance: none;
+  flex: 1;
+  min-width: 0;
+  height: 38px;
+  background: rgba(255,255,255,0.08);
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  text-align: center;
+  font-size: 14px;
+  margin: 0;
+  padding: 0;
+}
+.my-routine-input::placeholder {
+  color: rgba(255,255,255,0.35);
+}
+.my-routine-save-btn {
+  -webkit-appearance: none;
+  appearance: none;
+  flex-shrink: 0;
+  width: auto;
+  height: 38px;
+  margin: 0;
+  padding: 0 16px;
+  border-radius: 8px;
+  border: none;
+  background: rgba(255,255,255,0.85);
+  color: #000;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
 
 </style>
 </head>
@@ -4378,8 +4427,10 @@ document.getElementById("navThreeSummaryBtn").addEventListener("click", () => {
 
 /* ===============================
    내 루틴
-   - 새 데이터 구조 없음: 기존 accRecordsByExercise(보조운동 기록)만으로 유추
-   - "저번 루틴" = 그 부위로 기록된 것들 중 가장 최근 날짜에, 그날 처음 입력한 순서대로의 종목들
+   - 새 데이터 구조 없음: 기존 accRecordsByExercise(보조운동) + records(3대) 둘 다에서 유추
+   - "저번 루틴" = 그 부위로 기록된 것들(3대+액세서리 합쳐서) 중 가장 최근 날짜에,
+     그날 처음 입력한 순서대로의 종목들
+   - 저장은 항상 기존 3대탭/기록탭이랑 완전히 같은 저장소로 들어감 (새 저장소 없음)
 ================================ */
 const MY_ROUTINE_PARTS = [
   { key: "chest", label: "가슴" },
@@ -4389,39 +4440,65 @@ const MY_ROUTINE_PARTS = [
   { key: "arm", label: "팔" }
 ];
 
-/* 부위별로 "가장 최근 날짜 세션"의 종목 순서 + 그날 기록들을 뽑아냄 */
+// 액세서리 부위(chest/back/shoulder/leg) ↔ 3대 종목(bench/dead/ohp/squat) 매핑 (arm은 3대 없음)
+const PART_TO_LIFT = { chest: "bench", back: "dead", shoulder: "ohp", leg: "squat" };
+const LIFT_DISPLAY_NAME = { bench: "벤치", squat: "스쿼트", dead: "데드", ohp: "OHP" };
+
+/* 부위별로 "가장 최근 날짜 세션"의 종목 순서 + 그날 기록들을 뽑아냄 (3대 + 액세서리 합쳐서) */
 function buildRoutineForPart(partKey){
-  // 1) 이 부위로 기록된 모든 세트(어떤 종목이든) 모으기
   const allSets = [];
+
+  // 1) 액세서리 기록
   Object.keys(accRecordsByExercise).forEach(exName => {
     (accRecordsByExercise[exName] || []).forEach(r => {
       if (r.part === partKey) {
-        allSets.push({ ...r, exercise: r.exercise || exName });
+        allSets.push({
+          type: "accessory", key: exName, displayName: r.exercise || exName,
+          weight: r.weight, reps: r.reps, date: r.date, createdAt: r.createdAt || 0
+        });
       }
     });
   });
+
+  // 2) 3대 기록 (이 부위에 해당하는 3대 종목이 있으면)
+  const liftKey = PART_TO_LIFT[partKey];
+  if (liftKey && records[liftKey]) {
+    records[liftKey].forEach(r => {
+      allSets.push({
+        type: "lift", key: liftKey, displayName: LIFT_DISPLAY_NAME[liftKey],
+        weight: r.weight, reps: r.reps, date: r.date,
+        createdAt: r.firstAt || r.createdAt || 0
+      });
+    });
+  }
+
   if (!allSets.length) return null;
 
-  // 2) 가장 최근 날짜(yy.mm.dd 문자열 비교로 충분: 항상 2자리 zero-padded)
+  // 3) 가장 최근 날짜(yy.mm.dd 문자열 비교로 충분: 항상 2자리 zero-padded) — 3대/액세서리 합친 풀에서 하나만
   const latestDate = allSets.reduce((max, r) => (r.date > max ? r.date : max), allSets[0].date);
 
-  // 3) 그 날짜의 세트만 남기고, 입력한 시간순(createdAt)으로 정렬
+  // 4) 그 날짜의 세트만 남기고, 입력한 시간순(createdAt)으로 정렬
   const dayRaw = allSets
     .filter(r => r.date === latestDate)
     .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
 
-  // 4) 종목명 등장 순서(처음 나온 순서)대로 고유 리스트 뽑기
-  const orderedNames = [];
+  // 5) (타입+key) 등장 순서(처음 나온 순서)대로 고유 리스트 뽑기
+  const orderedItems = [];
+  const seen = new Set();
   dayRaw.forEach(r => {
-    if (!orderedNames.includes(r.exercise)) orderedNames.push(r.exercise);
+    const uid = r.type + ":" + r.key;
+    if (!seen.has(uid)) { seen.add(uid); orderedItems.push({ type: r.type, key: r.key, displayName: r.displayName }); }
   });
 
-  // 5) 종목별 세트 목록도 같이 정리 (상세화면용)
-  const byExercise = {};
-  orderedNames.forEach(name => { byExercise[name] = []; });
-  dayRaw.forEach(r => { if (byExercise[r.exercise]) byExercise[r.exercise].push(r); });
+  // 6) 종목별 세트 목록도 같이 정리 (상세화면용)
+  const setsByItem = {};
+  orderedItems.forEach(it => { setsByItem[it.type + ":" + it.key] = []; });
+  dayRaw.forEach(r => {
+    const uid = r.type + ":" + r.key;
+    if (setsByItem[uid]) setsByItem[uid].push(r);
+  });
 
-  return { date: latestDate, exercises: orderedNames, byExercise };
+  return { date: latestDate, items: orderedItems, setsByItem };
 }
 
 const myRoutineOverlay = document.getElementById("myRoutineOverlay");
@@ -4448,9 +4525,9 @@ function renderMyRoutineList(){
     <div class="my-routine-part-row" data-part="${p.key}">
       <div class="my-routine-part-name">${p.label}</div>
       <div class="my-routine-train">
-        ${p.routine.exercises.map((name, idx) => `
+        ${p.routine.items.map((it, idx) => `
           ${idx > 0 ? `<div class="my-routine-train-dash"></div>` : ``}
-          <div class="my-routine-train-card">${escapeHtml(name)}</div>
+          <div class="my-routine-train-card">${escapeHtml(it.displayName)}</div>
         `).join("")}
       </div>
     </div>
@@ -4479,27 +4556,141 @@ document.getElementById("navMyRoutineBtn").addEventListener("click", () => {
   openMyRoutine();
 });
 
-/* 내 루틴: 상세(진행) 화면 — 지금은 순서/지난 기록 확인용 스텁 */
+/* ===============================
+   내 루틴: 저장 파이프라인
+   - 3대탭 recordAdd 클릭 핸들러, 기록탭 addAccessorySet()와 각각 완전히 동일한 로직
+   - 새 컬렉션 없음: records[liftKey] / accRecordsByExercise[name]에 그대로 들어감
+================================ */
+async function myRoutineSaveLiftSet(liftKey, weight, reps){
+  const date = formatTodayYYMMDD();
+  const nowMs = Date.now();
+  const newItem = {
+    firestoreId: null,
+    localId: nowMs + "_" + Math.random(),
+    date, weight, reps, sets: 1,
+    createdAt: nowMs, firstAt: nowMs, lastAt: nowMs, updatedAt: nowMs
+  };
+
+  const arr = records[liftKey] || (records[liftKey] = []);
+  arr.unshift(newItem);
+  saveRecordsToLocal();
+  autoMarkCalendarToday(liftKey);
+  renderActiveBox(); // 3대탭이 열려있었다면 거기도 같이 갱신됨
+
+  const user = auth.currentUser;
+  if (user) {
+    try {
+      const docRef = await db.collection('users').doc(user.uid).collection('records').add({
+        lift: liftKey, date, weight, reps,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      newItem.firestoreId = docRef.id;
+      saveRecordsToLocal();
+    } catch (e) { console.error('내 루틴(3대) 저장 실패', e); }
+  }
+  return newItem;
+}
+
+async function myRoutineSaveAccessorySet(exerciseName, partKey, weight, reps){
+  const localItem = {
+    id: "local_" + Date.now() + "_" + Math.random(),
+    exercise: exerciseName, part: partKey || "",
+    weight, reps, date: formatTodayYYMMDD(), createdAt: Date.now()
+  };
+
+  if (!accRecordsByExercise[exerciseName]) accRecordsByExercise[exerciseName] = [];
+  accRecordsByExercise[exerciseName].push(localItem);
+  saveAccRecordsToLocal();
+  autoMarkCalendarToday(partKey);
+
+  const user = auth.currentUser;
+  if (user) {
+    try {
+      const docRef = await db.collection("users").doc(user.uid).collection("accessoryRecords").add({
+        exercise: exerciseName, part: partKey || "", weight, reps,
+        date: formatTodayYYMMDD(),
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      localItem.id = docRef.id;
+      saveAccRecordsToLocal();
+    } catch (e) { console.error('내 루틴(액세서리) 저장 실패', e); }
+  }
+  return localItem;
+}
+
+/* 내 루틴: 상세(진행) 화면 — 지난 기록 + 오늘 입력 UI */
+let myRoutineCurrentPartKey = null;
+
+function myRoutineTodaySetLine(item){
+  return `<div class="my-routine-detail-set my-routine-today-set">${formatKgSmart(item.weight)}kg × ${parseInt(item.reps,10)}회</div>`;
+}
+
 function openMyRoutineDetail(partKey){
   const partInfo = MY_ROUTINE_PARTS.find(p => p.key === partKey);
   const routine = buildRoutineForPart(partKey);
   if (!partInfo || !routine) return;
 
+  myRoutineCurrentPartKey = partKey;
   document.getElementById("myRoutineDetailTitle").textContent = partInfo.label;
 
   const listEl = document.getElementById("myRoutineDetailList");
-  listEl.innerHTML = routine.exercises.map(name => {
-    const sets = routine.byExercise[name] || [];
-    const setsHtml = sets.map(s => `
+  listEl.innerHTML = routine.items.map((it, idx) => {
+    const uid = it.type + ":" + it.key;
+    const sets = routine.setsByItem[uid] || [];
+    const pastSetsHtml = sets.map(s => `
       <div class="my-routine-detail-set">${formatKgSmart(s.weight)}kg × ${parseInt(s.reps,10)}회</div>
     `).join("");
+
     return `
-      <div class="my-routine-detail-card">
-        <div class="my-routine-detail-name">${escapeHtml(name)}</div>
-        ${setsHtml}
+      <div class="my-routine-detail-card" data-idx="${idx}" data-type="${it.type}" data-key="${escapeHtml(it.key)}">
+        <div class="my-routine-detail-name">${escapeHtml(it.displayName)}</div>
+        <div class="my-routine-detail-sublabel">지난 기록</div>
+        ${pastSetsHtml || `<div class="my-routine-detail-set" style="opacity:0.4;">기록 없음</div>`}
+
+        <div class="my-routine-detail-sublabel" style="margin-top:12px;">오늘</div>
+        <div class="my-routine-today-list" id="myRoutineTodayList-${idx}"></div>
+        <div class="my-routine-input-row">
+          <input type="number" placeholder="kg" class="my-routine-input" id="myRoutineWeight-${idx}">
+          <input type="number" placeholder="회" class="my-routine-input" id="myRoutineReps-${idx}">
+          <button type="button" class="my-routine-save-btn" data-idx="${idx}">저장</button>
+        </div>
       </div>
     `;
   }).join("");
+
+  listEl.querySelectorAll(".my-routine-save-btn").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const idx = btn.dataset.idx;
+      const card = listEl.querySelector(`.my-routine-detail-card[data-idx="${idx}"]`);
+      const type = card.dataset.type;
+      const key = card.dataset.key;
+
+      const weightEl = document.getElementById(`myRoutineWeight-${idx}`);
+      const repsEl = document.getElementById(`myRoutineReps-${idx}`);
+      const weight = round1(parseFloat(weightEl.value));
+      const reps = parseInt(repsEl.value, 10);
+
+      if (!Number.isFinite(weight) || !reps) {
+        weightEl.focus();
+        return;
+      }
+
+      btn.disabled = true;
+      let saved;
+      if (type === "lift") {
+        saved = await myRoutineSaveLiftSet(key, weight, reps);
+      } else {
+        saved = await myRoutineSaveAccessorySet(key, partKey, weight, reps);
+      }
+      btn.disabled = false;
+
+      weightEl.value = "";
+      repsEl.value = "";
+
+      const todayListEl = document.getElementById(`myRoutineTodayList-${idx}`);
+      if (todayListEl) todayListEl.insertAdjacentHTML("beforeend", myRoutineTodaySetLine(saved));
+    });
+  });
 
   myRoutineDetailOverlay.classList.remove("hidden");
   myRoutineDetailScreen.style.transform = "translateX(0)";
