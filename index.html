@@ -2566,7 +2566,6 @@ input[type="number"] {
   max-width: 100%;
   box-sizing: border-box;
   overflow-x: auto;
-  scroll-snap-type: x proximity;
   -webkit-overflow-scrolling: touch;
   touch-action: pan-x pan-y;
   padding: 16px 40%;
@@ -2576,7 +2575,6 @@ input[type="number"] {
 .my-routine-template-card {
   flex-shrink: 0;
   width: 60%;
-  scroll-snap-align: center;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -5391,10 +5389,27 @@ function wireCarouselFocus(carouselEl){
       if (dist < closestDist) { closestDist = dist; closest = card; }
     });
     if (closest) closest.classList.add("focused");
+    return closest;
   }
+
+  let settleTimer = null;
   carouselEl.addEventListener("scroll", () => {
     requestAnimationFrame(updateFocus);
+
+    // 🔥 CSS scroll-snap 대신 직접 처리: 스크롤이 멈추면 가장 가까운 카드로 부드럽게 정렬
+    clearTimeout(settleTimer);
+    settleTimer = setTimeout(() => {
+      const closest = updateFocus();
+      if (!closest) return;
+      const carRect = carouselEl.getBoundingClientRect();
+      const cardRect = closest.getBoundingClientRect();
+      const delta = (cardRect.left + cardRect.width / 2) - (carRect.left + carRect.width / 2);
+      if (Math.abs(delta) > 1) {
+        carouselEl.scrollBy({ left: delta, behavior: "smooth" });
+      }
+    }, 120);
   }, { passive: true });
+
   updateFocus();
 }
 
