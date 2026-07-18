@@ -867,6 +867,13 @@ cursor: pointer;
   display: none;
 }
 
+#myRoutineOverlay.hidden {
+  display: none;
+}
+#myRoutineDetailOverlay.hidden {
+  display: none;
+}
+
 #mySpecOverlay.hidden {
   display: none;
 }
@@ -2254,6 +2261,63 @@ input[type="number"] {
   margin: -6px 0 6px 2px;
 }
 
+/* ===============================
+   내 루틴
+================================ */
+.my-routine-part-row {
+  padding: 16px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  cursor: pointer;
+}
+.my-routine-part-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 10px;
+}
+.my-routine-train {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 2px;
+}
+.my-routine-train::-webkit-scrollbar { display: none; }
+.my-routine-train-card {
+  flex-shrink: 0;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: rgba(255,255,255,0.85);
+  white-space: nowrap;
+}
+.my-routine-train-dash {
+  flex-shrink: 0;
+  width: 14px;
+  height: 1px;
+  background: rgba(255,255,255,0.25);
+}
+.my-routine-detail-card {
+  border: 1px solid rgba(255,255,255,0.16);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+}
+.my-routine-detail-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 8px;
+}
+.my-routine-detail-set {
+  font-size: 13px;
+  color: rgba(255,255,255,0.6);
+  line-height: 1.8;
+}
+
 </style>
 </head>
 
@@ -2723,11 +2787,44 @@ input[type="number"] {
   </div>
 </div>
 
+<!-- 내 루틴: 목록 (부위별 최근 세션 기차 미리보기) -->
+<div id="myRoutineOverlay" class="hidden" style="
+    position:fixed; inset:0; background:#000; z-index:100000;
+    overflow:hidden;
+  ">
+  <div id="myRoutineScreen" style="height:100%; overflow-y:auto; padding: calc(28px + env(safe-area-inset-top)) 18px 24px;">
+    <div style="display:flex; align-items:center; margin-bottom:20px; cursor:pointer;" onclick="closeMyRoutine()">
+      ← <span style="margin-left:6px; font-size:15px; font-weight:600; color:#fff;">내 루틴</span>
+    </div>
+
+    <div id="myRoutineEmpty" style="color:rgba(255,255,255,0.35); font-size:13px; text-align:center; margin-top:100px;">
+      아직 기록된 운동이 없습니다.
+    </div>
+
+    <div id="myRoutineList"></div>
+  </div>
+</div>
+
+<!-- 내 루틴: 상세(진행) 화면 -->
+<div id="myRoutineDetailOverlay" class="hidden" style="
+    position:fixed; inset:0; background:#000; z-index:100001;
+    overflow:hidden;
+  ">
+  <div id="myRoutineDetailScreen" style="height:100%; overflow-y:auto; padding: calc(28px + env(safe-area-inset-top)) 18px 24px;">
+    <div style="display:flex; align-items:center; margin-bottom:20px; cursor:pointer;" onclick="closeMyRoutineDetail()">
+      ← <span id="myRoutineDetailTitle" style="margin-left:6px; font-size:15px; font-weight:600; color:#fff;">하체</span>
+    </div>
+
+    <div id="myRoutineDetailList"></div>
+  </div>
+</div>
+
 <div id="navDrawerOverlay" class="nav-drawer-overlay hidden">
   <div id="navDrawer" class="nav-drawer" onclick="event.stopPropagation()">
     <div class="nav-drawer-title">메뉴</div>
     <button id="navThreeSummaryBtn" class="nav-drawer-item">3대 총합</button>
     <button id="navExerciseDexBtn" class="nav-drawer-item">운동도감</button>
+    <button id="navMyRoutineBtn" class="nav-drawer-item">내 루틴</button>
   </div>
 </div>
 
@@ -4278,6 +4375,242 @@ document.getElementById("navThreeSummaryBtn").addEventListener("click", () => {
   closeNavDrawer();
   openThreeSummary();
 });
+
+/* ===============================
+   내 루틴
+   - 새 데이터 구조 없음: 기존 accRecordsByExercise(보조운동 기록)만으로 유추
+   - "저번 루틴" = 그 부위로 기록된 것들 중 가장 최근 날짜에, 그날 처음 입력한 순서대로의 종목들
+================================ */
+const MY_ROUTINE_PARTS = [
+  { key: "chest", label: "가슴" },
+  { key: "back", label: "등" },
+  { key: "shoulder", label: "어깨" },
+  { key: "leg", label: "하체" },
+  { key: "arm", label: "팔" }
+];
+
+/* 부위별로 "가장 최근 날짜 세션"의 종목 순서 + 그날 기록들을 뽑아냄 */
+function buildRoutineForPart(partKey){
+  // 1) 이 부위로 기록된 모든 세트(어떤 종목이든) 모으기
+  const allSets = [];
+  Object.keys(accRecordsByExercise).forEach(exName => {
+    (accRecordsByExercise[exName] || []).forEach(r => {
+      if (r.part === partKey) {
+        allSets.push({ ...r, exercise: r.exercise || exName });
+      }
+    });
+  });
+  if (!allSets.length) return null;
+
+  // 2) 가장 최근 날짜(yy.mm.dd 문자열 비교로 충분: 항상 2자리 zero-padded)
+  const latestDate = allSets.reduce((max, r) => (r.date > max ? r.date : max), allSets[0].date);
+
+  // 3) 그 날짜의 세트만 남기고, 입력한 시간순(createdAt)으로 정렬
+  const dayRaw = allSets
+    .filter(r => r.date === latestDate)
+    .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+
+  // 4) 종목명 등장 순서(처음 나온 순서)대로 고유 리스트 뽑기
+  const orderedNames = [];
+  dayRaw.forEach(r => {
+    if (!orderedNames.includes(r.exercise)) orderedNames.push(r.exercise);
+  });
+
+  // 5) 종목별 세트 목록도 같이 정리 (상세화면용)
+  const byExercise = {};
+  orderedNames.forEach(name => { byExercise[name] = []; });
+  dayRaw.forEach(r => { if (byExercise[r.exercise]) byExercise[r.exercise].push(r); });
+
+  return { date: latestDate, exercises: orderedNames, byExercise };
+}
+
+const myRoutineOverlay = document.getElementById("myRoutineOverlay");
+const myRoutineScreen = document.getElementById("myRoutineScreen");
+const myRoutineDetailOverlay = document.getElementById("myRoutineDetailOverlay");
+const myRoutineDetailScreen = document.getElementById("myRoutineDetailScreen");
+
+function renderMyRoutineList(){
+  const listEl = document.getElementById("myRoutineList");
+  const emptyEl = document.getElementById("myRoutineEmpty");
+
+  const rows = MY_ROUTINE_PARTS
+    .map(p => ({ ...p, routine: buildRoutineForPart(p.key) }))
+    .filter(p => p.routine);
+
+  if (!rows.length) {
+    emptyEl.style.display = "block";
+    listEl.innerHTML = "";
+    return;
+  }
+  emptyEl.style.display = "none";
+
+  listEl.innerHTML = rows.map(p => `
+    <div class="my-routine-part-row" data-part="${p.key}">
+      <div class="my-routine-part-name">${p.label}</div>
+      <div class="my-routine-train">
+        ${p.routine.exercises.map((name, idx) => `
+          ${idx > 0 ? `<div class="my-routine-train-dash"></div>` : ``}
+          <div class="my-routine-train-card">${escapeHtml(name)}</div>
+        `).join("")}
+      </div>
+    </div>
+  `).join("");
+
+  listEl.querySelectorAll(".my-routine-part-row").forEach(row => {
+    row.addEventListener("click", () => {
+      openMyRoutineDetail(row.dataset.part);
+    });
+  });
+}
+
+function openMyRoutine(){
+  myRoutineOverlay.classList.remove("hidden");
+  myRoutineScreen.style.transform = "translateX(0)";
+  myRoutineScreen.scrollTop = 0;
+  renderMyRoutineList();
+}
+function closeMyRoutine(){
+  myRoutineOverlay.classList.add("hidden");
+  myRoutineScreen.style.transform = "translateX(0)";
+}
+
+document.getElementById("navMyRoutineBtn").addEventListener("click", () => {
+  closeNavDrawer();
+  openMyRoutine();
+});
+
+/* 내 루틴: 상세(진행) 화면 — 지금은 순서/지난 기록 확인용 스텁 */
+function openMyRoutineDetail(partKey){
+  const partInfo = MY_ROUTINE_PARTS.find(p => p.key === partKey);
+  const routine = buildRoutineForPart(partKey);
+  if (!partInfo || !routine) return;
+
+  document.getElementById("myRoutineDetailTitle").textContent = partInfo.label;
+
+  const listEl = document.getElementById("myRoutineDetailList");
+  listEl.innerHTML = routine.exercises.map(name => {
+    const sets = routine.byExercise[name] || [];
+    const setsHtml = sets.map(s => `
+      <div class="my-routine-detail-set">${formatKgSmart(s.weight)}kg × ${parseInt(s.reps,10)}회</div>
+    `).join("");
+    return `
+      <div class="my-routine-detail-card">
+        <div class="my-routine-detail-name">${escapeHtml(name)}</div>
+        ${setsHtml}
+      </div>
+    `;
+  }).join("");
+
+  myRoutineDetailOverlay.classList.remove("hidden");
+  myRoutineDetailScreen.style.transform = "translateX(0)";
+  myRoutineDetailScreen.scrollTop = 0;
+}
+function closeMyRoutineDetail(){
+  myRoutineDetailOverlay.classList.add("hidden");
+  myRoutineDetailScreen.style.transform = "translateX(0)";
+}
+
+/* 🔥 내 루틴 목록 화면: 왼쪽 끝에서 오른쪽으로 드래그하면 손가락 따라 끌려가며 닫힘 */
+(function(){
+  const EDGE_ZONE = 30, COMMIT_MOVE = 8, CLOSE_RATIO = 0.3;
+  let startX = 0, startY = 0, tracking = false, dragging = false;
+
+  myRoutineScreen.addEventListener('touchstart', (e) => {
+    const t = e.touches[0];
+    if (t.clientX <= EDGE_ZONE) {
+      startX = t.clientX; startY = t.clientY;
+      tracking = true; dragging = false;
+      myRoutineScreen.style.transition = 'none';
+    } else { tracking = false; }
+  }, { passive: true });
+
+  myRoutineScreen.addEventListener('touchmove', (e) => {
+    if (!tracking) return;
+    const t = e.touches[0];
+    const dx = t.clientX - startX, dy = t.clientY - startY;
+    if (!dragging) {
+      if (dx > COMMIT_MOVE && dx > Math.abs(dy) * 0.6) dragging = true;
+      else if (Math.abs(dy) > COMMIT_MOVE && Math.abs(dy) > dx) { tracking = false; return; }
+      else return;
+    }
+    if (dragging) {
+      e.preventDefault();
+      myRoutineScreen.style.transform = `translateX(${Math.max(0, dx)}px)`;
+    }
+  }, { passive: false });
+
+  function endDrag(e){
+    if (!tracking) return;
+    const wasDragging = dragging;
+    tracking = false; dragging = false;
+    if (!wasDragging) return;
+
+    const width = myRoutineScreen.offsetWidth || window.innerWidth;
+    const t = e.changedTouches[0];
+    const dx = Math.max(0, t.clientX - startX);
+    myRoutineScreen.style.transition = 'transform 0.22s ease';
+
+    if (dx > width * CLOSE_RATIO) {
+      myRoutineScreen.style.transform = `translateX(${width}px)`;
+      setTimeout(() => { closeMyRoutine(); myRoutineScreen.style.transition = 'none'; }, 220);
+    } else {
+      myRoutineScreen.style.transform = 'translateX(0)';
+    }
+  }
+  myRoutineScreen.addEventListener('touchend', endDrag, { passive: true });
+  myRoutineScreen.addEventListener('touchcancel', endDrag, { passive: true });
+})();
+
+/* 🔥 내 루틴 상세 화면: 왼쪽 끝에서 오른쪽으로 드래그하면 손가락 따라 끌려가며 닫힘 */
+(function(){
+  const EDGE_ZONE = 30, COMMIT_MOVE = 8, CLOSE_RATIO = 0.3;
+  let startX = 0, startY = 0, tracking = false, dragging = false;
+
+  myRoutineDetailScreen.addEventListener('touchstart', (e) => {
+    const t = e.touches[0];
+    if (t.clientX <= EDGE_ZONE) {
+      startX = t.clientX; startY = t.clientY;
+      tracking = true; dragging = false;
+      myRoutineDetailScreen.style.transition = 'none';
+    } else { tracking = false; }
+  }, { passive: true });
+
+  myRoutineDetailScreen.addEventListener('touchmove', (e) => {
+    if (!tracking) return;
+    const t = e.touches[0];
+    const dx = t.clientX - startX, dy = t.clientY - startY;
+    if (!dragging) {
+      if (dx > COMMIT_MOVE && dx > Math.abs(dy) * 0.6) dragging = true;
+      else if (Math.abs(dy) > COMMIT_MOVE && Math.abs(dy) > dx) { tracking = false; return; }
+      else return;
+    }
+    if (dragging) {
+      e.preventDefault();
+      myRoutineDetailScreen.style.transform = `translateX(${Math.max(0, dx)}px)`;
+    }
+  }, { passive: false });
+
+  function endDrag(e){
+    if (!tracking) return;
+    const wasDragging = dragging;
+    tracking = false; dragging = false;
+    if (!wasDragging) return;
+
+    const width = myRoutineDetailScreen.offsetWidth || window.innerWidth;
+    const t = e.changedTouches[0];
+    const dx = Math.max(0, t.clientX - startX);
+    myRoutineDetailScreen.style.transition = 'transform 0.22s ease';
+
+    if (dx > width * CLOSE_RATIO) {
+      myRoutineDetailScreen.style.transform = `translateX(${width}px)`;
+      setTimeout(() => { closeMyRoutineDetail(); myRoutineDetailScreen.style.transition = 'none'; }, 220);
+    } else {
+      myRoutineDetailScreen.style.transform = 'translateX(0)';
+    }
+  }
+  myRoutineDetailScreen.addEventListener('touchend', endDrag, { passive: true });
+  myRoutineDetailScreen.addEventListener('touchcancel', endDrag, { passive: true });
+})();
 
 /* ===============================
    운동도감
