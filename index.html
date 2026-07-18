@@ -2560,6 +2560,7 @@ input[type="number"] {
 }
 .my-routine-carousel {
   display: flex;
+  align-items: center;
   gap: 60px;
   width: 100%;
   max-width: 100%;
@@ -2567,7 +2568,7 @@ input[type="number"] {
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
-  touch-action: pan-x;
+  touch-action: pan-x pan-y;
   padding: 16px 40%;
   border-radius: 14px;
 }
@@ -2576,6 +2577,9 @@ input[type="number"] {
   flex-shrink: 0;
   width: 60%;
   scroll-snap-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: transform 0.2s ease, opacity 0.2s ease;
   transform: scale(0.75);
   opacity: 0.4;
