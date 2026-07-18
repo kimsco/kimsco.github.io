@@ -2554,7 +2554,6 @@ input[type="number"] {
 .my-routine-carousel-frame {
   border: 1px solid rgba(255,255,255,0.16);
   border-radius: 14px;
-  overflow: hidden;
 }
 .my-routine-carousel {
   display: flex;
@@ -2562,7 +2561,9 @@ input[type="number"] {
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
   padding: 16px 40%;
+  border-radius: 14px;
 }
 .my-routine-carousel::-webkit-scrollbar { display: none; }
 .my-routine-template-card {
