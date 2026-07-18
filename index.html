@@ -2550,14 +2550,20 @@ input[type="number"] {
 /* 만든 루틴 카드 캐러셀 (부위별로 가로 스와이프) */
 .my-routine-template-part {
   margin-top: 6px;
+  width: 100%;
 }
 .my-routine-carousel-frame {
   border: 1px solid rgba(255,255,255,0.16);
   border-radius: 14px;
+  width: 100%;
+  box-sizing: border-box;
 }
 .my-routine-carousel {
   display: flex;
   gap: 60px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
