@@ -2382,6 +2382,33 @@ input[type="number"] {
   -webkit-user-select: none;
   user-select: none;
 }
+.my-routine-days-ago {
+  text-align: center;
+  font-size: 13px;
+  color: rgba(255,255,255,0.55);
+  margin-bottom: 14px;
+}
+.my-routine-date-line {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 26px;
+}
+.my-routine-date-past {
+  font-size: 12px;
+  color: rgba(255,255,255,0.3);
+}
+.my-routine-date-dots {
+  font-size: 12px;
+  color: rgba(255,255,255,0.25);
+  letter-spacing: 2px;
+}
+.my-routine-date-today {
+  font-size: 20px;
+  font-weight: 800;
+  color: #fff;
+}
 
 </style>
 </head>
@@ -2879,6 +2906,8 @@ input[type="number"] {
     <div style="display:flex; align-items:center; margin-bottom:20px; cursor:pointer;" onclick="closeMyRoutineDetail()">
       ← <span id="myRoutineDetailTitle" style="margin-left:6px; font-size:15px; font-weight:600; color:#fff;">하체</span>
     </div>
+
+    <div id="myRoutineDateBanner"></div>
 
     <div id="myRoutineDetailList"></div>
   </div>
@@ -4691,6 +4720,28 @@ function openMyRoutineDetail(partKey){
 
   myRoutineCurrentPartKey = partKey;
   document.getElementById("myRoutineDetailTitle").textContent = partInfo.label;
+
+  // 🔥 상단 날짜 배너: "지난 [부위]를 하신지 N일이 지났습니다" + 지난날짜(작게) ···· 오늘날짜(크게)
+  const bannerEl = document.getElementById("myRoutineDateBanner");
+  const pastDateObj = parseYYMMDD(routine.date);
+  const today = new Date();
+  let daysAgo = 0;
+  if (pastDateObj) {
+    const oneDay = 24 * 60 * 60 * 1000;
+    const pastMid = new Date(pastDateObj.getFullYear(), pastDateObj.getMonth(), pastDateObj.getDate());
+    const todayMid = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    daysAgo = Math.round((todayMid - pastMid) / oneDay);
+  }
+  const fullDateStr = (d) => `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,"0")}.${String(d.getDate()).padStart(2,"0")}`;
+
+  bannerEl.innerHTML = `
+    <div class="my-routine-days-ago">지난 ${escapeHtml(partInfo.label)}를 하신지 ${daysAgo}일이 지났습니다</div>
+    <div class="my-routine-date-line">
+      <span class="my-routine-date-past">${pastDateObj ? fullDateStr(pastDateObj) : ""}</span>
+      <span class="my-routine-date-dots">· · · · ·</span>
+      <span class="my-routine-date-today">${fullDateStr(today)}</span>
+    </div>
+  `;
 
   const listEl = document.getElementById("myRoutineDetailList");
   listEl.innerHTML = routine.items.map((it, idx) => {
