@@ -873,6 +873,12 @@ cursor: pointer;
 #myRoutineDetailOverlay.hidden {
   display: none;
 }
+#myRoutinePastListOverlay.hidden {
+  display: none;
+}
+#myRoutineBuilderOverlay.hidden {
+  display: none;
+}
 
 #mySpecOverlay.hidden {
   display: none;
@@ -2382,6 +2388,218 @@ input[type="number"] {
   -webkit-user-select: none;
   user-select: none;
 }
+
+/* 내 루틴: 섹션 타이틀 / 추가하기 행 */
+.my-routine-section-title {
+  font-size: 12px;
+  color: rgba(255,255,255,0.4);
+  letter-spacing: 0.5px;
+  margin: 6px 0 4px;
+}
+.my-routine-past-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 4px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  cursor: pointer;
+}
+.my-routine-past-row-label {
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+}
+.my-routine-past-row-chevron {
+  color: rgba(255,255,255,0.25);
+  font-size: 20px;
+}
+.my-routine-add-row {
+  padding: 16px 4px;
+  color: rgba(255,255,255,0.6);
+  font-size: 14px;
+  font-weight: 600;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  cursor: pointer;
+}
+
+/* 루틴 만들기 화면 */
+.my-routine-builder-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+  margin: 6px 0 20px;
+}
+.my-routine-builder-sublabel {
+  font-size: 11px;
+  color: rgba(255,255,255,0.4);
+  letter-spacing: 0.4px;
+  margin-bottom: 10px;
+}
+.my-routine-builder-parts {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 2px;
+  margin-bottom: 8px;
+}
+.my-routine-builder-parts::-webkit-scrollbar { display: none; }
+.my-routine-part-chip {
+  -webkit-appearance: none;
+  appearance: none;
+  flex-shrink: 0;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 999px;
+  color: rgba(255,255,255,0.6);
+  font-size: 13px;
+  padding: 8px 16px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.my-routine-part-chip.active {
+  background: rgba(255,255,255,0.6);
+  border-color: transparent;
+  color: #000;
+  font-weight: 700;
+}
+.my-routine-builder-part-section {
+  margin-top: 26px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+.my-routine-builder-part-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 12px;
+}
+.my-routine-ex-check-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 2px;
+  cursor: pointer;
+}
+.my-routine-ex-checkbox {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  border: 1px solid rgba(255,255,255,0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.my-routine-ex-check-row.checked .my-routine-ex-checkbox {
+  background: #fff;
+  border-color: #fff;
+}
+.my-routine-ex-check-row.checked .my-routine-ex-checkbox::after {
+  content: "";
+  width: 5px;
+  height: 9px;
+  border-right: 2px solid #000;
+  border-bottom: 2px solid #000;
+  transform: rotate(45deg) translate(-1px, -1px);
+}
+.my-routine-ex-check-label {
+  font-size: 14px;
+  color: rgba(255,255,255,0.85);
+}
+.my-routine-ex-add-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 2px;
+  margin-top: 4px;
+}
+.my-routine-ex-add-input {
+  -webkit-appearance: none;
+  appearance: none;
+  flex: 1;
+  min-width: 0;
+  height: 36px;
+  margin: 0;
+  padding: 0 10px;
+  background: rgba(255,255,255,0.08);
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 13px;
+}
+.my-routine-ex-add-input::placeholder {
+  color: rgba(255,255,255,0.3);
+}
+.my-routine-ex-add-btn {
+  -webkit-appearance: none;
+  appearance: none;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  margin: 0;
+  padding: 0;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.35);
+  background: transparent;
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+/* 만든 루틴 카드 캐러셀 (부위별로 가로 스와이프) */
+.my-routine-template-part {
+  margin-top: 6px;
+}
+.my-routine-carousel-frame {
+  border: 1px solid rgba(255,255,255,0.16);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.my-routine-carousel {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  padding: 16px 40%;
+}
+.my-routine-carousel::-webkit-scrollbar { display: none; }
+.my-routine-template-card {
+  flex-shrink: 0;
+  width: 60%;
+  scroll-snap-align: center;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  transform: scale(0.85);
+  opacity: 0.4;
+}
+.my-routine-template-card.focused {
+  transform: scale(1);
+  opacity: 1;
+}
+.my-routine-template-ex {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.my-routine-template-ex-box {
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  color: rgba(255,255,255,0.85);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.my-routine-template-ex-line {
+  width: 1px;
+  height: 10px;
+  background: rgba(255,255,255,0.25);
+}
 .my-routine-days-ago {
   text-align: center;
   font-size: 13px;
@@ -2896,7 +3114,28 @@ input[type="number"] {
       ← <span style="margin-left:6px; font-size:15px; font-weight:600; color:#fff;">내 루틴</span>
     </div>
 
-    <div id="myRoutineEmpty" style="color:rgba(255,255,255,0.35); font-size:13px; text-align:center; margin-top:100px;">
+    <div id="myRoutinePastRow" class="my-routine-past-row">
+      <div class="my-routine-past-row-label">내 지난 루틴</div>
+      <div class="my-routine-past-row-chevron">›</div>
+    </div>
+
+    <div id="myRoutineAddRow" class="my-routine-add-row">+ 루틴 추가하기</div>
+
+    <div id="myRoutineTemplateSection"></div>
+  </div>
+</div>
+
+<!-- 내 지난 루틴: 부위별 기차 미리보기 목록 -->
+<div id="myRoutinePastListOverlay" class="hidden" style="
+    position:fixed; inset:0; background:#000; z-index:100001;
+    overflow:hidden;
+  ">
+  <div id="myRoutinePastListScreen" style="height:100%; overflow-y:auto; padding: calc(28px + env(safe-area-inset-top)) 18px 24px;">
+    <div style="display:flex; align-items:center; margin-bottom:20px; cursor:pointer;" onclick="closeMyRoutinePastList()">
+      ← <span style="margin-left:6px; font-size:15px; font-weight:600; color:#fff;">내 지난 루틴</span>
+    </div>
+
+    <div id="myRoutineEmpty" style="color:rgba(255,255,255,0.35); font-size:13px; margin: 20px 0;">
       아직 기록된 운동이 없습니다.
     </div>
 
@@ -2904,9 +3143,32 @@ input[type="number"] {
   </div>
 </div>
 
+<!-- 루틴 만들기: 부위 + 종목 선택 화면 -->
+<div id="myRoutineBuilderOverlay" class="hidden" style="
+    position:fixed; inset:0; background:#111; z-index:100005;
+    overflow:hidden;
+  ">
+  <div id="myRoutineBuilderScreen" style="height:100%; display:flex; flex-direction:column; overflow-y:auto; padding: calc(16px + env(safe-area-inset-top)) 0 calc(24px + env(safe-area-inset-bottom));">
+    <div style="display:flex; align-items:center; justify-content:space-between; padding:0 18px 14px; flex-shrink:0;">
+      <div id="myRoutineBuilderCancel" style="cursor:pointer; flex-shrink:0; white-space:nowrap; font-size:15px; color:rgba(255,255,255,0.7);">취소</div>
+      <button id="myRoutineBuilderSaveBtn" style="-webkit-appearance:none !important; appearance:none !important; flex-shrink:0; width:auto; background:transparent; border:none; color:#fff; font-size:15px; font-weight:700; padding:4px 2px; cursor:pointer;">저장</button>
+    </div>
+    <div style="border-bottom:1px solid rgba(255,255,255,0.35); flex-shrink:0;"></div>
+
+    <div style="padding:0 18px; flex:1;">
+      <div class="my-routine-builder-title">루틴 만들기</div>
+
+      <div class="my-routine-builder-sublabel">부위 선택</div>
+      <div id="myRoutineBuilderParts" class="my-routine-builder-parts"></div>
+
+      <div id="myRoutineBuilderPartSections"></div>
+    </div>
+  </div>
+</div>
+
 <!-- 내 루틴: 상세(진행) 화면 -->
 <div id="myRoutineDetailOverlay" class="hidden" style="
-    position:fixed; inset:0; background:#000; z-index:100001;
+    position:fixed; inset:0; background:#000; z-index:100002;
     overflow:hidden;
   ">
   <div id="myRoutineDetailScreen" style="height:100%; overflow-y:auto; padding: calc(28px + env(safe-area-inset-top)) 18px 24px;">
@@ -3238,7 +3500,8 @@ const LS_KEYS = {
   foodTemplates: "mf_food_templates_v1", // 자주 먹는 식단 템플릿
   meals: "mf_meals_v1",                  // 날짜별 식사 기록
   dexFolders: "mf_dex_folders_v1",       // 운동도감 폴더 (공용)
-  dexPosts: "mf_dex_posts_v1"            // 운동도감 게시물 (공용)
+  dexPosts: "mf_dex_posts_v1",           // 운동도감 게시물 (공용)
+  myRoutineTemplates: "mf_my_routine_templates_v1" // 내가 만든 루틴 템플릿
 };
 
 function lsGet(key, fallback){
@@ -4045,6 +4308,7 @@ try {
     await loadUserSpecFromFirestore(user.uid);
     await loadFoodTemplatesFromFirestore(user.uid);
     await loadMealsFromFirestore(user.uid);
+    await loadMyRoutineTemplatesFromFirestore(user.uid);
 
     // 🔥 기록탭: 로그인 상태가 확정된 후에 기본 부위(가슴) 로드 (레이스 컨디션 방지)
     currentPart = 'chest';
@@ -4056,6 +4320,7 @@ try {
     loadUserSpecFromLocal();
     loadFoodTemplatesFromLocal();
     loadMealsFromLocal();
+    loadMyRoutineTemplatesFromLocal();
 
     // 🔥 게스트도 마찬가지로 여기서 기본 부위(가슴) 로드
     currentPart = 'chest';
@@ -4492,6 +4757,21 @@ const MY_ROUTINE_PARTS = [
   { key: "arm", label: "팔" }
 ];
 
+/* 🔥 "루틴 만들기"에서만 쓰는 부위 목록: 팔을 이두/삼두로 나눠서 보여줌.
+   단, 실제 종목 데이터(저장/조회)는 둘 다 기존 "arm" 리스트를 공유함
+   (기록탭이랑 종목 풀이 분리되면 안 되니까 — dataPart로 매핑) */
+const MY_ROUTINE_BUILDER_PARTS = [
+  { key: "chest", label: "가슴", dataPart: "chest" },
+  { key: "back", label: "등", dataPart: "back" },
+  { key: "shoulder", label: "어깨", dataPart: "shoulder" },
+  { key: "leg", label: "하체", dataPart: "leg" },
+  { key: "biceps", label: "이두", dataPart: "arm" },
+  { key: "triceps", label: "삼두", dataPart: "arm" }
+];
+function myRoutineBuilderPartInfo(key){
+  return MY_ROUTINE_BUILDER_PARTS.find(p => p.key === key);
+}
+
 // 액세서리 부위(chest/back/shoulder/leg) ↔ 3대 종목(bench/dead/ohp/squat) 매핑 (arm은 3대 없음)
 const PART_TO_LIFT = { chest: "bench", back: "dead", shoulder: "ohp", leg: "squat" };
 const LIFT_DISPLAY_NAME = { bench: "벤치", squat: "스쿼트", dead: "데드", ohp: "OHP" };
@@ -4597,7 +4877,7 @@ function openMyRoutine(){
   myRoutineOverlay.classList.remove("hidden");
   myRoutineScreen.style.transform = "translateX(0)";
   myRoutineScreen.scrollTop = 0;
-  renderMyRoutineList();
+  renderMyRoutineTemplateSection();
 }
 function closeMyRoutine(){
   myRoutineOverlay.classList.add("hidden");
@@ -4608,6 +4888,73 @@ document.getElementById("navMyRoutineBtn").addEventListener("click", () => {
   closeNavDrawer();
   openMyRoutine();
 });
+
+/* 내 지난 루틴: 부위별 기차 미리보기 목록 화면 */
+const myRoutinePastListOverlay = document.getElementById("myRoutinePastListOverlay");
+const myRoutinePastListScreen = document.getElementById("myRoutinePastListScreen");
+
+function openMyRoutinePastList(){
+  myRoutinePastListOverlay.classList.remove("hidden");
+  myRoutinePastListScreen.style.transform = "translateX(0)";
+  myRoutinePastListScreen.scrollTop = 0;
+  renderMyRoutineList();
+}
+function closeMyRoutinePastList(){
+  myRoutinePastListOverlay.classList.add("hidden");
+  myRoutinePastListScreen.style.transform = "translateX(0)";
+}
+document.getElementById("myRoutinePastRow").addEventListener("click", openMyRoutinePastList);
+
+/* 🔥 내 지난 루틴 화면: 왼쪽 끝에서 오른쪽으로 드래그하면 손가락 따라 끌려가며 닫힘 */
+(function(){
+  const EDGE_ZONE = 30, COMMIT_MOVE = 8, CLOSE_RATIO = 0.3;
+  let startX = 0, startY = 0, tracking = false, dragging = false;
+
+  myRoutinePastListScreen.addEventListener('touchstart', (e) => {
+    const t = e.touches[0];
+    if (t.clientX <= EDGE_ZONE) {
+      startX = t.clientX; startY = t.clientY;
+      tracking = true; dragging = false;
+      myRoutinePastListScreen.style.transition = 'none';
+    } else { tracking = false; }
+  }, { passive: true });
+
+  myRoutinePastListScreen.addEventListener('touchmove', (e) => {
+    if (!tracking) return;
+    const t = e.touches[0];
+    const dx = t.clientX - startX, dy = t.clientY - startY;
+    if (!dragging) {
+      if (dx > COMMIT_MOVE && dx > Math.abs(dy) * 0.6) dragging = true;
+      else if (Math.abs(dy) > COMMIT_MOVE && Math.abs(dy) > dx) { tracking = false; return; }
+      else return;
+    }
+    if (dragging) {
+      e.preventDefault();
+      myRoutinePastListScreen.style.transform = `translateX(${Math.max(0, dx)}px)`;
+    }
+  }, { passive: false });
+
+  function endDrag(e){
+    if (!tracking) return;
+    const wasDragging = dragging;
+    tracking = false; dragging = false;
+    if (!wasDragging) return;
+
+    const width = myRoutinePastListScreen.offsetWidth || window.innerWidth;
+    const t = e.changedTouches[0];
+    const dx = Math.max(0, t.clientX - startX);
+    myRoutinePastListScreen.style.transition = 'transform 0.22s ease';
+
+    if (dx > width * CLOSE_RATIO) {
+      myRoutinePastListScreen.style.transform = `translateX(${width}px)`;
+      setTimeout(() => { closeMyRoutinePastList(); myRoutinePastListScreen.style.transition = 'none'; }, 220);
+    } else {
+      myRoutinePastListScreen.style.transform = 'translateX(0)';
+    }
+  }
+  myRoutinePastListScreen.addEventListener('touchend', endDrag, { passive: true });
+  myRoutinePastListScreen.addEventListener('touchcancel', endDrag, { passive: true });
+})();
 
 /* ===============================
    내 루틴: 저장 파이프라인
@@ -4833,6 +5180,243 @@ function closeMyRoutineDetail(){
   myRoutineDetailOverlay.classList.add("hidden");
   myRoutineDetailScreen.style.transform = "translateX(0)";
 }
+
+/* ===============================
+   내 루틴: 루틴 템플릿 (내가 직접 짠 루틴)
+   - 새 저장소: myRoutineTemplates (부위+종목 순서만 저장, 실제 기록은 여전히 기존 저장소로)
+================================ */
+let myRoutineTemplates = [];
+
+function loadMyRoutineTemplatesFromLocal(){
+  myRoutineTemplates = lsGet(LS_KEYS.myRoutineTemplates, []);
+  if (!Array.isArray(myRoutineTemplates)) myRoutineTemplates = [];
+}
+function saveMyRoutineTemplatesToLocal(){
+  lsSet(LS_KEYS.myRoutineTemplates, myRoutineTemplates);
+}
+async function saveMyRoutineTemplateToFirestore(item){
+  const user = auth.currentUser;
+  if (!user) return;
+  try {
+    await db.collection("users").doc(user.uid)
+      .collection("myRoutineTemplates").doc(item.id).set(item);
+  } catch (e) { console.error("루틴 템플릿 저장 실패", e); }
+}
+async function loadMyRoutineTemplatesFromFirestore(uid){
+  try {
+    const snap = await db.collection("users").doc(uid)
+      .collection("myRoutineTemplates").get();
+    myRoutineTemplates = [];
+    snap.forEach(doc => myRoutineTemplates.push(doc.data()));
+  } catch (e) { console.error("루틴 템플릿 로드 실패", e); }
+}
+
+function getTemplatesForPart(partKey){
+  return myRoutineTemplates.filter(t => t.parts.includes(partKey));
+}
+
+/* ---------- 루틴 만들기 화면 ---------- */
+const myRoutineBuilderOverlay = document.getElementById("myRoutineBuilderOverlay");
+const myRoutineBuilderScreen = document.getElementById("myRoutineBuilderScreen");
+let builderSelectedParts = new Set();       // 선택된 부위(key)
+let builderSelectedExercises = {};          // { partKey: Set(종목명) }
+
+function openMyRoutineBuilder(){
+  builderSelectedParts = new Set();
+  builderSelectedExercises = {};
+  document.getElementById("myRoutineBuilderPartSections").innerHTML = "";
+
+  const partsEl = document.getElementById("myRoutineBuilderParts");
+  partsEl.innerHTML = MY_ROUTINE_BUILDER_PARTS.map(p => `
+    <button type="button" class="my-routine-part-chip" data-part="${p.key}">${p.label}</button>
+  `).join("");
+
+  partsEl.querySelectorAll(".my-routine-part-chip").forEach(chip => {
+    chip.addEventListener("click", () => {
+      const partKey = chip.dataset.part;
+      if (builderSelectedParts.has(partKey)) {
+        builderSelectedParts.delete(partKey);
+        chip.classList.remove("active");
+        const sec = document.getElementById(`myRoutineBuilderSection-${partKey}`);
+        if (sec) sec.remove();
+      } else {
+        builderSelectedParts.add(partKey);
+        chip.classList.add("active");
+        renderBuilderPartSection(partKey);
+      }
+    });
+  });
+
+  myRoutineBuilderOverlay.classList.remove("hidden");
+  myRoutineBuilderScreen.style.transform = "translateX(0)";
+  myRoutineBuilderScreen.scrollTop = 0;
+}
+function closeMyRoutineBuilder(){
+  myRoutineBuilderOverlay.classList.add("hidden");
+}
+
+function renderBuilderPartSection(partKey){
+  const partInfo = myRoutineBuilderPartInfo(partKey);
+  const dataPart = partInfo.dataPart; // 🔥 이두/삼두는 실제로는 "arm" 리스트를 공유
+  if (!builderSelectedExercises[partKey]) builderSelectedExercises[partKey] = new Set();
+
+  const list = loadAccListFromLocal(dataPart).filter(x => typeof x === "string" && x.trim());
+
+  const sectionsEl = document.getElementById("myRoutineBuilderPartSections");
+  const sec = document.createElement("div");
+  sec.className = "my-routine-builder-part-section";
+  sec.id = `myRoutineBuilderSection-${partKey}`;
+  sec.innerHTML = `
+    <div class="my-routine-builder-part-name">${partInfo.label}</div>
+    <div class="my-routine-ex-check-list" id="myRoutineExList-${partKey}"></div>
+    <div class="my-routine-ex-add-row">
+      <input type="text" placeholder="새 종목 이름" class="my-routine-ex-add-input" id="myRoutineExAddInput-${partKey}">
+      <button type="button" class="my-routine-ex-add-btn" id="myRoutineExAddBtn-${partKey}">+</button>
+    </div>
+  `;
+  sectionsEl.appendChild(sec);
+
+  renderBuilderExerciseChecklist(partKey, list);
+
+  document.getElementById(`myRoutineExAddBtn-${partKey}`).addEventListener("click", async () => {
+    const input = document.getElementById(`myRoutineExAddInput-${partKey}`);
+    const name = input.value.trim();
+    if (!name) { input.focus(); return; }
+
+    // 🔥 기록탭 addExercise()랑 완전히 같은 저장 로직 (새 저장소 아님, dataPart 리스트 그대로)
+    const existing = loadAccListFromLocal(dataPart).filter(x => typeof x === "string" && x.trim());
+    if (existing.includes(name)) { alert("이미 존재하는 종목입니다."); return; }
+
+    const updated = [name, ...existing];
+    saveAccListToLocal(dataPart, updated);
+
+    const user = auth.currentUser;
+    if (user) {
+      try {
+        await db.collection('users').doc(user.uid).collection('accessories').doc(dataPart)
+          .set({ list: updated }, { merge: true });
+      } catch (e) { console.error("새 종목 저장 실패", e); }
+    }
+
+    input.value = "";
+    builderSelectedExercises[partKey].add(name); // 방금 만든 건 자동 체크
+    renderBuilderExerciseChecklist(partKey, updated);
+  });
+}
+
+function renderBuilderExerciseChecklist(partKey, list){
+  const listEl = document.getElementById(`myRoutineExList-${partKey}`);
+  const selectedSet = builderSelectedExercises[partKey];
+
+  listEl.innerHTML = list.map(name => `
+    <div class="my-routine-ex-check-row${selectedSet.has(name) ? ' checked' : ''}" data-name="${escapeHtml(name)}">
+      <div class="my-routine-ex-checkbox"></div>
+      <div class="my-routine-ex-check-label">${escapeHtml(name)}</div>
+    </div>
+  `).join("");
+
+  listEl.querySelectorAll(".my-routine-ex-check-row").forEach(row => {
+    row.addEventListener("click", () => {
+      const name = row.dataset.name;
+      if (selectedSet.has(name)) selectedSet.delete(name);
+      else selectedSet.add(name);
+      row.classList.toggle("checked");
+    });
+  });
+}
+
+document.getElementById("myRoutineBuilderCancel").addEventListener("click", closeMyRoutineBuilder);
+
+document.getElementById("myRoutineBuilderSaveBtn").addEventListener("click", async () => {
+  const parts = Array.from(builderSelectedParts).filter(pk =>
+    builderSelectedExercises[pk] && builderSelectedExercises[pk].size > 0
+  );
+
+  if (!parts.length) {
+    alert("부위를 선택하고, 종목을 1개 이상 체크해주세요.");
+    return;
+  }
+
+  const exercisesByPart = {};
+  parts.forEach(pk => { exercisesByPart[pk] = Array.from(builderSelectedExercises[pk]); });
+
+  const item = {
+    id: "routine_" + Date.now() + "_" + Math.random().toString(16).slice(2),
+    parts, exercisesByPart,
+    createdAt: Date.now()
+  };
+
+  myRoutineTemplates.unshift(item);
+  saveMyRoutineTemplatesToLocal();
+  saveMyRoutineTemplateToFirestore(item);
+
+  closeMyRoutineBuilder();
+  renderMyRoutineTemplateSection();
+});
+
+/* ---------- 만든 루틴 카드 캐러셀 렌더링 ---------- */
+function myRoutineTemplateCardHtml(template, partKey){
+  const exercises = template.exercisesByPart[partKey] || [];
+  return `
+    <div class="my-routine-template-card" data-id="${template.id}">
+      <div class="my-routine-template-ex">
+        ${exercises.map((name, i) => `
+          ${i > 0 ? `<div class="my-routine-template-ex-line"></div>` : ``}
+          <div class="my-routine-template-ex-box">${escapeHtml(name)}</div>
+        `).join("")}
+      </div>
+    </div>
+  `;
+}
+
+function wireCarouselFocus(carouselEl){
+  function updateFocus(){
+    const rect = carouselEl.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    let closest = null, closestDist = Infinity;
+
+    carouselEl.querySelectorAll(".my-routine-template-card").forEach(card => {
+      const cRect = card.getBoundingClientRect();
+      const cCenter = cRect.left + cRect.width / 2;
+      const dist = Math.abs(cCenter - centerX);
+      card.classList.remove("focused");
+      if (dist < closestDist) { closestDist = dist; closest = card; }
+    });
+    if (closest) closest.classList.add("focused");
+  }
+  carouselEl.addEventListener("scroll", () => {
+    requestAnimationFrame(updateFocus);
+  }, { passive: true });
+  updateFocus();
+}
+
+function renderMyRoutineTemplateSection(){
+  const sectionEl = document.getElementById("myRoutineTemplateSection");
+  const partsWithTemplates = MY_ROUTINE_BUILDER_PARTS.filter(p => getTemplatesForPart(p.key).length > 0);
+
+  if (!partsWithTemplates.length) {
+    sectionEl.innerHTML = "";
+    return;
+  }
+
+  sectionEl.innerHTML = partsWithTemplates.map(p => `
+    <div class="my-routine-template-part">
+      <div class="my-routine-part-name">${p.label}</div>
+      <div class="my-routine-carousel-frame">
+        <div class="my-routine-carousel" id="myRoutineCarousel-${p.key}">
+          ${getTemplatesForPart(p.key).map(t => myRoutineTemplateCardHtml(t, p.key)).join("")}
+        </div>
+      </div>
+    </div>
+  `).join("");
+
+  partsWithTemplates.forEach(p => {
+    const carouselEl = document.getElementById(`myRoutineCarousel-${p.key}`);
+    if (carouselEl) wireCarouselFocus(carouselEl);
+  });
+}
+
+document.getElementById("myRoutineAddRow").addEventListener("click", openMyRoutineBuilder);
 
 /* 🔥 내 루틴 목록 화면: 왼쪽 끝에서 오른쪽으로 드래그하면 손가락 따라 끌려가며 닫힘 */
 (function(){
@@ -7670,6 +8254,7 @@ function renderTodayMealList(){
 loadUserSpecFromLocal();
 loadFoodTemplatesFromLocal();
 loadMealsFromLocal();
+loadMyRoutineTemplatesFromLocal();
 
 /* 🔥 기록 박스(.folderContent) 스프링(고무줄) 바운스 방지 - CSS 보완용 JS 가드 */
 document.querySelectorAll('.folderContent').forEach(el => {
