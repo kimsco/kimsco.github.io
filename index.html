@@ -4758,16 +4758,16 @@ function openMyRoutineDetail(partKey){
           <div class="my-routine-col">
             <div class="my-routine-detail-sublabel">오늘</div>
             <div class="my-routine-today-list" id="myRoutineTodayList-${idx}"></div>
-            <div class="my-routine-input-row">
-              <input type="number" placeholder="kg" class="my-routine-input" id="myRoutineWeight-${idx}">
-              <input type="number" placeholder="회" class="my-routine-input" id="myRoutineReps-${idx}">
-              <button type="button" class="my-routine-save-btn" data-idx="${idx}">저장</button>
-            </div>
           </div>
           <div class="my-routine-col my-routine-col-past">
             <div class="my-routine-detail-sublabel">지난 기록</div>
             ${pastSetsHtml || `<div class="my-routine-detail-set" style="opacity:0.4;">기록 없음</div>`}
           </div>
+        </div>
+        <div class="my-routine-input-row">
+          <input type="number" placeholder="kg" class="my-routine-input" id="myRoutineWeight-${idx}">
+          <input type="number" placeholder="회" class="my-routine-input" id="myRoutineReps-${idx}">
+          <button type="button" class="my-routine-save-btn" data-idx="${idx}">저장</button>
         </div>
       </div>
     `;
