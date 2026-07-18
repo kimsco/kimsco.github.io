@@ -2389,15 +2389,21 @@ input[type="number"] {
   margin-bottom: 14px;
 }
 .my-routine-date-line {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: baseline;
+  margin-bottom: 26px;
+}
+.my-routine-date-left {
   display: flex;
   align-items: baseline;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 10px;
-  margin-bottom: 26px;
 }
 .my-routine-date-past {
   font-size: 12px;
   color: rgba(255,255,255,0.3);
+  white-space: nowrap;
 }
 .my-routine-date-dots {
   font-size: 12px;
@@ -2408,6 +2414,7 @@ input[type="number"] {
   font-size: 20px;
   font-weight: 800;
   color: #fff;
+  white-space: nowrap;
 }
 
 </style>
@@ -4734,12 +4741,23 @@ function openMyRoutineDetail(partKey){
   }
   const fullDateStr = (d) => `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,"0")}.${String(d.getDate()).padStart(2,"0")}`;
 
+  // 🔥 받침 유무에 따라 "을/를" 자동 판별
+  function eulReul(word){
+    if (!word) return "를";
+    const code = word.charCodeAt(word.length - 1) - 0xAC00;
+    if (code < 0 || code > 11171) return "를";
+    return (code % 28) !== 0 ? "을" : "를";
+  }
+
   bannerEl.innerHTML = `
-    <div class="my-routine-days-ago">지난 ${escapeHtml(partInfo.label)}를 하신지 ${daysAgo}일이 지났습니다</div>
+    <div class="my-routine-days-ago">${escapeHtml(partInfo.label)}${eulReul(partInfo.label)} 한지 ${daysAgo}일 지났습니다</div>
     <div class="my-routine-date-line">
-      <span class="my-routine-date-past">${pastDateObj ? fullDateStr(pastDateObj) : ""}</span>
-      <span class="my-routine-date-dots">· · · · ·</span>
+      <div class="my-routine-date-left">
+        <span class="my-routine-date-past">${pastDateObj ? fullDateStr(pastDateObj) : ""}</span>
+        <span class="my-routine-date-dots">· · · · ·</span>
+      </div>
       <span class="my-routine-date-today">${fullDateStr(today)}</span>
+      <div></div>
     </div>
   `;
 
