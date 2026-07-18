@@ -3178,8 +3178,11 @@ input[type="number"] {
     overflow:hidden;
   ">
   <div id="myRoutineDetailScreen" style="height:100%; overflow-y:auto; padding: calc(28px + env(safe-area-inset-top)) 18px 24px;">
-    <div style="display:flex; align-items:center; margin-bottom:20px; cursor:pointer;" onclick="closeMyRoutineDetail()">
-      ← <span id="myRoutineDetailTitle" style="margin-left:6px; font-size:15px; font-weight:600; color:#fff;">하체</span>
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
+      <div style="display:flex; align-items:center; cursor:pointer;" onclick="closeMyRoutineDetail()">
+        ← <span id="myRoutineDetailTitle" style="margin-left:6px; font-size:15px; font-weight:600; color:#fff;">하체</span>
+      </div>
+      <button id="myRoutineDeleteTemplateBtn" style="display:none; -webkit-appearance:none; appearance:none; background:transparent; border:1px solid rgba(255,91,91,0.5); color:#ff5b5b; font-size:12px; padding:6px 12px; border-radius:8px; cursor:pointer;">루틴 삭제</button>
     </div>
 
     <div id="myRoutineDateBanner"></div>
@@ -5079,6 +5082,8 @@ function openMyRoutineDetail(partKey){
   if (!partInfo || !routine) return;
 
   myRoutineCurrentPartKey = partKey;
+  myRoutineDetailSourceTemplate = null; // 🔥 자동추론 루틴이므로 삭제 버튼 숨김
+  document.getElementById("myRoutineDeleteTemplateBtn").style.display = "none";
   document.getElementById("myRoutineDetailTitle").textContent = partInfo.label;
 
   // 🔥 상단 날짜 배너: "지난 [부위]를 하신지 N일이 지났습니다" + 지난날짜(작게) ···· 오늘날짜(크게)
@@ -5364,7 +5369,7 @@ document.getElementById("myRoutineBuilderSaveBtn").addEventListener("click", asy
 function myRoutineTemplateCardHtml(template, partKey){
   const exercises = template.exercisesByPart[partKey] || [];
   return `
-    <div class="my-routine-template-card" data-id="${template.id}">
+    <div class="my-routine-template-card" data-id="${template.id}" data-part="${partKey}">
       <div class="my-routine-template-ex">
         ${exercises.map((name, i) => `
           ${i > 0 ? `<div class="my-routine-template-ex-line"></div>` : ``}
@@ -5374,6 +5379,108 @@ function myRoutineTemplateCardHtml(template, partKey){
     </div>
   `;
 }
+
+/* 🔥 특정 종목의 "가장 최근 날짜"에 기록된 세트들 (템플릿 진행화면의 "지난 기록"용) */
+function getLastSetsForExercise(name){
+  const arr = accRecordsByExercise[name] || [];
+  if (!arr.length) return [];
+  const latestDate = arr.reduce((max, r) => (r.date > max ? r.date : max), arr[0].date);
+  return arr
+    .filter(r => r.date === latestDate)
+    .sort((a, b) => dexTimeValue(a.createdAt) - dexTimeValue(b.createdAt));
+}
+
+/* 🔥 내가 만든 루틴(템플릿) 카드를 눌렀을 때: 기존 진행화면(오늘/지난기록 비교)과 동일한 화면으로 진입 */
+let myRoutineDetailSourceTemplate = null; // { template, partKey } — 삭제 버튼 노출 및 동작에 사용
+
+function openMyRoutineDetailFromTemplate(template, partKey){
+  const partInfo = myRoutineBuilderPartInfo(partKey);
+  const names = template.exercisesByPart[partKey] || [];
+  if (!partInfo || !names.length) return;
+
+  myRoutineDetailSourceTemplate = { template, partKey };
+  document.getElementById("myRoutineDeleteTemplateBtn").style.display = "block";
+  document.getElementById("myRoutineDetailTitle").textContent = partInfo.label;
+  document.getElementById("myRoutineDateBanner").innerHTML = ""; // 템플릿은 특정 날짜에 묶인 게 아니라서 날짜 배너 없음
+
+  const listEl = document.getElementById("myRoutineDetailList");
+  listEl.innerHTML = names.map((name, idx) => {
+    const sets = getLastSetsForExercise(name);
+    const pastSetsHtml = sets.map(s => `
+      <div class="my-routine-detail-set">${formatKgSmart(s.weight)}kg × ${parseInt(s.reps,10)}회</div>
+    `).join("");
+
+    return `
+      <div class="my-routine-detail-card" data-idx="${idx}" data-type="accessory" data-key="${escapeHtml(name)}">
+        <div class="my-routine-detail-name">${escapeHtml(name)}</div>
+        <div class="my-routine-compare-row">
+          <div class="my-routine-col">
+            <div class="my-routine-detail-sublabel">오늘</div>
+            <div class="my-routine-today-list" id="myRoutineTodayList-${idx}"></div>
+          </div>
+          <div class="my-routine-col my-routine-col-past">
+            <div class="my-routine-detail-sublabel">지난 기록</div>
+            ${pastSetsHtml || `<div class="my-routine-detail-set" style="opacity:0.4;">기록 없음</div>`}
+          </div>
+        </div>
+        <div class="my-routine-input-row">
+          <input type="number" placeholder="kg" class="my-routine-input" id="myRoutineWeight-${idx}">
+          <input type="number" placeholder="회" class="my-routine-input" id="myRoutineReps-${idx}">
+          <button type="button" class="my-routine-save-btn" data-idx="${idx}">저장</button>
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  listEl.querySelectorAll(".my-routine-save-btn").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const idx = btn.dataset.idx;
+      const card = listEl.querySelector(`.my-routine-detail-card[data-idx="${idx}"]`);
+      const key = card.dataset.key;
+
+      const weightEl = document.getElementById(`myRoutineWeight-${idx}`);
+      const repsEl = document.getElementById(`myRoutineReps-${idx}`);
+      const weight = round1(parseFloat(weightEl.value));
+      const reps = parseInt(repsEl.value, 10);
+      if (!Number.isFinite(weight) || !reps) { weightEl.focus(); return; }
+
+      btn.disabled = true;
+      const saved = await myRoutineSaveAccessorySet(key, partInfo.dataPart, weight, reps);
+      btn.disabled = false;
+
+      weightEl.value = "";
+      repsEl.value = "";
+
+      const todayListEl = document.getElementById(`myRoutineTodayList-${idx}`);
+      if (todayListEl) todayListEl.insertAdjacentHTML("beforeend", myRoutineTodaySetLine(saved, "accessory"));
+    });
+  });
+
+  myRoutineDetailOverlay.classList.remove("hidden");
+  myRoutineDetailScreen.style.transform = "translateX(0)";
+  myRoutineDetailScreen.scrollTop = 0;
+}
+
+document.getElementById("myRoutineDeleteTemplateBtn").addEventListener("click", async () => {
+  if (!myRoutineDetailSourceTemplate) return;
+  if (!confirm("이 루틴을 삭제할까요?")) return;
+
+  const { template } = myRoutineDetailSourceTemplate;
+  myRoutineTemplates = myRoutineTemplates.filter(t => t.id !== template.id);
+  saveMyRoutineTemplatesToLocal();
+
+  const user = auth.currentUser;
+  if (user) {
+    try {
+      await db.collection("users").doc(user.uid)
+        .collection("myRoutineTemplates").doc(template.id).delete();
+    } catch (e) { console.error("루틴 템플릿 삭제 실패", e); }
+  }
+
+  myRoutineDetailSourceTemplate = null;
+  closeMyRoutineDetail();
+  renderMyRoutineTemplateSection();
+});
 
 function wireCarouselFocus(carouselEl){
   function updateFocus(){
@@ -5409,6 +5516,16 @@ function wireCarouselFocus(carouselEl){
       }
     }, 120);
   }, { passive: true });
+
+  // 🔥 카드(가운데 있든 옆에 있든) 누르면 진행화면으로 진입
+  carouselEl.querySelectorAll(".my-routine-template-card").forEach(card => {
+    card.addEventListener("click", () => {
+      const templateId = card.dataset.id;
+      const partKey = card.dataset.part;
+      const template = myRoutineTemplates.find(t => t.id === templateId);
+      if (template) openMyRoutineDetailFromTemplate(template, partKey);
+    });
+  });
 
   updateFocus();
 }
