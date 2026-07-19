@@ -5765,6 +5765,25 @@ function openMyRoutineRevealScreen(partKey){
   contentEl.appendChild(choicesEl);
   queue.push({ el: choicesEl, delayMs });
 
+  // 🔥 패딩 계산이 애매해질 수 있어서, 명확하게 공간을 차지하는 빈 블록을 강제로 추가
+  const spacerEl = document.createElement("div");
+  spacerEl.style.height = "400px";
+  spacerEl.style.flexShrink = "0";
+  contentEl.appendChild(spacerEl);
+
+  // 🔍 임시 디버그: 실제 스크롤 가능 범위 확인용 (원인 찾으면 삭제 예정)
+  const debugEl = document.createElement("div");
+  debugEl.style.cssText = "margin-top:20px; padding:10px; border:1px solid red; color:red; font-size:11px; text-align:left; white-space:pre-wrap;";
+  contentEl.appendChild(debugEl);
+  setTimeout(() => {
+    debugEl.textContent =
+      `scrollHeight: ${screenEl.scrollHeight}\n` +
+      `clientHeight: ${screenEl.clientHeight}\n` +
+      `maxScrollTop: ${screenEl.scrollHeight - screenEl.clientHeight}\n` +
+      `contentEl.offsetHeight: ${contentEl.offsetHeight}\n` +
+      `queue.length: ${queue.length}`;
+  }, 300);
+
   // 🔥 CSS 애니메이션 대신 JS 타이머로 하나씩 순서대로 나타내면서, 그때마다 화면도 같이 따라 스크롤
   queue.forEach(({ el, delayMs }) => {
     setTimeout(() => {
