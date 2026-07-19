@@ -2270,6 +2270,22 @@ input[type="number"] {
   margin: -6px 0 6px 2px;
 }
 
+/* 🔥 전체화면 오버레이들: 끝까지 스크롤하면 스프링처럼 튕겨 돌아오지 않고 그 자리에 멈추게 함
+   (.app / .folderContent에는 이미 적용돼 있었는데, 이후 만든 전체화면들엔 빠져있었음) */
+#exerciseDexScreen,
+#dexPostDetailScreen,
+#dexWriteScreen,
+#mySpecScreen,
+#threeSummaryScreen,
+#myRoutineScreen,
+#myRoutineRevealScreen,
+#myRoutinePastListScreen,
+#myRoutineBuilderScreen,
+#myRoutineDetailScreen {
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+}
+
 /* ===============================
    내 루틴
 ================================ */
@@ -3202,8 +3218,6 @@ input[type="number"] {
     <div id="myRoutineAddRow" class="my-routine-add-row">+ 루틴 추가하기</div>
 
     <div id="myRoutineTemplateSection"></div>
-
-    <div id="myRoutineTestRoomRow" class="my-routine-add-row" style="color:rgba(255,255,255,0.3); margin-top:30px;">Test Routine Room</div>
   </div>
 </div>
 
@@ -3309,6 +3323,7 @@ input[type="number"] {
     <button id="navThreeSummaryBtn" class="nav-drawer-item">3대 총합</button>
     <button id="navExerciseDexBtn" class="nav-drawer-item">운동도감</button>
     <button id="navMyRoutineBtn" class="nav-drawer-item">내 루틴</button>
+    <button id="navTestRoutineRoomBtn" class="nav-drawer-item">Test Routine Room</button>
   </div>
 </div>
 
@@ -5632,10 +5647,10 @@ function hideMyRoutineBanner(flingUp){
   setTimeout(() => { myRoutineBannerOverlay.style.display = "none"; }, 300);
 }
 
-document.getElementById("myRoutineTestRoomRow").addEventListener("click", () => {
+document.getElementById("navTestRoutineRoomBtn").addEventListener("click", () => {
   const partKey = pickAnyRoutinePart();
   if (!partKey) { alert("아직 기록된 운동이 없어서 테스트할 루틴이 없어요."); return; }
-  closeMyRoutine();
+  closeNavDrawer();
   setTimeout(() => showMyRoutineBanner(partKey), 260);
 });
 
