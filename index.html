@@ -5773,20 +5773,23 @@ function openMyRoutineRevealScreen(partKey){
   spacerEl.style.flexShrink = "0";
   contentEl.appendChild(spacerEl);
 
-  // 🔥 CSS 애니메이션 대신 JS 타이머로 하나씩 순서대로 나타내면서, 그때마다 화면도 같이 따라 스크롤
+  // 각 줄은 타이머로 순서대로 나타남
   queue.forEach(({ el, delayMs }) => {
-    setTimeout(() => {
-      el.classList.add("revealed");
-      requestAnimationFrame(() => {
-        const elRect = el.getBoundingClientRect();
-        const screenRect = screenEl.getBoundingClientRect();
-        const overflowBottom = elRect.bottom - (screenRect.bottom - 30);
-        if (overflowBottom > 0) {
-          screenEl.scrollTo({ top: screenEl.scrollTop + overflowBottom, behavior: "smooth" });
-        }
-      });
-    }, delayMs);
+    setTimeout(() => { el.classList.add("revealed"); }, delayMs);
   });
+
+  // 🔥 화면은 전체 리빌 시간에 맞춰 처음부터 끝(맨 밑)까지 하나의 부드러운 움직임으로 계속 이어서 스크롤
+  const totalRevealMs = delayMs + 500; // 마지막 줄 페이드인까지 끝나는 시점
+  let scrollStartTs = null;
+  function scrollStep(ts){
+    if (scrollStartTs === null) scrollStartTs = ts;
+    const elapsed = ts - scrollStartTs;
+    const progress = Math.min(1, elapsed / totalRevealMs);
+    const maxScroll = screenEl.scrollHeight - screenEl.clientHeight;
+    if (maxScroll > 0) screenEl.scrollTop = maxScroll * progress;
+    if (progress < 1) requestAnimationFrame(scrollStep);
+  }
+  requestAnimationFrame(scrollStep);
 
   document.getElementById("myRoutineRevealYes").addEventListener("click", () => {
     closeMyRoutineRevealScreen();
