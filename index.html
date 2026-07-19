@@ -2272,16 +2272,16 @@ input[type="number"] {
 
 /* 🔥 전체화면 오버레이들: 끝까지 스크롤하면 스프링처럼 튕겨 돌아오지 않고 그 자리에 멈추게 함
    (.app / .folderContent에는 이미 적용돼 있었는데, 이후 만든 전체화면들엔 빠져있었음) */
-#exerciseDexScreen,
+#dexBody,
 #dexPostDetailScreen,
 #dexWriteScreen,
 #mySpecScreen,
 #threeSummaryScreen,
-#myRoutineScreen,
 #myRoutineRevealScreen,
-#myRoutinePastListScreen,
-#myRoutineBuilderScreen,
-#myRoutineDetailScreen {
+#myRoutineBody,
+#myRoutinePastListBody,
+#myRoutineBuilderBody,
+#myRoutineDetailBody {
   overscroll-behavior: none;
   -webkit-overflow-scrolling: touch;
 }
@@ -2995,17 +2995,19 @@ input[type="number"] {
     position:fixed; inset:0; background:#000; z-index:100000;
     overflow:hidden;
   ">
-  <div id="exerciseDexScreen" style="height:100%; overflow-y:auto; padding: calc(28px + env(safe-area-inset-top)) 18px 24px; position:relative;">
-    <div id="dexBackRow" style="display:flex; align-items:center; margin-bottom:16px; cursor:pointer;">
+  <div id="exerciseDexScreen" style="height:100%; display:flex; flex-direction:column; position:relative;">
+    <div id="dexBackRow" style="flex-shrink:0; padding: calc(28px + env(safe-area-inset-top)) 18px 16px; display:flex; align-items:center; cursor:pointer;">
       ← <span id="dexTitle" style="margin-left:6px; font-size:15px; font-weight:600; color:#fff;">운동도감</span>
     </div>
 
-    <div id="exerciseDexEmpty" style="color:rgba(255,255,255,0.35); font-size:13px; text-align:center; margin-top:100px;">
-      <div style="color:rgba(255,255,255,0.55);">아직 등록된 내용이 없습니다.</div>
-      <div style="margin-top:6px; color:rgba(255,255,255,0.3);">우측 하단의 + 버튼을 눌러 추가해보세요.</div>
-    </div>
+    <div id="dexBody" style="flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; padding: 0 18px calc(24px + env(safe-area-inset-bottom));">
+      <div id="exerciseDexEmpty" style="color:rgba(255,255,255,0.35); font-size:13px; text-align:center; margin-top:100px;">
+        <div style="color:rgba(255,255,255,0.55);">아직 등록된 내용이 없습니다.</div>
+        <div style="margin-top:6px; color:rgba(255,255,255,0.3);">우측 하단의 + 버튼을 눌러 추가해보세요.</div>
+      </div>
 
-    <div id="dexListArea"></div>
+      <div id="dexListArea"></div>
+    </div>
   </div>
 
   <button id="exerciseDexFab" class="dex-fab" aria-label="추가">+</button>
@@ -3205,19 +3207,20 @@ input[type="number"] {
     position:fixed; inset:0; background:#000; z-index:100000;
     overflow:hidden;
   ">
-  <div id="myRoutineScreen" style="height:100%; overflow-y:auto; padding: calc(28px + env(safe-area-inset-top)) 18px 24px;">
-    <div style="display:flex; align-items:center; margin-bottom:20px; cursor:pointer;" onclick="closeMyRoutine()">
+  <div id="myRoutineScreen" style="height:100%; display:flex; flex-direction:column;">
+    <div style="flex-shrink:0; padding: calc(28px + env(safe-area-inset-top)) 18px 16px; display:flex; align-items:center; cursor:pointer;" onclick="closeMyRoutine()">
       ← <span style="margin-left:6px; font-size:15px; font-weight:600; color:#fff;">내 루틴</span>
     </div>
+    <div id="myRoutineBody" style="flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; padding: 0 18px calc(24px + env(safe-area-inset-bottom));">
+      <div id="myRoutinePastRow" class="my-routine-past-row">
+        <div class="my-routine-past-row-label">내 지난 루틴</div>
+        <div class="my-routine-past-row-chevron">›</div>
+      </div>
 
-    <div id="myRoutinePastRow" class="my-routine-past-row">
-      <div class="my-routine-past-row-label">내 지난 루틴</div>
-      <div class="my-routine-past-row-chevron">›</div>
+      <div id="myRoutineAddRow" class="my-routine-add-row">+ 루틴 추가하기</div>
+
+      <div id="myRoutineTemplateSection"></div>
     </div>
-
-    <div id="myRoutineAddRow" class="my-routine-add-row">+ 루틴 추가하기</div>
-
-    <div id="myRoutineTemplateSection"></div>
   </div>
 </div>
 
@@ -3244,7 +3247,7 @@ input[type="number"] {
     position:fixed; inset:0; background:#000; z-index:150000;
     overflow:hidden;
   ">
-  <div id="myRoutineRevealScreen" style="height:100%; overflow-y:auto; padding: calc(60px + env(safe-area-inset-top)) 24px calc(40px + env(safe-area-inset-bottom));">
+  <div id="myRoutineRevealScreen" style="height:100%; overflow-y:auto; -webkit-overflow-scrolling:touch; padding: calc(60px + env(safe-area-inset-top)) 24px calc(60px + env(safe-area-inset-bottom));">
     <div id="myRoutineRevealContent" style="display:flex; flex-direction:column; align-items:center; text-align:center;"></div>
   </div>
 </div>
@@ -3254,16 +3257,17 @@ input[type="number"] {
     position:fixed; inset:0; background:#000; z-index:100001;
     overflow:hidden;
   ">
-  <div id="myRoutinePastListScreen" style="height:100%; overflow-y:auto; padding: calc(28px + env(safe-area-inset-top)) 18px 24px;">
-    <div style="display:flex; align-items:center; margin-bottom:20px; cursor:pointer;" onclick="closeMyRoutinePastList()">
+  <div id="myRoutinePastListScreen" style="height:100%; display:flex; flex-direction:column;">
+    <div style="flex-shrink:0; padding: calc(28px + env(safe-area-inset-top)) 18px 16px; display:flex; align-items:center; cursor:pointer;" onclick="closeMyRoutinePastList()">
       ← <span style="margin-left:6px; font-size:15px; font-weight:600; color:#fff;">내 지난 루틴</span>
     </div>
+    <div id="myRoutinePastListBody" style="flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; padding: 0 18px calc(24px + env(safe-area-inset-bottom));">
+      <div id="myRoutineEmpty" style="color:rgba(255,255,255,0.35); font-size:13px; margin: 20px 0;">
+        아직 기록된 운동이 없습니다.
+      </div>
 
-    <div id="myRoutineEmpty" style="color:rgba(255,255,255,0.35); font-size:13px; margin: 20px 0;">
-      아직 기록된 운동이 없습니다.
+      <div id="myRoutineList"></div>
     </div>
-
-    <div id="myRoutineList"></div>
   </div>
 </div>
 
@@ -3272,14 +3276,14 @@ input[type="number"] {
     position:fixed; inset:0; background:#111; z-index:100005;
     overflow:hidden;
   ">
-  <div id="myRoutineBuilderScreen" style="height:100%; display:flex; flex-direction:column; overflow-y:auto; padding: calc(16px + env(safe-area-inset-top)) 0 calc(24px + env(safe-area-inset-bottom));">
-    <div style="display:flex; align-items:center; justify-content:space-between; padding:0 18px 14px; flex-shrink:0;">
+  <div id="myRoutineBuilderScreen" style="height:100%; display:flex; flex-direction:column;">
+    <div style="display:flex; align-items:center; justify-content:space-between; padding: calc(16px + env(safe-area-inset-top)) 18px 14px; flex-shrink:0;">
       <div id="myRoutineBuilderCancel" style="cursor:pointer; flex-shrink:0; white-space:nowrap; font-size:15px; color:rgba(255,255,255,0.7);">취소</div>
       <button id="myRoutineBuilderSaveBtn" style="-webkit-appearance:none !important; appearance:none !important; flex-shrink:0; width:auto; background:transparent; border:none; color:#fff; font-size:15px; font-weight:700; padding:4px 2px; cursor:pointer;">저장</button>
     </div>
     <div style="border-bottom:1px solid rgba(255,255,255,0.35); flex-shrink:0;"></div>
 
-    <div style="padding:0 18px; flex:1;">
+    <div id="myRoutineBuilderBody" style="flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; padding: 0 18px calc(24px + env(safe-area-inset-bottom));">
       <div class="my-routine-builder-title">루틴 만들기</div>
 
       <div class="my-routine-builder-sublabel">부위 선택</div>
@@ -3295,8 +3299,8 @@ input[type="number"] {
     position:fixed; inset:0; background:#000; z-index:100002;
     overflow:hidden;
   ">
-  <div id="myRoutineDetailScreen" style="height:100%; overflow-y:auto; padding: calc(28px + env(safe-area-inset-top)) 18px 24px;">
-    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
+  <div id="myRoutineDetailScreen" style="height:100%; display:flex; flex-direction:column;">
+    <div style="flex-shrink:0; padding: calc(28px + env(safe-area-inset-top)) 18px 16px; display:flex; align-items:center; justify-content:space-between;">
       <div style="display:flex; align-items:center; cursor:pointer;" onclick="closeMyRoutineDetail()">
         ← <span id="myRoutineDetailTitle" style="margin-left:6px; font-size:15px; font-weight:600; color:#fff;">하체</span>
       </div>
@@ -3311,9 +3315,10 @@ input[type="number"] {
       </button>
     </div>
 
-    <div id="myRoutineDateBanner"></div>
-
-    <div id="myRoutineDetailList"></div>
+    <div id="myRoutineDetailBody" style="flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; padding: 0 18px calc(24px + env(safe-area-inset-bottom));">
+      <div id="myRoutineDateBanner"></div>
+      <div id="myRoutineDetailList"></div>
+    </div>
   </div>
 </div>
 
@@ -5012,7 +5017,7 @@ function renderMyRoutineList(){
 function openMyRoutine(){
   myRoutineOverlay.classList.remove("hidden");
   myRoutineScreen.style.transform = "translateX(0)";
-  myRoutineScreen.scrollTop = 0;
+  document.getElementById("myRoutineBody").scrollTop = 0;
   renderMyRoutineTemplateSection();
 }
 function closeMyRoutine(){
@@ -5032,7 +5037,7 @@ const myRoutinePastListScreen = document.getElementById("myRoutinePastListScreen
 function openMyRoutinePastList(){
   myRoutinePastListOverlay.classList.remove("hidden");
   myRoutinePastListScreen.style.transform = "translateX(0)";
-  myRoutinePastListScreen.scrollTop = 0;
+  document.getElementById("myRoutinePastListBody").scrollTop = 0;
   renderMyRoutineList();
 }
 function closeMyRoutinePastList(){
@@ -5312,7 +5317,7 @@ function openMyRoutineDetail(partKey){
 
   myRoutineDetailOverlay.classList.remove("hidden");
   myRoutineDetailScreen.style.transform = "translateX(0)";
-  myRoutineDetailScreen.scrollTop = 0;
+  document.getElementById("myRoutineDetailBody").scrollTop = 0;
 }
 function closeMyRoutineDetail(){
   myRoutineDetailOverlay.classList.add("hidden");
@@ -5585,7 +5590,7 @@ function openMyRoutineDetailFromTemplate(template, partKey){
 
   myRoutineDetailOverlay.classList.remove("hidden");
   myRoutineDetailScreen.style.transform = "translateX(0)";
-  myRoutineDetailScreen.scrollTop = 0;
+  document.getElementById("myRoutineDetailBody").scrollTop = 0;
 }
 
 document.getElementById("myRoutineDeleteTemplateBtn").addEventListener("click", async () => {
@@ -6141,7 +6146,7 @@ function dexOpenFolder(id){
   dexFolderStack.push({ id: dexCurrentFolderId, name: document.getElementById("dexTitle").textContent });
   dexCurrentFolderId = id;
   document.getElementById("dexTitle").textContent = folder.name;
-  exerciseDexScreen.scrollTop = 0;
+  document.getElementById("dexBody").scrollTop = 0;
   renderDexList();
 }
 
@@ -6154,7 +6159,7 @@ function dexGoBack(){
     const prev = dexFolderStack.pop();
     dexCurrentFolderId = prev.id;
     document.getElementById("dexTitle").textContent = prev.name;
-    exerciseDexScreen.scrollTop = 0;
+    document.getElementById("dexBody").scrollTop = 0;
     renderDexList();
   } else {
     closeExerciseDex();
@@ -6195,7 +6200,7 @@ function openExerciseDex(){
   exerciseDexOverlay.classList.remove("hidden");
   exerciseDexScreen.style.transform = "translateX(0)";
   hideDexMenuInstant();
-  exerciseDexScreen.scrollTop = 0;
+  document.getElementById("dexBody").scrollTop = 0;
 
   // 🔥 혹시 이전 상태가 남아있어도 항상 목록 화면부터 시작하도록 강제 초기화
   document.getElementById("dexPostDetailOverlay").classList.add("hidden");
