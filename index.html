@@ -5709,6 +5709,12 @@ document.getElementById("myRoutineBannerYes").addEventListener("click", () => {
 const myRoutineRevealOverlay = document.getElementById("myRoutineRevealOverlay");
 const myRoutineRevealScreen = document.getElementById("myRoutineRevealScreen");
 
+// 🔥 .app 안에 중첩되어 있으면 .app의 transform(드로어 열고닫을 때 생김) 때문에
+//    position:fixed 자식의 스크롤/위치 기준이 뷰포트가 아니라 .app으로 바뀌어버림.
+//    navDrawerOverlay 때와 같은 문제라 body 바로 밑으로 옮겨서 확실히 격리시킴.
+document.body.appendChild(myRoutineRevealOverlay);
+document.body.appendChild(myRoutineBannerOverlay);
+
 function openMyRoutineRevealScreen(partKey){
   const partInfo = MY_ROUTINE_PARTS.find(p => p.key === partKey);
   const routine = buildRoutineForPart(partKey);
