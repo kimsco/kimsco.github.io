@@ -2673,6 +2673,21 @@ input[type="number"] {
   background: rgba(255,255,255,0.25);
   margin: 22px 0;
 }
+.my-routine-record-row {
+  display: flex;
+  align-items: flex-start;
+  margin: 0 auto;
+}
+.my-routine-record-input-half {
+  width: 0;
+  flex-shrink: 0;
+}
+.my-routine-record-past-half {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 .my-routine-reveal-question {
   font-size: 15px;
   color: rgba(255,255,255,0.85);
@@ -5736,12 +5751,13 @@ function openMyRoutineRevealScreen(partKey){
   const STEP_MS = 160;
   let delayMs = 0;
   const queue = []; // { el, delayMs }
+  const recordRows = []; // 🔥 "예" 눌렀을 때 확장시킬 종목별 로우들
 
-  function addLine(className, innerHtml, extraDelayMs){
+  function addLine(className, innerHtml, extraDelayMs, parentEl){
     const el = document.createElement("div");
     el.className = "my-routine-reveal-line " + className;
     el.innerHTML = innerHtml;
-    contentEl.appendChild(el);
+    (parentEl || contentEl).appendChild(el);
     queue.push({ el, delayMs });
     delayMs += extraDelayMs;
   }
@@ -5757,8 +5773,20 @@ function openMyRoutineRevealScreen(partKey){
 
     addLine("my-routine-reveal-ex-name", escapeHtml(it.displayName), STEP_MS);
 
+    // 🔥 종목명/구분선은 가운데 고정, 이 로우만 나중에 확장되면서 기록이 우측으로 밀림
+    const rowEl = document.createElement("div");
+    rowEl.className = "my-routine-record-row";
+    const inputHalf = document.createElement("div");
+    inputHalf.className = "my-routine-record-input-half";
+    const pastHalf = document.createElement("div");
+    pastHalf.className = "my-routine-record-past-half";
+    rowEl.appendChild(inputHalf);
+    rowEl.appendChild(pastHalf);
+    contentEl.appendChild(rowEl);
+    recordRows.push({ type: it.type, key: it.key, displayName: it.displayName, rowEl, inputHalf, pastHalf });
+
     sets.forEach(s => {
-      addLine("my-routine-reveal-ex-set", `${formatKgSmart(s.weight)}kg × ${parseInt(s.reps,10)}회`, STEP_MS * 0.5);
+      addLine("my-routine-reveal-ex-set", `${formatKgSmart(s.weight)}kg × ${parseInt(s.reps,10)}회`, STEP_MS * 0.5, pastHalf);
     });
     delayMs += STEP_MS * 0.5;
   });
@@ -5810,9 +5838,17 @@ function openMyRoutineRevealScreen(partKey){
   requestAnimationFrame(scrollStep);
 
   document.getElementById("myRoutineRevealYes").addEventListener("click", () => {
-    closeMyRoutineRevealScreen();
-    openMyRoutine();
-    setTimeout(() => openMyRoutineDetail(partKey), 200);
+    // 🔥 다른 화면으로 이동하지 않고, 이 화면에서 그대로 각 종목 기록 영역을 확장
+    recordRows.forEach(r => {
+      const pastWidth = r.pastHalf.offsetWidth;
+      r.inputHalf.style.transition = "width 0.6s cubic-bezier(0.22,1,0.36,1)";
+      r.inputHalf.style.width = pastWidth + "px";
+    });
+    // 질문/버튼 줄은 더 이상 필요 없으니 자연스럽게 사라지게
+    document.querySelectorAll(".my-routine-reveal-question, .my-routine-reveal-choices").forEach(el => {
+      el.style.transition = "opacity 0.3s ease";
+      el.style.opacity = "0";
+    });
   });
   document.getElementById("myRoutineRevealNo").addEventListener("click", () => {
     closeMyRoutineRevealScreen();
