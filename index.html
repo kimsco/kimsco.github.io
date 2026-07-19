@@ -3246,9 +3246,8 @@ input[type="number"] {
 <!-- ✨ 루틴 리빌 화면 -->
 <div id="myRoutineRevealOverlay" class="hidden" style="
     position:fixed; inset:0; background:#000; z-index:150000;
-    overflow:hidden;
   ">
-  <div id="myRoutineRevealScreen" style="height:100%; overflow-y:auto; -webkit-overflow-scrolling:touch; padding: calc(60px + env(safe-area-inset-top)) 24px calc(120px + env(safe-area-inset-bottom));">
+  <div id="myRoutineRevealScreen" style="height:100%; overflow-y:auto; -webkit-overflow-scrolling:touch; touch-action:pan-y; padding: calc(60px + env(safe-area-inset-top)) 24px calc(120px + env(safe-area-inset-bottom));">
     <div id="myRoutineRevealContent" style="display:flex; flex-direction:column; align-items:center; text-align:center;"></div>
   </div>
 </div>
