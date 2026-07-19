@@ -5768,7 +5768,7 @@ function openMyRoutineRevealScreen(partKey){
   // 🔥 padding-bottom만으로는 iOS 사파리에서 스크롤 가능 영역 계산에 안 잡히는 경우가 있어서
   //    실제 공간을 차지하는 빈 블록을 확실하게 추가 (테스트로 검증된 방식)
   const spacerEl = document.createElement("div");
-  spacerEl.style.height = "300px";
+  spacerEl.style.height = "90px";
   spacerEl.style.flexShrink = "0";
   contentEl.appendChild(spacerEl);
 
