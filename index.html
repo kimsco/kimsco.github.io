@@ -7128,41 +7128,91 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
   navDrawer.addEventListener('touchcancel', endDrag, { passive: true });
 })();
 
-/* 🔥 1RM탭(홈 첫 탭): 왼쪽 끝에서 오른쪽으로 스와이프하면 메뉴 드로어가 열림 */
+/* 🔥 1RM탭(홈 첫 탭): 화면 왼쪽 끝 전체에서 오른쪽으로 스와이프하면
+   손가락 따라 메뉴 드로어가 실시간으로 끌려나옴 (닫을 때 제스처의 반대 버전) */
 (function(){
-  const tab1El = document.getElementById('tab1');
-  if (!tab1El) return;
-  const EDGE_ZONE = 30, COMMIT_MOVE = 8, OPEN_DIST = 50;
-  let startX = 0, startY = 0, tracking = false, dragging = false, opened = false;
+  const EDGE_ZONE = 30, COMMIT_MOVE = 8, OPEN_RATIO = 0.3;
+  let startX = 0, startY = 0, tracking = false, dragging = false;
 
-  tab1El.addEventListener('touchstart', (e) => {
+  function isTab1Active(){
+    const activeBtn = document.querySelector('.bottomTab .tabBtn.active');
+    return activeBtn && activeBtn.dataset.target === 'tab1';
+  }
+
+  document.addEventListener('touchstart', (e) => {
+    if (!isTab1Active()) { tracking = false; return; }
+    if (!navDrawerOverlay.classList.contains('hidden')) { tracking = false; return; } // 이미 열려있으면 패스
     const t = e.touches[0];
     if (t.clientX <= EDGE_ZONE) {
       startX = t.clientX; startY = t.clientY;
-      tracking = true; dragging = false; opened = false;
+      tracking = true; dragging = false;
     } else { tracking = false; }
   }, { passive: true });
 
-  tab1El.addEventListener('touchmove', (e) => {
-    if (!tracking || opened) return;
+  document.addEventListener('touchmove', (e) => {
+    if (!tracking) return;
     const t = e.touches[0];
     const dx = t.clientX - startX, dy = t.clientY - startY;
 
     if (!dragging) {
-      if (dx > COMMIT_MOVE && dx > Math.abs(dy) * 0.6) dragging = true;
-      else if (Math.abs(dy) > COMMIT_MOVE && Math.abs(dy) > dx) { tracking = false; return; }
+      if (dx > COMMIT_MOVE && dx > Math.abs(dy) * 0.6) {
+        dragging = true;
+        // 드래그 시작: 드로어를 화면 밖(닫힌 상태)에 배치하고 오버레이를 보이게 함
+        document.querySelectorAll(".nav-drawer-item").forEach(item => {
+          const activeTarget = document.querySelector('.bottomTab .tabBtn.active')?.dataset.target;
+          item.classList.toggle("active", item.dataset.target === activeTarget);
+        });
+        navDrawer.style.transition = 'none';
+        navDrawer.style.transform = 'translateX(-100%)';
+        navDrawerOverlay.style.transition = 'none';
+        navDrawerOverlay.style.opacity = '0';
+        setAppPushTransition('none');
+        setAppPush(0);
+        navDrawerOverlay.classList.remove('hidden');
+      } else if (Math.abs(dy) > COMMIT_MOVE && Math.abs(dy) > dx) { tracking = false; return; }
       else return;
     }
 
-    if (dragging && dx > OPEN_DIST) {
-      opened = true;
-      openNavDrawer();
+    if (dragging) {
+      const width = navDrawer.offsetWidth || window.innerWidth;
+      const progress = Math.max(0, Math.min(1, dx / width));
+      navDrawer.style.transform = `translateX(${-width + dx}px)`;
+      navDrawerOverlay.style.opacity = String(progress);
+      const maxPush = Math.round(width / 5);
+      setAppPush(maxPush * progress);
     }
   }, { passive: true });
 
-  function endDrag(){ tracking = false; dragging = false; }
-  tab1El.addEventListener('touchend', endDrag, { passive: true });
-  tab1El.addEventListener('touchcancel', endDrag, { passive: true });
+  function endDrag(e){
+    if (!tracking) return;
+    const wasDragging = dragging;
+    tracking = false; dragging = false;
+    if (!wasDragging) return;
+
+    const width = navDrawer.offsetWidth || window.innerWidth;
+    const t = e.changedTouches[0];
+    const dx = Math.max(0, t.clientX - startX);
+    navDrawer.style.transition = 'transform 0.22s ease';
+    navDrawerOverlay.style.transition = 'opacity 0.22s ease';
+    setAppPushTransition('transform 0.22s ease');
+
+    if (dx > width * OPEN_RATIO) {
+      navDrawer.style.transform = 'translateX(0)';
+      navDrawerOverlay.style.opacity = '1';
+      const maxPush = Math.round(width / 5);
+      setAppPush(maxPush);
+    } else {
+      navDrawer.style.transform = 'translateX(-100%)';
+      navDrawerOverlay.style.opacity = '0';
+      setAppPush(0);
+      setTimeout(() => {
+        navDrawerOverlay.classList.add('hidden');
+        navDrawer.style.transition = 'none';
+      }, 220);
+    }
+  }
+  document.addEventListener('touchend', endDrag, { passive: true });
+  document.addEventListener('touchcancel', endDrag, { passive: true });
 })();
 
 
