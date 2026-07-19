@@ -2679,15 +2679,16 @@ input[type="number"] {
 .my-routine-reveal-choice-btn {
   -webkit-appearance: none;
   appearance: none;
-  width: 56px;
-  height: 56px;
+  width: auto;
+  min-width: 92px;
+  height: 44px;
   margin: 0;
-  padding: 0;
-  border-radius: 50%;
+  padding: 0 22px;
+  border-radius: 999px;
   border: 1px solid rgba(255,255,255,0.4);
   background: transparent;
   color: #fff;
-  font-size: 20px;
+  font-size: 14px;
   font-weight: 700;
   cursor: pointer;
 }
@@ -5759,8 +5760,8 @@ function openMyRoutineRevealScreen(partKey){
   const choicesEl = document.createElement("div");
   choicesEl.className = "my-routine-reveal-line my-routine-reveal-choices";
   choicesEl.innerHTML = `
-    <button type="button" class="my-routine-reveal-choice-btn" id="myRoutineRevealNo">✕</button>
-    <button type="button" class="my-routine-reveal-choice-btn primary" id="myRoutineRevealYes">○</button>
+    <button type="button" class="my-routine-reveal-choice-btn" id="myRoutineRevealNo">아니요</button>
+    <button type="button" class="my-routine-reveal-choice-btn primary" id="myRoutineRevealYes">예</button>
   `;
   contentEl.appendChild(choicesEl);
   queue.push({ el: choicesEl, delayMs });
@@ -5776,6 +5777,14 @@ function openMyRoutineRevealScreen(partKey){
   queue.forEach(({ el, delayMs }) => {
     setTimeout(() => {
       el.classList.add("revealed");
+      requestAnimationFrame(() => {
+        const elRect = el.getBoundingClientRect();
+        const screenRect = screenEl.getBoundingClientRect();
+        const overflowBottom = elRect.bottom - (screenRect.bottom - 30);
+        if (overflowBottom > 0) {
+          screenEl.scrollTo({ top: screenEl.scrollTop + overflowBottom, behavior: "smooth" });
+        }
+      });
     }, delayMs);
   });
 
@@ -5787,7 +5796,6 @@ function openMyRoutineRevealScreen(partKey){
   document.getElementById("myRoutineRevealNo").addEventListener("click", () => {
     closeMyRoutineRevealScreen();
     openMyRoutine();
-    setTimeout(() => openMyRoutinePastList(), 200);
   });
 
   myRoutineRevealOverlay.classList.remove("hidden");
@@ -7118,6 +7126,43 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
   }
   navDrawer.addEventListener('touchend', endDrag, { passive: true });
   navDrawer.addEventListener('touchcancel', endDrag, { passive: true });
+})();
+
+/* 🔥 1RM탭(홈 첫 탭): 왼쪽 끝에서 오른쪽으로 스와이프하면 메뉴 드로어가 열림 */
+(function(){
+  const tab1El = document.getElementById('tab1');
+  if (!tab1El) return;
+  const EDGE_ZONE = 30, COMMIT_MOVE = 8, OPEN_DIST = 50;
+  let startX = 0, startY = 0, tracking = false, dragging = false, opened = false;
+
+  tab1El.addEventListener('touchstart', (e) => {
+    const t = e.touches[0];
+    if (t.clientX <= EDGE_ZONE) {
+      startX = t.clientX; startY = t.clientY;
+      tracking = true; dragging = false; opened = false;
+    } else { tracking = false; }
+  }, { passive: true });
+
+  tab1El.addEventListener('touchmove', (e) => {
+    if (!tracking || opened) return;
+    const t = e.touches[0];
+    const dx = t.clientX - startX, dy = t.clientY - startY;
+
+    if (!dragging) {
+      if (dx > COMMIT_MOVE && dx > Math.abs(dy) * 0.6) dragging = true;
+      else if (Math.abs(dy) > COMMIT_MOVE && Math.abs(dy) > dx) { tracking = false; return; }
+      else return;
+    }
+
+    if (dragging && dx > OPEN_DIST) {
+      opened = true;
+      openNavDrawer();
+    }
+  }, { passive: true });
+
+  function endDrag(){ tracking = false; dragging = false; }
+  tab1El.addEventListener('touchend', endDrag, { passive: true });
+  tab1El.addEventListener('touchcancel', endDrag, { passive: true });
 })();
 
 
