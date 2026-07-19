@@ -5769,14 +5769,6 @@ function openMyRoutineRevealScreen(partKey){
   queue.forEach(({ el, delayMs }) => {
     setTimeout(() => {
       el.classList.add("revealed");
-      requestAnimationFrame(() => {
-        const elRect = el.getBoundingClientRect();
-        const screenRect = screenEl.getBoundingClientRect();
-        const overflowBottom = elRect.bottom - (screenRect.bottom - 30);
-        if (overflowBottom > 0) {
-          screenEl.scrollTo({ top: screenEl.scrollTop + overflowBottom, behavior: "smooth" });
-        }
-      });
     }, delayMs);
   });
 
