@@ -2626,14 +2626,15 @@ input[type="number"] {
   background: rgba(255,255,255,0.25);
 }
 
-/* ✨ 루틴 리빌 화면 */
-@keyframes myRoutineRevealIn {
-  from { opacity: 0; transform: translateY(18px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
+/* ✨ 루틴 리빌 화면 (JS로 순서대로 revealed 클래스를 붙여가며 하나씩 나타남) */
 .my-routine-reveal-line {
   opacity: 0;
-  animation: myRoutineRevealIn 0.6s cubic-bezier(0.22,1,0.36,1) forwards;
+  transform: translateY(18px);
+  transition: opacity 0.6s cubic-bezier(0.22,1,0.36,1), transform 0.6s cubic-bezier(0.22,1,0.36,1);
+}
+.my-routine-reveal-line.revealed {
+  opacity: 1;
+  transform: translateY(0);
 }
 .my-routine-reveal-title {
   font-size: 30px;
@@ -5714,44 +5715,65 @@ function openMyRoutineRevealScreen(partKey){
   if (!partInfo || !routine) return;
 
   const contentEl = document.getElementById("myRoutineRevealContent");
-  let delay = 0;
-  const STEP = 0.16;
-  let html = "";
+  contentEl.innerHTML = "";
+  const screenEl = myRoutineRevealScreen;
+  screenEl.scrollTop = 0;
 
-  html += `<div class="my-routine-reveal-line my-routine-reveal-title" style="animation-delay:${delay}s">${escapeHtml(partInfo.label)}</div>`;
-  delay += STEP;
-  html += `<div class="my-routine-reveal-line my-routine-reveal-sub" style="animation-delay:${delay}s">지난 루틴</div>`;
-  delay += STEP;
+  const STEP_MS = 160;
+  let delayMs = 0;
+  const queue = []; // { el, delayMs }
+
+  function addLine(className, innerHtml, extraDelayMs){
+    const el = document.createElement("div");
+    el.className = "my-routine-reveal-line " + className;
+    el.innerHTML = innerHtml;
+    contentEl.appendChild(el);
+    queue.push({ el, delayMs });
+    delayMs += extraDelayMs;
+  }
+
+  addLine("my-routine-reveal-title", escapeHtml(partInfo.label), STEP_MS);
+  addLine("my-routine-reveal-sub", "지난 루틴", STEP_MS);
 
   routine.items.forEach((it, idx) => {
     const uid = it.type + ":" + it.key;
     const sets = routine.setsByItem[uid] || [];
 
-    if (idx > 0) {
-      html += `<div class="my-routine-reveal-line my-routine-reveal-divider" style="animation-delay:${delay}s"></div>`;
-      delay += STEP;
-    }
+    if (idx > 0) addLine("my-routine-reveal-divider", "", STEP_MS);
 
-    html += `<div class="my-routine-reveal-line my-routine-reveal-ex-name" style="animation-delay:${delay}s">${escapeHtml(it.displayName)}</div>`;
-    delay += STEP;
+    addLine("my-routine-reveal-ex-name", escapeHtml(it.displayName), STEP_MS);
 
     sets.forEach(s => {
-      html += `<div class="my-routine-reveal-line my-routine-reveal-ex-set" style="animation-delay:${delay}s">${formatKgSmart(s.weight)}kg × ${parseInt(s.reps,10)}회</div>`;
-      delay += STEP * 0.5;
+      addLine("my-routine-reveal-ex-set", `${formatKgSmart(s.weight)}kg × ${parseInt(s.reps,10)}회`, STEP_MS * 0.5);
     });
-    delay += STEP * 0.5;
+    delayMs += STEP_MS * 0.5;
   });
 
-  html += `<div class="my-routine-reveal-line my-routine-reveal-question" style="animation-delay:${delay}s">지난 루틴대로 하시겠습니까?</div>`;
-  delay += STEP;
-  html += `
-    <div class="my-routine-reveal-line my-routine-reveal-choices" style="animation-delay:${delay}s">
-      <button type="button" class="my-routine-reveal-choice-btn" id="myRoutineRevealNo">✕</button>
-      <button type="button" class="my-routine-reveal-choice-btn primary" id="myRoutineRevealYes">○</button>
-    </div>
-  `;
+  addLine("my-routine-reveal-question", "지난 루틴대로 하시겠습니까?", STEP_MS);
 
-  contentEl.innerHTML = html;
+  const choicesEl = document.createElement("div");
+  choicesEl.className = "my-routine-reveal-line my-routine-reveal-choices";
+  choicesEl.innerHTML = `
+    <button type="button" class="my-routine-reveal-choice-btn" id="myRoutineRevealNo">✕</button>
+    <button type="button" class="my-routine-reveal-choice-btn primary" id="myRoutineRevealYes">○</button>
+  `;
+  contentEl.appendChild(choicesEl);
+  queue.push({ el: choicesEl, delayMs });
+
+  // 🔥 CSS 애니메이션 대신 JS 타이머로 하나씩 순서대로 나타내면서, 그때마다 화면도 같이 따라 스크롤
+  queue.forEach(({ el, delayMs }) => {
+    setTimeout(() => {
+      el.classList.add("revealed");
+      requestAnimationFrame(() => {
+        const elRect = el.getBoundingClientRect();
+        const screenRect = screenEl.getBoundingClientRect();
+        const overflowBottom = elRect.bottom - (screenRect.bottom - 30);
+        if (overflowBottom > 0) {
+          screenEl.scrollTo({ top: screenEl.scrollTop + overflowBottom, behavior: "smooth" });
+        }
+      });
+    }, delayMs);
+  });
 
   document.getElementById("myRoutineRevealYes").addEventListener("click", () => {
     closeMyRoutineRevealScreen();
