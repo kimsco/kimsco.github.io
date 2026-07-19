@@ -8937,6 +8937,22 @@ loadFoodTemplatesFromLocal();
 loadMealsFromLocal();
 loadMyRoutineTemplatesFromLocal();
 
+/* 🔥 iOS 사파리는 키보드가 뜨면 position:fixed; bottom:0 요소를 화면(visual viewport) 기준으로
+   같이 밀어 올리는 버릇이 있음. 하단탭바는 화면상 원래 자리에 고정돼야(=키보드에 가려져야) 하므로,
+   키보드 높이만큼 다시 아래로 눌러서 원래 위치를 유지시킴. */
+(function(){
+  if (!window.visualViewport) return;
+  const bottomTabEl = document.querySelector('.bottomTab');
+  if (!bottomTabEl) return;
+
+  function adjustForKeyboard(){
+    const kbHeight = Math.max(0, window.innerHeight - window.visualViewport.height - window.visualViewport.offsetTop);
+    bottomTabEl.style.transform = `translateX(-50%) translateY(${kbHeight}px)`;
+  }
+  window.visualViewport.addEventListener('resize', adjustForKeyboard);
+  window.visualViewport.addEventListener('scroll', adjustForKeyboard);
+})();
+
 /* 🔥 기록 박스(.folderContent) 스프링(고무줄) 바운스 방지 - CSS 보완용 JS 가드 */
 document.querySelectorAll('.folderContent').forEach(el => {
   let startY = 0;
