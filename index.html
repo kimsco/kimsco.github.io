@@ -5858,23 +5858,11 @@ function openMyRoutineRevealScreen(partKey){
     //    (min-height라서, 이미 그보다 실제 기록이 더 길면 자연스럽게 그대로 유지됨)
     const sampleLine = contentEl.querySelector(".my-routine-reveal-ex-set");
     const lineHeight = sampleLine ? sampleLine.getBoundingClientRect().height : 22;
-    const uniformTarget = (lineHeight * 6) / 2;
+    const uniformTarget = lineHeight * 6.5;
 
     recordRows.forEach(r => {
       r.rowEl.style.minHeight = uniformTarget + "px";
     });
-
-    // 🔍 임시 디버그: 각 로우별 목표값/실제 렌더 높이 확인용
-    setTimeout(() => {
-      const debugEl = document.createElement("div");
-      debugEl.style.cssText = "margin-top:20px; margin-bottom:150px; padding:10px; border:1px solid red; color:red; font-size:11px; text-align:left; white-space:pre-wrap;";
-      const lines = [`lineHeight: ${lineHeight}`, `uniformTarget: ${uniformTarget}`, `overflowY: ${screenEl.style.overflowY}`, `scrollHeight: ${screenEl.scrollHeight}`, `clientHeight: ${screenEl.clientHeight}`];
-      recordRows.forEach(r => {
-        lines.push(`${r.displayName}: rowEl.offsetHeight=${r.rowEl.offsetHeight}, minHeightStyle=${r.rowEl.style.minHeight}, pastHalf.offsetHeight=${r.pastHalf.offsetHeight}`);
-      });
-      debugEl.textContent = lines.join("\n");
-      contentEl.appendChild(debugEl);
-    }, 2000);
 
     // 2단계: 세로 확장이 다 끝난 뒤에(1.8s), 기록을 우측으로 밀어내는 가로 확장 시작
     setTimeout(() => {
