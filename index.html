@@ -288,7 +288,7 @@ button {
   border-radius: 999px;
   color: #fff;
   text-align: center;
-  font-size: 14px;
+  font-size: 18px;
 }
 .recordFloatBar input[type="number"]::placeholder {
   color: rgba(255,255,255,0.4);
@@ -305,7 +305,7 @@ button {
   border: none;
   background: rgba(255,255,255,0.85);
   color: #000;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 700;
   cursor: pointer;
 }
@@ -8936,25 +8936,6 @@ loadUserSpecFromLocal();
 loadFoodTemplatesFromLocal();
 loadMealsFromLocal();
 loadMyRoutineTemplatesFromLocal();
-
-/* 🔥 iOS 사파리는 키보드가 뜰 때 position:fixed 하단탭바를 화면 기준으로 같이 밀어 올리는 경우가 있어서,
-   위치를 정확히 맞추려는 시도 대신 — 입력하는 동안은 하단탭을 안 보이게만 처리 (display:none은 레이아웃이
-   다시 계산되면서 배경 화면 스크롤 위치까지 같이 튀어버려서, 자리는 그대로 두고 visibility로만 숨김) */
-(function(){
-  const bottomTabEl = document.querySelector('.bottomTab');
-  if (!bottomTabEl) return;
-
-  document.addEventListener('focusin', (e) => {
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-      bottomTabEl.style.visibility = 'hidden';
-    }
-  });
-  document.addEventListener('focusout', (e) => {
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-      bottomTabEl.style.visibility = 'visible';
-    }
-  });
-})();
 
 /* 🔥 기록 박스(.folderContent) 스프링(고무줄) 바운스 방지 - CSS 보완용 JS 가드 */
 document.querySelectorAll('.folderContent').forEach(el => {
