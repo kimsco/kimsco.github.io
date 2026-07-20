@@ -5852,6 +5852,18 @@ function openMyRoutineRevealScreen(partKey){
       r.rowEl.style.minHeight = uniformTarget + "px";
     });
 
+    // 🔍 임시 디버그: 각 로우별 목표값/실제 렌더 높이 확인용
+    setTimeout(() => {
+      const debugEl = document.createElement("div");
+      debugEl.style.cssText = "margin-top:20px; padding:10px; border:1px solid red; color:red; font-size:11px; text-align:left; white-space:pre-wrap;";
+      const lines = [`lineHeight: ${lineHeight}`, `uniformTarget: ${uniformTarget}`];
+      recordRows.forEach(r => {
+        lines.push(`${r.displayName}: rowEl.offsetHeight=${r.rowEl.offsetHeight}, minHeightStyle=${r.rowEl.style.minHeight}, pastHalf.offsetHeight=${r.pastHalf.offsetHeight}`);
+      });
+      debugEl.textContent = lines.join("\n");
+      contentEl.appendChild(debugEl);
+    }, 2000);
+
     // 2단계: 세로 확장이 다 끝난 뒤에(1.8s), 기록을 우측으로 밀어내는 가로 확장 시작
     setTimeout(() => {
       recordRows.forEach(r => {
