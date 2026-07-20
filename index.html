@@ -5840,7 +5840,19 @@ function openMyRoutineRevealScreen(partKey){
   }
   requestAnimationFrame(scrollStep);
 
+  // 🔥 안전장치: 위 애니메이션 루프가 무슨 이유로든 끝까지 못 돌고 멈춰버리는 경우를 대비해서,
+  //    무조건 이 시간이 지나면 강제로 스크롤 잠금 해제
+  setTimeout(() => {
+    screenEl.style.overflowY = "auto";
+    screenEl.style.touchAction = "pan-y";
+  }, totalRevealMs + 1000);
+
   document.getElementById("myRoutineRevealYes").addEventListener("click", () => {
+    // 🔥 안전장치: 이 버튼이 눌렸다는 건 이미 화면을 다 볼 수 있는 상태란 뜻이므로,
+    //    혹시 리빌 애니메이션의 스크롤 잠금 해제가 실패했더라도 여기서 무조건 강제로 풀어줌
+    screenEl.style.overflowY = "auto";
+    screenEl.style.touchAction = "pan-y";
+
     // 🔥 다른 화면으로 이동하지 않고, 이 화면에서 그대로 각 종목 기록 영역을 확장
     // 1단계: 세로 폭을 모든 종목에 "동일한" 높이(기록 6개 높이의 절반)로 확장
     //    (min-height라서, 이미 그보다 실제 기록이 더 길면 자연스럽게 그대로 유지됨)
@@ -5856,7 +5868,7 @@ function openMyRoutineRevealScreen(partKey){
     setTimeout(() => {
       const debugEl = document.createElement("div");
       debugEl.style.cssText = "margin-top:20px; margin-bottom:150px; padding:10px; border:1px solid red; color:red; font-size:11px; text-align:left; white-space:pre-wrap;";
-      const lines = [`lineHeight: ${lineHeight}`, `uniformTarget: ${uniformTarget}`];
+      const lines = [`lineHeight: ${lineHeight}`, `uniformTarget: ${uniformTarget}`, `overflowY: ${screenEl.style.overflowY}`, `scrollHeight: ${screenEl.scrollHeight}`, `clientHeight: ${screenEl.clientHeight}`];
       recordRows.forEach(r => {
         lines.push(`${r.displayName}: rowEl.offsetHeight=${r.rowEl.offsetHeight}, minHeightStyle=${r.rowEl.style.minHeight}, pastHalf.offsetHeight=${r.pastHalf.offsetHeight}`);
       });
