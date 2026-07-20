@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="ko"> 
 <head>
 <link rel="manifest" href="/manifest.json">
@@ -2675,18 +2675,21 @@ input[type="number"] {
 }
 .my-routine-record-row {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   margin: 0 auto;
+  min-height: 0;
+  transition: min-height 0.6s cubic-bezier(0.22,1,0.36,1);
 }
 .my-routine-record-input-half {
   width: 0;
   flex-shrink: 0;
+  transition: width 0.6s cubic-bezier(0.22,1,0.36,1);
 }
 .my-routine-record-past-half {
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-end;
 }
 .my-routine-reveal-question {
   font-size: 15px;
@@ -5841,8 +5844,12 @@ function openMyRoutineRevealScreen(partKey){
     // 🔥 다른 화면으로 이동하지 않고, 이 화면에서 그대로 각 종목 기록 영역을 확장
     recordRows.forEach(r => {
       const pastWidth = r.pastHalf.offsetWidth;
-      r.inputHalf.style.transition = "width 0.6s cubic-bezier(0.22,1,0.36,1)";
-      r.inputHalf.style.width = pastWidth + "px";
+      r.inputHalf.style.width = (pastWidth * 2.5) + "px";
+
+      // 🔥 세로 폭도 "기록 6개 들어갈 정도"로 확장 (min-height라서, 이미 7개 이상이면 자연스럽게 그대로 유지됨)
+      const firstSetLine = r.pastHalf.querySelector(".my-routine-reveal-ex-set");
+      const lineHeight = firstSetLine ? firstSetLine.getBoundingClientRect().height : 22;
+      r.rowEl.style.minHeight = (lineHeight * 6) + "px";
     });
     // 질문/버튼 줄은 더 이상 필요 없으니 자연스럽게 사라지게
     document.querySelectorAll(".my-routine-reveal-question, .my-routine-reveal-choices").forEach(el => {
