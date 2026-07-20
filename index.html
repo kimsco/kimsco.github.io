@@ -8938,19 +8938,20 @@ loadMealsFromLocal();
 loadMyRoutineTemplatesFromLocal();
 
 /* 🔥 iOS 사파리는 키보드가 뜰 때 position:fixed 하단탭바를 화면 기준으로 같이 밀어 올리는 경우가 있어서,
-   위치를 정확히 맞추려는 시도 대신 — 입력하는 동안은 하단탭을 아예 숨기는 방식으로 확실하게 해결 */
+   위치를 정확히 맞추려는 시도 대신 — 입력하는 동안은 하단탭을 안 보이게만 처리 (display:none은 레이아웃이
+   다시 계산되면서 배경 화면 스크롤 위치까지 같이 튀어버려서, 자리는 그대로 두고 visibility로만 숨김) */
 (function(){
   const bottomTabEl = document.querySelector('.bottomTab');
   if (!bottomTabEl) return;
 
   document.addEventListener('focusin', (e) => {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-      bottomTabEl.style.display = 'none';
+      bottomTabEl.style.visibility = 'hidden';
     }
   });
   document.addEventListener('focusout', (e) => {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-      bottomTabEl.style.display = 'flex';
+      bottomTabEl.style.visibility = 'visible';
     }
   });
 })();
@@ -9060,4 +9061,4 @@ if ("serviceWorker" in navigator) {
 }
 </script>
 </body>
-</html> 
+</html>
