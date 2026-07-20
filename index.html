@@ -5855,7 +5855,7 @@ function openMyRoutineRevealScreen(partKey){
     // 🔍 임시 디버그: 각 로우별 목표값/실제 렌더 높이 확인용
     setTimeout(() => {
       const debugEl = document.createElement("div");
-      debugEl.style.cssText = "margin-top:20px; padding:10px; border:1px solid red; color:red; font-size:11px; text-align:left; white-space:pre-wrap;";
+      debugEl.style.cssText = "margin-top:20px; margin-bottom:150px; padding:10px; border:1px solid red; color:red; font-size:11px; text-align:left; white-space:pre-wrap;";
       const lines = [`lineHeight: ${lineHeight}`, `uniformTarget: ${uniformTarget}`];
       recordRows.forEach(r => {
         lines.push(`${r.displayName}: rowEl.offsetHeight=${r.rowEl.offsetHeight}, minHeightStyle=${r.rowEl.style.minHeight}, pastHalf.offsetHeight=${r.pastHalf.offsetHeight}`);
