@@ -5842,11 +5842,15 @@ function openMyRoutineRevealScreen(partKey){
 
   document.getElementById("myRoutineRevealYes").addEventListener("click", () => {
     // 🔥 다른 화면으로 이동하지 않고, 이 화면에서 그대로 각 종목 기록 영역을 확장
-    // 1단계: 세로 폭 먼저 "기록 6개 들어갈 정도"로 확장 (min-height라서, 이미 7개 이상이면 자연스럽게 그대로 유지됨)
+    // 1단계: 세로 폭 먼저 확장 — 목표(기록 6개 높이)까지 다 늘리지 않고, 실제 기록 높이 대비
+    //    "늘어나는 여백분"만 절반으로 줄여서 늘림 (min-height라서, 이미 목표보다 크면 자연스럽게 그대로 유지됨)
     recordRows.forEach(r => {
       const firstSetLine = r.pastHalf.querySelector(".my-routine-reveal-ex-set");
       const lineHeight = firstSetLine ? firstSetLine.getBoundingClientRect().height : 22;
-      r.rowEl.style.minHeight = (lineHeight * 6) + "px";
+      const fullTarget = lineHeight * 6;
+      const naturalHeight = r.pastHalf.offsetHeight;
+      const halvedTarget = naturalHeight + (fullTarget - naturalHeight) / 2;
+      r.rowEl.style.minHeight = Math.max(naturalHeight, halvedTarget) + "px";
     });
 
     // 2단계: 세로 확장이 다 끝난 뒤에(1.8s), 기록을 우측으로 밀어내는 가로 확장 시작
