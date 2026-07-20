@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="ko"> 
 <head>
 <link rel="manifest" href="/manifest.json">
@@ -2678,12 +2678,12 @@ input[type="number"] {
   align-items: center;
   margin: 0 auto;
   min-height: 0;
-  transition: min-height 0.6s cubic-bezier(0.22,1,0.36,1);
+  transition: min-height 1.8s cubic-bezier(0.22,1,0.36,1);
 }
 .my-routine-record-input-half {
   width: 0;
   flex-shrink: 0;
-  transition: width 0.6s cubic-bezier(0.22,1,0.36,1);
+  transition: width 1s cubic-bezier(0.22,1,0.36,1);
 }
 .my-routine-record-past-half {
   flex-shrink: 0;
@@ -5842,15 +5842,21 @@ function openMyRoutineRevealScreen(partKey){
 
   document.getElementById("myRoutineRevealYes").addEventListener("click", () => {
     // 🔥 다른 화면으로 이동하지 않고, 이 화면에서 그대로 각 종목 기록 영역을 확장
+    // 1단계: 세로 폭 먼저 "기록 6개 들어갈 정도"로 확장 (min-height라서, 이미 7개 이상이면 자연스럽게 그대로 유지됨)
     recordRows.forEach(r => {
-      const pastWidth = r.pastHalf.offsetWidth;
-      r.inputHalf.style.width = (pastWidth * 2.5) + "px";
-
-      // 🔥 세로 폭도 "기록 6개 들어갈 정도"로 확장 (min-height라서, 이미 7개 이상이면 자연스럽게 그대로 유지됨)
       const firstSetLine = r.pastHalf.querySelector(".my-routine-reveal-ex-set");
       const lineHeight = firstSetLine ? firstSetLine.getBoundingClientRect().height : 22;
       r.rowEl.style.minHeight = (lineHeight * 6) + "px";
     });
+
+    // 2단계: 세로 확장이 다 끝난 뒤에(1.8s), 기록을 우측으로 밀어내는 가로 확장 시작
+    setTimeout(() => {
+      recordRows.forEach(r => {
+        const pastWidth = r.pastHalf.offsetWidth;
+        r.inputHalf.style.width = (pastWidth * 2.5) + "px";
+      });
+    }, 1800);
+
     // 질문/버튼 줄은 더 이상 필요 없으니 자연스럽게 사라지게
     document.querySelectorAll(".my-routine-reveal-question, .my-routine-reveal-choices").forEach(el => {
       el.style.transition = "opacity 0.3s ease";
