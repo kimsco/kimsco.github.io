@@ -8937,38 +8937,20 @@ loadFoodTemplatesFromLocal();
 loadMealsFromLocal();
 loadMyRoutineTemplatesFromLocal();
 
-/* 🔥 iOS 사파리는 키보드가 뜨면 position:fixed; bottom:0 요소를 화면(visual viewport) 기준으로
-   같이 밀어 올리는 버릇이 있음. 하단탭바는 화면상 원래 자리에 고정돼야(=키보드에 가려져야) 하므로,
-   키보드 높이만큼 다시 아래로 눌러서 원래 위치를 유지시킴. */
+/* 🔥 iOS 사파리는 키보드가 뜰 때 position:fixed 하단탭바를 화면 기준으로 같이 밀어 올리는 경우가 있어서,
+   위치를 정확히 맞추려는 시도 대신 — 입력하는 동안은 하단탭을 아예 숨기는 방식으로 확실하게 해결 */
 (function(){
   const bottomTabEl = document.querySelector('.bottomTab');
   if (!bottomTabEl) return;
 
-  function adjustForKeyboard(){
-    if (!window.visualViewport) return;
-    const vv = window.visualViewport;
-    const kbHeight = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
-    bottomTabEl.style.transform = `translateX(-50%) translateY(${kbHeight}px)`;
-  }
-
-  if (window.visualViewport) {
-    window.visualViewport.addEventListener('resize', adjustForKeyboard);
-    window.visualViewport.addEventListener('scroll', adjustForKeyboard);
-  }
-
-  // 🔥 보강: visualViewport 리사이즈 타이밍이 안 맞을 수 있어서, 실제 입력창 포커스/블러 시점에도
-  //    약간의 지연을 두고 다시 계산 (키보드 애니메이션이 끝난 뒤 정확한 값을 잡기 위함)
   document.addEventListener('focusin', (e) => {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-      setTimeout(adjustForKeyboard, 50);
-      setTimeout(adjustForKeyboard, 300);
-      setTimeout(adjustForKeyboard, 600);
+      bottomTabEl.style.display = 'none';
     }
   });
   document.addEventListener('focusout', (e) => {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-      setTimeout(adjustForKeyboard, 50);
-      setTimeout(adjustForKeyboard, 300);
+      bottomTabEl.style.display = 'flex';
     }
   });
 })();
