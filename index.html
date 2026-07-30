@@ -2687,7 +2687,7 @@ input[type="number"] {
   transition: width 1s cubic-bezier(0.22,1,0.36,1);
   display: flex;
   align-items: flex-end;
-  justify-content: flex-start;
+  justify-content: center;
   padding-bottom: 4px;
 }
 .my-routine-record-input-btn {
@@ -2705,10 +2705,15 @@ input[type="number"] {
   font-weight: 600;
   cursor: pointer;
   opacity: 0;
-  transition: opacity 0.6s ease;
+  transition: opacity 0.6s ease, background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 .my-routine-record-input-btn.visible {
   opacity: 1;
+}
+.my-routine-record-input-btn.selected {
+  background: #fff;
+  color: #000;
+  border-color: #fff;
 }
 .my-routine-record-past-half {
   flex-shrink: 0;
@@ -3305,8 +3310,8 @@ input[type="number"] {
   <div id="myRoutineRevealInputBar" class="recordFloatBar" style="
       position:absolute; left:20px; right:20px;
       bottom:calc(24px + env(safe-area-inset-bottom));
-      transform:translateY(140px); opacity:0; pointer-events:none;
-      transition: transform 0.3s cubic-bezier(0.22,1,0.36,1), opacity 0.3s ease;
+      opacity:0; pointer-events:none;
+      transition: opacity 0.3s ease;
     ">
     <input type="number" id="myRoutineRevealInputWeight" placeholder="kg">
     <input type="number" id="myRoutineRevealInputReps" placeholder="회">
@@ -5914,7 +5919,7 @@ function openMyRoutineRevealScreen(partKey){
           btnEl.type = "button";
           btnEl.className = "my-routine-record-input-btn";
           btnEl.textContent = "입력";
-          btnEl.addEventListener("click", () => openMyRoutineRevealInputBar(r));
+          btnEl.addEventListener("click", () => openMyRoutineRevealInputBar(r, btnEl));
           r.inputHalf.appendChild(btnEl);
           requestAnimationFrame(() => {
             requestAnimationFrame(() => btnEl.classList.add("visible"));
@@ -5943,23 +5948,41 @@ function closeMyRoutineRevealScreen(){
   closeMyRoutineRevealInputBar();
 }
 
-/* ✨ 리빌 화면에서 "입력" 버튼 누르면 뜨는 알약바 */
+/* ✨ 리빌 화면에서 "입력" 버튼 누르면 뜨는 알약바
+   - 최초 1회만 슬라이드업으로 나타나고, 그 뒤로는 계속 떠있음
+   - 어떤 종목의 버튼을 눌렀는지 흰색으로 표시해서, 저장이 어디로 들어갈지 항상 명확하게 함
+   - 스크롤하면 3대탭/기록탭 알약바랑 똑같이 작아짐(wireFloatingSaveBar 재사용) */
 const myRoutineRevealInputBar = document.getElementById("myRoutineRevealInputBar");
 let myRoutineRevealInputTargetRow = null;
+let myRoutineRevealInputTargetBtn = null;
+let myRoutineRevealInputBarWired = false;
+let myRoutineRevealInputBarOpen = false;
 
-function openMyRoutineRevealInputBar(row){
+function openMyRoutineRevealInputBar(row, btnEl){
+  // 이전에 선택돼있던 버튼 흰색 해제
+  if (myRoutineRevealInputTargetBtn) myRoutineRevealInputTargetBtn.classList.remove("selected");
+
   myRoutineRevealInputTargetRow = row;
-  document.getElementById("myRoutineRevealInputWeight").value = "";
-  document.getElementById("myRoutineRevealInputReps").value = "";
-  myRoutineRevealInputBar.style.pointerEvents = "auto";
-  myRoutineRevealInputBar.style.opacity = "1";
-  myRoutineRevealInputBar.style.transform = "translateY(0)";
+  myRoutineRevealInputTargetBtn = btnEl;
+  btnEl.classList.add("selected");
+
+  if (!myRoutineRevealInputBarOpen) {
+    myRoutineRevealInputBarOpen = true;
+    myRoutineRevealInputBar.style.pointerEvents = "auto";
+    myRoutineRevealInputBar.style.opacity = "1";
+    if (!myRoutineRevealInputBarWired) {
+      myRoutineRevealInputBarWired = true;
+      wireFloatingSaveBar(myRoutineRevealInputBar, [myRoutineRevealScreen]);
+    }
+  }
 }
 function closeMyRoutineRevealInputBar(){
   myRoutineRevealInputBar.style.opacity = "0";
-  myRoutineRevealInputBar.style.transform = "translateY(140px)";
   myRoutineRevealInputBar.style.pointerEvents = "none";
+  myRoutineRevealInputBarOpen = false;
+  if (myRoutineRevealInputTargetBtn) myRoutineRevealInputTargetBtn.classList.remove("selected");
   myRoutineRevealInputTargetRow = null;
+  myRoutineRevealInputTargetBtn = null;
 }
 
 document.getElementById("myRoutineRevealInputSaveBtn").addEventListener("click", async () => {
@@ -5981,7 +6004,9 @@ document.getElementById("myRoutineRevealInputSaveBtn").addEventListener("click",
   lineEl.textContent = `${formatKgSmart(saved.weight)}kg × ${parseInt(saved.reps,10)}회`;
   row.pastHalf.appendChild(lineEl);
 
-  closeMyRoutineRevealInputBar();
+  // 🔥 저장해도 알약바는 안 사라짐 — 계속 입력할 수 있게 그대로 두고, 입력칸만 비움
+  weightEl.value = "";
+  repsEl.value = "";
 });
 
 /* 🔥 루틴 리빌 화면: 왼쪽 끝에서 오른쪽으로 드래그하면 손가락 따라 끌려가며 닫힘 */
