@@ -2686,15 +2686,17 @@ input[type="number"] {
   align-self: stretch;
   transition: width 1s cubic-bezier(0.22,1,0.36,1);
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-end;
+  align-items: flex-end;
+  justify-content: center;
   padding-bottom: 4px;
   position: relative;
-  gap: 6px;
 }
 .my-routine-record-new-set {
+  position: absolute;
+  left: 4px;
   color: #fff !important;
+  text-align: left;
+  white-space: nowrap;
 }
 .my-routine-record-input-btn {
   -webkit-appearance: none;
@@ -6011,10 +6013,28 @@ document.getElementById("myRoutineRevealInputSaveBtn").addEventListener("click",
     ? await myRoutineSaveLiftSet(row.key, weight, reps)
     : await myRoutineSaveAccessorySet(row.key, row.partKey, weight, reps);
 
+  const idx = row.newCount || 0;
+  row.newCount = idx + 1;
+
   const lineEl = document.createElement("div");
   lineEl.className = "my-routine-reveal-ex-set my-routine-record-new-set";
   lineEl.textContent = `${formatKgSmart(saved.weight)}kg × ${parseInt(saved.reps,10)}회`;
-  row.inputHalf.insertBefore(lineEl, myRoutineRevealInputTargetBtn);
+
+  // 🔥 지난 기록의 같은 순번(idx번째) 줄이랑 세로 위치를 맞춤 (1:1 가로 매칭)
+  const pastChild = row.pastHalf.children[idx];
+  if (pastChild) {
+    const pastRect = pastChild.getBoundingClientRect();
+    const inputRect = row.inputHalf.getBoundingClientRect();
+    lineEl.style.top = (pastRect.top - inputRect.top) + "px";
+  } else {
+    // 대응되는 지난 기록이 없으면(신규 세트 수가 더 많을 때) 마지막 줄 밑으로 자연스럽게 이어붙임
+    const lastNew = row.inputHalf.querySelector(".my-routine-record-new-set:last-of-type");
+    const baseRect = (lastNew || row.pastHalf.lastElementChild || row.pastHalf).getBoundingClientRect();
+    const inputRect = row.inputHalf.getBoundingClientRect();
+    lineEl.style.top = (baseRect.bottom - inputRect.top + 6) + "px";
+  }
+
+  row.inputHalf.appendChild(lineEl);
 
   // 🔥 저장해도 알약바는 안 사라짐 — 계속 입력할 수 있게 그대로 두고, 입력칸만 비움
   weightEl.value = "";
