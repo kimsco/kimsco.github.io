@@ -2657,13 +2657,13 @@ input[type="number"] {
   margin-bottom: 44px;
 }
 .my-routine-reveal-ex-name {
-  font-size: 17px;
+  font-size: 19px;
   font-weight: 700;
   color: #fff;
   margin-bottom: 8px;
 }
 .my-routine-reveal-ex-set {
-  font-size: 13px;
+  font-size: 15px;
   color: rgba(255,255,255,0.55);
   line-height: 1.7;
 }
@@ -2686,21 +2686,28 @@ input[type="number"] {
   align-self: stretch;
   transition: width 1s cubic-bezier(0.22,1,0.36,1);
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: flex-start;
+  padding-bottom: 4px;
 }
-.my-routine-record-input-box {
-  width: 65%;
-  height: calc(100% - 16px);
-  min-height: 40px;
-  border: 1px solid rgba(255,255,255,0.35);
-  border-radius: 14px;
+.my-routine-record-input-btn {
+  -webkit-appearance: none;
+  appearance: none;
+  width: auto;
+  height: 32px;
+  margin: 0;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.4);
+  background: transparent;
+  color: rgba(255,255,255,0.85);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
   opacity: 0;
   transition: opacity 0.6s ease;
-  box-sizing: border-box;
-  margin-left: 4px;
 }
-.my-routine-record-input-box.visible {
+.my-routine-record-input-btn.visible {
   opacity: 1;
 }
 .my-routine-record-past-half {
@@ -3293,6 +3300,17 @@ input[type="number"] {
   ">
   <div id="myRoutineRevealScreen" style="height:100%; overflow-y:auto; -webkit-overflow-scrolling:touch; touch-action:pan-y; padding: calc(60px + env(safe-area-inset-top)) 24px calc(24px + env(safe-area-inset-bottom));">
     <div id="myRoutineRevealContent" style="display:flex; flex-direction:column; align-items:center; text-align:center;"></div>
+  </div>
+
+  <div id="myRoutineRevealInputBar" class="recordFloatBar" style="
+      position:absolute; left:20px; right:20px;
+      bottom:calc(24px + env(safe-area-inset-bottom));
+      transform:translateY(140px); opacity:0; pointer-events:none;
+      transition: transform 0.3s cubic-bezier(0.22,1,0.36,1), opacity 0.3s ease;
+    ">
+    <input type="number" id="myRoutineRevealInputWeight" placeholder="kg">
+    <input type="number" id="myRoutineRevealInputReps" placeholder="회">
+    <button type="button" id="myRoutineRevealInputSaveBtn">저장</button>
   </div>
 </div>
 
@@ -5804,7 +5822,7 @@ function openMyRoutineRevealScreen(partKey){
     rowEl.appendChild(inputHalf);
     rowEl.appendChild(pastHalf);
     contentEl.appendChild(rowEl);
-    recordRows.push({ type: it.type, key: it.key, displayName: it.displayName, rowEl, inputHalf, pastHalf });
+    recordRows.push({ type: it.type, key: it.key, displayName: it.displayName, partKey, rowEl, inputHalf, pastHalf });
 
     sets.forEach(s => {
       addLine("my-routine-reveal-ex-set", `${formatKgSmart(s.weight)}kg × ${parseInt(s.reps,10)}회`, STEP_MS * 0.5, pastHalf);
@@ -5889,14 +5907,17 @@ function openMyRoutineRevealScreen(partKey){
         r.inputHalf.style.width = (pastWidth * 2.5) + "px";
       });
 
-      // 3단계: 가로 확장이 다 끝난 뒤에(1s), 왼쪽 빈 공간에 기록 입력용 테두리 박스가 서서히 나타남
+      // 3단계: 가로 확장이 다 끝난 뒤에(1s), 왼쪽 빈 공간 맨 아래에 "입력" 버튼이 서서히 나타남
       setTimeout(() => {
         recordRows.forEach(r => {
-          const boxEl = document.createElement("div");
-          boxEl.className = "my-routine-record-input-box";
-          r.inputHalf.appendChild(boxEl);
+          const btnEl = document.createElement("button");
+          btnEl.type = "button";
+          btnEl.className = "my-routine-record-input-btn";
+          btnEl.textContent = "입력";
+          btnEl.addEventListener("click", () => openMyRoutineRevealInputBar(r));
+          r.inputHalf.appendChild(btnEl);
           requestAnimationFrame(() => {
-            requestAnimationFrame(() => boxEl.classList.add("visible"));
+            requestAnimationFrame(() => btnEl.classList.add("visible"));
           });
         });
       }, 1000);
@@ -5919,7 +5940,49 @@ function openMyRoutineRevealScreen(partKey){
 function closeMyRoutineRevealScreen(){
   myRoutineRevealOverlay.classList.add("hidden");
   document.getElementById("myRoutineRevealContent").innerHTML = "";
+  closeMyRoutineRevealInputBar();
 }
+
+/* ✨ 리빌 화면에서 "입력" 버튼 누르면 뜨는 알약바 */
+const myRoutineRevealInputBar = document.getElementById("myRoutineRevealInputBar");
+let myRoutineRevealInputTargetRow = null;
+
+function openMyRoutineRevealInputBar(row){
+  myRoutineRevealInputTargetRow = row;
+  document.getElementById("myRoutineRevealInputWeight").value = "";
+  document.getElementById("myRoutineRevealInputReps").value = "";
+  myRoutineRevealInputBar.style.pointerEvents = "auto";
+  myRoutineRevealInputBar.style.opacity = "1";
+  myRoutineRevealInputBar.style.transform = "translateY(0)";
+}
+function closeMyRoutineRevealInputBar(){
+  myRoutineRevealInputBar.style.opacity = "0";
+  myRoutineRevealInputBar.style.transform = "translateY(140px)";
+  myRoutineRevealInputBar.style.pointerEvents = "none";
+  myRoutineRevealInputTargetRow = null;
+}
+
+document.getElementById("myRoutineRevealInputSaveBtn").addEventListener("click", async () => {
+  const row = myRoutineRevealInputTargetRow;
+  if (!row) return;
+
+  const weightEl = document.getElementById("myRoutineRevealInputWeight");
+  const repsEl = document.getElementById("myRoutineRevealInputReps");
+  const weight = round1(parseFloat(weightEl.value));
+  const reps = parseInt(repsEl.value, 10);
+  if (!Number.isFinite(weight) || !reps) { weightEl.focus(); return; }
+
+  const saved = row.type === "lift"
+    ? await myRoutineSaveLiftSet(row.key, weight, reps)
+    : await myRoutineSaveAccessorySet(row.key, row.partKey, weight, reps);
+
+  const lineEl = document.createElement("div");
+  lineEl.className = "my-routine-reveal-ex-set";
+  lineEl.textContent = `${formatKgSmart(saved.weight)}kg × ${parseInt(saved.reps,10)}회`;
+  row.pastHalf.appendChild(lineEl);
+
+  closeMyRoutineRevealInputBar();
+});
 
 /* 🔥 루틴 리빌 화면: 왼쪽 끝에서 오른쪽으로 드래그하면 손가락 따라 끌려가며 닫힘 */
 (function(){
