@@ -5695,7 +5695,30 @@ document.getElementById("myRoutineDeleteTemplateBtn").addEventListener("click", 
    🔔 알림 배너 + ✨ 루틴 리빌 화면 (테스트용)
 ================================ */
 function pickAnyRoutinePart(){
-  // "하체" 우선, 없으면 데이터 있는 아무 부위나
+  const todayStr = formatTodayYYMMDD();
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayStr = formatTodayYYMMDD(yesterday);
+
+  // 1) 어제 기록된 부위 우선
+  for (const p of MY_ROUTINE_PARTS) {
+    const routine = buildRoutineForPart(p.key);
+    if (routine && routine.date === yesterdayStr) return p.key;
+  }
+
+  // 2) 어제가 없으면, 오늘을 제외한 것 중 가장 최근 날짜의 부위
+  let best = null, bestDate = null;
+  MY_ROUTINE_PARTS.forEach(p => {
+    const routine = buildRoutineForPart(p.key);
+    if (!routine || routine.date === todayStr) return;
+    if (!bestDate || routine.date > bestDate) {
+      bestDate = routine.date;
+      best = p.key;
+    }
+  });
+  if (best) return best;
+
+  // 3) 그마저도 없으면(기록이 오늘 것뿐이거나 아예 없으면) 기존처럼 아무 부위나("하체" 우선)
   if (buildRoutineForPart("leg")) return "leg";
   for (const p of MY_ROUTINE_PARTS) {
     if (buildRoutineForPart(p.key)) return p.key;
