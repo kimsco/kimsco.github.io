@@ -2461,6 +2461,23 @@ input[type="number"] {
   letter-spacing: 0.4px;
   margin-bottom: 10px;
 }
+.my-routine-builder-name-input {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 44px;
+  margin: 0 0 24px;
+  padding: 0 14px;
+  background: rgba(255,255,255,0.08);
+  border: none;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 15px;
+  box-sizing: border-box;
+}
+.my-routine-builder-name-input::placeholder {
+  color: rgba(255,255,255,0.3);
+}
 .my-routine-builder-parts {
   display: flex;
   flex-wrap: nowrap;
@@ -2501,37 +2518,27 @@ input[type="number"] {
   margin-bottom: 12px;
 }
 .my-routine-ex-check-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 2px;
+  padding: 12px 2px;
   cursor: pointer;
 }
-.my-routine-ex-checkbox {
-  flex-shrink: 0;
-  width: 18px;
-  height: 18px;
-  border-radius: 5px;
-  border: 1px solid rgba(255,255,255,0.35);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.my-routine-ex-check-row.checked .my-routine-ex-checkbox {
-  background: #fff;
-  border-color: #fff;
-}
-.my-routine-ex-check-row.checked .my-routine-ex-checkbox::after {
-  content: "";
-  width: 5px;
-  height: 9px;
-  border-right: 2px solid #000;
-  border-bottom: 2px solid #000;
-  transform: rotate(45deg) translate(-1px, -1px);
-}
 .my-routine-ex-check-label {
+  display: inline-block;
   font-size: 14px;
   color: rgba(255,255,255,0.85);
+  padding: 6px 14px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+}
+.my-routine-ex-check-row.checked .my-routine-ex-check-label {
+  color: #fff;
+  border-color: #fff;
+  font-weight: 700;
+}
+.my-routine-builder-order-item {
+  font-size: 14px;
+  color: rgba(255,255,255,0.85);
+  padding: 8px 2px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
 }
 .my-routine-ex-add-row {
   display: flex;
@@ -3274,16 +3281,17 @@ input[type="number"] {
     overflow:hidden;
   ">
   <div id="myRoutineScreen" style="height:100%; display:flex; flex-direction:column;">
-    <div style="flex-shrink:0; padding: calc(28px + env(safe-area-inset-top)) 18px 16px; display:flex; align-items:center; cursor:pointer;" onclick="closeMyRoutine()">
-      ← <span style="margin-left:6px; font-size:15px; font-weight:600; color:#fff;">내 루틴</span>
+    <div style="flex-shrink:0; padding: calc(28px + env(safe-area-inset-top)) 18px 16px; display:flex; align-items:center; justify-content:space-between;">
+      <div style="display:flex; align-items:center; cursor:pointer;" onclick="closeMyRoutine()">
+        ← <span style="margin-left:6px; font-size:15px; font-weight:600; color:#fff;">내 루틴</span>
+      </div>
+      <div id="myRoutineAddRow" style="font-size:14px; font-weight:600; color:#fff; cursor:pointer;">+ 루틴 추가하기</div>
     </div>
     <div id="myRoutineBody" style="flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; padding: 0 18px calc(24px + env(safe-area-inset-bottom));">
       <div id="myRoutinePastRow" class="my-routine-past-row">
         <div class="my-routine-past-row-label">내 지난 루틴</div>
         <div class="my-routine-past-row-chevron">›</div>
       </div>
-
-      <div id="myRoutineAddRow" class="my-routine-add-row">+ 루틴 추가하기</div>
 
       <div id="myRoutineTemplateSection"></div>
     </div>
@@ -3362,10 +3370,16 @@ input[type="number"] {
     <div id="myRoutineBuilderBody" style="flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; padding: 0 18px calc(24px + env(safe-area-inset-bottom));">
       <div class="my-routine-builder-title">루틴 만들기</div>
 
+      <div class="my-routine-builder-sublabel">루틴 이름</div>
+      <input type="text" id="myRoutineBuilderNameInput" class="my-routine-builder-name-input" placeholder="예: 월요일 하체">
+
       <div class="my-routine-builder-sublabel">부위 선택</div>
       <div id="myRoutineBuilderParts" class="my-routine-builder-parts"></div>
 
       <div id="myRoutineBuilderPartSections"></div>
+
+      <div class="my-routine-builder-sublabel" id="myRoutineBuilderOrderLabel" style="display:none; margin-top:30px;">구상 중인 순서</div>
+      <div id="myRoutineBuilderOrderList"></div>
     </div>
   </div>
 </div>
@@ -5438,13 +5452,15 @@ function getTemplatesForPart(partKey){
 /* ---------- 루틴 만들기 화면 ---------- */
 const myRoutineBuilderOverlay = document.getElementById("myRoutineBuilderOverlay");
 const myRoutineBuilderScreen = document.getElementById("myRoutineBuilderScreen");
-let builderSelectedParts = new Set();       // 선택된 부위(key)
-let builderSelectedExercises = {};          // { partKey: Set(종목명) }
+let builderSelectedExercises = {};          // { partKey: Set(종목명) } — 체크 상태 기억용
+let builderOrderedSelection = [];           // [{partKey, exercise}] — 누른 순서대로
 
 function openMyRoutineBuilder(){
-  builderSelectedParts = new Set();
   builderSelectedExercises = {};
+  builderOrderedSelection = [];
+  document.getElementById("myRoutineBuilderNameInput").value = "";
   document.getElementById("myRoutineBuilderPartSections").innerHTML = "";
+  renderBuilderOrderList();
 
   const partsEl = document.getElementById("myRoutineBuilderParts");
   partsEl.innerHTML = MY_ROUTINE_BUILDER_PARTS.map(p => `
@@ -5453,17 +5469,10 @@ function openMyRoutineBuilder(){
 
   partsEl.querySelectorAll(".my-routine-part-chip").forEach(chip => {
     chip.addEventListener("click", () => {
-      const partKey = chip.dataset.part;
-      if (builderSelectedParts.has(partKey)) {
-        builderSelectedParts.delete(partKey);
-        chip.classList.remove("active");
-        const sec = document.getElementById(`myRoutineBuilderSection-${partKey}`);
-        if (sec) sec.remove();
-      } else {
-        builderSelectedParts.add(partKey);
-        chip.classList.add("active");
-        renderBuilderPartSection(partKey);
-      }
+      // 🔥 한 번에 한 부위 종목 목록만 화면에 표시 (칩도 단일 선택처럼 동작)
+      partsEl.querySelectorAll(".my-routine-part-chip").forEach(c => c.classList.remove("active"));
+      chip.classList.add("active");
+      renderBuilderPartSection(chip.dataset.part);
     });
   });
 
@@ -5482,19 +5491,18 @@ function renderBuilderPartSection(partKey){
 
   const list = loadAccListFromLocal(dataPart).filter(x => typeof x === "string" && x.trim());
 
+  // 🔥 항상 이 부위 하나만 보이도록 전체 교체 (여러 부위 동시 표시 안 함)
   const sectionsEl = document.getElementById("myRoutineBuilderPartSections");
-  const sec = document.createElement("div");
-  sec.className = "my-routine-builder-part-section";
-  sec.id = `myRoutineBuilderSection-${partKey}`;
-  sec.innerHTML = `
-    <div class="my-routine-builder-part-name">${partInfo.label}</div>
-    <div class="my-routine-ex-check-list" id="myRoutineExList-${partKey}"></div>
-    <div class="my-routine-ex-add-row">
-      <input type="text" placeholder="새 종목 이름" class="my-routine-ex-add-input" id="myRoutineExAddInput-${partKey}">
-      <button type="button" class="my-routine-ex-add-btn" id="myRoutineExAddBtn-${partKey}">+</button>
+  sectionsEl.innerHTML = `
+    <div class="my-routine-builder-part-section" id="myRoutineBuilderSection-${partKey}">
+      <div class="my-routine-builder-part-name">${partInfo.label}</div>
+      <div class="my-routine-ex-check-list" id="myRoutineExList-${partKey}"></div>
+      <div class="my-routine-ex-add-row">
+        <input type="text" placeholder="새 종목 이름" class="my-routine-ex-add-input" id="myRoutineExAddInput-${partKey}">
+        <button type="button" class="my-routine-ex-add-btn" id="myRoutineExAddBtn-${partKey}">+</button>
+      </div>
     </div>
   `;
-  sectionsEl.appendChild(sec);
 
   renderBuilderExerciseChecklist(partKey, list);
 
@@ -5520,7 +5528,9 @@ function renderBuilderPartSection(partKey){
 
     input.value = "";
     builderSelectedExercises[partKey].add(name); // 방금 만든 건 자동 체크
+    builderOrderedSelection.push({ partKey, exercise: name });
     renderBuilderExerciseChecklist(partKey, updated);
+    renderBuilderOrderList();
   });
 }
 
@@ -5530,7 +5540,6 @@ function renderBuilderExerciseChecklist(partKey, list){
 
   listEl.innerHTML = list.map(name => `
     <div class="my-routine-ex-check-row${selectedSet.has(name) ? ' checked' : ''}" data-name="${escapeHtml(name)}">
-      <div class="my-routine-ex-checkbox"></div>
       <div class="my-routine-ex-check-label">${escapeHtml(name)}</div>
     </div>
   `).join("");
@@ -5538,31 +5547,48 @@ function renderBuilderExerciseChecklist(partKey, list){
   listEl.querySelectorAll(".my-routine-ex-check-row").forEach(row => {
     row.addEventListener("click", () => {
       const name = row.dataset.name;
-      if (selectedSet.has(name)) selectedSet.delete(name);
-      else selectedSet.add(name);
+      if (selectedSet.has(name)) {
+        selectedSet.delete(name);
+        builderOrderedSelection = builderOrderedSelection.filter(it => !(it.partKey === partKey && it.exercise === name));
+      } else {
+        selectedSet.add(name);
+        builderOrderedSelection.push({ partKey, exercise: name });
+      }
       row.classList.toggle("checked");
+      renderBuilderOrderList();
     });
   });
+}
+
+/* 🔥 누른 순서대로 구상 중인 루틴 순서를 화면 맨 밑에 실시간으로 보여줌 */
+function renderBuilderOrderList(){
+  const labelEl = document.getElementById("myRoutineBuilderOrderLabel");
+  const listEl = document.getElementById("myRoutineBuilderOrderList");
+  if (!builderOrderedSelection.length) {
+    labelEl.style.display = "none";
+    listEl.innerHTML = "";
+    return;
+  }
+  labelEl.style.display = "block";
+  listEl.innerHTML = builderOrderedSelection.map(it => `
+    <div class="my-routine-builder-order-item">${escapeHtml(it.exercise)}</div>
+  `).join("");
 }
 
 document.getElementById("myRoutineBuilderCancel").addEventListener("click", closeMyRoutineBuilder);
 
 document.getElementById("myRoutineBuilderSaveBtn").addEventListener("click", async () => {
-  const parts = Array.from(builderSelectedParts).filter(pk =>
-    builderSelectedExercises[pk] && builderSelectedExercises[pk].size > 0
-  );
+  const name = document.getElementById("myRoutineBuilderNameInput").value.trim();
+  if (!name) { alert("루틴 이름을 입력해주세요."); return; }
+  if (!builderOrderedSelection.length) { alert("종목을 1개 이상 선택해주세요."); return; }
 
-  if (!parts.length) {
-    alert("부위를 선택하고, 종목을 1개 이상 체크해주세요.");
-    return;
-  }
-
-  const exercisesByPart = {};
-  parts.forEach(pk => { exercisesByPart[pk] = Array.from(builderSelectedExercises[pk]); });
+  const parts = Array.from(new Set(builderOrderedSelection.map(it => it.partKey)));
 
   const item = {
     id: "routine_" + Date.now() + "_" + Math.random().toString(16).slice(2),
-    parts, exercisesByPart,
+    name,
+    parts,
+    orderedItems: builderOrderedSelection.slice(),
     createdAt: Date.now()
   };
 
@@ -5575,14 +5601,14 @@ document.getElementById("myRoutineBuilderSaveBtn").addEventListener("click", asy
 });
 
 /* ---------- 만든 루틴 카드 캐러셀 렌더링 ---------- */
-function myRoutineTemplateCardHtml(template, partKey){
-  const exercises = template.exercisesByPart[partKey] || [];
+function myRoutineTemplateCardHtml(template){
+  const items = template.orderedItems || [];
   return `
-    <div class="my-routine-template-card" data-id="${template.id}" data-part="${partKey}">
+    <div class="my-routine-template-card" data-id="${template.id}">
       <div class="my-routine-template-ex">
-        ${exercises.map((name, i) => `
+        ${items.map((it, i) => `
           ${i > 0 ? `<div class="my-routine-template-ex-line"></div>` : ``}
-          <div class="my-routine-template-ex-box">${escapeHtml(name)}</div>
+          <div class="my-routine-template-ex-box">${escapeHtml(it.exercise)}</div>
         `).join("")}
       </div>
     </div>
@@ -5600,28 +5626,27 @@ function getLastSetsForExercise(name){
 }
 
 /* 🔥 내가 만든 루틴(템플릿) 카드를 눌렀을 때: 기존 진행화면(오늘/지난기록 비교)과 동일한 화면으로 진입 */
-let myRoutineDetailSourceTemplate = null; // { template, partKey } — 삭제 버튼 노출 및 동작에 사용
+let myRoutineDetailSourceTemplate = null; // { template } — 삭제 버튼 노출 및 동작에 사용
 
-function openMyRoutineDetailFromTemplate(template, partKey){
-  const partInfo = myRoutineBuilderPartInfo(partKey);
-  const names = template.exercisesByPart[partKey] || [];
-  if (!partInfo || !names.length) return;
+function openMyRoutineDetailFromTemplate(template){
+  const items = template.orderedItems || [];
+  if (!items.length) return;
 
-  myRoutineDetailSourceTemplate = { template, partKey };
+  myRoutineDetailSourceTemplate = { template };
   document.getElementById("myRoutineDeleteTemplateBtn").style.display = "flex";
-  document.getElementById("myRoutineDetailTitle").textContent = partInfo.label;
+  document.getElementById("myRoutineDetailTitle").textContent = template.name;
   document.getElementById("myRoutineDateBanner").innerHTML = ""; // 템플릿은 특정 날짜에 묶인 게 아니라서 날짜 배너 없음
 
   const listEl = document.getElementById("myRoutineDetailList");
-  listEl.innerHTML = names.map((name, idx) => {
-    const sets = getLastSetsForExercise(name);
+  listEl.innerHTML = items.map((it, idx) => {
+    const sets = getLastSetsForExercise(it.exercise);
     const pastSetsHtml = sets.map(s => `
       <div class="my-routine-detail-set">${formatKgSmart(s.weight)}kg × ${parseInt(s.reps,10)}회</div>
     `).join("");
 
     return `
-      <div class="my-routine-detail-card" data-idx="${idx}" data-type="accessory" data-key="${escapeHtml(name)}">
-        <div class="my-routine-detail-name">${escapeHtml(name)}</div>
+      <div class="my-routine-detail-card" data-idx="${idx}" data-type="accessory" data-key="${escapeHtml(it.exercise)}" data-part="${it.partKey}">
+        <div class="my-routine-detail-name">${escapeHtml(it.exercise)}</div>
         <div class="my-routine-compare-row">
           <div class="my-routine-col">
             <div class="my-routine-detail-sublabel">오늘</div>
@@ -5646,6 +5671,7 @@ function openMyRoutineDetailFromTemplate(template, partKey){
       const idx = btn.dataset.idx;
       const card = listEl.querySelector(`.my-routine-detail-card[data-idx="${idx}"]`);
       const key = card.dataset.key;
+      const partInfoForSave = myRoutineBuilderPartInfo(card.dataset.part);
 
       const weightEl = document.getElementById(`myRoutineWeight-${idx}`);
       const repsEl = document.getElementById(`myRoutineReps-${idx}`);
@@ -5654,7 +5680,7 @@ function openMyRoutineDetailFromTemplate(template, partKey){
       if (!Number.isFinite(weight) || !reps) { weightEl.focus(); return; }
 
       btn.disabled = true;
-      const saved = await myRoutineSaveAccessorySet(key, partInfo.dataPart, weight, reps);
+      const saved = await myRoutineSaveAccessorySet(key, partInfoForSave.dataPart, weight, reps);
       btn.disabled = false;
 
       weightEl.value = "";
@@ -6166,9 +6192,8 @@ function wireCarouselFocus(carouselEl){
   carouselEl.querySelectorAll(".my-routine-template-card").forEach(card => {
     card.addEventListener("click", () => {
       const templateId = card.dataset.id;
-      const partKey = card.dataset.part;
       const template = myRoutineTemplates.find(t => t.id === templateId);
-      if (template) openMyRoutineDetailFromTemplate(template, partKey);
+      if (template) openMyRoutineDetailFromTemplate(template);
     });
   });
 
@@ -6177,26 +6202,32 @@ function wireCarouselFocus(carouselEl){
 
 function renderMyRoutineTemplateSection(){
   const sectionEl = document.getElementById("myRoutineTemplateSection");
-  const partsWithTemplates = MY_ROUTINE_BUILDER_PARTS.filter(p => getTemplatesForPart(p.key).length > 0);
-
-  if (!partsWithTemplates.length) {
+  if (!myRoutineTemplates.length) {
     sectionEl.innerHTML = "";
     return;
   }
 
-  sectionEl.innerHTML = partsWithTemplates.map(p => `
+  // 🔥 부위별이 아니라 "루틴 이름"별로 그룹핑 (같은 이름끼리 캐러셀로 묶임)
+  const nameOrder = [];
+  const groups = {};
+  myRoutineTemplates.forEach(t => {
+    if (!groups[t.name]) { groups[t.name] = []; nameOrder.push(t.name); }
+    groups[t.name].push(t);
+  });
+
+  sectionEl.innerHTML = nameOrder.map((name, gi) => `
     <div class="my-routine-template-part">
-      <div class="my-routine-part-name">${p.label}</div>
+      <div class="my-routine-part-name">${escapeHtml(name)}</div>
       <div class="my-routine-carousel-frame">
-        <div class="my-routine-carousel" id="myRoutineCarousel-${p.key}">
-          ${getTemplatesForPart(p.key).map(t => myRoutineTemplateCardHtml(t, p.key)).join("")}
+        <div class="my-routine-carousel" id="myRoutineCarousel-g${gi}">
+          ${groups[name].map(t => myRoutineTemplateCardHtml(t)).join("")}
         </div>
       </div>
     </div>
   `).join("");
 
-  partsWithTemplates.forEach(p => {
-    const carouselEl = document.getElementById(`myRoutineCarousel-${p.key}`);
+  nameOrder.forEach((name, gi) => {
+    const carouselEl = document.getElementById(`myRoutineCarousel-g${gi}`);
     if (carouselEl) wireCarouselFocus(carouselEl);
   });
 }
