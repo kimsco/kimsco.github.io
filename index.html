@@ -2687,10 +2687,10 @@ input[type="number"] {
   transition: width 1s cubic-bezier(0.22,1,0.36,1);
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
 }
 .my-routine-record-input-box {
-  width: calc(100% - 16px);
+  width: 65%;
   height: calc(100% - 16px);
   min-height: 40px;
   border: 1px solid rgba(255,255,255,0.35);
@@ -2698,6 +2698,7 @@ input[type="number"] {
   opacity: 0;
   transition: opacity 0.6s ease;
   box-sizing: border-box;
+  margin-left: 4px;
 }
 .my-routine-record-input-box.visible {
   opacity: 1;
