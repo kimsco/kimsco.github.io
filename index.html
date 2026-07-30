@@ -2689,6 +2689,7 @@ input[type="number"] {
   align-items: flex-end;
   justify-content: center;
   padding-bottom: 4px;
+  padding-right: 22%;
 }
 .my-routine-record-input-btn {
   -webkit-appearance: none;
@@ -5958,6 +5959,8 @@ let myRoutineRevealInputTargetBtn = null;
 let myRoutineRevealInputBarWired = false;
 let myRoutineRevealInputBarOpen = false;
 
+let myRoutineRevealInputBarController = null;
+
 function openMyRoutineRevealInputBar(row, btnEl){
   // 이전에 선택돼있던 버튼 흰색 해제
   if (myRoutineRevealInputTargetBtn) myRoutineRevealInputTargetBtn.classList.remove("selected");
@@ -5972,9 +5975,12 @@ function openMyRoutineRevealInputBar(row, btnEl){
     myRoutineRevealInputBar.style.opacity = "1";
     if (!myRoutineRevealInputBarWired) {
       myRoutineRevealInputBarWired = true;
-      wireFloatingSaveBar(myRoutineRevealInputBar, [myRoutineRevealScreen]);
+      myRoutineRevealInputBarController = wireFloatingSaveBar(myRoutineRevealInputBar, [myRoutineRevealScreen]);
     }
   }
+
+  // 🔥 스크롤로 작아져 있던 상태였더라도, 입력 버튼을 누르면 부드럽게 원래 크기로 복귀
+  if (myRoutineRevealInputBarController) myRoutineRevealInputBarController.reset();
 }
 function closeMyRoutineRevealInputBar(){
   myRoutineRevealInputBar.style.opacity = "0";
