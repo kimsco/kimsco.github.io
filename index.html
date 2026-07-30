@@ -2686,10 +2686,15 @@ input[type="number"] {
   align-self: stretch;
   transition: width 1s cubic-bezier(0.22,1,0.36,1);
   display: flex;
-  align-items: flex-end;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
   padding-bottom: 4px;
-  padding-right: 22%;
+  position: relative;
+  gap: 6px;
+}
+.my-routine-record-new-set {
+  color: #fff !important;
 }
 .my-routine-record-input-btn {
   -webkit-appearance: none;
@@ -2706,6 +2711,7 @@ input[type="number"] {
   font-weight: 600;
   cursor: pointer;
   opacity: 0;
+  transform: translateX(-22%);
   transition: opacity 0.6s ease, background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 .my-routine-record-input-btn.visible {
@@ -6006,9 +6012,9 @@ document.getElementById("myRoutineRevealInputSaveBtn").addEventListener("click",
     : await myRoutineSaveAccessorySet(row.key, row.partKey, weight, reps);
 
   const lineEl = document.createElement("div");
-  lineEl.className = "my-routine-reveal-ex-set";
+  lineEl.className = "my-routine-reveal-ex-set my-routine-record-new-set";
   lineEl.textContent = `${formatKgSmart(saved.weight)}kg × ${parseInt(saved.reps,10)}회`;
-  row.pastHalf.appendChild(lineEl);
+  row.inputHalf.insertBefore(lineEl, myRoutineRevealInputTargetBtn);
 
   // 🔥 저장해도 알약바는 안 사라짐 — 계속 입력할 수 있게 그대로 두고, 입력칸만 비움
   weightEl.value = "";
