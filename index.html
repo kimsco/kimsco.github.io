@@ -2302,7 +2302,7 @@ input[type="number"] {
   cursor: pointer;
 }
 .my-routine-part-name {
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 700;
   color: #fff;
   margin-bottom: 10px;
@@ -2322,7 +2322,7 @@ input[type="number"] {
   border: 1px solid rgba(255,255,255,0.3);
   border-radius: 10px;
   padding: 8px 12px;
-  font-size: 13px;
+  font-size: 15px;
   color: rgba(255,255,255,0.85);
   white-space: nowrap;
 }
@@ -2339,18 +2339,18 @@ input[type="number"] {
   margin-bottom: 14px;
 }
 .my-routine-detail-name {
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 700;
   color: #fff;
   margin-bottom: 8px;
 }
 .my-routine-detail-set {
-  font-size: 13px;
+  font-size: 15px;
   color: rgba(255,255,255,0.6);
   line-height: 1.8;
 }
 .my-routine-detail-sublabel {
-  font-size: 11px;
+  font-size: 13px;
   color: rgba(255,255,255,0.35);
   letter-spacing: 0.4px;
   margin-bottom: 4px;
@@ -2374,7 +2374,7 @@ input[type="number"] {
   border-radius: 8px;
   color: #fff;
   text-align: center;
-  font-size: 14px;
+  font-size: 16px;
   margin: 0;
   padding: 0;
 }
@@ -2393,7 +2393,7 @@ input[type="number"] {
   border: none;
   background: rgba(255,255,255,0.6);
   color: #000;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 700;
   cursor: pointer;
 }
@@ -2771,7 +2771,7 @@ input[type="number"] {
 
 .my-routine-days-ago {
   text-align: center;
-  font-size: 13px;
+  font-size: 15px;
   color: rgba(255,255,255,0.55);
   margin-bottom: 14px;
 }
@@ -2788,17 +2788,17 @@ input[type="number"] {
   gap: 10px;
 }
 .my-routine-date-past {
-  font-size: 12px;
+  font-size: 14px;
   color: rgba(255,255,255,0.3);
   white-space: nowrap;
 }
 .my-routine-date-dots {
-  font-size: 12px;
+  font-size: 14px;
   color: rgba(255,255,255,0.25);
   letter-spacing: 2px;
 }
 .my-routine-date-today {
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 800;
   color: #fff;
   white-space: nowrap;
@@ -6202,7 +6202,11 @@ function wireCarouselFocus(carouselEl){
 
 function renderMyRoutineTemplateSection(){
   const sectionEl = document.getElementById("myRoutineTemplateSection");
-  if (!myRoutineTemplates.length) {
+
+  // 🔥 예전(부위별) 구조로 저장된 낡은 테스트 데이터는 이름/순서 정보가 없어서 화면에서 걸러냄
+  const validTemplates = myRoutineTemplates.filter(t => t.name && Array.isArray(t.orderedItems) && t.orderedItems.length);
+
+  if (!validTemplates.length) {
     sectionEl.innerHTML = "";
     return;
   }
@@ -6210,7 +6214,7 @@ function renderMyRoutineTemplateSection(){
   // 🔥 부위별이 아니라 "루틴 이름"별로 그룹핑 (같은 이름끼리 캐러셀로 묶임)
   const nameOrder = [];
   const groups = {};
-  myRoutineTemplates.forEach(t => {
+  validTemplates.forEach(t => {
     if (!groups[t.name]) { groups[t.name] = []; nameOrder.push(t.name); }
     groups[t.name].push(t);
   });
