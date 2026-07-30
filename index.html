@@ -7395,6 +7395,9 @@ function closeNavDrawer(){
 
   setTimeout(() => {
     navDrawerOverlay.classList.add("hidden");
+    // 🔥 다음 열 때를 대비한 리셋은 완전히 숨겨진 뒤에만 해야 "열린 위치로 순간 되돌아가는" 잔상이 안 생김
+    navDrawer.style.transition = "none";
+    navDrawer.style.transform = "translateX(0)";
   }, 220);
 }
 
@@ -7421,6 +7424,7 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
     const t = e.touches[0];
     startX = t.clientX; startY = t.clientY;
     tracking = true; dragging = false;
+    navDrawer.style.animation = 'none'; // 🔥 안전장치: 첫 스와이프 때 CSS 애니메이션이 아직 안 풀려있는 경우 대비
     navDrawer.style.transition = 'none';
     navDrawerDim.style.transition = 'none';
     setAppPushTransition('none');
@@ -7470,9 +7474,7 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
       navDrawerDim.style.opacity = '0';
       setAppPush(0);
       setTimeout(() => {
-        closeNavDrawer();
-        navDrawer.style.transition = 'none';
-        navDrawer.style.transform = 'translateX(0)';
+        closeNavDrawer(); // 🔥 리셋까지 안전하게 처리하므로 여기서 따로 안 건드림
       }, 220);
     } else {
       navDrawer.style.transform = 'translateX(0)';
