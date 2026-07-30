@@ -6016,8 +6016,15 @@ document.getElementById("myRoutineRevealInputSaveBtn").addEventListener("click",
   const idx = row.newCount || 0;
   row.newCount = idx + 1;
 
+  // 🔥 기존 화면들이랑 똑같은 꾹눌러-삭제 기능을 그대로 재사용 (my-routine-today-set 전역 리스너가 처리)
+  const delId = row.type === "lift"
+    ? (saved.firestoreId || ("local_" + saved.localId))
+    : saved.id;
+
   const lineEl = document.createElement("div");
-  lineEl.className = "my-routine-reveal-ex-set my-routine-record-new-set";
+  lineEl.className = "my-routine-reveal-ex-set my-routine-record-new-set my-routine-today-set";
+  lineEl.dataset.delId = delId;
+  lineEl.dataset.type = row.type;
   lineEl.textContent = `${formatKgSmart(saved.weight)}kg × ${parseInt(saved.reps,10)}회`;
 
   // 🔥 지난 기록의 같은 순번(idx번째) 줄이랑 세로 위치를 맞춤 (1:1 가로 매칭)
