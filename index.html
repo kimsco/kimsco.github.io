@@ -2683,7 +2683,24 @@ input[type="number"] {
 .my-routine-record-input-half {
   width: 0;
   flex-shrink: 0;
+  align-self: stretch;
   transition: width 1s cubic-bezier(0.22,1,0.36,1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.my-routine-record-input-box {
+  width: calc(100% - 16px);
+  height: calc(100% - 16px);
+  min-height: 40px;
+  border: 1px solid rgba(255,255,255,0.35);
+  border-radius: 14px;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+  box-sizing: border-box;
+}
+.my-routine-record-input-box.visible {
+  opacity: 1;
 }
 .my-routine-record-past-half {
   flex-shrink: 0;
@@ -5870,6 +5887,18 @@ function openMyRoutineRevealScreen(partKey){
         const pastWidth = r.pastHalf.offsetWidth;
         r.inputHalf.style.width = (pastWidth * 2.5) + "px";
       });
+
+      // 3단계: 가로 확장이 다 끝난 뒤에(1s), 왼쪽 빈 공간에 기록 입력용 테두리 박스가 서서히 나타남
+      setTimeout(() => {
+        recordRows.forEach(r => {
+          const boxEl = document.createElement("div");
+          boxEl.className = "my-routine-record-input-box";
+          r.inputHalf.appendChild(boxEl);
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => boxEl.classList.add("visible"));
+          });
+        });
+      }, 1000);
     }, 1800);
 
     // 질문/버튼 줄은 더 이상 필요 없으니 자연스럽게 사라지게
