@@ -1126,6 +1126,108 @@ cursor: pointer;
 }
 
 /* ===============================
+   운동도감: 그리드(카드) UI — 일반 보기 모드
+================================ */
+.dex-grid{
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+}
+.dex-grid-item{
+  aspect-ratio: 1 / 1;
+  background: #000;
+  border: 1px solid rgba(255,255,255,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+  transition: background 0.12s ease-out;
+}
+.dex-grid-item.pressed{
+  background: #111;
+}
+.dex-grid-item-folder-icon{
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  color: rgba(255,255,255,0.3);
+}
+.dex-grid-item-label{
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  text-align: center;
+  line-height: 1.4;
+  word-break: keep-all;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ===============================
+   운동도감: 그리드(카드) UI — 일반 보기 모드
+================================ */
+.dex-grid{
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+}
+.dex-grid-item{
+  aspect-ratio: 1 / 1;
+  background: #000;
+  border: 1px solid rgba(255,255,255,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+  transition: background 0.12s ease-out;
+}
+.dex-grid-item.pressed{
+  background: #111;
+}
+.dex-grid-item-folder-icon{
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  color: rgba(255,255,255,0.3);
+}
+.dex-grid-item-label{
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  text-align: center;
+  line-height: 1.4;
+  word-break: keep-all;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.dex-grid-item-preview{
+  margin-top: 6px;
+  font-size: 10.5px;
+  font-weight: 400;
+  color: rgba(255,255,255,0.4);
+  text-align: center;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ===============================
    운동도감: 팝업(폴더 추가/글쓰기)
 ================================ */
 .dex-modal-overlay {
@@ -3105,7 +3207,7 @@ input[type="number"] {
       <div id="dexPostBackRow" style="display:flex; align-items:center; cursor:pointer; flex-shrink:0; white-space:nowrap;" onclick="closeDexPostDetail()">
         ← <span style="margin-left:6px; font-size:14px; color:rgba(255,255,255,0.5); white-space:nowrap;">뒤로</span>
       </div>
-      <button id="dexPostMoreBtn" style="-webkit-appearance:none; appearance:none; flex-shrink:0; width:auto; max-width:90px; background:transparent; border:1px solid rgba(255,255,255,0.3); color:rgba(255,255,255,0.6); font-size:12px; padding:6px 12px; border-radius:8px; cursor:pointer; white-space:nowrap;">더보기</button>
+      <button id="dexPostMoreBtn" style="-webkit-appearance:none; appearance:none; flex-shrink:0; max-width:90px; background:transparent; border:1px solid rgba(255,255,255,0.3); color:rgba(255,255,255,0.6); font-size:12px; padding:6px 12px; border-radius:8px; cursor:pointer; white-space:nowrap;">더보기</button>
     </div>
     <div id="dexPostDetailTitle" style="font-size:20px; font-weight:700; color:#fff; margin-bottom:16px; line-height:1.4;"></div>
     <div id="dexPostDetailContent" style="font-size:17px; font-weight:400; color:rgba(255,255,255,0.7); line-height:1.9; white-space:pre-wrap;"></div>
@@ -6446,6 +6548,8 @@ function dexItemsForCurrentFolder(){
 
 let dexEditMode = false;
 
+/* 🔥 일반 모드: 인스타그램 스타일 3열 그리드 카드 (탭하면 폴더진입/게시물상세)
+   편집 모드: 기존 세로 리스트(순서변경 드래그 + ⋯메뉴) 그대로 유지 */
 function renderDexList(){
   const { folders, posts } = dexItemsForCurrentFolder();
   const listEl = document.getElementById("dexListArea");
@@ -6458,20 +6562,48 @@ function renderDexList(){
   }
   emptyEl.style.display = "none";
 
-  const editExtras = (type, id) => dexEditMode ? `
+  if (dexEditMode) {
+    renderDexListEditMode(listEl, folders, posts);
+    return;
+  }
+
+  let html = `<div class="dex-grid">`;
+  folders.forEach(f => {
+    html += `
+      <div class="dex-grid-item" data-type="folder" data-id="${f.id}">
+        <div class="dex-grid-item-folder-icon">${DEX_FOLDER_ICON}</div>
+        <div class="dex-grid-item-label">${escapeHtml(f.name)}</div>
+      </div>
+    `;
+  });
+  posts.forEach(p => {
+    html += `
+      <div class="dex-grid-item" data-type="post" data-id="${p.id}">
+        <div class="dex-grid-item-label">${escapeHtml(p.title)}</div>
+      </div>
+    `;
+  });
+  html += `</div>`;
+
+  listEl.innerHTML = html;
+  wireDexGridInteractions();
+}
+
+/* 🔥 편집모드 전용: 기존 세로 리스트 렌더링 (이름변경/삭제/드래그 순서변경) */
+function renderDexListEditMode(listEl, folders, posts){
+  const editExtras = (type, id) => `
       <button class="dex-row-dots" data-type="${type}" data-id="${id}">⋯</button>
       <div class="dex-row-handle">${DEX_HANDLE_ICON}</div>
-    ` : "";
+    `;
 
   let html = "";
   if (folders.length) {
     html += `<div class="dex-drag-group" data-group="folder">`;
     folders.forEach(f => {
       html += `
-        <div class="dex-row${dexEditMode ? ' editing' : ''}" data-type="folder" data-id="${f.id}">
+        <div class="dex-row editing" data-type="folder" data-id="${f.id}">
           <div class="dex-row-icon">${DEX_FOLDER_ICON}</div>
           <div class="dex-row-label">${escapeHtml(f.name)}</div>
-          <div class="dex-row-chevron">${DEX_CHEVRON_ICON}</div>
           ${editExtras("folder", f.id)}
         </div>
       `;
@@ -6483,7 +6615,7 @@ function renderDexList(){
     html += `<div class="dex-drag-group" data-group="post">`;
     posts.forEach(p => {
       html += `
-        <div class="dex-row${dexEditMode ? ' editing' : ''}" data-type="post" data-id="${p.id}">
+        <div class="dex-row editing" data-type="post" data-id="${p.id}">
           <div class="dex-row-label">${escapeHtml(p.title)}</div>
           ${editExtras("post", p.id)}
         </div>
@@ -6494,6 +6626,34 @@ function renderDexList(){
 
   listEl.innerHTML = html;
   wireDexRowInteractions();
+}
+
+/* 🔥 그리드 카드: 터치 피드백 + 탭하면 이동 */
+function wireDexGridInteractions(){
+  document.querySelectorAll(".dex-grid-item").forEach(item => {
+    function press(){ item.classList.add("pressed"); }
+    function release(){ item.classList.remove("pressed"); }
+
+    item.addEventListener("mousedown", press);
+    item.addEventListener("mouseup", release);
+    item.addEventListener("mouseleave", release);
+    item.addEventListener("touchstart", press, { passive: true });
+    item.addEventListener("touchend", release);
+    item.addEventListener("touchcancel", release);
+
+    let navigating = false;
+    item.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (navigating) return;
+      navigating = true;
+      setTimeout(() => { navigating = false; }, 400);
+
+      const type = item.dataset.type;
+      const id = item.dataset.id;
+      if (type === "folder") dexOpenFolder(id);
+      else dexOpenPost(id);
+    });
+  });
 }
 
 /* 🔥 목록 행: iOS 스타일 터치 피드백(살짝 밝아짐) + 클릭 시 이동 + 편집모드 상호작용 */
