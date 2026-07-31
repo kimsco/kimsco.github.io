@@ -3834,6 +3834,7 @@ const LS_KEYS = {
   meals: "mf_meals_v1",                  // 날짜별 식사 기록
   dexFolders: "mf_dex_folders_v1",       // 운동도감 폴더 (공용)
   dexPosts: "mf_dex_posts_v1",           // 운동도감 게시물 (공용)
+  dexPendingIds: "mf_dex_pending_ids_v1", // 서버 동기화 아직 안 된 폴더/게시물 id 목록
   myRoutineTemplates: "mf_my_routine_templates_v1" // 내가 만든 루틴 템플릿
 };
 
@@ -6468,6 +6469,49 @@ let dexFolderStack = [];         // 상위 폴더 경로 (뒤로가기용)
 let dexFoldersUnsub = null;
 let dexPostsUnsub = null;
 
+// 🔥 로컬에서 방금 만들었지만 아직 서버(Firestore) 동기화가 확인 안 된 항목의 id 모음.
+//    onSnapshot이 서버 최신본으로 통째로 덮어쓸 때, 이 목록에 있는 항목은 보존해서
+//    "서버 동기화 실패 = 로컬에서도 사라짐" 버그를 막는다.
+//    앱을 껐다 켜도 유지되도록 로컬저장소에도 같이 저장한다.
+let dexPendingLocalIds = new Set(lsGet(LS_KEYS.dexPendingIds, []));
+function savePendingIdsToLocal(){
+  lsSet(LS_KEYS.dexPendingIds, Array.from(dexPendingLocalIds));
+}
+function dexMarkPending(id){
+  dexPendingLocalIds.add(id);
+  savePendingIdsToLocal();
+}
+function dexUnmarkPending(id){
+  dexPendingLocalIds.delete(id);
+  savePendingIdsToLocal();
+}
+
+/* 🔥 실패했던 항목들을 다시 서버에 저장 시도 (운동도감을 열 때마다 자동 호출) */
+async function dexRetryPendingSync(){
+  if (!dexPendingLocalIds.size) return;
+  const ids = Array.from(dexPendingLocalIds);
+
+  for (const id of ids) {
+    const folder = dexFolders.find(f => f.id === id);
+    const post = dexPosts.find(p => p.id === id);
+    try {
+      if (folder) {
+        await dexFoldersCol.doc(id).set(folder);
+        dexUnmarkPending(id);
+      } else if (post) {
+        await dexPostsCol.doc(id).set(post);
+        dexUnmarkPending(id);
+      } else {
+        // 로컬에도 없는 유령 id면 그냥 정리
+        dexUnmarkPending(id);
+      }
+    } catch (e) {
+      console.error("재동기화 재시도 실패:", id, e);
+      // 실패하면 pending 유지, 다음에 다시 시도됨
+    }
+  }
+}
+
 function escapeHtml(str){
   return String(str == null ? "" : str).replace(/[&<>"']/g, ch => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
@@ -6494,20 +6538,32 @@ function saveDexToLocal(){
 }
 loadDexFromLocal(); // 오프라인 대비 초기값
 
-/* 🔥 실시간 동기화: 다른 계정에서 추가/수정해도 새로고침 없이 자동 반영 */
+/* 🔥 실시간 동기화: 다른 계정에서 추가/수정해도 새로고침 없이 자동 반영
+   단, 로컬에서 막 만들었는데 서버 동기화가 아직 안 끝난(또는 실패한) 항목은
+   서버 스냅샷에 없어도 지우지 않고 그대로 유지한다(병합). */
 function startDexRealtimeSync(){
   if (dexFoldersUnsub || dexPostsUnsub) return; // 중복 구독 방지
   try {
     dexFoldersUnsub = dexFoldersCol.onSnapshot(snap => {
-      dexFolders = [];
-      snap.forEach(doc => dexFolders.push(doc.data()));
+      const serverFolders = [];
+      const serverIds = new Set();
+      snap.forEach(doc => { serverFolders.push(doc.data()); serverIds.add(doc.id); });
+
+      const keepLocalOnly = dexFolders.filter(f => dexPendingLocalIds.has(f.id) && !serverIds.has(f.id));
+      dexFolders = serverFolders.concat(keepLocalOnly);
+
       saveDexToLocal();
       renderDexList();
     }, err => console.error("dexFolders 실시간 동기화 오류", err));
 
     dexPostsUnsub = dexPostsCol.onSnapshot(snap => {
-      dexPosts = [];
-      snap.forEach(doc => dexPosts.push(doc.data()));
+      const serverPosts = [];
+      const serverIds = new Set();
+      snap.forEach(doc => { serverPosts.push(doc.data()); serverIds.add(doc.id); });
+
+      const keepLocalOnly = dexPosts.filter(p => dexPendingLocalIds.has(p.id) && !serverIds.has(p.id));
+      dexPosts = serverPosts.concat(keepLocalOnly);
+
       saveDexToLocal();
       renderDexList();
     }, err => console.error("dexPosts 실시간 동기화 오류", err));
@@ -6824,6 +6880,7 @@ function openExerciseDex(){
 
   startDexRealtimeSync();
   renderDexList();
+  if (isDexAdmin()) dexRetryPendingSync().then(() => renderDexList()); // 🔥 이전에 실패했던 저장 자동 재시도
 }
 function closeExerciseDex(){
   exerciseDexOverlay.classList.add("hidden");
@@ -6973,13 +7030,17 @@ document.getElementById("dexFolderCreateBtn").addEventListener("click", async ()
 
   // ✅ 현재 보고 있는 위치(최상위 or 현재 폴더)에 즉시 반영
   dexFolders.push(item);
+  dexMarkPending(id); // 🔥 서버 확인 전까지는 실시간 동기화가 이 항목을 지우지 못하게 보호 (로컬저장소에도 기록)
   saveDexToLocal();
   renderDexList();
 
   try {
     await dexFoldersCol.doc(id).set(item);
+    dexUnmarkPending(id); // 🔥 서버 저장 성공 확인됨 → 보호 해제
   } catch (e) {
     console.error("폴더 생성 실패(로컬에는 저장됨, 서버 동기화만 실패)", e);
+    alert(`서버 동기화 실패: ${e.code || e.message || e}\n이 기기에는 저장됐지만 다른 기기에서는 안 보일 수 있어요.`);
+    // 🔥 실패했으니 dexPendingLocalIds는 그대로 유지 → 계속 보호됨
   }
 
   dexCreatingFolder = false;
@@ -7420,14 +7481,17 @@ document.getElementById("dexWriteSubmitBtn").addEventListener("click", async () 
     };
 
     dexPosts.push(item);
+    dexMarkPending(id); // 🔥 서버 확인 전까지는 실시간 동기화가 이 항목을 지우지 못하게 보호 (로컬저장소에도 기록)
     saveDexToLocal();
     renderDexList();
 
     try {
       await dexPostsCol.doc(id).set(item);
+      dexUnmarkPending(id); // 🔥 서버 저장 성공 확인됨 → 보호 해제
     } catch (e) {
       console.error("게시물 생성 실패(로컬에는 저장됨, 서버 동기화만 실패)", e);
-      alert("서버 동기화에 실패했어요. 이 기기에는 저장됐지만 다른 기기에서는 안 보일 수 있어요.");
+      alert(`서버 동기화 실패: ${e.code || e.message || e}\n이 기기에는 저장됐지만 다른 기기에서는 안 보일 수 있어요.`);
+      // 🔥 실패했으니 dexPendingLocalIds는 그대로 유지 → 계속 보호됨
     }
 
     closeDexWriteScreen();
