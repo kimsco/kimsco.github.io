@@ -1313,6 +1313,8 @@ cursor: pointer;
   background: #111;
   padding: 20px;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
 
   transform: translateX(100%);
   animation: slideIn 0.25s ease forwards;
@@ -1503,7 +1505,8 @@ cursor: pointer;
 
 /* 설정 화면 맨 밑 로그아웃 (텍스트형) */
 .settings-logout-text{
-  margin-top: 26px;          /* 공백에 덩그러니 */
+  margin-top: auto;         /* 🔥 화면 맨 밑으로 밀어냄 */
+  margin-bottom: 14px;      /* 밑에서 살짝 띄움 */
   text-align: center;
 
   font-size: 12.5px;        /* 작게 */
@@ -3460,6 +3463,11 @@ input[type="number"] {
       <button id="mySpecMenuBtn" class="settings-item" style="width:100%; text-align:left; background:none; border:none; color:#fff; cursor:pointer;">내 정보 수정</button>
       <div class="settings-item">문의</div>
       <div class="settings-item muted">김무진한테 문의하세요</div>
+    </div>
+
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-top:16px;">
+      <div class="settings-item" style="margin:0;">화면 모드</div>
+      <div id="lightModeToggle" class="toggle-switch"></div>
     </div>
 
 <!-- ✅ 하단 로그아웃 버튼 (iOS 느낌) -->
@@ -7972,6 +7980,22 @@ settingsOverlay.addEventListener("click", (e) => {
   }
 });
 
+
+/* ✨ 다크/라이트 모드 토글: 검정↔흰색 자동 반전 + 회색 톤 유지 + 색상(빨강/노랑 등)은 최대한 원래대로
+   (사진 넣게 되면 img 태그에 반대 필터를 걸어서 상쇄시키면 됨) */
+const lightModeToggle = document.getElementById("lightModeToggle");
+function applyLightMode(on){
+  document.documentElement.style.filter = on ? "invert(1) hue-rotate(180deg)" : "";
+  lightModeToggle.classList.toggle("active", on);
+  try { localStorage.setItem("mf_light_mode", on ? "1" : "0"); } catch(e){}
+}
+lightModeToggle.addEventListener("click", () => {
+  applyLightMode(!lightModeToggle.classList.contains("active"));
+});
+// 저장된 설정 있으면 페이지 로드 시 바로 반영
+try {
+  applyLightMode(localStorage.getItem("mf_light_mode") === "1");
+} catch(e){}
 
 // ✅ 설정 화면용 로그인/로그아웃 요소
 const settingsLoginRow = document.getElementById("settingsLoginRow");
