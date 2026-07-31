@@ -1126,103 +1126,49 @@ cursor: pointer;
 }
 
 /* ===============================
-   운동도감: 그리드(카드) UI — 일반 보기 모드
+   운동도감: 폴더(가로 목록형) — 기존 리스트 스타일 그대로
 ================================ */
-.dex-grid{
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 2px;
-}
-.dex-grid-item{
-  aspect-ratio: 1 / 1;
-  background: #000;
-  border: 1px solid rgba(255,255,255,0.08);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 10px;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  position: relative;
-  overflow: hidden;
-  box-sizing: border-box;
-  transition: background 0.12s ease-out;
-}
-.dex-grid-item.pressed{
-  background: #111;
-}
-.dex-grid-item-folder-icon{
-  position: absolute;
-  top: 8px;
-  left: 8px;
-  color: rgba(255,255,255,0.3);
-}
-.dex-grid-item-label{
-  font-size: 13px;
-  font-weight: 600;
-  color: #fff;
-  text-align: center;
-  line-height: 1.4;
-  word-break: keep-all;
-  display: -webkit-box;
-  -webkit-line-clamp: 4;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+.dex-folder-list{
+  margin: 0;
 }
 
 /* ===============================
-   운동도감: 그리드(카드) UI — 일반 보기 모드
+   운동도감: 게시물 카드 — 좌우 꽉 채운 대형 카드
 ================================ */
-.dex-grid{
+.dex-post-grid-wrap{
+  /* dexBody 좌우 padding(18px)을 상쇄해서 화면 끝까지 꽉 채움 */
+  margin: 0 -18px;
+}
+.dex-post-grid{
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 2px;
 }
-.dex-grid-item{
+.dex-post-card{
   aspect-ratio: 1 / 1;
-  background: #000;
+  background: #0a0a0a;
   border: 1px solid rgba(255,255,255,0.08);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 10px;
+  padding: 18px;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  position: relative;
-  overflow: hidden;
   box-sizing: border-box;
   transition: background 0.12s ease-out;
 }
-.dex-grid-item.pressed{
-  background: #111;
+.dex-post-card.pressed{
+  background: #161616;
 }
-.dex-grid-item-folder-icon{
-  position: absolute;
-  top: 8px;
-  left: 8px;
-  color: rgba(255,255,255,0.3);
-}
-.dex-grid-item-label{
-  font-size: 13px;
-  font-weight: 600;
+.dex-post-card-label{
+  font-size: 17px;
+  font-weight: 700;
   color: #fff;
   text-align: center;
-  line-height: 1.4;
+  line-height: 1.45;
   word-break: keep-all;
   display: -webkit-box;
-  -webkit-line-clamp: 4;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-.dex-grid-item-preview{
-  margin-top: 6px;
-  font-size: 10.5px;
-  font-weight: 400;
-  color: rgba(255,255,255,0.4);
-  text-align: center;
-  line-height: 1.4;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 5;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -6548,7 +6494,8 @@ function dexItemsForCurrentFolder(){
 
 let dexEditMode = false;
 
-/* 🔥 일반 모드: 인스타그램 스타일 3열 그리드 카드 (탭하면 폴더진입/게시물상세)
+/* 🔥 일반 모드: 폴더는 기존 가로 목록형(아이콘+이름+화살표) 그대로,
+   게시물만 그 밑에 좌우 꽉 채운 대형 카드(2열)로 표시.
    편집 모드: 기존 세로 리스트(순서변경 드래그 + ⋯메뉴) 그대로 유지 */
 function renderDexList(){
   const { folders, posts } = dexItemsForCurrentFolder();
@@ -6567,26 +6514,39 @@ function renderDexList(){
     return;
   }
 
-  let html = `<div class="dex-grid">`;
-  folders.forEach(f => {
-    html += `
-      <div class="dex-grid-item" data-type="folder" data-id="${f.id}">
-        <div class="dex-grid-item-folder-icon">${DEX_FOLDER_ICON}</div>
-        <div class="dex-grid-item-label">${escapeHtml(f.name)}</div>
-      </div>
-    `;
-  });
-  posts.forEach(p => {
-    html += `
-      <div class="dex-grid-item" data-type="post" data-id="${p.id}">
-        <div class="dex-grid-item-label">${escapeHtml(p.title)}</div>
-      </div>
-    `;
-  });
-  html += `</div>`;
+  let html = "";
+
+  if (folders.length) {
+    html += `<div class="dex-folder-list">`;
+    folders.forEach(f => {
+      html += `
+        <div class="dex-row" data-type="folder" data-id="${f.id}">
+          <div class="dex-row-icon">${DEX_FOLDER_ICON}</div>
+          <div class="dex-row-label">${escapeHtml(f.name)}</div>
+          <div class="dex-row-chevron">${DEX_CHEVRON_ICON}</div>
+        </div>
+      `;
+    });
+    html += `</div>`;
+  }
+
+  if (folders.length && posts.length) html += `<div class="dex-section-gap"></div>`;
+
+  if (posts.length) {
+    html += `<div class="dex-post-grid-wrap"><div class="dex-post-grid">`;
+    posts.forEach(p => {
+      html += `
+        <div class="dex-post-card" data-type="post" data-id="${p.id}">
+          <div class="dex-post-card-label">${escapeHtml(p.title)}</div>
+        </div>
+      `;
+    });
+    html += `</div></div>`;
+  }
 
   listEl.innerHTML = html;
-  wireDexGridInteractions();
+  wireDexFolderRowInteractions();
+  wireDexPostCardInteractions();
 }
 
 /* 🔥 편집모드 전용: 기존 세로 리스트 렌더링 (이름변경/삭제/드래그 순서변경) */
@@ -6628,30 +6588,50 @@ function renderDexListEditMode(listEl, folders, posts){
   wireDexRowInteractions();
 }
 
-/* 🔥 그리드 카드: 터치 피드백 + 탭하면 이동 */
-function wireDexGridInteractions(){
-  document.querySelectorAll(".dex-grid-item").forEach(item => {
-    function press(){ item.classList.add("pressed"); }
-    function release(){ item.classList.remove("pressed"); }
+/* 🔥 폴더 목록(일반모드): 기존 .dex-row 스타일 그대로, 터치 피드백 + 탭하면 폴더 진입 */
+function wireDexFolderRowInteractions(){
+  document.querySelectorAll(".dex-folder-list .dex-row").forEach(row => {
+    function press(){ row.classList.add("pressed"); }
+    function release(){ row.classList.remove("pressed"); }
 
-    item.addEventListener("mousedown", press);
-    item.addEventListener("mouseup", release);
-    item.addEventListener("mouseleave", release);
-    item.addEventListener("touchstart", press, { passive: true });
-    item.addEventListener("touchend", release);
-    item.addEventListener("touchcancel", release);
+    row.addEventListener("mousedown", press);
+    row.addEventListener("mouseup", release);
+    row.addEventListener("mouseleave", release);
+    row.addEventListener("touchstart", press, { passive: true });
+    row.addEventListener("touchend", release);
+    row.addEventListener("touchcancel", release);
 
     let navigating = false;
-    item.addEventListener("click", (e) => {
+    row.addEventListener("click", (e) => {
       e.stopPropagation();
       if (navigating) return;
       navigating = true;
       setTimeout(() => { navigating = false; }, 400);
+      dexOpenFolder(row.dataset.id);
+    });
+  });
+}
 
-      const type = item.dataset.type;
-      const id = item.dataset.id;
-      if (type === "folder") dexOpenFolder(id);
-      else dexOpenPost(id);
+/* 🔥 게시물 대형 카드: 터치 피드백 + 탭하면 상세화면 진입 */
+function wireDexPostCardInteractions(){
+  document.querySelectorAll(".dex-post-card").forEach(card => {
+    function press(){ card.classList.add("pressed"); }
+    function release(){ card.classList.remove("pressed"); }
+
+    card.addEventListener("mousedown", press);
+    card.addEventListener("mouseup", release);
+    card.addEventListener("mouseleave", release);
+    card.addEventListener("touchstart", press, { passive: true });
+    card.addEventListener("touchend", release);
+    card.addEventListener("touchcancel", release);
+
+    let navigating = false;
+    card.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (navigating) return;
+      navigating = true;
+      setTimeout(() => { navigating = false; }, 400);
+      dexOpenPost(card.dataset.id);
     });
   });
 }
