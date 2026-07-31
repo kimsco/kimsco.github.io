@@ -7239,9 +7239,11 @@ const dexWriteScreen = document.getElementById("dexWriteScreen");
 
 let dexWriteImageData = null; // 압축된 base64 dataURL (없으면 null)
 
-/* 🔥 사진첩에서 고른 이미지를 캔버스로 리사이즈+압축해서 base64로 반환
-   (Firestore 문서 용량 제한 안에 들어오도록 최대 변 1080px, JPEG 품질 0.72) */
-function compressImageFile(file, maxSide = 1080, quality = 0.72){
+// 🔥 Firestore 문서 용량 한도(1MiB)에 안전마진을 두고, base64 문자열 길이 상한을 둠
+const DEX_IMAGE_MAX_CHARS = 900000; // 대략 900KB
+
+/* 🔥 사진첩에서 고른 이미지를 캔버스로 리사이즈+압축해서 base64로 반환 */
+function compressImageFile(file, maxSide, quality){
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => {
@@ -7262,12 +7264,32 @@ function compressImageFile(file, maxSide = 1080, quality = 0.72){
         ctx.drawImage(img, 0, 0, width, height);
         resolve(canvas.toDataURL("image/jpeg", quality));
       };
-      img.onerror = reject;
+      img.onerror = () => reject(new Error("이미지를 디코딩하지 못했습니다."));
       img.src = reader.result;
     };
-    reader.onerror = reject;
+    reader.onerror = () => reject(new Error("파일을 읽지 못했습니다."));
     reader.readAsDataURL(file);
   });
+}
+
+/* 🔥 용량이 큰 사진이면: 화질/크기를 단계적으로 낮춰가며 여러 번 재시도.
+   그래도 한도를 넘으면 마지막 결과와 함께 "초과했다"는 사실을 알려줌 (throw하지 않고 반환) */
+async function compressImageUntilFits(file){
+  const attempts = [
+    { maxSide: 1080, quality: 0.72 },
+    { maxSide: 1080, quality: 0.5 },
+    { maxSide: 800,  quality: 0.5 },
+    { maxSide: 640,  quality: 0.45 },
+  ];
+
+  let dataUrl = null;
+  for (const opt of attempts) {
+    dataUrl = await compressImageFile(file, opt.maxSide, opt.quality);
+    if (dataUrl.length <= DEX_IMAGE_MAX_CHARS) {
+      return { dataUrl, oversized: false };
+    }
+  }
+  return { dataUrl, oversized: true }; // 마지막 시도까지도 초과
 }
 
 const dexPostImageInput = document.getElementById("dexPostImageInput");
@@ -7275,6 +7297,15 @@ const dexPostImageAddBtn = document.getElementById("dexPostImageAddBtn");
 const dexPostImagePreviewWrap = document.getElementById("dexPostImagePreviewWrap");
 const dexPostImagePreview = document.getElementById("dexPostImagePreview");
 const dexPostImageRemoveBtn = document.getElementById("dexPostImageRemoveBtn");
+
+const DEX_IMAGE_ADD_BTN_HTML = `
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><path d="M21 15l-5-5L5 21"></path></svg>
+    사진 추가
+  `;
+const DEX_IMAGE_CHANGE_BTN_HTML = `
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><path d="M21 15l-5-5L5 21"></path></svg>
+    사진 변경
+  `;
 
 dexPostImageAddBtn.addEventListener("click", () => dexPostImageInput.click());
 
@@ -7284,19 +7315,29 @@ dexPostImageInput.addEventListener("change", async () => {
 
   dexPostImageAddBtn.textContent = "압축 중...";
   dexPostImageAddBtn.disabled = true;
+
   try {
-    const dataUrl = await compressImageFile(file);
+    const { dataUrl, oversized } = await compressImageUntilFits(file);
+
+    if (oversized) {
+      // 🔥 최대한 압축했는데도 한도 초과: 사진은 반영하지 않고 명확히 알림
+      alert("사진 용량이 너무 커서 여러 번 압축해도 한도를 넘어요. 스크린샷이나 더 가벼운 사진으로 다시 선택해주세요.");
+      dexPostImageAddBtn.innerHTML = dexWriteImageData ? DEX_IMAGE_CHANGE_BTN_HTML : DEX_IMAGE_ADD_BTN_HTML;
+      dexPostImageAddBtn.disabled = false;
+      dexPostImageInput.value = "";
+      return;
+    }
+
     dexWriteImageData = dataUrl;
     dexPostImagePreview.src = dataUrl;
     dexPostImagePreviewWrap.style.display = "block";
+    dexPostImageAddBtn.innerHTML = DEX_IMAGE_CHANGE_BTN_HTML;
   } catch (e) {
     console.error("이미지 압축 실패", e);
-    alert("이미지를 불러오지 못했어요.");
+    alert("이미지를 불러오지 못했어요. 다른 사진으로 시도해주세요.");
+    dexPostImageAddBtn.innerHTML = dexWriteImageData ? DEX_IMAGE_CHANGE_BTN_HTML : DEX_IMAGE_ADD_BTN_HTML;
   }
-  dexPostImageAddBtn.innerHTML = `
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><path d="M21 15l-5-5L5 21"></path></svg>
-    사진 변경
-  `;
+
   dexPostImageAddBtn.disabled = false;
   dexPostImageInput.value = ""; // 같은 파일 다시 선택해도 change 이벤트 발생하도록
 });
@@ -7349,43 +7390,55 @@ document.getElementById("dexWriteBackRow").addEventListener("click", closeDexWri
 
 document.getElementById("dexWriteSubmitBtn").addEventListener("click", async () => {
   if (dexCreatingPost) return;
-  if (!isDexAdmin()) { alert("접근 권한이 없습니다."); closeDexWriteScreen(); return; }
+  if (!isDexAdmin()) { alert("이 계정은 운동도감 글쓰기 권한이 없습니다. 관리자 계정으로 로그인해주세요."); closeDexWriteScreen(); return; }
 
   const titleEl = document.getElementById("dexPostTitleInput");
   const contentEl = document.getElementById("dexPostContentInput");
   const title = titleEl.value.trim();
   const content = contentEl.value;
-  if (!title) { titleEl.focus(); return; }
+  if (!title) {
+    alert("제목을 입력해주세요.");
+    titleEl.focus();
+    return;
+  }
 
   dexCreatingPost = true;
   const btn = document.getElementById("dexWriteSubmitBtn");
   btn.disabled = true;
 
-  const id = "post_" + Date.now() + "_" + Math.random().toString(16).slice(2);
-  const item = {
-    id,
-    title,
-    content,
-    image: dexWriteImageData || null,
-    parentFolderId: dexCurrentFolderId,
-    order: Date.now(),
-    createdAt: Date.now(),
-    updatedAt: Date.now()
-  };
-
-  dexPosts.push(item);
-  saveDexToLocal();
-  renderDexList();
-
   try {
-    await dexPostsCol.doc(id).set(item);
-  } catch (e) {
-    console.error("게시물 생성 실패(로컬에는 저장됨, 서버 동기화만 실패)", e);
-  }
+    const id = "post_" + Date.now() + "_" + Math.random().toString(16).slice(2);
+    const item = {
+      id,
+      title,
+      content,
+      image: dexWriteImageData || null,
+      parentFolderId: dexCurrentFolderId,
+      order: Date.now(),
+      createdAt: Date.now(),
+      updatedAt: Date.now()
+    };
 
-  dexCreatingPost = false;
-  btn.disabled = false;
-  closeDexWriteScreen();
+    dexPosts.push(item);
+    saveDexToLocal();
+    renderDexList();
+
+    try {
+      await dexPostsCol.doc(id).set(item);
+    } catch (e) {
+      console.error("게시물 생성 실패(로컬에는 저장됨, 서버 동기화만 실패)", e);
+      alert("서버 동기화에 실패했어요. 이 기기에는 저장됐지만 다른 기기에서는 안 보일 수 있어요.");
+    }
+
+    closeDexWriteScreen();
+  } catch (e) {
+    // 🔥 예상 못한 에러가 나도 버튼이 영구히 멈추지 않도록, 여기서 무조건 잡아서 안내
+    console.error("게시물 등록 중 오류", e);
+    alert("게시물 등록 중 문제가 생겼어요. 사진 용량이 크다면 사진을 빼고 다시 시도해보세요.");
+  } finally {
+    dexCreatingPost = false;
+    btn.disabled = false;
+  }
 });
 
 /* 🔥 운동도감 화면: 왼쪽 끝에서 오른쪽으로 드래그하면 손가락 따라 끌려가며 닫힘 */
