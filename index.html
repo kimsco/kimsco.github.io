@@ -7889,6 +7889,15 @@ const dietSubTabBar = document.getElementById('dietSubTabBar');
 
 let lastMainTabTarget = 'tab1'; // 🔥 식단탭 진입 전 있던 메인탭 (뒤로가기 시 복귀용)
 
+/* 🔥 버튼 "박스" 전체가 아니라, 그 안의 실제 글자 픽셀이 그려지는 위치를 정확히 측정.
+   (.bottomTab .tabBtn은 상단정렬+padding-top:18px, .dietSubTabBtn은 세로중앙정렬이라
+   서로 정렬 방식이 달라서, 버튼 박스 기준으로 재면 글자 위치와 어긋나 버림 → 항상 글자 자체를 잼) */
+function getTextRect(el){
+  const range = document.createRange();
+  range.selectNodeContents(el);
+  return range.getBoundingClientRect();
+}
+
 /* 🔥 dietSubTabBar를 순간적으로(트랜지션 없이) 최종 위치로 점프시켜서
    그 안의 탭 버튼 좌표만 측정하고 즉시 원복함 (화면엔 플래시 없이, 좌표만 얻어내는 트릭) */
 function measureDietSubTabRect(key){
@@ -7897,7 +7906,7 @@ function measureDietSubTabRect(key){
   dietSubTabBar.classList.add('show');
   void dietSubTabBar.offsetHeight; // 강제 리플로우
   const targetBtn = dietSubTabBar.querySelector(`.dietSubTabBtn[data-diet-tab="${key}"]`);
-  const rect = targetBtn.getBoundingClientRect();
+  const rect = getTextRect(targetBtn);
   const color = getComputedStyle(targetBtn).color;
   dietSubTabBar.classList.remove('show');
   void dietSubTabBar.offsetHeight;
@@ -7972,7 +7981,7 @@ bottomTabBtns.forEach(btn => {
     if (target === 'tab5') {
       const DIET_ACTIVE_COLOR = 'rgb(255, 215, 0)'; // .tabBtn.active / .dietSubTabBtn.active 공통 활성 색상
       const fromBtn = btn; // 지금 클릭한 바로 그 "식단" 버튼
-      const fromRect = fromBtn.getBoundingClientRect();
+      const fromRect = getTextRect(fromBtn);
       const { rect: toRect, targetBtn: toBtnEl } = measureDietSubTabRect('today');
 
       // 🔥 "식단"이 도착하기 전까지, 나머지 3개(기록/통계/설정)는 숨겨둠 (아래에서 순서대로 팝업시킬 예정)
@@ -8030,7 +8039,7 @@ document.getElementById('dietBackCircleBtn').addEventListener('click', () => {
   // 🔥 지금 보고 있는 서브탭(기록/통계/설정)이 뭐든 상관없이, 항상 "식단" 탭이 원래 자리로 돌아감
   //    (기록/통계/설정은 애초에 메인탭바에 자리가 없으므로 돌아갈 곳이 없음)
   const fromBtnEl = dietSubTabBar.querySelector('.dietSubTabBtn[data-diet-tab="today"]');
-  const fromRect = fromBtnEl.getBoundingClientRect();
+  const fromRect = getTextRect(fromBtnEl);
 
   const targetBtn = document.getElementById('dietTabBtn'); // 메인탭바의 "식단" 버튼 자리
   if (!targetBtn) return;
@@ -8040,7 +8049,7 @@ document.getElementById('dietBackCircleBtn').addEventListener('click', () => {
   bottomTabEl.style.transition = 'none';
   bottomTabEl.classList.remove('tab-collapsed');
   void bottomTabEl.offsetHeight;
-  const toRect = targetBtn.getBoundingClientRect();
+  const toRect = getTextRect(targetBtn);
   bottomTabEl.classList.add('tab-collapsed');
   void bottomTabEl.offsetHeight;
   bottomTabEl.style.transition = prevTransition;
