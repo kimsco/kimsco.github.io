@@ -802,9 +802,9 @@ cursor: pointer;
   transition: transform 0.32s cubic-bezier(0.22,1,0.36,1), opacity 0.22s ease;
 }
 
-/* 🔥 식단 탭 안에 있을 때: 5칸짜리 하단탭을 아래로 슬라이드시켜 감춤 (토스 증권탭 전환 느낌) */
+/* 🔥 식단 탭 안에 있을 때: 5칸짜리 하단탭을 위로 슬라이드시켜 감춤 (딱 자기 높이만큼만) */
 .bottomTab.tab-collapsed{
-  transform: translateX(-50%) translateY(130%);
+  transform: translateX(-50%) translateY(-100%);
   opacity: 0;
   pointer-events: none;
 }
@@ -872,6 +872,12 @@ cursor: pointer;
   opacity: 1;
   pointer-events: auto;
 }
+/* 🔥 뒤로가기로 나갈 때: 아래로 되돌아가지 않고 위로 사라짐 */
+.dietSubTabBar.closing{
+  transform: translateX(-50%) translateY(-100%);
+  opacity: 0;
+  pointer-events: none;
+}
 .dietBackCircleBtn{
   -webkit-appearance: none;
   appearance: none;
@@ -917,11 +923,10 @@ cursor: pointer;
   transform: scale(0.3);
 }
 .dietSubTabBtn.pop-in{
-  animation: dietTabPopIn 0.36s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation: dietTabPopIn 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 @keyframes dietTabPopIn{
   0%   { opacity: 0; transform: scale(0.3); }
-  55%  { opacity: 1; transform: scale(1.18); }
   100% { opacity: 1; transform: scale(1); }
 }
 
@@ -8000,7 +8005,18 @@ bottomTabBtns.forEach(btn => {
       });
     } else {
       bottomTabEl.classList.remove('tab-collapsed');
-      dietSubTabBar.classList.remove('show');
+
+      if (dietSubTabBar.classList.contains('show')) {
+        // 🔥 식단 화면에서 나갈 때: 서브탭바는 원래 자리(아래)로 되돌아가지 않고 위로 사라짐
+        dietSubTabBar.classList.remove('show');
+        dietSubTabBar.classList.add('closing');
+        setTimeout(() => {
+          dietSubTabBar.style.transition = 'none';
+          dietSubTabBar.classList.remove('closing');
+          void dietSubTabBar.offsetHeight; // 강제 리플로우
+          dietSubTabBar.style.transition = '';
+        }, 330);
+      }
     }
   });
 });
