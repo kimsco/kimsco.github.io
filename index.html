@@ -8442,7 +8442,7 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
       "exerciseDexOverlay", "dexPostDetailOverlay", "dexWriteOverlay",
       "mySpecOverlay", "threeSummaryOverlay", "settingsOverlay",
       "myRoutineOverlay", "myRoutinePastListOverlay", "myRoutineDetailOverlay",
-      "myRoutineBuilderOverlay", "myRoutineRevealOverlay"
+      "myRoutineBuilderOverlay", "myRoutineRevealOverlay", "dietOverlay"
     ];
     return overlayIds.some(id => {
       const el = document.getElementById(id);
@@ -8525,6 +8525,49 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
   }
   document.addEventListener('touchend', endDrag, { passive: true });
   document.addEventListener('touchcancel', endDrag, { passive: true });
+})();
+
+/* 🔥 식단 페이지 안에서: 왼쪽 끝에서 오른쪽으로 스와이프하면
+   메뉴 드로어 대신 식단 페이지를 나가는 동작(뒤로가기 버튼과 동일)이 실행됨 */
+(function(){
+  const EDGE_ZONE = 30, COMMIT_MOVE = 8, CLOSE_RATIO = 0.25;
+  let startX = 0, startY = 0, tracking = false, dragging = false;
+
+  document.addEventListener('touchstart', (e) => {
+    if (dietOverlay.classList.contains('hidden')) { tracking = false; return; }
+    const t = e.touches[0];
+    if (t.clientX <= EDGE_ZONE) {
+      startX = t.clientX; startY = t.clientY;
+      tracking = true; dragging = false;
+    } else { tracking = false; }
+  }, { passive: true });
+
+  document.addEventListener('touchmove', (e) => {
+    if (!tracking) return;
+    const t = e.touches[0];
+    const dx = t.clientX - startX, dy = t.clientY - startY;
+    if (!dragging) {
+      if (dx > COMMIT_MOVE && dx > Math.abs(dy) * 0.6) dragging = true;
+      else if (Math.abs(dy) > COMMIT_MOVE && Math.abs(dy) > dx) { tracking = false; }
+    }
+  }, { passive: true });
+
+  function endDietSwipe(e){
+    if (!tracking) return;
+    const wasDragging = dragging;
+    tracking = false; dragging = false;
+    if (!wasDragging) return;
+
+    const width = window.innerWidth;
+    const t = e.changedTouches[0];
+    const dx = Math.max(0, t.clientX - startX);
+
+    if (dx > width * CLOSE_RATIO) {
+      document.getElementById('dietBackCircleBtn').click();
+    }
+  }
+  document.addEventListener('touchend', endDietSwipe, { passive: true });
+  document.addEventListener('touchcancel', endDietSwipe, { passive: true });
 })();
 
 
