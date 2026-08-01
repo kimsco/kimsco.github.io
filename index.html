@@ -2366,37 +2366,86 @@ input[type="number"] {
   text-align: center;
   margin-bottom: 22px;
 }
-.protein-target-big {
+.macro-cal-label {
+  font-size: 11px;
+  color: rgba(255,255,255,0.4);
+  letter-spacing: 0.4px;
+  margin-bottom: 4px;
+}
+.cal-target-big {
   font-size: 24px;
   font-weight: 700;
   color: #fff;
   letter-spacing: 0.3px;
+  margin-bottom: 18px;
 }
-.protein-progress-track {
-  height: 1px;
-  background: rgba(255,255,255,0.18);
-  margin: 14px 0 10px;
+
+/* 🔥 탄/단/지 좌(그래프) : 우(수치) = 3 : 2 비율, 가운데 세로 구분선 */
+.macro-split {
+  display: flex;
+  align-items: stretch;
+  text-align: left;
+}
+.macro-split-left {
+  flex: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-right: 14px;
+}
+.macro-split-divider {
+  width: 1px;
+  background: rgba(255,255,255,0.14);
+  flex-shrink: 0;
+}
+.macro-split-right {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-left: 14px;
+  justify-content: center;
+}
+.macro-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.macro-bar-label {
+  flex-shrink: 0;
+  width: 14px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  color: rgba(255,255,255,0.5);
+}
+.macro-bar-track {
+  flex: 1;
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.14);
   overflow: hidden;
 }
-.protein-progress-fill {
+.macro-bar-fill {
   height: 100%;
-  background: rgba(255,255,255,0.7);
+  background: rgba(255,255,255,0.75);
   transition: width 0.25s ease;
 }
-.carb-fat-small {
-  font-size: 11px;
-  color: rgba(255,255,255,0.4);
-  letter-spacing: 0.2px;
+.macro-num-row {
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  color: rgba(255,255,255,0.6);
+  white-space: nowrap;
+  line-height: 1;
 }
 
 .food-template-card {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  display: block;
   background: transparent;
   border: none;
   border-bottom: 1px solid rgba(255,255,255,0.1);
-  padding: 12px 2px;
+  padding: 13px 2px;
   margin-bottom: 0;
   cursor: pointer;
 }
@@ -2404,24 +2453,6 @@ input[type="number"] {
   font-size: 14px;
   font-weight: 500;
   color: #fff;
-}
-.food-template-macro {
-  font-size: 11px;
-  color: rgba(255,255,255,0.4);
-  margin-top: 3px;
-}
-.food-template-plus {
-  width: 22px; height: 22px;
-  border-radius: 50%;
-  background: transparent;
-  border: 1px solid rgba(255,255,255,0.35);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 500;
-  font-size: 14px;
-  flex-shrink: 0;
 }
 
 .food-template-etc-row {
@@ -3266,17 +3297,37 @@ input[type="number"] {
 
   <div id="dietPanel-today" class="dietPanel active">
     <div class="macro-summary-box">
-      <div id="proteinTargetBig" class="protein-target-big">단백질 0 / 0 g</div>
-      <div class="protein-progress-track">
-        <div id="proteinProgressFill" class="protein-progress-fill" style="width:0%;"></div>
+      <div class="macro-cal-label">목표칼로리</div>
+      <div id="calTargetBig" class="cal-target-big">0 / 0</div>
+
+      <div class="macro-split">
+        <div class="macro-split-left">
+          <div class="macro-bar-row">
+            <div class="macro-bar-label">탄</div>
+            <div class="macro-bar-track"><div id="carbBarFill" class="macro-bar-fill" style="width:0%;"></div></div>
+          </div>
+          <div class="macro-bar-row">
+            <div class="macro-bar-label">단</div>
+            <div class="macro-bar-track"><div id="proteinBarFill" class="macro-bar-fill" style="width:0%;"></div></div>
+          </div>
+          <div class="macro-bar-row">
+            <div class="macro-bar-label">지</div>
+            <div class="macro-bar-track"><div id="fatBarFill" class="macro-bar-fill" style="width:0%;"></div></div>
+          </div>
+        </div>
+        <div class="macro-split-divider"></div>
+        <div class="macro-split-right">
+          <div id="carbNumText" class="macro-num-row">0/0</div>
+          <div id="proteinNumText" class="macro-num-row">0/0</div>
+          <div id="fatNumText" class="macro-num-row">0/0</div>
+        </div>
       </div>
-      <div id="carbFatSmall" class="carb-fat-small">탄수화물 0/0g · 지방 0/0g · 0/0kcal</div>
     </div>
 
     <div id="tab5ScrollArea">
 
       <div style="display:flex; justify-content:space-between; align-items:center; margin:14px 0 10px;">
-        <div style="font-size:14px; color:#aaa; font-weight:600;">내 식단 템플릿</div>
+        <div style="font-size:14px; color:#aaa; font-weight:600;">내 식단</div>
         <button id="addFoodTemplateBtn" class="add-btn">+</button>
       </div>
       <div id="foodTemplateList"></div>
@@ -8089,15 +8140,28 @@ document.getElementById('dietBackCircleBtn').addEventListener('click', () => {
   const targetBtn = document.getElementById('dietTabBtn'); // 메인탭바의 "식단" 버튼 자리
   if (!targetBtn) return;
 
-  // 🔥 지금 하단바는 collapse(숨김) 상태라서, 순간적으로 원복시켜(트랜지션 없이) 도착 좌표만 측정
-  const prevTransition = bottomTabEl.style.transition;
+  // 🔥 지금 하단바(collapse)뿐 아니라 .app도 -16px 밀려있는 상태라서,
+  //    둘 다 순간적으로(트랜지션 없이) 최종 상태로 되돌려서 정확한 도착 좌표를 측정해야 함
+  const appEl1 = document.querySelector('.app');
+  const prevBottomTransition = bottomTabEl.style.transition;
+  const prevAppTransition = appEl1.style.transition;
+  const prevAppTransform = appEl1.style.transform;
+
   bottomTabEl.style.transition = 'none';
+  appEl1.style.transition = 'none';
   bottomTabEl.classList.remove('tab-collapsed');
+  appEl1.style.transform = 'translateX(0)';
   void bottomTabEl.offsetHeight;
+  void appEl1.offsetHeight;
+
   const toRect = getTextRect(targetBtn);
+
   bottomTabEl.classList.add('tab-collapsed');
+  appEl1.style.transform = prevAppTransform;
   void bottomTabEl.offsetHeight;
-  bottomTabEl.style.transition = prevTransition;
+  void appEl1.offsetHeight;
+  bottomTabEl.style.transition = prevBottomTransition;
+  appEl1.style.transition = prevAppTransition;
 
   fromBtnEl.style.visibility = 'hidden';
   targetBtn.style.visibility = 'hidden';
@@ -8106,7 +8170,6 @@ document.getElementById('dietBackCircleBtn').addEventListener('click', () => {
   bottomTabEl.classList.remove('tab-collapsed');
 
   // 🔥 본 화면(.app): 밀려있던 자리(왼쪽)에서 정상 위치(오른쪽)로 돌아오면서 페이드인 = 뒤로가기 느낌
-  const appEl1 = document.querySelector('.app');
   appEl1.style.transition = 'transform 0.34s cubic-bezier(0.22,1,0.36,1), opacity 0.34s ease';
   appEl1.style.transform = 'translateX(0)';
   appEl1.style.opacity = '1';
@@ -9725,24 +9788,40 @@ function renderMacroSummary(){
     return acc;
   }, { protein: 0, carb: 0, fat: 0 });
 
-  const proteinTargetEl = document.getElementById("proteinTargetBig");
-  const proteinFillEl = document.getElementById("proteinProgressFill");
-  const carbFatEl = document.getElementById("carbFatSmall");
+  const kcal = Math.round(sum.protein * 4 + sum.carb * 4 + sum.fat * 9);
+
+  const calTargetEl = document.getElementById("calTargetBig");
+  const carbBarEl = document.getElementById("carbBarFill");
+  const proteinBarEl = document.getElementById("proteinBarFill");
+  const fatBarEl = document.getElementById("fatBarFill");
+  const carbNumEl = document.getElementById("carbNumText");
+  const proteinNumEl = document.getElementById("proteinNumText");
+  const fatNumEl = document.getElementById("fatNumText");
 
   if (!targets) {
-    proteinTargetEl.textContent = `단백질 ${sum.protein}g (목표: 설정에서 내 정보 입력)`;
-    proteinFillEl.style.width = "0%";
-    carbFatEl.textContent = `탄수화물 ${sum.carb}g · 지방 ${sum.fat}g`;
+    calTargetEl.textContent = `${kcal} / 0`;
+    carbBarEl.style.width = "0%";
+    proteinBarEl.style.width = "0%";
+    fatBarEl.style.width = "0%";
+    carbNumEl.textContent = `${sum.carb}/0`;
+    proteinNumEl.textContent = `${sum.protein}/0`;
+    fatNumEl.textContent = `${sum.fat}/0`;
     return;
   }
 
-  proteinTargetEl.textContent = `단백질 ${sum.protein} / ${targets.proteinTarget} g`;
-  const pct = Math.min(100, (sum.protein / targets.proteinTarget) * 100 || 0);
-  proteinFillEl.style.width = pct + "%";
+  calTargetEl.textContent = `${kcal} / ${targets.targetCalories}`;
 
-  const kcal = sum.protein * 4 + sum.carb * 4 + sum.fat * 9;
-  carbFatEl.textContent =
-    `탄수화물 ${sum.carb}/${targets.carbTarget}g · 지방 ${sum.fat}/${targets.fatTarget}g · ${kcal}/${targets.targetCalories}kcal`;
+  const carbPct = Math.min(100, (sum.carb / targets.carbTarget) * 100 || 0);
+  const proteinPct = Math.min(100, (sum.protein / targets.proteinTarget) * 100 || 0);
+  const fatPct = Math.min(100, (sum.fat / targets.fatTarget) * 100 || 0);
+
+  carbBarEl.style.width = carbPct + "%";
+  proteinBarEl.style.width = proteinPct + "%";
+  fatBarEl.style.width = fatPct + "%";
+
+  carbNumEl.textContent = `${sum.carb}/${targets.carbTarget}`;
+  proteinNumEl.textContent = `${sum.protein}/${targets.proteinTarget}`;
+  fatNumEl.textContent = `${sum.fat}/${targets.fatTarget}`;
 }
 
 /* ---------- 식단 템플릿 ---------- */
@@ -9757,18 +9836,7 @@ function renderFoodTemplateList(){
   foodTemplates.forEach(item => {
     const card = document.createElement("div");
     card.className = "food-template-card";
-
-    const macroParts = [`단백질 ${item.protein}g`];
-    if (item.carb) macroParts.push(`탄수 ${item.carb}g`);
-    if (item.fat) macroParts.push(`지방 ${item.fat}g`);
-
-    card.innerHTML = `
-      <div>
-        <div class="food-template-name">${item.name}</div>
-        <div class="food-template-macro">${macroParts.join(" · ")}</div>
-      </div>
-      <div class="food-template-plus">+</div>
-    `;
+    card.innerHTML = `<div class="food-template-name">${item.name}</div>`;
 
     // 🔥 길게 누르면 삭제 (카드마다 독립적으로 처리, 다른 시스템과 안 겹침)
     let holdTimer = null;
