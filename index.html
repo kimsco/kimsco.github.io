@@ -192,21 +192,12 @@ button {
 .tabContent { display:none; }
 .tabContent.active { display:block; }
 
-/* 🔥 예정탭: 상단 단백질 요약은 고정, 그 아래만 스크롤 */
-#tab5.tabContent.active {
-  display: flex;
-  flex-direction: column;
-  height: calc(100vh - var(--topBarH) - var(--bottomTabH) - env(safe-area-inset-top) - env(safe-area-inset-bottom));
-}
-#tab5 .macro-summary-box {
+/* 🔥 식단(dietOverlay): macro-summary-box는 그대로, 스크롤은 dietOverlayBody 전체가 담당 */
+#dietPanel-today .macro-summary-box {
   flex-shrink: 0;
 }
 #tab5ScrollArea {
-  flex: 1;
   min-height: 0;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
 }
 
 /* 🔥 달력탭: 달력 부분은 고정, 1년 진행률만 스크롤 */
@@ -3243,7 +3234,15 @@ input[type="number"] {
     </div>
 </div>
 <!-- 예정 (연습용 수정 탭 - 기록탭과 동일 기능, 로컬 저장만 사용) -->
-<div id="tab5" class="tabContent">
+<!-- 🔥 식단: 다른 오버레이들(운동도감/내루틴 등)처럼 탑바까지 완전히 덮는 새창(풀스크린) -->
+<div id="dietOverlay" class="hidden" style="
+    position:fixed; inset:0; background:#000; z-index:100000;
+    overflow:hidden;
+  ">
+  <div id="dietOverlayBody" style="height:100%; overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:none;
+      padding: calc(20px + env(safe-area-inset-top)) 7px calc(120px + env(safe-area-inset-bottom));
+      box-sizing:border-box;
+    ">
 
   <div id="dietPanel-today" class="dietPanel active">
     <div class="macro-summary-box">
@@ -3284,6 +3283,7 @@ input[type="number"] {
     <div class="dietPanelPlaceholderText">설정 탭은 준비 중이에요.</div>
   </div>
 
+  </div>
 </div>
 
 <!-- ✅ 하단 탭바 (새로 추가/이동) -->
@@ -3296,7 +3296,7 @@ input[type="number"] {
 </div>
 
 <!-- 🔥 식단 탭 전용: 토스 증권탭처럼, 식단 화면 안에서는 5개짜리 하단탭 대신
-     원형 뒤로가기 버튼 + 식단 내부 서브탭 4개로 구성된 별도 바가 뜸 -->
+     원형 뒤로가기 버튼 + 식단 내부 서브탭 4개로 구성된 캡슐이 뜸 -->
 <div id="dietSubTabBar" class="dietSubTabBar">
   <button id="dietBackCircleBtn" class="dietBackCircleBtn" type="button" aria-label="뒤로">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg>
@@ -7886,8 +7886,12 @@ const bottomTabBtns = document.querySelectorAll('.bottomTab .tabBtn');
 const bottomTabContents = document.querySelectorAll('.tabContent');
 const bottomTabEl = document.getElementById('bottomTab');
 const dietSubTabBar = document.getElementById('dietSubTabBar');
+const dietOverlay = document.getElementById('dietOverlay');
 
-let lastMainTabTarget = 'tab1'; // 🔥 식단탭 진입 전 있던 메인탭 (뒤로가기 시 복귀용)
+// 🔥 .app 안에 중첩되어 있으면 .app의 transform(드로어 열고닫을 때 생김) 때문에
+//    position:fixed 자식의 기준점이 뷰포트가 아니라 .app으로 바뀌어버림 → body 바로 밑으로 이동
+document.body.appendChild(dietOverlay);
+document.body.appendChild(dietSubTabBar);
 
 /* 🔥 버튼 "박스" 전체가 아니라, 그 안의 실제 글자 픽셀이 그려지는 위치를 정확히 측정.
    (.bottomTab .tabBtn은 상단정렬+padding-top:18px, .dietSubTabBtn은 세로중앙정렬이라
@@ -7944,13 +7948,19 @@ bottomTabBtns.forEach(btn => {
   btn.addEventListener('click', () => {
     calPopup.classList.add("hidden");
 
+    const target = btn.dataset.target;
+
+    // 🔥 "식단"은 이제 일반 탭 전환이 아니라, 운동도감/내루틴처럼 탑바까지 통째로 덮는
+    //    완전 별도의 풀스크린 새창이라서 메인탭 active/화면전환 로직과 분리해서 처리
+    if (target === 'tab5') {
+      openDietOverlay(btn);
+      return;
+    }
+
     bottomTabBtns.forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
 
-    const target = btn.dataset.target;
-    if (target !== 'tab5') lastMainTabTarget = target;
-
-    const FLEX_LAYOUT_TABS = ['tab2', 'tab3', 'tab5']; // 🔥 고정헤더+꽉채움 레이아웃을 쓰는 탭들
+    const FLEX_LAYOUT_TABS = ['tab2', 'tab3']; // 🔥 고정헤더+꽉채움 레이아웃을 쓰는 탭들
     bottomTabContents.forEach(tc => {
       const on = (tc.id === target);
       tc.classList.toggle('active', on);
@@ -7974,67 +7984,53 @@ bottomTabBtns.forEach(btn => {
     if (accBarElTab) accBarElTab.style.display = 'none';
 
     document.querySelector('.app').style.overflowY = 'auto';
-
-    // 🔥 토스 "증권" 탭처럼: 식단 탭이면 5칸 하단탭을 내려보내고
-    //    원형 뒤로가기 + 식단 내부 탭 4개짜리 바를 띄움
-    //    + "식단" 글자 자체가 원래 자리에서 새 바의 자리로 미끄러지며 이동
-    if (target === 'tab5') {
-      const DIET_ACTIVE_COLOR = 'rgb(255, 215, 0)'; // .tabBtn.active / .dietSubTabBtn.active 공통 활성 색상
-      const fromBtn = btn; // 지금 클릭한 바로 그 "식단" 버튼
-      const fromRect = getTextRect(fromBtn);
-      const { rect: toRect, targetBtn: toBtnEl } = measureDietSubTabRect('today');
-
-      // 🔥 "식단"이 도착하기 전까지, 나머지 3개(기록/통계/설정)는 숨겨둠 (아래에서 순서대로 팝업시킬 예정)
-      const popKeys = ['history', 'stats', 'settings'];
-      popKeys.forEach(k => {
-        const b = dietSubTabBar.querySelector(`.dietSubTabBtn[data-diet-tab="${k}"]`);
-        if (b) { b.classList.remove('pop-in'); b.classList.add('pop-pending'); }
-      });
-
-      fromBtn.style.visibility = 'hidden';
-      toBtnEl.style.visibility = 'hidden';
-
-      bottomTabEl.classList.add('tab-collapsed');
-      dietSubTabBar.classList.add('show');
-      switchDietPanel('today'); // 🔥 매번 식단탭에 들어올 땐 항상 첫 서브탭("식단")부터 시작
-
-      runLabelFlip('식단', fromRect, DIET_ACTIVE_COLOR, toRect, DIET_ACTIVE_COLOR, 320);
-
-      setTimeout(() => {
-        fromBtn.style.visibility = '';
-        toBtnEl.style.visibility = '';
-      }, 340);
-
-      // 🔥 "식단"이 자리에 도착한 직후부터, 기록 → 통계 → 설정 순서로 하나씩 팍! 팍! 팍! 팝업
-      popKeys.forEach((k, i) => {
-        setTimeout(() => {
-          const b = dietSubTabBar.querySelector(`.dietSubTabBtn[data-diet-tab="${k}"]`);
-          if (!b) return;
-          b.classList.remove('pop-pending');
-          b.classList.add('pop-in');
-        }, 320 + i * 100);
-      });
-    } else {
-      bottomTabEl.classList.remove('tab-collapsed');
-
-      if (dietSubTabBar.classList.contains('show')) {
-        // 🔥 식단 화면에서 나갈 때: 서브탭바는 원래 자리(아래)로 되돌아가지 않고 위로 사라짐
-        dietSubTabBar.classList.remove('show');
-        dietSubTabBar.classList.add('closing');
-        setTimeout(() => {
-          dietSubTabBar.style.transition = 'none';
-          dietSubTabBar.classList.remove('closing');
-          void dietSubTabBar.offsetHeight; // 강제 리플로우
-          dietSubTabBar.style.transition = '';
-        }, 330);
-      }
-    }
   });
 });
 
+/* 🔥 식단 새창(오버레이) 열기: "식단" 글자가 원래 자리에서 캡슐 자리로 미끄러지듯 이동하고,
+   탑바까지 포함해 화면 전체를 덮는 dietOverlay가 뜸 + 나머지 서브탭 3개가 순서대로 팝업 */
+function openDietOverlay(fromBtn){
+  const DIET_ACTIVE_COLOR = 'rgb(255, 215, 0)'; // .tabBtn.active / .dietSubTabBtn.active 공통 활성 색상
+  const fromRect = getTextRect(fromBtn);
+  const { rect: toRect, targetBtn: toBtnEl } = measureDietSubTabRect('today');
+
+  // 🔥 "식단"이 도착하기 전까지, 나머지 3개(기록/통계/설정)는 숨겨둠 (아래에서 순서대로 팝업시킬 예정)
+  const popKeys = ['history', 'stats', 'settings'];
+  popKeys.forEach(k => {
+    const b = dietSubTabBar.querySelector(`.dietSubTabBtn[data-diet-tab="${k}"]`);
+    if (b) { b.classList.remove('pop-in'); b.classList.add('pop-pending'); }
+  });
+
+  fromBtn.style.visibility = 'hidden';
+  toBtnEl.style.visibility = 'hidden';
+
+  dietOverlay.classList.remove('hidden');
+  dietOverlay.querySelector('#dietOverlayBody').scrollTop = 0;
+  dietSubTabBar.classList.add('show');
+  switchDietPanel('today'); // 🔥 매번 식단탭에 들어올 땐 항상 첫 서브탭("식단")부터 시작
+
+  runLabelFlip('식단', fromRect, DIET_ACTIVE_COLOR, toRect, DIET_ACTIVE_COLOR, 320);
+
+  setTimeout(() => {
+    fromBtn.style.visibility = '';
+    toBtnEl.style.visibility = '';
+  }, 340);
+
+  // 🔥 "식단"이 자리에 도착한 직후부터, 기록 → 통계 → 설정 순서로 하나씩 팍! 팍! 팍! 팝업
+  popKeys.forEach((k, i) => {
+    setTimeout(() => {
+      const b = dietSubTabBar.querySelector(`.dietSubTabBtn[data-diet-tab="${k}"]`);
+      if (!b) return;
+      b.classList.remove('pop-pending');
+      b.classList.add('pop-in');
+    }, 320 + i * 100);
+  });
+}
+
 // 🔥 원형 뒤로가기 버튼: 식단 화면 밖으로 나가서 원래 있던 메인탭으로 복귀 (반대 방향 FLIP도 동일하게)
 document.getElementById('dietBackCircleBtn').addEventListener('click', () => {
-  const DIET_ACTIVE_COLOR = 'rgb(255, 215, 0)'; // .tabBtn.active / .dietSubTabBtn.active 공통 활성 색상
+  const DIET_ACTIVE_COLOR = 'rgb(255, 215, 0)';   // .tabBtn.active / .dietSubTabBtn.active 공통 활성 색상
+  const DIET_INACTIVE_COLOR = 'rgb(136, 136, 136)'; // #888, 미선택 상태 공통 색상
 
   // 🔥 지금 보고 있는 서브탭(기록/통계/설정)이 뭐든 상관없이, 항상 "식단" 탭이 원래 자리로 돌아감
   //    (기록/통계/설정은 애초에 메인탭바에 자리가 없으므로 돌아갈 곳이 없음)
@@ -8044,24 +8040,27 @@ document.getElementById('dietBackCircleBtn').addEventListener('click', () => {
   const targetBtn = document.getElementById('dietTabBtn'); // 메인탭바의 "식단" 버튼 자리
   if (!targetBtn) return;
 
-  // 🔥 메인탭바를 순간적으로 원복시켜서(트랜지션 없이) 도착 좌표만 측정
-  const prevTransition = bottomTabEl.style.transition;
-  bottomTabEl.style.transition = 'none';
-  bottomTabEl.classList.remove('tab-collapsed');
-  void bottomTabEl.offsetHeight;
+  // 🔥 메인탭바(bottomTab)는 식단이 열려있는 동안에도 계속 원래 자리에 그대로 있었음
+  //    (오버레이가 화면 전체를 덮어서 안 보였을 뿐) → 트릭 없이 바로 좌표 측정하면 됨
   const toRect = getTextRect(targetBtn);
-  bottomTabEl.classList.add('tab-collapsed');
-  void bottomTabEl.offsetHeight;
-  bottomTabEl.style.transition = prevTransition;
 
   fromBtnEl.style.visibility = 'hidden';
   targetBtn.style.visibility = 'hidden';
 
-  // 🔥 실제 탭 전환은 항상 마지막에 있던 메인탭으로 (1RM/3대/기록/달력 중 하나)
-  const goBackBtn = Array.from(bottomTabBtns).find(b => b.dataset.target === lastMainTabTarget);
-  if (goBackBtn) goBackBtn.click();
+  // 🔥 식단 새창을 닫음 (밑에 있던 화면은 애초에 그대로였으므로 덮개만 걷어내면 끝)
+  dietOverlay.classList.add('hidden');
 
-  runLabelFlip('식단', fromRect, DIET_ACTIVE_COLOR, toRect, DIET_ACTIVE_COLOR, 320);
+  dietSubTabBar.classList.remove('show');
+  dietSubTabBar.classList.add('closing');
+  setTimeout(() => {
+    dietSubTabBar.style.transition = 'none';
+    dietSubTabBar.classList.remove('closing');
+    void dietSubTabBar.offsetHeight; // 강제 리플로우
+    dietSubTabBar.style.transition = '';
+  }, 330);
+
+  // 🔥 돌아간 자리("식단" 버튼)는 더 이상 선택된 상태가 아니므로, 노란색 → 회색으로 페이드
+  runLabelFlip('식단', fromRect, DIET_ACTIVE_COLOR, toRect, DIET_INACTIVE_COLOR, 320);
 
   setTimeout(() => {
     targetBtn.style.visibility = '';
@@ -8075,7 +8074,7 @@ function switchDietPanel(key){
   document.querySelectorAll('.dietPanel').forEach(panel => {
     panel.classList.toggle('active', panel.id === `dietPanel-${key}`);
   });
-  document.getElementById('tab5').scrollTo?.({ top: 0, behavior: 'auto' });
+  document.getElementById('dietOverlayBody').scrollTo?.({ top: 0, behavior: 'auto' });
 }
 dietSubTabBtns.forEach(btn => {
   btn.addEventListener('click', () => switchDietPanel(btn.dataset.dietTab));
