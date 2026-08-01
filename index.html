@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko"> 
 <head>
 <link rel="manifest" href="/manifest.json">
@@ -8025,12 +8025,12 @@ bottomTabBtns.forEach(btn => {
 document.getElementById('dietBackCircleBtn').addEventListener('click', () => {
   const DIET_ACTIVE_COLOR = 'rgb(255, 215, 0)'; // .tabBtn.active / .dietSubTabBtn.active 공통 활성 색상
 
-  const activeKey = document.querySelector('.dietSubTabBtn.active')?.dataset.dietTab || 'today';
-  const fromBtnEl = dietSubTabBar.querySelector(`.dietSubTabBtn[data-diet-tab="${activeKey}"]`);
+  // 🔥 지금 보고 있는 서브탭(기록/통계/설정)이 뭐든 상관없이, 항상 "식단" 탭이 원래 자리로 돌아감
+  //    (기록/통계/설정은 애초에 메인탭바에 자리가 없으므로 돌아갈 곳이 없음)
+  const fromBtnEl = dietSubTabBar.querySelector('.dietSubTabBtn[data-diet-tab="today"]');
   const fromRect = fromBtnEl.getBoundingClientRect();
-  const labelText = fromBtnEl.textContent.trim();
 
-  const targetBtn = Array.from(bottomTabBtns).find(b => b.dataset.target === lastMainTabTarget);
+  const targetBtn = document.getElementById('dietTabBtn'); // 메인탭바의 "식단" 버튼 자리
   if (!targetBtn) return;
 
   // 🔥 메인탭바를 순간적으로 원복시켜서(트랜지션 없이) 도착 좌표만 측정
@@ -8046,9 +8046,11 @@ document.getElementById('dietBackCircleBtn').addEventListener('click', () => {
   fromBtnEl.style.visibility = 'hidden';
   targetBtn.style.visibility = 'hidden';
 
-  targetBtn.click(); // 실제 탭 전환 (bottomTab 복귀 + dietSubTabBar 숨김 등 기존 로직 그대로 실행)
+  // 🔥 실제 탭 전환은 항상 마지막에 있던 메인탭으로 (1RM/3대/기록/달력 중 하나)
+  const goBackBtn = Array.from(bottomTabBtns).find(b => b.dataset.target === lastMainTabTarget);
+  if (goBackBtn) goBackBtn.click();
 
-  runLabelFlip(labelText, fromRect, DIET_ACTIVE_COLOR, toRect, DIET_ACTIVE_COLOR, 320);
+  runLabelFlip('식단', fromRect, DIET_ACTIVE_COLOR, toRect, DIET_ACTIVE_COLOR, 320);
 
   setTimeout(() => {
     targetBtn.style.visibility = '';
