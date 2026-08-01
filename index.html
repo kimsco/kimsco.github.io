@@ -1012,10 +1012,12 @@ cursor: pointer;
 }
 #dietOverlay {
   transform: translateX(100%);
-  transition: transform 0.32s cubic-bezier(0.22,1,0.36,1);
+  opacity: 0;
+  transition: transform 0.32s cubic-bezier(0.22,1,0.36,1), opacity 0.32s ease;
 }
 #dietOverlay.show {
   transform: translateX(0);
+  opacity: 1;
 }
 
 /* 🔥 식단 진입/이탈 시: 본 화면(.app)이 페이드아웃/인 되도록 */
@@ -3259,7 +3261,7 @@ input[type="number"] {
     overflow:hidden;
   ">
   <div id="dietOverlayBody" style="height:100%; overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:none;
-      padding: calc(20px + env(safe-area-inset-top)) 7px calc(120px + env(safe-area-inset-bottom));
+      padding: calc(20px + env(safe-area-inset-top)) 18px calc(120px + env(safe-area-inset-bottom));
       box-sizing:border-box;
     ">
 
