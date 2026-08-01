@@ -911,6 +911,20 @@ cursor: pointer;
   color: #FFD700;
 }
 
+/* 🔥 "식단" 라벨이 도착한 뒤, 기록/통계/설정이 하나씩 팍! 팍! 팍! 튀어나오는 팝업 애니메이션 */
+.dietSubTabBtn.pop-pending{
+  opacity: 0;
+  transform: scale(0.3);
+}
+.dietSubTabBtn.pop-in{
+  animation: dietTabPopIn 0.36s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+@keyframes dietTabPopIn{
+  0%   { opacity: 0; transform: scale(0.3); }
+  55%  { opacity: 1; transform: scale(1.18); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
 /* ===============================
    ✅ 식단 탭 내부 서브 패널 전환
 ================================ */
@@ -7954,6 +7968,13 @@ bottomTabBtns.forEach(btn => {
       const fromRect = fromBtn.getBoundingClientRect();
       const { rect: toRect, targetBtn: toBtnEl } = measureDietSubTabRect('today');
 
+      // 🔥 "식단"이 도착하기 전까지, 나머지 3개(기록/통계/설정)는 숨겨둠 (아래에서 순서대로 팝업시킬 예정)
+      const popKeys = ['history', 'stats', 'settings'];
+      popKeys.forEach(k => {
+        const b = dietSubTabBar.querySelector(`.dietSubTabBtn[data-diet-tab="${k}"]`);
+        if (b) { b.classList.remove('pop-in'); b.classList.add('pop-pending'); }
+      });
+
       fromBtn.style.visibility = 'hidden';
       toBtnEl.style.visibility = 'hidden';
 
@@ -7967,6 +7988,16 @@ bottomTabBtns.forEach(btn => {
         fromBtn.style.visibility = '';
         toBtnEl.style.visibility = '';
       }, 340);
+
+      // 🔥 "식단"이 자리에 도착한 직후부터, 기록 → 통계 → 설정 순서로 하나씩 팍! 팍! 팍! 팝업
+      popKeys.forEach((k, i) => {
+        setTimeout(() => {
+          const b = dietSubTabBar.querySelector(`.dietSubTabBtn[data-diet-tab="${k}"]`);
+          if (!b) return;
+          b.classList.remove('pop-pending');
+          b.classList.add('pop-in');
+        }, 320 + i * 100);
+      });
     } else {
       bottomTabEl.classList.remove('tab-collapsed');
       dietSubTabBar.classList.remove('show');
