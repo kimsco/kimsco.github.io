@@ -1007,6 +1007,10 @@ cursor: pointer;
   display: none;
 }
 
+#dietOverlay.hidden {
+  display: none;
+}
+
 #myRoutineOverlay.hidden {
   display: none;
 }
@@ -7892,6 +7896,25 @@ const dietOverlay = document.getElementById('dietOverlay');
 //    position:fixed 자식의 기준점이 뷰포트가 아니라 .app으로 바뀌어버림 → body 바로 밑으로 이동
 document.body.appendChild(dietOverlay);
 document.body.appendChild(dietSubTabBar);
+
+/* 🔥 안전장치: 화면이 꺼졌다 켜지거나 앱이 백그라운드에서 돌아올 때,
+   식단 새창(dietOverlay)은 열려있는데 캡슐(dietSubTabBar)만 어긋나서 안 보이는
+   상태가 되는 걸 방지 — 화면이 다시 보일 때마다 상태를 강제로 맞춰줌 */
+function resyncDietOverlayUI(){
+  if (!dietOverlay.classList.contains('hidden')) {
+    dietSubTabBar.classList.remove('closing');
+    dietSubTabBar.classList.add('show');
+    // 팝업 대기 상태로 멈춰있던 서브탭이 있으면 애니메이션 없이 바로 다 보이게
+    document.querySelectorAll('.dietSubTabBtn.pop-pending').forEach(b => {
+      b.classList.remove('pop-pending');
+      b.classList.add('pop-in');
+    });
+  }
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') resyncDietOverlayUI();
+});
+window.addEventListener('pageshow', resyncDietOverlayUI);
 
 /* 🔥 버튼 "박스" 전체가 아니라, 그 안의 실제 글자 픽셀이 그려지는 위치를 정확히 측정.
    (.bottomTab .tabBtn은 상단정렬+padding-top:18px, .dietSubTabBtn은 세로중앙정렬이라
