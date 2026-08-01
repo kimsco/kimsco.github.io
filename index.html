@@ -1019,14 +1019,12 @@ cursor: pointer;
   transform: translateX(0);
   opacity: 1;
 }
-
-/* 🔥 식단 진입/이탈 시: 본 화면(.app)이 페이드아웃/인 되도록 */
-.app {
-  transition: opacity 0.28s ease;
-}
-.app.diet-dimmed {
+/* 🔥 닫을 때 전용: 열릴 때(60% 지점)와 달리, 화면 끝(100%)까지 밀려나가면서 페이드아웃 */
+#dietOverlay.closing {
+  transform: translateX(100%);
   opacity: 0;
 }
+
 
 #myRoutineOverlay.hidden {
   display: none;
@@ -8045,7 +8043,12 @@ function openDietOverlay(fromBtn){
   toBtnEl.style.visibility = 'hidden';
 
   bottomTabEl.classList.add('tab-collapsed'); // 🔥 하단바를 위로 슬라이드시켜 숨김 (오버레이 뒤에서도 모션은 살아있어야 함)
-  document.querySelector('.app').classList.add('diet-dimmed'); // 🔥 본 화면은 페이드아웃
+
+  // 🔥 본 화면(.app): 메뉴 드로어 열 때 뒷화면 밀리는 것과 같은 방식(inline transform)으로 살짝 밀며 페이드아웃
+  const appEl0 = document.querySelector('.app');
+  appEl0.style.transition = 'transform 0.34s cubic-bezier(0.22,1,0.36,1), opacity 0.34s ease';
+  appEl0.style.transform = 'translateX(-16px)';
+  appEl0.style.opacity = '0';
 
   dietOverlay.classList.remove('hidden');
   void dietOverlay.offsetHeight; // 강제 리플로우 (트랜지션 재생 보장)
@@ -8100,12 +8103,22 @@ document.getElementById('dietBackCircleBtn').addEventListener('click', () => {
 
   // 🔥 하단바가 위에서 슬라이드다운되며 서서히 나타나는 모션 시작
   bottomTabEl.classList.remove('tab-collapsed');
-  document.querySelector('.app').classList.remove('diet-dimmed'); // 🔥 본 화면은 다시 페이드인
 
-  // 🔥 오버레이는 순간적으로 사라지지 않고 우측으로 슬라이드아웃
+  // 🔥 본 화면(.app): 밀려있던 자리(왼쪽)에서 정상 위치(오른쪽)로 돌아오면서 페이드인 = 뒤로가기 느낌
+  const appEl1 = document.querySelector('.app');
+  appEl1.style.transition = 'transform 0.34s cubic-bezier(0.22,1,0.36,1), opacity 0.34s ease';
+  appEl1.style.transform = 'translateX(0)';
+  appEl1.style.opacity = '1';
+
+  // 🔥 오버레이는 60% 지점이 아니라 화면 끝(100%)까지 슬라이드아웃 (페이드아웃은 유지)
   dietOverlay.classList.remove('show');
+  dietOverlay.classList.add('closing');
   setTimeout(() => {
+    dietOverlay.style.transition = 'none';
+    dietOverlay.classList.remove('closing');
     dietOverlay.classList.add('hidden');
+    void dietOverlay.offsetHeight; // 강제 리플로우
+    dietOverlay.style.transition = '';
   }, 340);
 
   dietSubTabBar.classList.remove('show');
