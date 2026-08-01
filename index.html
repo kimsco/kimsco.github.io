@@ -798,6 +798,15 @@ cursor: pointer;
 
   border-top: 1px solid rgba(255,255,255,0.08);
   z-index: 99999;
+
+  transition: transform 0.32s cubic-bezier(0.22,1,0.36,1), opacity 0.22s ease;
+}
+
+/* 🔥 식단 탭 안에 있을 때: 5칸짜리 하단탭을 아래로 슬라이드시켜 감춤 (토스 증권탭 전환 느낌) */
+.bottomTab.tab-collapsed{
+  transform: translateX(-50%) translateY(130%);
+  opacity: 0;
+  pointer-events: none;
 }
 
 /* ✅ “칸 4개” 느낌 */
@@ -826,6 +835,54 @@ cursor: pointer;
 .bottomTab .tabBtn.active{
   color: #FFD700;
   background: transparent;  /* 배경 절대 변경 없음 */
+}
+
+/* ===============================
+   ✅ 식단 탭 전용 뒤로가기 알약(pill)
+   — 토스 "증권" 탭 진입 시 하단탭이 알약으로 접히는 연출과 동일한 패턴
+================================ */
+.dietBackPill{
+  position: fixed;
+  left: 50%;
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  transform: translateX(-50%) translateY(140%);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 99999;
+  transition: transform 0.32s cubic-bezier(0.22,1,0.36,1), opacity 0.24s ease;
+}
+.dietBackPill.show{
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+.dietBackPillBtn{
+  -webkit-appearance: none;
+  appearance: none;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+
+  background: rgba(24,24,24,0.9);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.16);
+  border-radius: 999px;
+
+  padding: 13px 22px;
+  margin: 0;
+
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+}
+.dietBackPillBtn:active{
+  transform: scale(0.96);
+  background: rgba(40,40,40,0.9);
 }
 
 
@@ -3126,12 +3183,21 @@ input[type="number"] {
 </div>
 
 <!-- ✅ 하단 탭바 (새로 추가/이동) -->
-<div class="bottomTab">
+<div class="bottomTab" id="bottomTab">
   <button class="tabBtn active" data-target="tab1">1RM</button>
   <button class="tabBtn" data-target="tab2">3대</button>
   <button class="tabBtn" data-target="tab4">기록</button>
   <button class="tabBtn" data-target="tab3">달력</button>
-   <button class="tabBtn" data-target="tab5">예정</button>
+   <button class="tabBtn" id="dietTabBtn" data-target="tab5">식단</button>
+</div>
+
+<!-- 🔥 식단 탭 전용: 토스 증권탭처럼, 식단 화면 안에서는 5개짜리 하단탭 대신
+     "← 식단" 알약(pill) 하나만 떠서 메인 탭으로 돌아가는 역할을 함 -->
+<div id="dietBackPill" class="dietBackPill">
+  <button id="dietBackPillBtn" class="dietBackPillBtn" type="button">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg>
+    <span>식단</span>
+  </button>
 </div>
 
 
@@ -7710,6 +7776,10 @@ function formatAccDate(){
 // ✅ 이렇게 변경
 const bottomTabBtns = document.querySelectorAll('.bottomTab .tabBtn');
 const bottomTabContents = document.querySelectorAll('.tabContent');
+const bottomTabEl = document.getElementById('bottomTab');
+const dietBackPill = document.getElementById('dietBackPill');
+
+let lastMainTabTarget = 'tab1'; // 🔥 식단탭 진입 전 있던 메인탭 (뒤로가기 시 복귀용)
 
 bottomTabBtns.forEach(btn => {
   btn.addEventListener('click', () => {
@@ -7719,6 +7789,8 @@ bottomTabBtns.forEach(btn => {
     btn.classList.add('active');
 
     const target = btn.dataset.target;
+    if (target !== 'tab5') lastMainTabTarget = target;
+
     const FLEX_LAYOUT_TABS = ['tab2', 'tab3', 'tab5']; // 🔥 고정헤더+꽉채움 레이아웃을 쓰는 탭들
     bottomTabContents.forEach(tc => {
       const on = (tc.id === target);
@@ -7743,7 +7815,22 @@ bottomTabBtns.forEach(btn => {
     if (accBarElTab) accBarElTab.style.display = 'none';
 
     document.querySelector('.app').style.overflowY = 'auto';
+
+    // 🔥 토스 "증권" 탭처럼: 식단 탭이면 5칸 하단탭을 내려보내고 "← 식단" 알약을 띄움
+    if (target === 'tab5') {
+      bottomTabEl.classList.add('tab-collapsed');
+      dietBackPill.classList.add('show');
+    } else {
+      bottomTabEl.classList.remove('tab-collapsed');
+      dietBackPill.classList.remove('show');
+    }
   });
+});
+
+// 🔥 알약의 "← 식단" 버튼: 식단 화면 밖으로 나가서 원래 있던 메인탭으로 복귀
+document.getElementById('dietBackPillBtn').addEventListener('click', () => {
+  const targetBtn = Array.from(bottomTabBtns).find(b => b.dataset.target === lastMainTabTarget);
+  if (targetBtn) targetBtn.click();
 });
 
 /* ===============================
