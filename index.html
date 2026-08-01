@@ -1714,6 +1714,12 @@ html.light-mode-on .dex-post-card.has-image{
 .modal-btn.danger{
   color: #ff6b6b; /* 확인(위험) */
 }
+
+/* 🔥 식단 템플릿/추가 팝업 버튼만 파란색 대신 흰색으로 */
+#foodTemplateModal .modal-btn,
+#quickAddMealModal .modal-btn {
+  color: #fff;
+}
    
    .settings-btn:focus-visible{
   outline: 2px solid rgba(255,215,0,0.7);
@@ -3861,10 +3867,10 @@ input[type="number"] {
       <label>단백질 (g)</label>
 
       <input id="foodModalCarb" type="number" placeholder="비워도 됨">
-      <label>탄수화물 (g) - 선택</label>
+      <label>탄수화물 (g)</label>
 
       <input id="foodModalFat" type="number" placeholder="비워도 됨">
-      <label>지방 (g) - 선택</label>
+      <label>지방 (g)</label>
     </div>
 
     <div class="modal-actions">
@@ -3883,13 +3889,13 @@ input[type="number"] {
       <label>이름</label>
 
       <input id="quickMealCarb" type="number" placeholder="g">
-      <label>탄</label>
+      <label>탄수화물</label>
 
       <input id="quickMealProtein" type="number" placeholder="g">
-      <label>단</label>
+      <label>단백질</label>
 
       <input id="quickMealFat" type="number" placeholder="g">
-      <label>지</label>
+      <label>지방</label>
     </div>
 
     <div class="modal-actions">
