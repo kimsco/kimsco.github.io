@@ -1019,10 +1019,11 @@ cursor: pointer;
   transform: translateX(0);
   opacity: 1;
 }
-/* 🔥 닫을 때 전용: 열릴 때(60% 지점)와 달리, 화면 끝(100%)까지 밀려나가면서 페이드아웃 */
+/* 🔥 닫을 때 전용: 멀리 슬라이드하지 않고 20%만 살짝 이동 + 강한 페이드아웃 위주 */
 #dietOverlay.closing {
-  transform: translateX(100%);
+  transform: translateX(20%);
   opacity: 0;
+  transition: transform 0.34s cubic-bezier(0.22,1,0.36,1), opacity 0.2s ease-out;
 }
 
 
