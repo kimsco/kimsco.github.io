@@ -934,6 +934,28 @@ cursor: pointer;
   padding: 0 30px;
 }
 
+/* ===============================
+   ✅ 식단 라벨 FLIP 애니메이션용 임시 클론
+   (원래 탭 자리 → 새 바의 자리로 실제로 미끄러지듯 이동하는 셰어드 엘리먼트)
+================================ */
+.dietLabelFlip{
+  position: fixed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  z-index: 200010;
+  pointer-events: none;
+  transition:
+    left 0.32s cubic-bezier(0.22,1,0.36,1),
+    top 0.32s cubic-bezier(0.22,1,0.36,1),
+    width 0.32s cubic-bezier(0.22,1,0.36,1),
+    height 0.32s cubic-bezier(0.22,1,0.36,1),
+    color 0.32s ease;
+}
+
 
 .settings-btn {
   all: unset;              /* 🔥 기본 button 스타일 전부 제거 */
@@ -7846,6 +7868,48 @@ const dietSubTabBar = document.getElementById('dietSubTabBar');
 
 let lastMainTabTarget = 'tab1'; // 🔥 식단탭 진입 전 있던 메인탭 (뒤로가기 시 복귀용)
 
+/* 🔥 dietSubTabBar를 순간적으로(트랜지션 없이) 최종 위치로 점프시켜서
+   그 안의 탭 버튼 좌표만 측정하고 즉시 원복함 (화면엔 플래시 없이, 좌표만 얻어내는 트릭) */
+function measureDietSubTabRect(key){
+  const prevTransition = dietSubTabBar.style.transition;
+  dietSubTabBar.style.transition = 'none';
+  dietSubTabBar.classList.add('show');
+  void dietSubTabBar.offsetHeight; // 강제 리플로우
+  const targetBtn = dietSubTabBar.querySelector(`.dietSubTabBtn[data-diet-tab="${key}"]`);
+  const rect = targetBtn.getBoundingClientRect();
+  const color = getComputedStyle(targetBtn).color;
+  dietSubTabBar.classList.remove('show');
+  void dietSubTabBar.offsetHeight;
+  dietSubTabBar.style.transition = prevTransition;
+  return { rect, color, targetBtn };
+}
+
+/* 🔥 텍스트 하나를 fromRect 위치에서 toRect 위치로 실제로 미끄러지듯 이동시키는
+   "셰어드 엘리먼트" 느낌의 FLIP 애니메이션 (임시 클론을 만들어 이동시키고 제거) */
+function runLabelFlip(text, fromRect, fromColor, toRect, toColor, durationMs){
+  const clone = document.createElement('div');
+  clone.className = 'dietLabelFlip';
+  clone.textContent = text;
+  clone.style.left = fromRect.left + 'px';
+  clone.style.top = fromRect.top + 'px';
+  clone.style.width = fromRect.width + 'px';
+  clone.style.height = fromRect.height + 'px';
+  clone.style.color = fromColor;
+  document.body.appendChild(clone);
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      clone.style.left = toRect.left + 'px';
+      clone.style.top = toRect.top + 'px';
+      clone.style.width = toRect.width + 'px';
+      clone.style.height = toRect.height + 'px';
+      clone.style.color = toColor;
+    });
+  });
+
+  setTimeout(() => clone.remove(), durationMs + 60);
+}
+
 bottomTabBtns.forEach(btn => {
   btn.addEventListener('click', () => {
     calPopup.classList.add("hidden");
@@ -7883,10 +7947,26 @@ bottomTabBtns.forEach(btn => {
 
     // 🔥 토스 "증권" 탭처럼: 식단 탭이면 5칸 하단탭을 내려보내고
     //    원형 뒤로가기 + 식단 내부 탭 4개짜리 바를 띄움
+    //    + "식단" 글자 자체가 원래 자리에서 새 바의 자리로 미끄러지며 이동
     if (target === 'tab5') {
+      const DIET_ACTIVE_COLOR = 'rgb(255, 215, 0)'; // .tabBtn.active / .dietSubTabBtn.active 공통 활성 색상
+      const fromBtn = btn; // 지금 클릭한 바로 그 "식단" 버튼
+      const fromRect = fromBtn.getBoundingClientRect();
+      const { rect: toRect, targetBtn: toBtnEl } = measureDietSubTabRect('today');
+
+      fromBtn.style.visibility = 'hidden';
+      toBtnEl.style.visibility = 'hidden';
+
       bottomTabEl.classList.add('tab-collapsed');
       dietSubTabBar.classList.add('show');
       switchDietPanel('today'); // 🔥 매번 식단탭에 들어올 땐 항상 첫 서브탭("식단")부터 시작
+
+      runLabelFlip('식단', fromRect, DIET_ACTIVE_COLOR, toRect, DIET_ACTIVE_COLOR, 320);
+
+      setTimeout(() => {
+        fromBtn.style.visibility = '';
+        toBtnEl.style.visibility = '';
+      }, 340);
     } else {
       bottomTabEl.classList.remove('tab-collapsed');
       dietSubTabBar.classList.remove('show');
@@ -7894,10 +7974,38 @@ bottomTabBtns.forEach(btn => {
   });
 });
 
-// 🔥 원형 뒤로가기 버튼: 식단 화면 밖으로 나가서 원래 있던 메인탭으로 복귀
+// 🔥 원형 뒤로가기 버튼: 식단 화면 밖으로 나가서 원래 있던 메인탭으로 복귀 (반대 방향 FLIP도 동일하게)
 document.getElementById('dietBackCircleBtn').addEventListener('click', () => {
+  const DIET_ACTIVE_COLOR = 'rgb(255, 215, 0)'; // .tabBtn.active / .dietSubTabBtn.active 공통 활성 색상
+
+  const activeKey = document.querySelector('.dietSubTabBtn.active')?.dataset.dietTab || 'today';
+  const fromBtnEl = dietSubTabBar.querySelector(`.dietSubTabBtn[data-diet-tab="${activeKey}"]`);
+  const fromRect = fromBtnEl.getBoundingClientRect();
+  const labelText = fromBtnEl.textContent.trim();
+
   const targetBtn = Array.from(bottomTabBtns).find(b => b.dataset.target === lastMainTabTarget);
-  if (targetBtn) targetBtn.click();
+  if (!targetBtn) return;
+
+  // 🔥 메인탭바를 순간적으로 원복시켜서(트랜지션 없이) 도착 좌표만 측정
+  const prevTransition = bottomTabEl.style.transition;
+  bottomTabEl.style.transition = 'none';
+  bottomTabEl.classList.remove('tab-collapsed');
+  void bottomTabEl.offsetHeight;
+  const toRect = targetBtn.getBoundingClientRect();
+  bottomTabEl.classList.add('tab-collapsed');
+  void bottomTabEl.offsetHeight;
+  bottomTabEl.style.transition = prevTransition;
+
+  fromBtnEl.style.visibility = 'hidden';
+  targetBtn.style.visibility = 'hidden';
+
+  targetBtn.click(); // 실제 탭 전환 (bottomTab 복귀 + dietSubTabBar 숨김 등 기존 로직 그대로 실행)
+
+  runLabelFlip(labelText, fromRect, DIET_ACTIVE_COLOR, toRect, DIET_ACTIVE_COLOR, 320);
+
+  setTimeout(() => {
+    targetBtn.style.visibility = '';
+  }, 340);
 });
 
 // 🔥 식단 내부 서브탭(식단/기록/통계/설정) 전환
