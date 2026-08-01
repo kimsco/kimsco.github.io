@@ -844,7 +844,7 @@ cursor: pointer;
 .dietSubTabBar{
   position: fixed;
   left: 50%;
-  bottom: calc(14px + env(safe-area-inset-bottom));
+  bottom: calc(var(--bottomTabH) * 1.15 + env(safe-area-inset-bottom));
   transform: translateX(-50%) translateY(160%);
   opacity: 0;
   pointer-events: none;
