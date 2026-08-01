@@ -2468,8 +2468,8 @@ input[type="number"] {
   background: transparent;
   border: none;
   border-bottom: 1px solid rgba(255,255,255,0.1);
-  padding: 13px 2px;
-  margin-bottom: 0;
+  padding: 13px 18px;
+  margin: 0 -18px;
   cursor: pointer;
 }
 .food-template-name {
@@ -7985,6 +7985,9 @@ const dietOverlay = document.getElementById('dietOverlay');
 //    position:fixed 자식의 기준점이 뷰포트가 아니라 .app으로 바뀌어버림 → body 바로 밑으로 이동
 document.body.appendChild(dietOverlay);
 document.body.appendChild(dietSubTabBar);
+// 🔥 식단 안에서 쓰는 팝업 2개도 같은 이유로 body로 이동 (안 그러면 .app 트랜스폼에 갇혀서 안 보임)
+document.body.appendChild(document.getElementById('foodTemplateModal'));
+document.body.appendChild(document.getElementById('quickAddMealModal'));
 
 /* 🔥 안전장치: 화면이 꺼졌다 켜지거나 앱이 백그라운드에서 돌아올 때,
    식단 새창(dietOverlay)은 열려있는데 캡슐(dietSubTabBar)만 어긋나서 안 보이는
@@ -8195,6 +8198,12 @@ document.getElementById('dietBackCircleBtn').addEventListener('click', () => {
   appEl1.style.transition = 'transform 0.34s cubic-bezier(0.22,1,0.36,1), opacity 0.34s ease';
   appEl1.style.transform = 'translateX(0)';
   appEl1.style.opacity = '1';
+  // 🔥 트랜지션 끝나면 transform을 아예 제거(빈 문자열)해서, .app에 transform이 남아
+  //    다른 position:fixed 팝업들(예: 로그아웃 모달 등)의 좌표계를 깨뜨리는 일이 없게 함
+  setTimeout(() => {
+    appEl1.style.transform = '';
+    appEl1.style.transition = '';
+  }, 350);
 
   // 🔥 오버레이는 60% 지점이 아니라 화면 끝(100%)까지 슬라이드아웃 (페이드아웃은 유지)
   dietOverlay.classList.remove('show');
