@@ -2377,6 +2377,7 @@ input[type="number"] {
   align-items: baseline;
   justify-content: center;
   gap: 5px;
+  margin-bottom: 18px;
 }
 .cal-target-big {
   font-size: 24px;
@@ -2388,17 +2389,6 @@ input[type="number"] {
   font-size: 12px;
   font-weight: 500;
   color: rgba(255,255,255,0.4);
-}
-.cal-progress-track {
-  height: 1px;
-  background: rgba(255,255,255,0.18);
-  margin: 12px 0 18px;
-  overflow: hidden;
-}
-.cal-progress-fill {
-  height: 100%;
-  background: rgba(255,255,255,0.85);
-  transition: width 0.25s ease;
 }
 
 /* 🔥 탄/단/지 좌(그래프) : 우(수치) = 3 : 2 비율, 가운데 세로 구분선 */
@@ -2502,6 +2492,13 @@ input[type="number"] {
   border: 1px solid #222;
   border-radius: 14px;
   padding: 4px 14px;
+  min-height: 200px;
+  box-sizing: border-box;
+}
+.today-meal-box.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .meal-log-row {
@@ -3297,9 +3294,6 @@ input[type="number"] {
         <span id="calTargetBig" class="cal-target-big">0 / 0</span>
         <span class="cal-target-unit">kcal</span>
       </div>
-      <div class="cal-progress-track">
-        <div id="calProgressFill" class="cal-progress-fill" style="width:0%;"></div>
-      </div>
 
       <div class="macro-split">
         <div class="macro-split-left">
@@ -3839,7 +3833,7 @@ input[type="number"] {
       <label>음식 이름</label>
 
       <input id="foodModalProtein" type="number" placeholder="예: 24">
-      <label>단백질 (g) *필수</label>
+      <label>단백질 (g)</label>
 
       <input id="foodModalCarb" type="number" placeholder="비워도 됨">
       <label>탄수화물 (g) - 선택</label>
@@ -9822,7 +9816,6 @@ function renderMacroSummary(){
   const kcal = Math.round(sum.protein * 4 + sum.carb * 4 + sum.fat * 9);
 
   const calTargetEl = document.getElementById("calTargetBig");
-  const calProgressEl = document.getElementById("calProgressFill");
   const carbBarEl = document.getElementById("carbBarFill");
   const proteinBarEl = document.getElementById("proteinBarFill");
   const fatBarEl = document.getElementById("fatBarFill");
@@ -9832,7 +9825,6 @@ function renderMacroSummary(){
 
   if (!targets) {
     calTargetEl.textContent = `${kcal} / 0`;
-    calProgressEl.style.width = "0%";
     carbBarEl.style.width = "0%";
     proteinBarEl.style.width = "0%";
     fatBarEl.style.width = "0%";
@@ -9843,8 +9835,6 @@ function renderMacroSummary(){
   }
 
   calTargetEl.textContent = `${kcal} / ${targets.targetCalories}`;
-  const calPct = Math.min(100, (kcal / targets.targetCalories) * 100 || 0);
-  calProgressEl.style.width = calPct + "%";
 
   const carbPct = Math.min(100, (sum.carb / targets.carbTarget) * 100 || 0);
   const proteinPct = Math.min(100, (sum.protein / targets.proteinTarget) * 100 || 0);
@@ -9936,12 +9926,12 @@ document.getElementById("foodModalCancel").addEventListener("click", () => {
 });
 document.getElementById("foodModalSave").addEventListener("click", () => {
   const name = document.getElementById("foodModalName").value.trim();
-  const protein = parseFloat(document.getElementById("foodModalProtein").value);
+  const protein = parseFloat(document.getElementById("foodModalProtein").value) || 0;
   const carb = parseFloat(document.getElementById("foodModalCarb").value) || 0;
   const fat = parseFloat(document.getElementById("foodModalFat").value) || 0;
 
-  if (!name || !protein) {
-    alert("음식 이름과 단백질(g)은 꼭 입력해주세요.");
+  if (!name) {
+    alert("음식 이름을 입력해주세요.");
     return;
   }
 
@@ -10076,9 +10066,11 @@ function renderTodayMealList(){
   const todayMeals = getTodayMeals().slice().sort((a,b) => (b.createdAt||0) - (a.createdAt||0));
 
   if (!todayMeals.length) {
+    el.classList.add("empty");
     el.innerHTML = `<div style="color:#777; font-size:13px;">오늘 먹은 걸 템플릿에서 눌러서 기록해보세요</div>`;
     return;
   }
+  el.classList.remove("empty");
 
   el.innerHTML = "";
   todayMeals.forEach(m => {
