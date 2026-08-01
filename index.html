@@ -839,30 +839,32 @@ cursor: pointer;
 
 /* ===============================
    ✅ 식단 탭 전용 서브탭바 — 토스 "증권" 탭처럼
-   원형 뒤로가기 버튼 + 식단 내부 탭 4개로 구성된 전체너비 바
+   원형 뒤로가기 + 탭 4개가 전부 하나의 둥근 캡슐 안에 떠있는 형태
 ================================ */
 .dietSubTabBar{
   position: fixed;
   left: 50%;
-  bottom: 0;
-  transform: translateX(-50%) translateY(130%);
+  bottom: calc(14px + env(safe-area-inset-bottom));
+  transform: translateX(-50%) translateY(160%);
   opacity: 0;
   pointer-events: none;
 
-  width: 390px;
-  max-width: 100%;
-  height: var(--bottomTabH);
-  padding: 0 10px calc(env(safe-area-inset-bottom));
+  width: calc(100% - 32px);
+  max-width: 358px;
+  height: 60px;
+  padding: 0 8px;
   box-sizing: border-box;
 
   display: flex;
   align-items: center;
   gap: 4px;
 
-  background: rgba(0,0,0,0.92);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-top: 1px solid rgba(255,255,255,0.08);
+  background: rgba(24,24,24,0.92);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 999px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
 
   z-index: 99999;
   transition: transform 0.32s cubic-bezier(0.22,1,0.36,1), opacity 0.24s ease;
@@ -874,7 +876,7 @@ cursor: pointer;
 }
 /* 🔥 뒤로가기로 나갈 때: 아래로 되돌아가지 않고 위로 사라짐 */
 .dietSubTabBar.closing{
-  transform: translateX(-50%) translateY(-100%);
+  transform: translateX(-50%) translateY(-120%);
   opacity: 0;
   pointer-events: none;
 }
@@ -882,8 +884,8 @@ cursor: pointer;
   -webkit-appearance: none;
   appearance: none;
   flex-shrink: 0;
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   border: 1px solid rgba(255,255,255,0.3);
   background: transparent;
