@@ -4756,6 +4756,7 @@ function calRender() {
   for (let d = 1; d <= last; d++) {
     const cell = document.createElement("div");
     const key = `${y}-${m + 1}-${d}`;
+    cell.dataset.day = String(d); // 🔥 표시 모드와 무관하게 항상 실제 날짜를 보관 (롱프레스 키 조회용)
 
     // 오늘 표시
     if (
@@ -4811,13 +4812,10 @@ document.addEventListener("mousedown", e => handleDatePressStart(e));
 document.addEventListener("touchstart", e => handleDatePressStart(e));
 
 function handleDatePressStart(e){
-    // ❌ 종목 모드에서는 long press 자체 차단
-    if (calendarMode === "muscle") return;
-
     const cell = e.target.closest(".days div");
-    if(!cell || !cell.textContent) return;
+    if(!cell || !cell.dataset.day) return; // 🔥 빈칸(empty) 셀 제외
 
-    const key = `${calCurrent.getFullYear()}-${calCurrent.getMonth()+1}-${cell.textContent}`;
+    const key = `${calCurrent.getFullYear()}-${calCurrent.getMonth()+1}-${cell.dataset.day}`;
 
     longPressTimer = setTimeout(() => {
         calOpenPopup(key);
