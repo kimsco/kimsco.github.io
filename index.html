@@ -838,51 +838,100 @@ cursor: pointer;
 }
 
 /* ===============================
-   ✅ 식단 탭 전용 뒤로가기 알약(pill)
-   — 토스 "증권" 탭 진입 시 하단탭이 알약으로 접히는 연출과 동일한 패턴
+   ✅ 식단 탭 전용 서브탭바 — 토스 "증권" 탭처럼
+   원형 뒤로가기 버튼 + 식단 내부 탭 4개로 구성된 전체너비 바
 ================================ */
-.dietBackPill{
+.dietSubTabBar{
   position: fixed;
   left: 50%;
-  bottom: calc(16px + env(safe-area-inset-bottom));
-  transform: translateX(-50%) translateY(140%);
+  bottom: 0;
+  transform: translateX(-50%) translateY(130%);
   opacity: 0;
   pointer-events: none;
+
+  width: 390px;
+  max-width: 100%;
+  height: var(--bottomTabH);
+  padding: 0 10px calc(env(safe-area-inset-bottom));
+  box-sizing: border-box;
+
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  background: rgba(0,0,0,0.92);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(255,255,255,0.08);
+
   z-index: 99999;
   transition: transform 0.32s cubic-bezier(0.22,1,0.36,1), opacity 0.24s ease;
 }
-.dietBackPill.show{
+.dietSubTabBar.show{
   transform: translateX(-50%) translateY(0);
   opacity: 1;
   pointer-events: auto;
 }
-.dietBackPillBtn{
+.dietBackCircleBtn{
   -webkit-appearance: none;
   appearance: none;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.3);
+  background: transparent;
+  color: #eee;
   display: flex;
   align-items: center;
-  gap: 7px;
-
-  background: rgba(24,24,24,0.9);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,0.16);
-  border-radius: 999px;
-
-  padding: 13px 22px;
-  margin: 0;
-
-  color: #fff;
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: 0.2px;
-
+  justify-content: center;
   cursor: pointer;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+  margin: 0;
+  padding: 0;
 }
-.dietBackPillBtn:active{
-  transform: scale(0.96);
-  background: rgba(40,40,40,0.9);
+.dietBackCircleBtn:active{
+  background: rgba(255,255,255,0.08);
+  transform: scale(0.94);
+}
+.dietSubTabBtn{
+  flex: 1;
+  height: 100%;
+  margin: 0;
+  border: none;
+  background: transparent;
+  color: #888;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.dietSubTabBtn.active{
+  color: #FFD700;
+}
+
+/* ===============================
+   ✅ 식단 탭 내부 서브 패널 전환
+================================ */
+.dietPanel{
+  display: none;
+  flex: 1;
+  min-height: 0;
+}
+.dietPanel.active{
+  display: flex;
+  flex-direction: column;
+}
+.dietPanelPlaceholder.active{
+  align-items: center;
+  justify-content: center;
+}
+.dietPanelPlaceholderText{
+  color: rgba(255,255,255,0.35);
+  font-size: 14px;
+  text-align: center;
+  padding: 0 30px;
 }
 
 
@@ -3153,31 +3202,43 @@ input[type="number"] {
 <!-- 예정 (연습용 수정 탭 - 기록탭과 동일 기능, 로컬 저장만 사용) -->
 <div id="tab5" class="tabContent">
 
-  <div class="macro-summary-box">
-    <div id="proteinTargetBig" class="protein-target-big">단백질 0 / 0 g</div>
-    <div class="protein-progress-track">
-      <div id="proteinProgressFill" class="protein-progress-fill" style="width:0%;"></div>
+  <div id="dietPanel-today" class="dietPanel active">
+    <div class="macro-summary-box">
+      <div id="proteinTargetBig" class="protein-target-big">단백질 0 / 0 g</div>
+      <div class="protein-progress-track">
+        <div id="proteinProgressFill" class="protein-progress-fill" style="width:0%;"></div>
+      </div>
+      <div id="carbFatSmall" class="carb-fat-small">탄수화물 0/0g · 지방 0/0g · 0/0kcal</div>
     </div>
-    <div id="carbFatSmall" class="carb-fat-small">탄수화물 0/0g · 지방 0/0g · 0/0kcal</div>
+
+    <div id="tab5ScrollArea">
+
+      <div style="display:flex; justify-content:space-between; align-items:center; margin:14px 0 10px;">
+        <div style="font-size:14px; color:#aaa; font-weight:600;">내 식단 템플릿</div>
+        <button id="addFoodTemplateBtn" class="add-btn">+</button>
+      </div>
+      <div id="foodTemplateList"></div>
+
+      <div class="food-template-etc-row">
+        <input id="etcFoodName" type="text" placeholder="품명">
+        <input id="etcFoodProtein" type="number" placeholder="단백질 g">
+        <button id="etcFoodAddBtn" type="button">+</button>
+      </div>
+
+      <div style="font-size:14px; color:#aaa; font-weight:600; margin:22px 0 10px;">오늘 먹은 것</div>
+      <div id="todayMealList" class="today-meal-box"></div>
+
+    </div>
   </div>
 
-  <div id="tab5ScrollArea">
-
-    <div style="display:flex; justify-content:space-between; align-items:center; margin:14px 0 10px;">
-      <div style="font-size:14px; color:#aaa; font-weight:600;">내 식단 템플릿</div>
-      <button id="addFoodTemplateBtn" class="add-btn">+</button>
-    </div>
-    <div id="foodTemplateList"></div>
-
-    <div class="food-template-etc-row">
-      <input id="etcFoodName" type="text" placeholder="품명">
-      <input id="etcFoodProtein" type="number" placeholder="단백질 g">
-      <button id="etcFoodAddBtn" type="button">+</button>
-    </div>
-
-    <div style="font-size:14px; color:#aaa; font-weight:600; margin:22px 0 10px;">오늘 먹은 것</div>
-    <div id="todayMealList" class="today-meal-box"></div>
-
+  <div id="dietPanel-history" class="dietPanel dietPanelPlaceholder">
+    <div class="dietPanelPlaceholderText">기록 탭은 준비 중이에요.</div>
+  </div>
+  <div id="dietPanel-stats" class="dietPanel dietPanelPlaceholder">
+    <div class="dietPanelPlaceholderText">통계 탭은 준비 중이에요.</div>
+  </div>
+  <div id="dietPanel-settings" class="dietPanel dietPanelPlaceholder">
+    <div class="dietPanelPlaceholderText">설정 탭은 준비 중이에요.</div>
   </div>
 
 </div>
@@ -3192,13 +3253,17 @@ input[type="number"] {
 </div>
 
 <!-- 🔥 식단 탭 전용: 토스 증권탭처럼, 식단 화면 안에서는 5개짜리 하단탭 대신
-     "← 식단" 알약(pill) 하나만 떠서 메인 탭으로 돌아가는 역할을 함 -->
-<div id="dietBackPill" class="dietBackPill">
-  <button id="dietBackPillBtn" class="dietBackPillBtn" type="button">
+     원형 뒤로가기 버튼 + 식단 내부 서브탭 4개로 구성된 별도 바가 뜸 -->
+<div id="dietSubTabBar" class="dietSubTabBar">
+  <button id="dietBackCircleBtn" class="dietBackCircleBtn" type="button" aria-label="뒤로">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg>
-    <span>식단</span>
   </button>
+  <button class="dietSubTabBtn active" data-diet-tab="today">식단</button>
+  <button class="dietSubTabBtn" data-diet-tab="history">기록</button>
+  <button class="dietSubTabBtn" data-diet-tab="stats">통계</button>
+  <button class="dietSubTabBtn" data-diet-tab="settings">설정</button>
 </div>
+
 
 
    
@@ -7777,7 +7842,7 @@ function formatAccDate(){
 const bottomTabBtns = document.querySelectorAll('.bottomTab .tabBtn');
 const bottomTabContents = document.querySelectorAll('.tabContent');
 const bottomTabEl = document.getElementById('bottomTab');
-const dietBackPill = document.getElementById('dietBackPill');
+const dietSubTabBar = document.getElementById('dietSubTabBar');
 
 let lastMainTabTarget = 'tab1'; // 🔥 식단탭 진입 전 있던 메인탭 (뒤로가기 시 복귀용)
 
@@ -7816,21 +7881,36 @@ bottomTabBtns.forEach(btn => {
 
     document.querySelector('.app').style.overflowY = 'auto';
 
-    // 🔥 토스 "증권" 탭처럼: 식단 탭이면 5칸 하단탭을 내려보내고 "← 식단" 알약을 띄움
+    // 🔥 토스 "증권" 탭처럼: 식단 탭이면 5칸 하단탭을 내려보내고
+    //    원형 뒤로가기 + 식단 내부 탭 4개짜리 바를 띄움
     if (target === 'tab5') {
       bottomTabEl.classList.add('tab-collapsed');
-      dietBackPill.classList.add('show');
+      dietSubTabBar.classList.add('show');
+      switchDietPanel('today'); // 🔥 매번 식단탭에 들어올 땐 항상 첫 서브탭("식단")부터 시작
     } else {
       bottomTabEl.classList.remove('tab-collapsed');
-      dietBackPill.classList.remove('show');
+      dietSubTabBar.classList.remove('show');
     }
   });
 });
 
-// 🔥 알약의 "← 식단" 버튼: 식단 화면 밖으로 나가서 원래 있던 메인탭으로 복귀
-document.getElementById('dietBackPillBtn').addEventListener('click', () => {
+// 🔥 원형 뒤로가기 버튼: 식단 화면 밖으로 나가서 원래 있던 메인탭으로 복귀
+document.getElementById('dietBackCircleBtn').addEventListener('click', () => {
   const targetBtn = Array.from(bottomTabBtns).find(b => b.dataset.target === lastMainTabTarget);
   if (targetBtn) targetBtn.click();
+});
+
+// 🔥 식단 내부 서브탭(식단/기록/통계/설정) 전환
+const dietSubTabBtns = document.querySelectorAll('.dietSubTabBtn');
+function switchDietPanel(key){
+  dietSubTabBtns.forEach(b => b.classList.toggle('active', b.dataset.dietTab === key));
+  document.querySelectorAll('.dietPanel').forEach(panel => {
+    panel.classList.toggle('active', panel.id === `dietPanel-${key}`);
+  });
+  document.getElementById('tab5').scrollTo?.({ top: 0, behavior: 'auto' });
+}
+dietSubTabBtns.forEach(btn => {
+  btn.addEventListener('click', () => switchDietPanel(btn.dataset.dietTab));
 });
 
 /* ===============================
