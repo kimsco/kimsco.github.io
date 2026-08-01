@@ -1147,7 +1147,7 @@ cursor: pointer;
 .dex-post-card{
   aspect-ratio: 1 / 1;
   background: #0a0a0a;
-  border: 1px solid rgba(255,255,255,0.08);
+  border: none;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1184,6 +1184,16 @@ cursor: pointer;
 }
 .dex-post-card.pressed{
   background-color: #161616;
+}
+
+/* ===============================
+   ✅ 라이트모드: html 전체를 invert()로 반전시키는 방식이라
+   텍스트/UI는 잘 반전되지만 실제 사진(운동도감 이미지)까지 반전되어 색이 이상해짐.
+   → 사진 요소에는 반대 방향으로 한 번 더 invert를 걸어서 원래 색으로 상쇄시킴.
+================================ */
+html.light-mode-on img,
+html.light-mode-on .dex-post-card.has-image{
+  filter: invert(1) hue-rotate(180deg);
 }
 .dex-post-card-label{
   font-size: 17px;
@@ -8382,6 +8392,7 @@ settingsOverlay.addEventListener("click", (e) => {
 const lightModeToggle = document.getElementById("lightModeToggle");
 function applyLightMode(on){
   document.documentElement.style.filter = on ? "invert(1) hue-rotate(180deg)" : "";
+  document.documentElement.classList.toggle("light-mode-on", on); // 🔥 사진 요소 반전 상쇄용 스코프 클래스
   lightModeToggle.classList.toggle("active", on);
   try { localStorage.setItem("mf_light_mode", on ? "1" : "0"); } catch(e){}
 }
