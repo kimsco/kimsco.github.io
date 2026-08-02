@@ -1594,9 +1594,18 @@ html.light-mode-on .dex-post-card.has-image{
 /* 헤더 */
 .settings-header {
   display: flex;
-  justify-content: flex-end; /* 🔥 이름/이메일 제거 후 닫기(✕) 버튼만 남아 오른쪽 정렬 */
   align-items: center;
   margin-bottom: 24px;
+}
+
+.settings-name {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.settings-email {
+  font-size: 12px;
+  color: #777;
 }
 
 /* 리스트 */
@@ -1757,6 +1766,7 @@ html.light-mode-on .dex-post-card.has-image{
   all: unset;
   width: 28px;         /* 클릭 영역(너무 크지 않게) */
   height: 28px;
+  margin-left: auto;   /* 🔥 게스트 배지가 숨겨져도(로그인 시) 항상 오른쪽 끝에 고정 */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -4091,6 +4101,10 @@ input[type="number"] {
     
     <!-- 헤더 -->
     <div class="settings-header">
+      <div id="settingsGuestBadge">
+        <div class="settings-name">게스트</div>
+        <div class="settings-email">로그인하지 않음</div>
+      </div>
       <button id="closeSettingsBtn">✕</button>
     </div>
 
@@ -5124,6 +5138,7 @@ recordAdd.addEventListener('click', async ()=>{
 
 
 const settingsLogoutText = document.getElementById("settingsLogoutText");
+const settingsGuestBadge = document.getElementById("settingsGuestBadge");
 
 /* 로그인 (구글) */
 googleLoginBtn.addEventListener('click', ()=>{
@@ -10111,6 +10126,10 @@ function applySpecToUI(){
 /* 🔥 설정 화면 계정 행에 표시할 사용자명 갱신
    (직접 입력한 이름이 있으면 그걸, 없으면 "사용자명" 기본값 표시) */
 function renderSettingsIdentity(isLoggedIn){
+  // 🔥 로그인하면 헤더의 "게스트/로그인하지 않음" 배지는 자리 자체가 없어지고,
+  //    게스트일 때만 표시됨
+  if (settingsGuestBadge) settingsGuestBadge.style.display = isLoggedIn ? "none" : "block";
+
   if (isLoggedIn) {
     const displayName = (userSpec.name && userSpec.name.trim()) || "사용자명";
     if (settingsNameBig) settingsNameBig.textContent = displayName;
