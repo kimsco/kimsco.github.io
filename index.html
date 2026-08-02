@@ -905,39 +905,39 @@ cursor: pointer;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  position: relative;
+  z-index: 1; /* 글로우보다 위에서 글자가 보이도록 */
+  transition: transform 0.16s cubic-bezier(0.34,1.56,0.64,1);
 }
 .dietSubTabBtn.active{
   color: #FFD700;
 }
 
-/* 🔥 캡슐 탭을 누르고 있는 동안: 글자가 확대된 말풍선이 위로 살짝 뜨는 효과 */
-.dietTabMagnifyBubble{
-  position: fixed;
+/* 🔥 캡슐 탭을 누르고 있는 동안: 그 자리에서 동그란 빛이 번지며 글자가 살짝 커지는 효과 */
+.dietTabGlow{
+  position: absolute;
   left: 0;
   top: 0;
-  transform: translate(-50%, calc(-100% - 14px)) scale(0.6);
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: radial-gradient(circle,
+    rgba(255,215,0,0.38) 0%,
+    rgba(255,215,0,0.16) 55%,
+    rgba(255,215,0,0) 78%);
+  transform: translate(-50%, -50%) scale(0.6);
   opacity: 0;
   pointer-events: none;
-
-  background: rgba(28,28,28,0.96);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255,255,255,0.18);
-  border-radius: 14px;
-  padding: 10px 18px;
-
-  font-size: 20px;
-  font-weight: 700;
-  color: #fff;
-  white-space: nowrap;
-
-  box-shadow: 0 6px 18px rgba(0,0,0,0.4);
-  z-index: 200020;
-  transition: transform 0.16s cubic-bezier(0.34,1.56,0.64,1), opacity 0.14s ease;
+  z-index: 0;
+  transition: left 0.13s ease, top 0.13s ease,
+              transform 0.16s cubic-bezier(0.34,1.56,0.64,1), opacity 0.14s ease;
 }
-.dietTabMagnifyBubble.show{
-  transform: translate(-50%, calc(-100% - 14px)) scale(1);
+.dietTabGlow.show{
+  transform: translate(-50%, -50%) scale(1);
   opacity: 1;
+}
+.dietSubTabBtn.pressed-scale{
+  transform: scale(1.18);
 }
 
 /* 🔥 "식단" 라벨이 도착한 뒤, 기록/통계/설정이 하나씩 팍! 팍! 팍! 튀어나오는 팝업 애니메이션 */
@@ -3424,12 +3424,12 @@ input[type="number"] {
   <button id="dietBackCircleBtn" class="dietBackCircleBtn" type="button" aria-label="뒤로">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg>
   </button>
+  <div id="dietTabGlow" class="dietTabGlow"></div>
   <button class="dietSubTabBtn active" data-diet-tab="today">식단</button>
   <button class="dietSubTabBtn" data-diet-tab="history">기록</button>
   <button class="dietSubTabBtn" data-diet-tab="stats">통계</button>
   <button class="dietSubTabBtn" data-diet-tab="settings">설정</button>
 </div>
-<div id="dietTabMagnifyBubble" class="dietTabMagnifyBubble"></div>
 
 
 
@@ -8044,43 +8044,71 @@ document.body.appendChild(dietSubTabBar);
 // 🔥 식단 안에서 쓰는 팝업 2개도 같은 이유로 body로 이동 (안 그러면 .app 트랜스폼에 갇혀서 안 보임)
 document.body.appendChild(document.getElementById('foodTemplateModal'));
 document.body.appendChild(document.getElementById('quickAddMealModal'));
-document.body.appendChild(document.getElementById('dietTabMagnifyBubble'));
 
-/* 🔥 캡슐 탭(식단/기록/통계/설정)을 누르고 있는 동안: 글자가 확대된 말풍선이 위로 살짝 떠서 보임 */
+/* 🔥 캡슐 탭(식단/기록/통계/설정): 누르고 있는 그 자리에 동그란 빛이 번지고 글자가 살짝 커짐.
+   손을 떼지 않고 좌우로 밀면, 그 아래 있는 탭으로 빛과 확대가 자연스럽게 따라 이동함(스크럽).
+   손을 뗀 시점에 빛이 올라가 있던 탭으로 실제 전환됨. */
 (function(){
-  const bubble = document.getElementById('dietTabMagnifyBubble');
+  const glow = document.getElementById('dietTabGlow');
+  const tabBtns = Array.from(document.querySelectorAll('.dietSubTabBtn'));
   let activeBtn = null;
+  let tracking = false;
 
-  function showBubble(btn){
+  function focusBtn(btn){
+    if (activeBtn === btn) return;
+    if (activeBtn) activeBtn.classList.remove('pressed-scale');
     activeBtn = btn;
-    const rect = btn.getBoundingClientRect();
-    bubble.textContent = btn.textContent.trim();
-    bubble.style.left = (rect.left + rect.width / 2) + 'px';
-    bubble.style.top = rect.top + 'px';
-    void bubble.offsetWidth; // 강제 리플로우로 트랜지션 재생 보장
-    bubble.classList.add('show');
+    btn.classList.add('pressed-scale');
+
+    const barRect = dietSubTabBar.getBoundingClientRect();
+    const btnRect = btn.getBoundingClientRect();
+    glow.style.left = (btnRect.left + btnRect.width / 2 - barRect.left) + 'px';
+    glow.style.top = (btnRect.top + btnRect.height / 2 - barRect.top) + 'px';
+    glow.classList.add('show');
   }
-  function hideBubble(){
+  function clearFocus(){
+    if (activeBtn) activeBtn.classList.remove('pressed-scale');
     activeBtn = null;
-    bubble.classList.remove('show');
+    glow.classList.remove('show');
+  }
+  function findBtnAt(x, y){
+    return tabBtns.find(b => {
+      const r = b.getBoundingClientRect();
+      return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
+    }) || null;
   }
 
-  document.querySelectorAll('.dietSubTabBtn').forEach(btn => {
-    btn.addEventListener('touchstart', () => showBubble(btn), { passive: true });
-    btn.addEventListener('touchend', hideBubble);
-    btn.addEventListener('touchcancel', hideBubble);
-    btn.addEventListener('mousedown', () => showBubble(btn));
-    btn.addEventListener('mouseup', hideBubble);
-    btn.addEventListener('mouseleave', hideBubble);
-  });
-
-  // 🔥 손가락이 버튼 밖으로 밀려나가면(스크롤/제스처 등) 말풍선이 계속 떠있지 않도록 안전장치
-  document.addEventListener('touchmove', (e) => {
-    if (!activeBtn) return;
+  dietSubTabBar.addEventListener('touchstart', (e) => {
     const t = e.touches[0];
-    const el = document.elementFromPoint(t.clientX, t.clientY);
-    if (!el || !activeBtn.contains(el)) hideBubble();
+    const btn = findBtnAt(t.clientX, t.clientY);
+    if (!btn) { tracking = false; return; }
+    tracking = true;
+    focusBtn(btn);
   }, { passive: true });
+
+  dietSubTabBar.addEventListener('touchmove', (e) => {
+    if (!tracking) return;
+    const t = e.touches[0];
+    const btn = findBtnAt(t.clientX, t.clientY);
+    if (btn) focusBtn(btn);
+    else clearFocus();
+  }, { passive: true });
+
+  function endTrack(){
+    if (!tracking) return;
+    tracking = false;
+    if (activeBtn) switchDietPanel(activeBtn.dataset.dietTab);
+    clearFocus();
+  }
+  dietSubTabBar.addEventListener('touchend', endTrack);
+  dietSubTabBar.addEventListener('touchcancel', () => { tracking = false; clearFocus(); });
+
+  // 데스크탑(마우스) 테스트용
+  tabBtns.forEach(btn => {
+    btn.addEventListener('mousedown', () => focusBtn(btn));
+    btn.addEventListener('mouseup', clearFocus);
+    btn.addEventListener('mouseleave', clearFocus);
+  });
 })();
 
 /* 🔥 안전장치: 화면이 꺼졌다 켜지거나 앱이 백그라운드에서 돌아올 때,
