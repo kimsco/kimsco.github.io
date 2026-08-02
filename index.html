@@ -2619,19 +2619,20 @@ input[type="number"] {
   align-items: flex-start;
 }
 .diet-stats-chart-col {
-  flex: 0 0 42%;
+  flex: 0 0 50%;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 .diet-stats-chart-wrap {
   position: relative;
-  width: 140px;
-  height: 140px;
+  width: 100%;
+  max-width: 175px;
+  aspect-ratio: 1 / 1;
 }
 .diet-stats-chart-wrap canvas {
-  width: 140px !important;
-  height: 140px !important;
+  width: 100% !important;
+  height: 100% !important;
 }
 .diet-stats-chart-center {
   position: absolute;
@@ -2643,14 +2644,14 @@ input[type="number"] {
   pointer-events: none;
 }
 .diet-stats-chart-pct {
-  font-size: 22px;
+  font-size: 28px;
   font-weight: 700;
   color: #fff;
 }
 .diet-stats-chart-label {
-  font-size: 11px;
+  font-size: 12px;
   color: #999;
-  margin-top: 2px;
+  margin-top: 3px;
 }
 .diet-stats-chart-sub {
   margin-top: 10px;
@@ -3587,7 +3588,7 @@ input[type="number"] {
     <div class="diet-stats-row">
       <div class="diet-stats-chart-col">
         <div class="diet-stats-chart-wrap">
-          <canvas id="dietStatsChart" width="140" height="140"></canvas>
+          <canvas id="dietStatsChart" width="175" height="175"></canvas>
           <div class="diet-stats-chart-center">
             <div id="dietStatsChartPct" class="diet-stats-chart-pct">0%</div>
             <div class="diet-stats-chart-label">오늘 칼로리</div>
