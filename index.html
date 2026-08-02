@@ -3480,9 +3480,9 @@ input[type="number"] {
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg>
   </button>
   <button class="dietSubTabBtn active" data-diet-tab="today">식단</button>
-  <button class="dietSubTabBtn" data-diet-tab="history">기록</button>
   <button class="dietSubTabBtn" data-diet-tab="stats">통계</button>
   <button class="dietSubTabBtn" data-diet-tab="settings">설정</button>
+  <button class="dietSubTabBtn" data-diet-tab="history">기록</button>
 </div>
 
 
@@ -8219,8 +8219,8 @@ function openDietOverlay(fromBtn){
   const fromRect = getTextRect(fromBtn);
   const { rect: toRect, targetBtn: toBtnEl } = measureDietSubTabRect('today');
 
-  // 🔥 "식단"이 도착하기 전까지, 나머지 3개(기록/통계/설정)는 숨겨둠 (아래에서 순서대로 팝업시킬 예정)
-  const popKeys = ['history', 'stats', 'settings'];
+  // 🔥 "식단"이 도착하기 전까지, 나머지 3개(통계/설정/기록)는 숨겨둠 (아래에서 순서대로 팝업시킬 예정)
+  const popKeys = ['stats', 'settings', 'history'];
   popKeys.forEach(k => {
     const b = dietSubTabBar.querySelector(`.dietSubTabBtn[data-diet-tab="${k}"]`);
     if (b) { b.classList.remove('pop-in'); b.classList.add('pop-pending'); }
@@ -8251,7 +8251,7 @@ function openDietOverlay(fromBtn){
     toBtnEl.style.visibility = '';
   }, 340);
 
-  // 🔥 "식단"이 자리에 도착한 직후부터, 기록 → 통계 → 설정 순서로 하나씩 팍! 팍! 팍! 팝업
+  // 🔥 "식단"이 자리에 도착한 직후부터, 통계 → 설정 → 기록 순서로 하나씩 팍! 팍! 팍! 팝업
   popKeys.forEach((k, i) => {
     setTimeout(() => {
       const b = dietSubTabBar.querySelector(`.dietSubTabBtn[data-diet-tab="${k}"]`);
