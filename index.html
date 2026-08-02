@@ -1594,20 +1594,9 @@ html.light-mode-on .dex-post-card.has-image{
 /* 헤더 */
 .settings-header {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end; /* 🔥 이름/이메일 제거 후 닫기(✕) 버튼만 남아 오른쪽 정렬 */
   align-items: center;
   margin-bottom: 24px;
-  min-height: 38px; /* 🔥 로그인 후엔 이메일 줄이 비어서 헤더가 짧아지는 것을 방지 (게스트 2줄 기준 높이로 고정) */
-}
-
-.settings-name {
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.settings-email {
-  font-size: 12px;
-  color: #777;
 }
 
 /* 리스트 */
@@ -1642,7 +1631,7 @@ html.light-mode-on .dex-post-card.has-image{
   background: transparent;
   border: none;
   color: #eee;
-  padding: 14px 8px;
+  padding: 14px 0; /* 🔥 .settings-item과 좌우 정렬 맞춤 */
   margin: 0;
   font: inherit;
   box-sizing: border-box;
@@ -2283,6 +2272,13 @@ input[type="number"] {
 .spec-row input[type="text"]:focus {
   outline: none;
   border-bottom-color: #fff;
+}
+
+/* 🔥 이름 입력칸: 세로 폭 2배 + 그에 맞는 글자 크기 + 상하좌 여백 */
+#specName {
+  height: 80px;
+  font-size: 20px;
+  padding: 20px 2px 20px 10px;
 }
 
 /* 키/몸무게/나이 한 줄 배치 */
@@ -4095,10 +4091,6 @@ input[type="number"] {
     
     <!-- 헤더 -->
     <div class="settings-header">
-      <div>
-        <div id="settingsUserName" class="settings-name">게스트</div>
-        <div id="settingsUserEmail" class="settings-email"></div>
-      </div>
       <button id="closeSettingsBtn">✕</button>
     </div>
 
@@ -5131,8 +5123,6 @@ recordAdd.addEventListener('click', async ()=>{
 
 
 
-const settingsUserName = document.getElementById("settingsUserName");
-const settingsUserEmail = document.getElementById("settingsUserEmail");
 const settingsLogoutText = document.getElementById("settingsLogoutText");
 
 /* 로그인 (구글) */
@@ -5157,11 +5147,6 @@ auth.onAuthStateChanged(async user => {
 
   // ✅ (B) 설정 패널 UI 갱신 (이걸 여기 넣는 게 포인트)
   renderSettingsIdentity(!!user);
-  if (user) {
-  if (settingsUserEmail) settingsUserEmail.textContent = ""; // ✅ 헤더 이메일 숨김
-} else {
-  if (settingsUserEmail) settingsUserEmail.textContent = "로그인하지 않음";
-}
 
 
 
@@ -10123,15 +10108,13 @@ function applySpecToUI(){
   renderSpecSummaryPreview();
 }
 
-/* 🔥 설정 화면 헤더/계정 행에 표시할 사용자명 갱신
+/* 🔥 설정 화면 계정 행에 표시할 사용자명 갱신
    (직접 입력한 이름이 있으면 그걸, 없으면 "사용자명" 기본값 표시) */
 function renderSettingsIdentity(isLoggedIn){
   if (isLoggedIn) {
     const displayName = (userSpec.name && userSpec.name.trim()) || "사용자명";
-    if (settingsUserName) settingsUserName.textContent = displayName;
     if (settingsNameBig) settingsNameBig.textContent = displayName;
   } else {
-    if (settingsUserName) settingsUserName.textContent = "게스트";
     if (settingsNameBig) settingsNameBig.textContent = "게스트";
   }
 }
