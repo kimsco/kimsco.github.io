@@ -910,6 +910,36 @@ cursor: pointer;
   color: #FFD700;
 }
 
+/* 🔥 캡슐 탭을 누르고 있는 동안: 글자가 확대된 말풍선이 위로 살짝 뜨는 효과 */
+.dietTabMagnifyBubble{
+  position: fixed;
+  left: 0;
+  top: 0;
+  transform: translate(-50%, calc(-100% - 14px)) scale(0.6);
+  opacity: 0;
+  pointer-events: none;
+
+  background: rgba(28,28,28,0.96);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 14px;
+  padding: 10px 18px;
+
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+
+  box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+  z-index: 200020;
+  transition: transform 0.16s cubic-bezier(0.34,1.56,0.64,1), opacity 0.14s ease;
+}
+.dietTabMagnifyBubble.show{
+  transform: translate(-50%, calc(-100% - 14px)) scale(1);
+  opacity: 1;
+}
+
 /* 🔥 "식단" 라벨이 도착한 뒤, 기록/통계/설정이 하나씩 팍! 팍! 팍! 튀어나오는 팝업 애니메이션 */
 .dietSubTabBtn.pop-pending{
   opacity: 0;
@@ -2550,62 +2580,6 @@ input[type="number"] {
   font-weight: 600;
 }
 
-/* ===============================
-   ✅ 식단 > 기록 탭: 날짜별 칼로리 달력
-================================ */
-.diet-calendar {
-  flex-shrink: 0;
-  margin-bottom: 18px;
-}
-.diet-cal-days div {
-  flex-direction: column;
-  gap: 2px;
-  font-size: 13px;
-}
-.diet-cal-days div .diet-cal-day-num {
-  font-size: 13px;
-  line-height: 1;
-}
-.diet-cal-days div .diet-cal-day-kcal {
-  font-size: 9px;
-  font-weight: 600;
-  line-height: 1;
-  color: rgba(255,215,0,0.85);
-}
-.diet-cal-days div.done {
-  background: rgba(255,215,0,0.12);
-  border: 1px solid rgba(255,215,0,0.35);
-  color: #fff;
-}
-.diet-cal-days div.done .diet-cal-day-kcal {
-  color: #FFD700;
-}
-.diet-cal-days div.selected {
-  border: 1px solid #FFD700;
-  box-shadow: 0 0 0 1px #FFD700 inset;
-}
-.diet-cal-days div.today {
-  border: 1px solid #FFD700;
-  color: #FFD700;
-}
-
-.diet-cal-detail-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin: 0 0 10px;
-}
-.diet-cal-detail-header span:first-child {
-  font-size: 14px;
-  color: #aaa;
-  font-weight: 600;
-}
-.diet-cal-detail-kcal {
-  font-size: 14px;
-  color: #FFD700;
-  font-weight: 700;
-}
-
 /* 식단 템플릿 추가 모달 폼 */
 .food-modal-form {
   padding: 14px 16px 16px;
@@ -3422,34 +3396,8 @@ input[type="number"] {
     </div>
   </div>
 
-  <div id="dietPanel-history" class="dietPanel">
-    <div class="calendar diet-calendar">
-      <div class="header">
-        <button id="dietCalPrev" class="month-btn">&lt;</button>
-        <div id="dietCalMonth" class="month-title"></div>
-        <button id="dietCalNext" class="month-btn">&gt;</button>
-      </div>
-      <div class="weekdays">
-        <div>일</div>
-        <div>월</div>
-        <div>화</div>
-        <div>수</div>
-        <div>목</div>
-        <div>금</div>
-        <div>토</div>
-      </div>
-      <div id="dietCalDays" class="days diet-cal-days"></div>
-    </div>
-
-    <div class="diet-cal-detail">
-      <div class="diet-cal-detail-header">
-        <span id="dietCalDetailDate">날짜를 선택하세요</span>
-        <span id="dietCalDetailKcal" class="diet-cal-detail-kcal">0 kcal</span>
-      </div>
-      <div id="dietCalDetailList" class="today-meal-box empty">
-        <div style="color:#777; font-size:13px;">달력에서 날짜를 눌러 그날 먹은 걸 확인하세요</div>
-      </div>
-    </div>
+  <div id="dietPanel-history" class="dietPanel dietPanelPlaceholder">
+    <div class="dietPanelPlaceholderText">기록 탭은 준비 중이에요.</div>
   </div>
   <div id="dietPanel-stats" class="dietPanel dietPanelPlaceholder">
     <div class="dietPanelPlaceholderText">통계 탭은 준비 중이에요.</div>
@@ -3481,6 +3429,7 @@ input[type="number"] {
   <button class="dietSubTabBtn" data-diet-tab="stats">통계</button>
   <button class="dietSubTabBtn" data-diet-tab="settings">설정</button>
 </div>
+<div id="dietTabMagnifyBubble" class="dietTabMagnifyBubble"></div>
 
 
 
@@ -8095,6 +8044,44 @@ document.body.appendChild(dietSubTabBar);
 // 🔥 식단 안에서 쓰는 팝업 2개도 같은 이유로 body로 이동 (안 그러면 .app 트랜스폼에 갇혀서 안 보임)
 document.body.appendChild(document.getElementById('foodTemplateModal'));
 document.body.appendChild(document.getElementById('quickAddMealModal'));
+document.body.appendChild(document.getElementById('dietTabMagnifyBubble'));
+
+/* 🔥 캡슐 탭(식단/기록/통계/설정)을 누르고 있는 동안: 글자가 확대된 말풍선이 위로 살짝 떠서 보임 */
+(function(){
+  const bubble = document.getElementById('dietTabMagnifyBubble');
+  let activeBtn = null;
+
+  function showBubble(btn){
+    activeBtn = btn;
+    const rect = btn.getBoundingClientRect();
+    bubble.textContent = btn.textContent.trim();
+    bubble.style.left = (rect.left + rect.width / 2) + 'px';
+    bubble.style.top = rect.top + 'px';
+    void bubble.offsetWidth; // 강제 리플로우로 트랜지션 재생 보장
+    bubble.classList.add('show');
+  }
+  function hideBubble(){
+    activeBtn = null;
+    bubble.classList.remove('show');
+  }
+
+  document.querySelectorAll('.dietSubTabBtn').forEach(btn => {
+    btn.addEventListener('touchstart', () => showBubble(btn), { passive: true });
+    btn.addEventListener('touchend', hideBubble);
+    btn.addEventListener('touchcancel', hideBubble);
+    btn.addEventListener('mousedown', () => showBubble(btn));
+    btn.addEventListener('mouseup', hideBubble);
+    btn.addEventListener('mouseleave', hideBubble);
+  });
+
+  // 🔥 손가락이 버튼 밖으로 밀려나가면(스크롤/제스처 등) 말풍선이 계속 떠있지 않도록 안전장치
+  document.addEventListener('touchmove', (e) => {
+    if (!activeBtn) return;
+    const t = e.touches[0];
+    const el = document.elementFromPoint(t.clientX, t.clientY);
+    if (!el || !activeBtn.contains(el)) hideBubble();
+  }, { passive: true });
+})();
 
 /* 🔥 안전장치: 화면이 꺼졌다 켜지거나 앱이 백그라운드에서 돌아올 때,
    식단 새창(dietOverlay)은 열려있는데 캡슐(dietSubTabBar)만 어긋나서 안 보이는
@@ -8348,7 +8335,6 @@ function switchDietPanel(key){
     panel.classList.toggle('active', panel.id === `dietPanel-${key}`);
   });
   document.getElementById('dietOverlayBody').scrollTo?.({ top: 0, behavior: 'auto' });
-  if (key === 'history') refreshDietCalendar();
 }
 dietSubTabBtns.forEach(btn => {
   btn.addEventListener('click', () => switchDietPanel(btn.dataset.dietTab));
@@ -10013,120 +9999,6 @@ function renderMacroSummary(){
   fatNumEl.textContent = `${sum.fat}/${targets.fatTarget}`;
 }
 
-/* ---------- 식단 > 기록 탭: 날짜별 칼로리 달력 ---------- */
-function kcalOfMeals(list){
-  return Math.round(list.reduce((acc, m) => {
-    const c = m.count || 1;
-    return acc + (Number(m.protein) || 0) * c * 4 + (Number(m.carb) || 0) * c * 4 + (Number(m.fat) || 0) * c * 9;
-  }, 0));
-}
-
-const dietCalDaysEl = document.getElementById('dietCalDays');
-const dietCalMonthEl = document.getElementById('dietCalMonth');
-let dietCalCurrent = new Date();
-let dietCalSelectedKey = null;
-
-function dietCalRender(){
-  if (!dietCalDaysEl) return;
-  dietCalDaysEl.innerHTML = "";
-
-  const y = dietCalCurrent.getFullYear();
-  const m = dietCalCurrent.getMonth();
-  dietCalMonthEl.textContent = `${y}년 ${m + 1}월`;
-
-  const first = new Date(y, m, 1);
-  const start = first.getDay();
-  const last = new Date(y, m + 1, 0).getDate();
-
-  for (let i = 0; i < start; i++) {
-    const empty = document.createElement("div");
-    empty.classList.add("empty");
-    dietCalDaysEl.appendChild(empty);
-  }
-
-  const today = new Date();
-
-  for (let d = 1; d <= last; d++) {
-    const dateObj = new Date(y, m, d);
-    const key = formatTodayYYMMDD(dateObj);
-    const kcal = kcalOfMeals(mealsAll.filter(mm => mm.date === key));
-
-    const cell = document.createElement("div");
-    cell.dataset.key = key;
-
-    if (d === today.getDate() && m === today.getMonth() && y === today.getFullYear()) {
-      cell.classList.add("today");
-    }
-    if (kcal > 0) cell.classList.add("done");
-    if (key === dietCalSelectedKey) cell.classList.add("selected");
-
-    cell.innerHTML = `
-      <div class="diet-cal-day-num">${d}</div>
-      ${kcal > 0 ? `<div class="diet-cal-day-kcal">${kcal}</div>` : ""}
-    `;
-
-    cell.addEventListener("click", () => {
-      dietCalSelectedKey = key;
-      dietCalRender();
-      renderDietCalDetail(key, dateObj);
-    });
-
-    dietCalDaysEl.appendChild(cell);
-  }
-}
-
-function renderDietCalDetail(key, dateObj){
-  const dateEl = document.getElementById('dietCalDetailDate');
-  const kcalEl = document.getElementById('dietCalDetailKcal');
-  const listEl = document.getElementById('dietCalDetailList');
-
-  dateEl.textContent = `${dateObj.getMonth() + 1}월 ${dateObj.getDate()}일`;
-
-  const dayMeals = mealsAll.filter(m => m.date === key).slice().sort((a,b) => (b.createdAt||0) - (a.createdAt||0));
-  kcalEl.textContent = `${kcalOfMeals(dayMeals)} kcal`;
-
-  if (!dayMeals.length) {
-    listEl.classList.add("empty");
-    listEl.innerHTML = `<div style="color:#777; font-size:13px;">이 날은 기록이 없어요</div>`;
-    return;
-  }
-  listEl.classList.remove("empty");
-  listEl.innerHTML = "";
-  dayMeals.forEach(m => {
-    const count = m.count || 1;
-    const nameLabel = count > 1 ? `${m.name} x ${count}` : m.name;
-    const kcal = kcalOfMeals([m]);
-
-    const row = document.createElement("div");
-    row.className = "meal-log-row";
-    row.innerHTML = `
-      <div>
-        <div class="meal-log-name">${nameLabel}</div>
-        <div class="meal-log-time">${m.time || ""}</div>
-      </div>
-      <div class="meal-log-protein">${kcal} kcal</div>
-    `;
-    listEl.appendChild(row);
-  });
-}
-
-function refreshDietCalendar(){
-  dietCalRender();
-  if (dietCalSelectedKey) {
-    const [yy, mm, dd] = dietCalSelectedKey.split('.').map(Number);
-    renderDietCalDetail(dietCalSelectedKey, new Date(2000 + yy, mm - 1, dd));
-  }
-}
-
-document.getElementById('dietCalPrev')?.addEventListener('click', () => {
-  dietCalCurrent = new Date(dietCalCurrent.getFullYear(), dietCalCurrent.getMonth() - 1, 1);
-  dietCalRender();
-});
-document.getElementById('dietCalNext')?.addEventListener('click', () => {
-  dietCalCurrent = new Date(dietCalCurrent.getFullYear(), dietCalCurrent.getMonth() + 1, 1);
-  dietCalRender();
-});
-
 /* ---------- 식단 템플릿 ---------- */
 function renderFoodTemplateList(){
   const el = document.getElementById("foodTemplateList");
@@ -10266,7 +10138,6 @@ function addMealFromTemplate(item){
 
   renderTodayMealList();
   renderMacroSummary();
-  refreshDietCalendar();
 }
 
 /* 🔥 개수 직접 수정 (길게 누르면 호출됨) */
@@ -10290,7 +10161,6 @@ function editMealCount(id){
   saveMealToFirestore(meal);
   renderTodayMealList();
   renderMacroSummary();
-  refreshDietCalendar();
 }
 
 /* 🔥 "추가" 버튼: 템플릿으로 저장하지 않고 오늘 기록에만 바로 1회성으로 추가 */
@@ -10339,7 +10209,6 @@ function deleteMeal(id){
   deleteMealFromFirestore(id);
   renderTodayMealList();
   renderMacroSummary();
-  refreshDietCalendar();
 }
 
 function renderTodayMealList(){
