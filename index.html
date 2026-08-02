@@ -4320,8 +4320,27 @@ document.querySelectorAll('#oneRMExerciseTabs .oneRMLiftBtn').forEach(btn => {
     document.querySelectorAll('#oneRMExerciseTabs .oneRMLiftBtn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     selectedOneRMLift = btn.dataset.lift;
-    tableArea.innerHTML = ''; // 🔥 종목을 바꾸면 이전에 계산해둔 표는 초기화
+    // 🔥 종목을 바꾸면 이전에 입력/계산해둔 무게·횟수·표를 전부 초기화
+    weightSelect.value = '';
+    repsSelect.selectedIndex = 0;
+    tableArea.innerHTML = '';
   });
+});
+
+// 🔥 무게 입력창 키보드가 열려있는 상태에서 횟수 select를 누르면,
+//    키보드가 채 안 내려간 상태로 select 팝업이 화면 중상단에 뜨는 문제 방지:
+//    먼저 키보드부터 완전히 닫고(blur), 살짝 기다렸다가 select를 정상 위치에서 엶
+repsSelect.addEventListener('mousedown', (e) => {
+  if (document.activeElement === weightSelect) {
+    e.preventDefault();
+    weightSelect.blur();
+    setTimeout(() => {
+      repsSelect.focus();
+      if (typeof repsSelect.showPicker === 'function') {
+        try { repsSelect.showPicker(); } catch (_) {}
+      }
+    }, 300);
+  }
 });
 
 goBtn.addEventListener('click', ()=> {
