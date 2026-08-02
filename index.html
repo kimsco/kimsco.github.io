@@ -2645,7 +2645,7 @@ input[type="number"] {
 .diet-stats-chart-pct {
   font-size: 22px;
   font-weight: 700;
-  color: #FFD700;
+  color: #fff;
 }
 .diet-stats-chart-label {
   font-size: 11px;
@@ -2668,31 +2668,71 @@ input[type="number"] {
   font-weight: 600;
   margin-bottom: 6px;
 }
-.diet-stats-deficit-text {
-  font-size: 12px;
-  color: #eee;
-  line-height: 1.5;
-}
-.diet-stats-reco-list {
+
+/* 영양소별 진행 막대그래프 */
+.diet-stats-macro-bars {
+  margin-top: 20px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
 }
-.diet-stats-reco-row {
+.diet-stats-macro-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.diet-stats-macro-bar-label {
+  flex: 0 0 52px;
+  font-size: 12px;
+  color: #aaa;
+}
+.diet-stats-macro-bar-track {
+  flex: 1;
+  height: 8px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.diet-stats-macro-bar-fill {
+  height: 100%;
+  background: #fff;
+  border-radius: 4px;
+}
+.diet-stats-macro-bar-num {
+  flex: 0 0 auto;
+  font-size: 11px;
+  color: #ccc;
+  min-width: 60px;
+  text-align: right;
+}
+
+/* 추천 음식 가로 나열 */
+.diet-stats-reco-list-h {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  -webkit-overflow-scrolling: touch;
+}
+.diet-stats-reco-card {
+  flex: 0 0 auto;
+  min-width: 128px;
   background: #111;
   border: 1px solid #222;
   border-radius: 10px;
-  padding: 8px 10px;
+  padding: 10px 12px;
 }
 .diet-stats-reco-name {
   font-size: 12.5px;
   color: #fff;
   font-weight: 600;
+  white-space: nowrap;
 }
 .diet-stats-reco-macro {
   font-size: 11px;
   color: #FFD700;
-  margin-top: 2px;
+  margin-top: 4px;
+  white-space: nowrap;
 }
 .diet-stats-reco-empty {
   font-size: 12px;
@@ -3555,13 +3595,29 @@ input[type="number"] {
         </div>
         <div id="dietStatsChartSub" class="diet-stats-chart-sub">0 / 0 kcal</div>
       </div>
-      <div class="diet-stats-reco-col">
-        <div class="diet-stats-reco-title">오늘 남은 영양소</div>
-        <div id="dietStatsDeficitText" class="diet-stats-deficit-text">-</div>
-        <div class="diet-stats-reco-title" style="margin-top:14px;">추천 음식</div>
-        <div id="dietStatsRecoList" class="diet-stats-reco-list"></div>
+      <div class="diet-stats-reco-col"></div>
+    </div>
+
+    <div class="diet-stats-macro-bars">
+      <div class="diet-stats-macro-bar-row">
+        <div class="diet-stats-macro-bar-label">탄수화물</div>
+        <div class="diet-stats-macro-bar-track"><div id="dietStatsCarbBar" class="diet-stats-macro-bar-fill" style="width:0%;"></div></div>
+        <div id="dietStatsCarbNum" class="diet-stats-macro-bar-num">0/0g</div>
+      </div>
+      <div class="diet-stats-macro-bar-row">
+        <div class="diet-stats-macro-bar-label">단백질</div>
+        <div class="diet-stats-macro-bar-track"><div id="dietStatsProteinBar" class="diet-stats-macro-bar-fill" style="width:0%;"></div></div>
+        <div id="dietStatsProteinNum" class="diet-stats-macro-bar-num">0/0g</div>
+      </div>
+      <div class="diet-stats-macro-bar-row">
+        <div class="diet-stats-macro-bar-label">지방</div>
+        <div class="diet-stats-macro-bar-track"><div id="dietStatsFatBar" class="diet-stats-macro-bar-fill" style="width:0%;"></div></div>
+        <div id="dietStatsFatNum" class="diet-stats-macro-bar-num">0/0g</div>
       </div>
     </div>
+
+    <div class="diet-stats-reco-title" style="margin:18px 0 8px;">추천 음식</div>
+    <div id="dietStatsRecoList" class="diet-stats-reco-list-h"></div>
   </div>
   <div id="dietPanel-settings" class="dietPanel dietPanelPlaceholder">
     <div class="dietPanelPlaceholderText">설정 탭은 준비 중이에요.</div>
@@ -10358,7 +10414,7 @@ function renderDietStatsChart(consumed, target){
   const isOver = consumed > target && target > 0;
 
   const values = isOver ? [consumedVal] : [consumedVal, remainVal || 1];
-  const colors = isOver ? ['#ff5252'] : ['#FFD700', 'rgba(255,255,255,0.08)'];
+  const colors = isOver ? ['#ff5252'] : ['#ffffff', 'rgba(255,255,255,0.08)'];
 
   dietStatsChartInstance = new Chart(ctx, {
     type: 'doughnut',
@@ -10372,7 +10428,7 @@ function renderDietStatsChart(consumed, target){
     options: {
       responsive: false,
       maintainAspectRatio: false,
-      cutout: '72%',
+      cutout: '86%',
       plugins: {
         legend: { display: false },
         tooltip: { enabled: false },
@@ -10381,13 +10437,20 @@ function renderDietStatsChart(consumed, target){
   });
 }
 
+function setDietStatsMacroBar(prefix, consumedVal, targetVal){
+  const barEl = document.getElementById(`dietStats${prefix}Bar`);
+  const numEl = document.getElementById(`dietStats${prefix}Num`);
+  const pct = targetVal > 0 ? Math.min(100, Math.round((consumedVal / targetVal) * 100)) : 0;
+  barEl.style.width = pct + '%';
+  numEl.textContent = `${Math.round(consumedVal)}/${Math.round(targetVal)}g`;
+}
+
 function renderDietStats(){
   const canvas = document.getElementById('dietStatsChart');
   if (!canvas) return;
 
   const pctEl = document.getElementById('dietStatsChartPct');
   const subEl = document.getElementById('dietStatsChartSub');
-  const deficitEl = document.getElementById('dietStatsDeficitText');
   const recoListEl = document.getElementById('dietStatsRecoList');
 
   const targets = calcTargets(userSpec);
@@ -10404,8 +10467,10 @@ function renderDietStats(){
   if (!targets) {
     pctEl.textContent = '-';
     subEl.textContent = '내 정보를 먼저 입력해주세요';
-    deficitEl.textContent = '설정에서 키/몸무게/나이를 입력하면 목표치와 추천 음식을 계산해드려요.';
-    recoListEl.innerHTML = '';
+    setDietStatsMacroBar('Carb', 0, 0);
+    setDietStatsMacroBar('Protein', 0, 0);
+    setDietStatsMacroBar('Fat', 0, 0);
+    recoListEl.innerHTML = `<div class="diet-stats-reco-empty">설정에서 키/몸무게/나이를 입력하면 추천 음식을 계산해드려요.</div>`;
     renderDietStatsChart(0, 100);
     return;
   }
@@ -10415,6 +10480,10 @@ function renderDietStats(){
   subEl.textContent = `${kcal} / ${targets.targetCalories} kcal`;
   renderDietStatsChart(kcal, targets.targetCalories);
 
+  setDietStatsMacroBar('Carb', sum.carb, targets.carbTarget);
+  setDietStatsMacroBar('Protein', sum.protein, targets.proteinTarget);
+  setDietStatsMacroBar('Fat', sum.fat, targets.fatTarget);
+
   const remain = {
     carb: Math.max(0, targets.carbTarget - sum.carb),
     protein: Math.max(0, targets.proteinTarget - sum.protein),
@@ -10422,9 +10491,6 @@ function renderDietStats(){
   };
   const remainKcal = Math.max(0, targets.targetCalories - kcal);
   const macroLabel = { protein: '단백질', carb: '탄수화물', fat: '지방' };
-
-  deficitEl.textContent =
-    `${macroLabel.protein} ${Math.round(remain.protein)}g · ${macroLabel.carb} ${Math.round(remain.carb)}g · ${macroLabel.fat} ${Math.round(remain.fat)}g 남았어요 (${remainKcal}kcal)`;
 
   if (remainKcal <= 0) {
     recoListEl.innerHTML = `<div class="diet-stats-reco-empty">오늘 목표를 이미 채우셨어요 🎉</div>`;
@@ -10447,13 +10513,13 @@ function renderDietStats(){
 
   recoListEl.innerHTML = '';
   candidates.forEach(f => {
-    const row = document.createElement('div');
-    row.className = 'diet-stats-reco-row';
-    row.innerHTML = `
+    const card = document.createElement('div');
+    card.className = 'diet-stats-reco-card';
+    card.innerHTML = `
       <div class="diet-stats-reco-name">${f.name}</div>
       <div class="diet-stats-reco-macro">${f.kcal}kcal · ${macroLabel[primary]} ${f[primary]}g</div>
     `;
-    recoListEl.appendChild(row);
+    recoListEl.appendChild(card);
   });
 }
 
