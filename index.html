@@ -2267,7 +2267,8 @@ input[type="number"] {
   margin-bottom: 8px;
   letter-spacing: 0.4px;
 }
-.spec-row input[type="number"] {
+.spec-row input[type="number"],
+.spec-row input[type="text"] {
   width: 100%;
   height: 40px;
   background: transparent;
@@ -2278,7 +2279,8 @@ input[type="number"] {
   font-size: 15px;
   box-sizing: border-box;
 }
-.spec-row input[type="number"]:focus {
+.spec-row input[type="number"]:focus,
+.spec-row input[type="text"]:focus {
   outline: none;
   border-bottom-color: #fff;
 }
@@ -3857,6 +3859,11 @@ input[type="number"] {
     </div>
 
     <div class="spec-row">
+      <label>이름</label>
+      <input id="specName" type="text" placeholder="사용자명 입력" maxlength="20">
+    </div>
+
+    <div class="spec-row">
       <label>성별</label>
       <div class="gender-toggle">
         <button type="button" class="genderBtn active" data-gender="male">남</button>
@@ -5149,11 +5156,10 @@ auth.onAuthStateChanged(async user => {
   }
 
   // ✅ (B) 설정 패널 UI 갱신 (이걸 여기 넣는 게 포인트)
+  renderSettingsIdentity(!!user);
   if (user) {
-  if (settingsUserName) settingsUserName.textContent = user.displayName || "사용자";
   if (settingsUserEmail) settingsUserEmail.textContent = ""; // ✅ 헤더 이메일 숨김
 } else {
-  if (settingsUserName) settingsUserName.textContent = "게스트";
   if (settingsUserEmail) settingsUserEmail.textContent = "로그인하지 않음";
 }
 
@@ -5163,7 +5169,6 @@ auth.onAuthStateChanged(async user => {
     if (settingsLoginRow) settingsLoginRow.style.display = "none";
     if (settingsAccountRow) settingsAccountRow.style.display = "flex";
 
-    if (settingsNameBig) settingsNameBig.textContent = user.displayName || "사용자";
     if (settingsEmailSub) settingsEmailSub.textContent = user.email || "";
 
     if (settingsLogoutText) settingsLogoutText.style.display = "block";
@@ -5263,6 +5268,7 @@ try {
 
     await loadAccessoryRecords();
     await loadUserSpecFromFirestore(user.uid);
+    renderSettingsIdentity(true); // 🔥 Firestore에서 저장된 사용자명을 불러온 뒤 다시 반영
     await loadFoodTemplatesFromFirestore(user.uid);
     await loadMealsFromFirestore(user.uid);
     await loadMyRoutineTemplatesFromFirestore(user.uid);
@@ -9838,6 +9844,7 @@ const GOAL_ADJUST = {
 };
 
 let userSpec = {
+  name: null,          // 🔥 설정 화면에 표시할 사용자명(직접 입력)
   gender: "male",
   height: null,
   weight: null,
@@ -10015,6 +10022,7 @@ function calcTargets(spec){
 /* ---------- 내 정보 수정 화면 UI ---------- */
 const mySpecOverlay = document.getElementById("mySpecOverlay");
 const mySpecScreen = document.getElementById("mySpecScreen");
+const specName = document.getElementById("specName");
 const specHeight = document.getElementById("specHeight");
 const specWeight = document.getElementById("specWeight");
 const specAge = document.getElementById("specAge");
@@ -10106,12 +10114,26 @@ function applySpecToUI(){
   document.querySelectorAll(".goalBtn").forEach(b =>
     b.classList.toggle("active", b.dataset.goal === userSpec.goal));
 
+  specName.value = userSpec.name || "";
   specHeight.value = userSpec.height || "";
   specWeight.value = userSpec.weight || "";
   specAge.value = userSpec.age || "";
 
   setActivityIndex(userSpec.activityIndex ?? 2);
   renderSpecSummaryPreview();
+}
+
+/* 🔥 설정 화면 헤더/계정 행에 표시할 사용자명 갱신
+   (직접 입력한 이름이 있으면 그걸, 없으면 "사용자명" 기본값 표시) */
+function renderSettingsIdentity(isLoggedIn){
+  if (isLoggedIn) {
+    const displayName = (userSpec.name && userSpec.name.trim()) || "사용자명";
+    if (settingsUserName) settingsUserName.textContent = displayName;
+    if (settingsNameBig) settingsNameBig.textContent = displayName;
+  } else {
+    if (settingsUserName) settingsUserName.textContent = "게스트";
+    if (settingsNameBig) settingsNameBig.textContent = "게스트";
+  }
 }
 
 function renderSpecSummaryPreview(){
@@ -10130,6 +10152,7 @@ function renderSpecSummaryPreview(){
 }
 
 document.getElementById("saveSpecBtn").addEventListener("click", () => {
+  userSpec.name = specName.value.trim() || null;
   userSpec.height = parseFloat(specHeight.value) || null;
   userSpec.weight = parseFloat(specWeight.value) || null;
   userSpec.age = parseInt(specAge.value, 10) || null;
@@ -10138,6 +10161,7 @@ document.getElementById("saveSpecBtn").addEventListener("click", () => {
   saveUserSpecToFirestore();
   renderSpecSummaryPreview();
   renderMacroSummary();
+  renderSettingsIdentity(!!(auth.currentUser));
   alert("저장됐어요!");
 });
 
