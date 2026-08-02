@@ -4314,7 +4314,7 @@ goBtn.addEventListener('click', ()=> {
     // RM마다 세로 간격 넓게
     let html = '';
     for (let r=1; r<=10; r++){
-        let rmWeight = oneRM / (1 + (r-1)*0.0333);
+        let rmWeight = oneRM / (1 + r*0.0333);
         html += `<div style="
                         text-align:center;
                         color:white;
