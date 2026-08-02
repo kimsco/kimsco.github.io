@@ -1634,11 +1634,17 @@ html.light-mode-on .dex-post-card.has-image{
 }
 
 .settings-row{
+  -webkit-appearance: none;
+  appearance: none;
   width: 100%;
+  min-height: 65px; /* 🔥 로그인 전(1줄)/후(2줄) 텍스트 줄 수가 달라도 세로 폭을 동일하게 고정 */
   background: transparent;
   border: none;
   color: #eee;
   padding: 14px 8px;
+  margin: 0;
+  font: inherit;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -4088,7 +4094,6 @@ input[type="number"] {
   <button id="settingsLoginRow" class="settings-row">
     <div class="row-left">
       <div class="row-title" style="color:#4aa3ff;">로그인 하기</div>
-      <div class="row-sub">내 정보 수정</div>
     </div>
     <div class="row-right">›</div>
   </button>
