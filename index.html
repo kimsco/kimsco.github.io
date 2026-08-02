@@ -905,39 +905,9 @@ cursor: pointer;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  position: relative;
-  z-index: 1; /* 알약 인디케이터보다 위에서 글자가 보이도록 */
 }
 .dietSubTabBtn.active{
   color: #FFD700;
-}
-
-/* 🔥 선택된 탭 뒤로 슬라이딩되는 알약(활성 박스) + 네온 글로우 + 스프링 바운스 */
-.dietActivePill{
-  position: absolute;
-  top: 5px;
-  left: 0;
-  height: calc(100% - 10px);
-  width: 0;
-  border-radius: 999px;
-  background: rgba(255,215,0,0.14);
-  box-shadow:
-    0 0 12px rgba(255,215,0,0.45),
-    0 0 3px rgba(255,215,0,0.55),
-    inset 0 0 8px rgba(255,215,0,0.15);
-  z-index: 0;
-  pointer-events: none;
-  transition: left 0.36s cubic-bezier(0.34, 1.56, 0.64, 1),
-              width 0.36s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-.dietActivePill.bounce{
-  animation: dietPillBounce 0.42s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-@keyframes dietPillBounce{
-  0%   { transform: scale(1); }
-  35%  { transform: scale(0.88); }
-  65%  { transform: scale(1.08); }
-  100% { transform: scale(1); }
 }
 
 
@@ -3425,7 +3395,6 @@ input[type="number"] {
   <button id="dietBackCircleBtn" class="dietBackCircleBtn" type="button" aria-label="뒤로">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg>
   </button>
-  <div id="dietActivePill" class="dietActivePill"></div>
   <button class="dietSubTabBtn active" data-diet-tab="today">식단</button>
   <button class="dietSubTabBtn" data-diet-tab="history">기록</button>
   <button class="dietSubTabBtn" data-diet-tab="stats">통계</button>
@@ -8046,23 +8015,6 @@ document.body.appendChild(dietSubTabBar);
 document.body.appendChild(document.getElementById('foodTemplateModal'));
 document.body.appendChild(document.getElementById('quickAddMealModal'));
 
-/* 🔥 선택된 탭 뒤로 슬라이딩되는 알약(활성 박스): 탭 전환마다 그 탭 위치/폭으로 부드럽게 이동 + 통통 튀는 바운스 */
-const dietActivePill = document.getElementById('dietActivePill');
-
-function positionDietActivePill(withBounce){
-  const activeBtn = document.querySelector('.dietSubTabBtn.active');
-  if (!activeBtn) return;
-
-  dietActivePill.style.left = activeBtn.offsetLeft + 'px';
-  dietActivePill.style.width = activeBtn.offsetWidth + 'px';
-
-  if (withBounce) {
-    dietActivePill.classList.remove('bounce');
-    void dietActivePill.offsetWidth; // 강제 리플로우로 애니메이션 재시작 보장
-    dietActivePill.classList.add('bounce');
-  }
-}
-
 /* 🔥 안전장치: 화면이 꺼졌다 켜지거나 앱이 백그라운드에서 돌아올 때,
    식단 새창(dietOverlay)은 열려있는데 캡슐(dietSubTabBar)만 어긋나서 안 보이는
    상태가 되는 걸 방지 — 화면이 다시 보일 때마다 상태를 강제로 맞춰줌 */
@@ -8315,7 +8267,6 @@ function switchDietPanel(key){
     panel.classList.toggle('active', panel.id === `dietPanel-${key}`);
   });
   document.getElementById('dietOverlayBody').scrollTo?.({ top: 0, behavior: 'auto' });
-  positionDietActivePill(true); // 🔥 알약 인디케이터를 새 위치로 슬라이드 + 바운스
 }
 dietSubTabBtns.forEach(btn => {
   btn.addEventListener('click', () => switchDietPanel(btn.dataset.dietTab));
