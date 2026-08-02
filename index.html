@@ -4320,6 +4320,7 @@ document.querySelectorAll('#oneRMExerciseTabs .oneRMLiftBtn').forEach(btn => {
     document.querySelectorAll('#oneRMExerciseTabs .oneRMLiftBtn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     selectedOneRMLift = btn.dataset.lift;
+    tableArea.innerHTML = ''; // 🔥 종목을 바꾸면 이전에 계산해둔 표는 초기화
   });
 });
 
