@@ -1596,6 +1596,11 @@ html.light-mode-on .dex-post-card.has-image{
   display: flex;
   align-items: center;
   margin-bottom: 24px;
+  min-height: 44px; /* 🔥 로그인 시 게스트 배지가 사라져도 헤더 높이는 게스트와 동일하게 유지(배지 margin-top 6px 포함) */
+}
+
+#settingsGuestBadge {
+  margin-top: 6px; /* 🔥 "게스트"/"로그인하지 않음" 글자를 살짝 아래로 */
 }
 
 .settings-name {
@@ -2288,7 +2293,7 @@ input[type="number"] {
 #specName {
   height: 80px;
   font-size: 20px;
-  padding: 20px 2px 20px 10px;
+  padding: 20px 2px 4px 16px;
 }
 
 /* 키/몸무게/나이 한 줄 배치 */
