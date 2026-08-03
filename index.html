@@ -2786,6 +2786,73 @@ input[type="number"] {
   color: #777;
 }
 
+/* 물 섭취 위젯 (통계 탭 우측 상단) */
+.diet-stats-water {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 4px;
+}
+.diet-stats-water-title {
+  font-size: 13px;
+  color: #aaa;
+  font-weight: 600;
+}
+.diet-stats-water-count {
+  font-size: 20px;
+  color: #fff;
+  font-weight: 700;
+}
+.diet-stats-water-count .diet-stats-water-goal {
+  font-size: 12px;
+  color: #777;
+  font-weight: 500;
+  margin-left: 2px;
+}
+.diet-stats-water-track {
+  height: 6px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.diet-stats-water-fill {
+  height: 100%;
+  background: #fff;
+  border-radius: 3px;
+  transition: width 0.2s ease;
+}
+.diet-stats-water-btns {
+  display: flex;
+  gap: 8px;
+  margin-top: 2px;
+}
+.diet-stats-water-btns button {
+  -webkit-appearance: none;
+  appearance: none;
+  flex: 1;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.2);
+  background: transparent;
+  color: #fff;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+.diet-stats-water-btns button:active {
+  background: rgba(255,255,255,0.08);
+}
+
+/* 최근 7일 칼로리 추이 */
+.diet-stats-trend-wrap {
+  width: 100%;
+  overflow: hidden;
+}
+.diet-stats-trend-wrap canvas {
+  width: 100% !important;
+  height: 120px !important;
+}
+
 /* 식단 템플릿 추가 모달 폼 */
 .food-modal-form {
   padding: 14px 16px 16px;
@@ -3648,7 +3715,19 @@ input[type="number"] {
         </div>
         <div id="dietStatsChartSub" class="diet-stats-chart-sub">0 / 0 kcal</div>
       </div>
-      <div class="diet-stats-reco-col"></div>
+      <div class="diet-stats-reco-col">
+        <div class="diet-stats-water">
+          <div class="diet-stats-water-title">물 섭취</div>
+          <div class="diet-stats-water-count">
+            <span id="dietWaterCount">0</span><span class="diet-stats-water-goal">/<span id="dietWaterGoal">8</span>잔</span>
+          </div>
+          <div class="diet-stats-water-track"><div id="dietWaterFill" class="diet-stats-water-fill" style="width:0%;"></div></div>
+          <div class="diet-stats-water-btns">
+            <button id="dietWaterMinusBtn" type="button">−</button>
+            <button id="dietWaterPlusBtn" type="button">+</button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="diet-stats-macro-bars">
@@ -3671,6 +3750,11 @@ input[type="number"] {
 
     <div class="diet-stats-reco-title" style="margin:18px 0 8px;">추천 음식</div>
     <div id="dietStatsRecoList" class="diet-stats-reco-list-h"></div>
+
+    <div class="diet-stats-reco-title" style="margin:18px 0 8px;">최근 7일 칼로리</div>
+    <div class="diet-stats-trend-wrap">
+      <canvas id="dietTrendChart" width="330" height="120"></canvas>
+    </div>
   </div>
   <div id="dietPanel-settings" class="dietPanel dietPanelPlaceholder">
     <div class="dietPanelPlaceholderText">설정 탭은 준비 중이에요.</div>
@@ -4473,6 +4557,7 @@ const LS_KEYS = {
   userSpec: "mf_user_spec_v1",           // 키/몸무게/나이/활동계수/목표
   foodTemplates: "mf_food_templates_v1", // 자주 먹는 식단 템플릿
   meals: "mf_meals_v1",                  // 날짜별 식사 기록
+  water: "mf_water_v1",                  // 날짜별 물 섭취(잔 수)
   dexFolders: "mf_dex_folders_v1",       // 운동도감 폴더 (공용)
   dexPosts: "mf_dex_posts_v1",           // 운동도감 게시물 (공용)
   dexPendingIds: "mf_dex_pending_ids_v1", // 서버 동기화 아직 안 된 폴더/게시물 id 목록
@@ -5276,6 +5361,7 @@ try {
     renderSettingsIdentity(true); // 🔥 Firestore에서 저장된 사용자명을 불러온 뒤 다시 반영
     await loadFoodTemplatesFromFirestore(user.uid);
     await loadMealsFromFirestore(user.uid);
+    await loadWaterFromFirestore(user.uid);
     await loadMyRoutineTemplatesFromFirestore(user.uid);
 
     // 🔥 기록탭: 로그인 상태가 확정된 후에 기본 부위(가슴) 로드 (레이스 컨디션 방지)
@@ -5288,6 +5374,7 @@ try {
     loadUserSpecFromLocal();
     loadFoodTemplatesFromLocal();
     loadMealsFromLocal();
+    loadWaterFromLocal();
     loadMyRoutineTemplatesFromLocal();
 
     // 🔥 게스트도 마찬가지로 여기서 기본 부위(가슴) 로드
@@ -9877,6 +9964,8 @@ let userSpec = {
 
 let foodTemplates = [];      // [{id, name, protein, carb, fat}]
 let mealsAll = [];           // [{id, name, protein, carb, fat, date, time, createdAt}]
+let waterByDate = {};         // { "YY.MM.DD": 잔 수 }
+const WATER_GOAL_GLASSES = 8;
 
 /* ---------- 로컬 저장/로드 ---------- */
 function saveUserSpecToLocal(){ lsSet(LS_KEYS.userSpec, userSpec); }
@@ -9927,6 +10016,12 @@ function loadMealsFromLocal(){
   renderMacroSummary();
 }
 
+function saveWaterToLocal(){ lsSet(LS_KEYS.water, waterByDate); }
+function loadWaterFromLocal(){
+  waterByDate = lsGet(LS_KEYS.water, {});
+  if (!waterByDate || typeof waterByDate !== "object") waterByDate = {};
+}
+
 /* ---------- Firestore 저장/로드 (로그인 시) ---------- */
 async function saveUserSpecToFirestore(){
   const user = auth.currentUser;
@@ -9948,6 +10043,26 @@ async function loadUserSpecFromFirestore(uid){
   } catch (e) { console.error("spec load err", e); }
   applySpecToUI();
   renderMacroSummary();
+}
+
+async function saveWaterToFirestore(){
+  const user = auth.currentUser;
+  if (!user) return;
+  try {
+    await db.collection("users").doc(user.uid)
+      .collection("profile").doc("water")
+      .set({ byDate: waterByDate }, { merge: true });
+  } catch (e) { console.error("water save err", e); }
+}
+
+async function loadWaterFromFirestore(uid){
+  try {
+    const doc = await db.collection("users").doc(uid)
+      .collection("profile").doc("water").get();
+    if (doc.exists) {
+      waterByDate = doc.data().byDate || {};
+    }
+  } catch (e) { console.error("water load err", e); }
 }
 
 async function saveFoodTemplateToFirestore(item){
@@ -10567,9 +10682,93 @@ function setDietStatsMacroBar(prefix, consumedVal, targetVal){
   numEl.textContent = `${Math.round(consumedVal)}/${Math.round(targetVal)}g`;
 }
 
+/* ---------- 통계 탭: 물 섭취 위젯 ---------- */
+function getTodayWaterCount(){
+  return waterByDate[formatTodayYYMMDD()] || 0;
+}
+
+function renderWaterWidget(){
+  const countEl = document.getElementById('dietWaterCount');
+  const goalEl = document.getElementById('dietWaterGoal');
+  const fillEl = document.getElementById('dietWaterFill');
+  if (!countEl || !fillEl) return;
+
+  const count = getTodayWaterCount();
+  countEl.textContent = count;
+  goalEl.textContent = WATER_GOAL_GLASSES;
+  const pct = Math.min(100, Math.round((count / WATER_GOAL_GLASSES) * 100));
+  fillEl.style.width = pct + '%';
+}
+
+function addWater(delta){
+  const today = formatTodayYYMMDD();
+  const next = Math.max(0, (waterByDate[today] || 0) + delta);
+  waterByDate[today] = next;
+  saveWaterToLocal();
+  saveWaterToFirestore();
+  renderWaterWidget();
+}
+
+document.getElementById('dietWaterPlusBtn')?.addEventListener('click', () => addWater(1));
+document.getElementById('dietWaterMinusBtn')?.addEventListener('click', () => addWater(-1));
+
+/* ---------- 통계 탭: 최근 7일 칼로리 추이 ---------- */
+let dietTrendChartInstance = null;
+
+function renderDietTrendChart(){
+  const canvas = document.getElementById('dietTrendChart');
+  if (!canvas || typeof Chart === 'undefined') return;
+  const ctx = canvas.getContext('2d');
+
+  if (dietTrendChartInstance) {
+    dietTrendChartInstance.destroy();
+    dietTrendChartInstance = null;
+  }
+
+  const labels = [];
+  const kcalValues = [];
+  const today = new Date();
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today.getFullYear(), today.getMonth(), today.getDate() - i);
+    const key = formatTodayYYMMDD(d);
+    labels.push(`${d.getMonth() + 1}/${d.getDate()}`);
+    kcalValues.push(kcalOfMeals(mealsAll.filter(m => m.date === key)));
+  }
+
+  const colors = labels.map((_, idx) => idx === labels.length - 1 ? '#FFD700' : 'rgba(255,255,255,0.35)');
+
+  dietTrendChartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        data: kcalValues,
+        backgroundColor: colors,
+        borderRadius: 4,
+        maxBarThickness: 22,
+      }]
+    },
+    options: {
+      responsive: false,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: (ctx) => ` ${ctx.parsed.y} kcal` } },
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.5)', font: { size: 10 } } },
+        y: { display: false, beginAtZero: true }
+      }
+    }
+  });
+}
+
 function renderDietStats(){
   const canvas = document.getElementById('dietStatsChart');
   if (!canvas) return;
+
+  renderWaterWidget();
+  renderDietTrendChart();
 
   const pctEl = document.getElementById('dietStatsChartPct');
   const subEl = document.getElementById('dietStatsChartSub');
@@ -10933,6 +11132,7 @@ function renderTodayMealList(){
 loadUserSpecFromLocal();
 loadFoodTemplatesFromLocal();
 loadMealsFromLocal();
+loadWaterFromLocal();
 loadMyRoutineTemplatesFromLocal();
 
 /* 🔥 기록 박스(.folderContent) 스프링(고무줄) 바운스 방지 - CSS 보완용 JS 가드 */
