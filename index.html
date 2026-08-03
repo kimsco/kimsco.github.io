@@ -2450,10 +2450,36 @@ input[type="number"] {
 .diet-water-log-controls {
   display: flex;
   align-items: center;
-  gap: 10px;
+  flex-wrap: wrap;
+  gap: 8px;
+  row-gap: 6px;
   font-size: 14px;
   color: #fff;
   font-weight: 600;
+}
+.diet-water-ml-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 4px;
+}
+.diet-water-ml-input {
+  width: 44px;
+  height: 26px;
+  background: #111;
+  border: 1px solid #2a2a2a;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  box-sizing: border-box;
+  padding: 0 2px;
+}
+.diet-water-ml-unit {
+  font-size: 11px;
+  color: #777;
+  font-weight: 500;
 }
 .diet-water-log-controls button {
   -webkit-appearance: none;
@@ -2501,8 +2527,82 @@ input[type="number"] {
   font-size: 13px;
   color: #FFD700;
   text-align: center;
-  padding: 0 16px 4px;
+  padding: 8px 16px 2px;
   min-height: 16px;
+}
+.weight-weeks-left-detail {
+  font-size: 11.5px;
+  color: #888;
+  text-align: center;
+  padding: 0 16px 8px;
+  min-height: 14px;
+}
+
+/* 🔥 몸무게 팝업: 가로/세로 확대 + 필드 레이아웃(라벨 위, 입력칸 큼직하게) */
+#weightModal .modal-box {
+  width: 93%;             /* 좌우 여백을 기존의 절반으로 */
+  max-width: 365px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+#weightModal .food-modal-form {
+  padding: 20px 22px 22px;
+}
+.weight-field-group {
+  margin-bottom: 20px;
+}
+.weight-field-label {
+  display: block;
+  text-align: center;
+  font-size: 18px;   /* 기존 12px의 1.5배 */
+  color: #ccc;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+.weight-field-input {
+  width: 100%;
+  height: 84px;       /* 기존 입력칸(42px)의 2배 */
+  background: #111;
+  border: 1px solid #2a2a2a;
+  border-radius: 12px;
+  color: #fff;
+  font-size: 26px;
+  font-weight: 700;
+  text-align: center; /* 🔥 글자 가운데 정렬 */
+  box-sizing: border-box;
+  padding: 0 10px;
+  margin: 0;
+}
+.weight-field-input:focus {
+  outline: none;
+  border-color: #fff;
+}
+.weight-stepper-row {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+}
+.weight-stepper-row .weight-field-input {
+  flex: 1;
+  min-width: 0;
+}
+.weight-stepper-btn {
+  -webkit-appearance: none;
+  appearance: none;
+  flex-shrink: 0;
+  width: 56px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.25);
+  background: transparent;
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.weight-stepper-btn:active {
+  background: rgba(255,255,255,0.08);
 }
 .macro-cal-label {
   font-size: 11px;
@@ -3740,11 +3840,15 @@ input[type="number"] {
           <button id="dietTodayWaterMinusBtn" type="button">−</button>
           <span><span id="dietTodayWaterCount">0</span>잔</span>
           <button id="dietTodayWaterPlusBtn" type="button">+</button>
+          <span class="diet-water-ml-group">
+            <input id="dietWaterMlPerGlassInput" type="number" class="diet-water-ml-input" min="1">
+            <span class="diet-water-ml-unit">ml/잔</span>
+          </span>
         </div>
       </div>
       <div class="diet-water-log-divider"></div>
       <div class="diet-water-log-half">
-        <div class="diet-water-log-label">몸무게</div>
+        <div class="diet-water-log-label">오늘의 몸무게</div>
         <button id="dietWeightOpenBtn" type="button" class="diet-weight-open-btn">
           <span id="dietWeightCurrentText">입력하기</span>
         </button>
@@ -4392,13 +4496,22 @@ input[type="number"] {
   <div class="modal-box">
     <div class="modal-title">몸무게</div>
     <div class="food-modal-form">
-      <input id="weightGoalInput" type="number" placeholder="예: 70">
-      <label>목표 몸무게 (kg)</label>
+      <div class="weight-field-group">
+        <label class="weight-field-label">목표 몸무게</label>
+        <input id="weightGoalInput" type="number" step="0.1" placeholder="예: 70" class="weight-field-input">
+      </div>
 
-      <input id="weightCurrentInput" type="number" placeholder="예: 75">
-      <label>현재 몸무게 (kg)</label>
+      <div class="weight-field-group">
+        <label class="weight-field-label">현재 몸무게</label>
+        <div class="weight-stepper-row">
+          <button id="weightCurrentMinusBtn" type="button" class="weight-stepper-btn">−</button>
+          <input id="weightCurrentInput" type="number" step="0.1" placeholder="예: 75" class="weight-field-input">
+          <button id="weightCurrentPlusBtn" type="button" class="weight-stepper-btn">+</button>
+        </div>
+      </div>
 
       <div id="weightWeeksLeftText" class="weight-weeks-left"></div>
+      <div id="weightWeeksLeftDetail" class="weight-weeks-left-detail"></div>
     </div>
 
     <div class="modal-actions">
@@ -10086,7 +10199,8 @@ let foodTemplates = [];      // [{id, name, protein, carb, fat}]
 let mealsAll = [];           // [{id, name, protein, carb, fat, date, time, createdAt}]
 let waterByDate = {};         // { "YY.MM.DD": 잔 수 }
 const WATER_GOAL_GLASSES = 8;
-const WATER_ML_PER_GLASS = 250;
+const WATER_ML_PER_GLASS_DEFAULT = 250;
+let waterMlPerGlass = WATER_ML_PER_GLASS_DEFAULT; // 한 잔 용량(ml), 사용자가 직접 조정 가능
 
 let userWeight = { goal: null, current: null }; // 목표/현재 몸무게(kg)
 const WEIGHT_CHANGE_PER_WEEK = 0.5; // kg, 안전한 감량/증량 기준 추정치
@@ -10140,10 +10254,19 @@ function loadMealsFromLocal(){
   renderMacroSummary();
 }
 
-function saveWaterToLocal(){ lsSet(LS_KEYS.water, waterByDate); }
+function saveWaterToLocal(){
+  lsSet(LS_KEYS.water, { byDate: waterByDate, mlPerGlass: waterMlPerGlass });
+}
 function loadWaterFromLocal(){
-  waterByDate = lsGet(LS_KEYS.water, {});
-  if (!waterByDate || typeof waterByDate !== "object") waterByDate = {};
+  const saved = lsGet(LS_KEYS.water, {});
+  // 🔥 예전 저장 형식(그냥 {날짜:잔수} 맵)과의 호환 처리
+  if (saved && typeof saved === "object" && saved.byDate && typeof saved.byDate === "object") {
+    waterByDate = saved.byDate;
+    waterMlPerGlass = saved.mlPerGlass || WATER_ML_PER_GLASS_DEFAULT;
+  } else {
+    waterByDate = (saved && typeof saved === "object") ? saved : {};
+    waterMlPerGlass = WATER_ML_PER_GLASS_DEFAULT;
+  }
   renderDietTodayWaterRow();
 }
 
@@ -10184,7 +10307,7 @@ async function saveWaterToFirestore(){
   try {
     await db.collection("users").doc(user.uid)
       .collection("profile").doc("water")
-      .set({ byDate: waterByDate }, { merge: true });
+      .set({ byDate: waterByDate, mlPerGlass: waterMlPerGlass }, { merge: true });
   } catch (e) { console.error("water save err", e); }
 }
 
@@ -10193,7 +10316,9 @@ async function loadWaterFromFirestore(uid){
     const doc = await db.collection("users").doc(uid)
       .collection("profile").doc("water").get();
     if (doc.exists) {
-      waterByDate = doc.data().byDate || {};
+      const d = doc.data();
+      waterByDate = d.byDate || {};
+      waterMlPerGlass = d.mlPerGlass || WATER_ML_PER_GLASS_DEFAULT;
     }
   } catch (e) { console.error("water load err", e); }
   renderDietTodayWaterRow();
@@ -10852,6 +10977,9 @@ function renderDietTodayWaterRow(){
   const countEl = document.getElementById('dietTodayWaterCount');
   if (!countEl) return;
   countEl.textContent = getTodayWaterCount();
+
+  const mlInput = document.getElementById('dietWaterMlPerGlassInput');
+  if (mlInput && document.activeElement !== mlInput) mlInput.value = waterMlPerGlass;
 }
 
 // 통계 탭: 등록 없이 그래프(진행바)로만 표시, 단위는 L/ml
@@ -10862,8 +10990,8 @@ function renderWaterWidget(){
   if (!amountEl || !fillEl) return;
 
   const count = getTodayWaterCount();
-  const ml = count * WATER_ML_PER_GLASS;
-  const goalMl = WATER_GOAL_GLASSES * WATER_ML_PER_GLASS;
+  const ml = count * waterMlPerGlass;
+  const goalMl = WATER_GOAL_GLASSES * waterMlPerGlass;
 
   amountEl.textContent = formatWaterMl(ml);
   goalEl.textContent = formatWaterMl(goalMl);
@@ -10883,6 +11011,15 @@ function addWater(delta){
 
 document.getElementById('dietTodayWaterPlusBtn')?.addEventListener('click', () => addWater(1));
 document.getElementById('dietTodayWaterMinusBtn')?.addEventListener('click', () => addWater(-1));
+
+document.getElementById('dietWaterMlPerGlassInput')?.addEventListener('change', (e) => {
+  const val = parseInt(e.target.value, 10);
+  waterMlPerGlass = (val && val > 0) ? val : WATER_ML_PER_GLASS_DEFAULT;
+  e.target.value = waterMlPerGlass;
+  saveWaterToLocal();
+  saveWaterToFirestore();
+  renderWaterWidget();
+});
 
 /* ---------- 몸무게: 등록/팝업은 식단(오늘) 탭, 통계 탭은 현재 몸무게만 표시 ---------- */
 function computeWeeksLeft(current, goal){
@@ -10906,6 +11043,7 @@ function renderStatsWeightWidget(){
 
 function renderWeightWeeksLeftPreview(){
   const textEl = document.getElementById('weightWeeksLeftText');
+  const detailEl = document.getElementById('weightWeeksLeftDetail');
   if (!textEl) return;
   const goal = parseFloat(document.getElementById('weightGoalInput').value);
   const current = parseFloat(document.getElementById('weightCurrentInput').value);
@@ -10913,12 +11051,28 @@ function renderWeightWeeksLeftPreview(){
 
   if (weeks === null) {
     textEl.textContent = '';
+    if (detailEl) detailEl.textContent = '';
   } else if (weeks === 0) {
     textEl.textContent = '이미 목표에 도달했어요 🎉';
+    if (detailEl) detailEl.textContent = '';
   } else {
     textEl.textContent = `목표까지 약 ${weeks}주 남았어요`;
+    if (detailEl) {
+      const diff = Math.abs(current - goal).toFixed(1);
+      detailEl.textContent =
+        `|${current}kg − ${goal}kg| = ${diff}kg, 주당 ${WEIGHT_CHANGE_PER_WEEK}kg 변화 기준 → ${diff}kg ÷ ${WEIGHT_CHANGE_PER_WEEK}kg = ${weeks}주`;
+    }
   }
 }
+
+function stepWeightCurrent(delta){
+  const input = document.getElementById('weightCurrentInput');
+  const next = Math.round(((parseFloat(input.value) || 0) + delta) * 10) / 10;
+  input.value = next;
+  renderWeightWeeksLeftPreview();
+}
+document.getElementById('weightCurrentMinusBtn')?.addEventListener('click', () => stepWeightCurrent(-0.1));
+document.getElementById('weightCurrentPlusBtn')?.addEventListener('click', () => stepWeightCurrent(0.1));
 
 const weightModal = document.getElementById('weightModal');
 function openWeightModal(){
