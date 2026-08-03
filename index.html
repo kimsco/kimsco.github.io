@@ -2450,21 +2450,26 @@ input[type="number"] {
 .diet-water-log-controls {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-  row-gap: 6px;
-  font-size: 14px;
+  flex-wrap: nowrap;
+  gap: 6px;
+  font-size: 13px;
   color: #fff;
   font-weight: 600;
+}
+.diet-water-count-wrap {
+  display: inline-block;
+  min-width: 30px;
+  text-align: center;
+  flex-shrink: 0;
 }
 .diet-water-ml-group {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  margin-left: 4px;
+  flex-shrink: 0;
 }
 .diet-water-ml-input {
-  width: 44px;
+  width: 36px;
   height: 26px;
   background: #111;
   border: 1px solid #2a2a2a;
@@ -2475,29 +2480,33 @@ input[type="number"] {
   text-align: center;
   box-sizing: border-box;
   padding: 0 2px;
+  flex-shrink: 0;
 }
 .diet-water-ml-unit {
-  font-size: 11px;
+  font-size: 10px;
   color: #777;
   font-weight: 500;
+  white-space: nowrap;
 }
 .diet-water-log-controls button {
   -webkit-appearance: none;
   appearance: none;
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   border-radius: 8px;
   border: 1px solid rgba(255,255,255,0.25);
   background: transparent;
   color: #fff;
-  font-size: 15px;
+  font-size: 14px;
   line-height: 1;
   cursor: pointer;
+  flex-shrink: 0;
   /* 🔥 버튼 안 글자/아이콘은 항상 정중앙(가로+세로) 정렬 */
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 0;
+  margin: 0;
 }
 .diet-water-log-controls button:active {
   background: rgba(255,255,255,0.08);
@@ -3845,7 +3854,7 @@ input[type="number"] {
         <div class="diet-water-log-label">물 섭취</div>
         <div class="diet-water-log-controls">
           <button id="dietTodayWaterMinusBtn" type="button">−</button>
-          <span><span id="dietTodayWaterCount">0</span>잔</span>
+          <span class="diet-water-count-wrap"><span id="dietTodayWaterCount">0</span>잔</span>
           <button id="dietTodayWaterPlusBtn" type="button">+</button>
           <span class="diet-water-ml-group">
             <input id="dietWaterMlPerGlassInput" type="number" class="diet-water-ml-input" min="1">
@@ -11008,7 +11017,7 @@ function renderWaterWidget(){
 
 function addWater(delta){
   const today = formatTodayYYMMDD();
-  const next = Math.max(0, (waterByDate[today] || 0) + delta);
+  const next = Math.min(99, Math.max(0, (waterByDate[today] || 0) + delta));
   waterByDate[today] = next;
   saveWaterToLocal();
   saveWaterToFirestore();
