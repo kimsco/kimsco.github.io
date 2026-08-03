@@ -2540,8 +2540,8 @@ input[type="number"] {
 
 /* 🔥 몸무게 팝업: 가로/세로 확대 + 필드 레이아웃(라벨 위, 입력칸 큼직하게) */
 #weightModal .modal-box {
-  width: 93%;             /* 좌우 여백을 기존의 절반으로 */
-  max-width: 365px;
+  width: 95%;
+  max-width: 374px;       /* 🔥 가로 폭 살짝 더 확대 */
   max-height: 90vh;
   overflow-y: auto;
 }
@@ -2559,9 +2559,11 @@ input[type="number"] {
   font-weight: 700;
   margin-bottom: 10px;
 }
-.weight-field-input {
+/* 🔥 .food-modal-form input(공용, height:42px)보다 확실히 더 구체적인 셀렉터로
+   지정해야 이 규칙이 실제로 이김 (class 단독 셀렉터는 밀림) */
+#weightModal input.weight-field-input {
   width: 100%;
-  height: 84px;       /* 기존 입력칸(42px)의 2배 */
+  height: 84px;       /* 기존 입력칸(42px)의 2배, -+ 버튼과 동일 */
   background: #111;
   border: 1px solid #2a2a2a;
   border-radius: 12px;
@@ -2573,7 +2575,7 @@ input[type="number"] {
   padding: 0 10px;
   margin: 0;
 }
-.weight-field-input:focus {
+#weightModal input.weight-field-input:focus {
   outline: none;
   border-color: #fff;
 }
@@ -2591,11 +2593,13 @@ input[type="number"] {
   appearance: none;
   flex-shrink: 0;
   width: 56px;
+  height: 84px;      /* 🔥 현재 몸무게 입력칸과 세로 폭 완전히 동일하게 */
+  margin: 0;         /* 🔥 브라우저 기본 button 여백 제거(안 하면 입력칸과 위치가 어긋남) */
   border-radius: 12px;
   border: 1px solid rgba(255,255,255,0.25);
   background: transparent;
   color: #fff;
-  font-size: 24px;
+  font-size: 30px;   /* 커진 버튼 크기에 맞춰 글자도 키움 */
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -4498,14 +4502,14 @@ input[type="number"] {
     <div class="food-modal-form">
       <div class="weight-field-group">
         <label class="weight-field-label">목표 몸무게</label>
-        <input id="weightGoalInput" type="number" step="0.1" placeholder="예: 70" class="weight-field-input">
+        <input id="weightGoalInput" type="text" inputmode="decimal" placeholder="예: 70" class="weight-field-input">
       </div>
 
       <div class="weight-field-group">
         <label class="weight-field-label">현재 몸무게</label>
         <div class="weight-stepper-row">
           <button id="weightCurrentMinusBtn" type="button" class="weight-stepper-btn">−</button>
-          <input id="weightCurrentInput" type="number" step="0.1" placeholder="예: 75" class="weight-field-input">
+          <input id="weightCurrentInput" type="text" inputmode="decimal" placeholder="예: 75" class="weight-field-input">
           <button id="weightCurrentPlusBtn" type="button" class="weight-stepper-btn">+</button>
         </div>
       </div>
@@ -11065,10 +11069,30 @@ function renderWeightWeeksLeftPreview(){
   }
 }
 
+// 🔥 입력칸에 "70 kg"처럼 단위가 붙어 보이게: 포커스 중엔 숫자만, 벗어나면 "N kg"로 표시
+function formatWeightInputValue(num){
+  return (num || num === 0) ? `${num} kg` : '';
+}
+function setupWeightInputFormatting(id){
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.addEventListener('focus', () => {
+    const num = parseFloat(el.value);
+    el.value = isNaN(num) ? '' : num;
+  });
+  el.addEventListener('blur', () => {
+    const num = parseFloat(el.value);
+    el.value = formatWeightInputValue(isNaN(num) ? null : num);
+    renderWeightWeeksLeftPreview();
+  });
+}
+setupWeightInputFormatting('weightGoalInput');
+setupWeightInputFormatting('weightCurrentInput');
+
 function stepWeightCurrent(delta){
   const input = document.getElementById('weightCurrentInput');
   const next = Math.round(((parseFloat(input.value) || 0) + delta) * 10) / 10;
-  input.value = next;
+  input.value = formatWeightInputValue(next);
   renderWeightWeeksLeftPreview();
 }
 document.getElementById('weightCurrentMinusBtn')?.addEventListener('click', () => stepWeightCurrent(-0.1));
@@ -11076,8 +11100,8 @@ document.getElementById('weightCurrentPlusBtn')?.addEventListener('click', () =>
 
 const weightModal = document.getElementById('weightModal');
 function openWeightModal(){
-  document.getElementById('weightGoalInput').value = userWeight.goal || '';
-  document.getElementById('weightCurrentInput').value = userWeight.current || '';
+  document.getElementById('weightGoalInput').value = formatWeightInputValue(userWeight.goal);
+  document.getElementById('weightCurrentInput').value = formatWeightInputValue(userWeight.current);
   renderWeightWeeksLeftPreview();
   weightModal.classList.remove('hidden');
 }
