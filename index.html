@@ -2419,7 +2419,44 @@ input[type="number"] {
   border: none;
   padding: 4px 0 20px;
   text-align: center;
-  margin-bottom: 22px;
+  margin-bottom: 33px; /* 🔥 물 섭취 등록 바가 들어갈 자리 확보(기존 22px의 1.5배) */
+}
+
+/* 식단(오늘) 탭: 물 섭취 등록 바 (지방 그래프 ~ 내 식단 사이 여백에 배치) */
+.diet-water-log-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.diet-water-log-label {
+  font-size: 14px;
+  color: #aaa;
+  font-weight: 600;
+}
+.diet-water-log-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: #fff;
+  font-weight: 600;
+}
+.diet-water-log-controls button {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.25);
+  background: transparent;
+  color: #fff;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+}
+.diet-water-log-controls button:active {
+  background: rgba(255,255,255,0.08);
 }
 .macro-cal-label {
   font-size: 11px;
@@ -2821,28 +2858,6 @@ input[type="number"] {
   border-radius: 3px;
   transition: width 0.2s ease;
 }
-.diet-stats-water-btns {
-  display: flex;
-  gap: 8px;
-  margin-top: 2px;
-}
-.diet-stats-water-btns button {
-  -webkit-appearance: none;
-  appearance: none;
-  flex: 1;
-  height: 32px;
-  border-radius: 8px;
-  border: 1px solid rgba(255,255,255,0.2);
-  background: transparent;
-  color: #fff;
-  font-size: 16px;
-  line-height: 1;
-  cursor: pointer;
-}
-.diet-stats-water-btns button:active {
-  background: rgba(255,255,255,0.08);
-}
-
 /* 최근 7일 칼로리 추이 */
 .diet-stats-trend-wrap {
   width: 100%;
@@ -3658,6 +3673,15 @@ input[type="number"] {
       </div>
     </div>
 
+    <div class="diet-water-log-row">
+      <div class="diet-water-log-label">물 섭취</div>
+      <div class="diet-water-log-controls">
+        <button id="dietTodayWaterMinusBtn" type="button">−</button>
+        <span><span id="dietTodayWaterCount">0</span>잔</span>
+        <button id="dietTodayWaterPlusBtn" type="button">+</button>
+      </div>
+    </div>
+
     <div id="tab5ScrollArea">
 
       <div style="display:flex; justify-content:space-between; align-items:center; margin:14px 0 10px;">
@@ -3719,13 +3743,9 @@ input[type="number"] {
         <div class="diet-stats-water">
           <div class="diet-stats-water-title">물 섭취</div>
           <div class="diet-stats-water-count">
-            <span id="dietWaterCount">0</span><span class="diet-stats-water-goal">/<span id="dietWaterGoal">8</span>잔</span>
+            <span id="dietWaterAmount">0ml</span><span class="diet-stats-water-goal">/ <span id="dietWaterGoalAmount">2.0L</span></span>
           </div>
           <div class="diet-stats-water-track"><div id="dietWaterFill" class="diet-stats-water-fill" style="width:0%;"></div></div>
-          <div class="diet-stats-water-btns">
-            <button id="dietWaterMinusBtn" type="button">−</button>
-            <button id="dietWaterPlusBtn" type="button">+</button>
-          </div>
         </div>
       </div>
     </div>
@@ -8688,6 +8708,7 @@ function switchDietPanel(key){
     panel.classList.toggle('active', panel.id === `dietPanel-${key}`);
   });
   document.getElementById('dietOverlayBody').scrollTo?.({ top: 0, behavior: 'auto' });
+  if (key === 'today') renderDietTodayWaterRow();
   if (key === 'history') refreshDietCalendar();
   if (key === 'stats') renderDietStats();
 }
@@ -9966,6 +9987,7 @@ let foodTemplates = [];      // [{id, name, protein, carb, fat}]
 let mealsAll = [];           // [{id, name, protein, carb, fat, date, time, createdAt}]
 let waterByDate = {};         // { "YY.MM.DD": 잔 수 }
 const WATER_GOAL_GLASSES = 8;
+const WATER_ML_PER_GLASS = 250;
 
 /* ---------- 로컬 저장/로드 ---------- */
 function saveUserSpecToLocal(){ lsSet(LS_KEYS.userSpec, userSpec); }
@@ -10020,6 +10042,7 @@ function saveWaterToLocal(){ lsSet(LS_KEYS.water, waterByDate); }
 function loadWaterFromLocal(){
   waterByDate = lsGet(LS_KEYS.water, {});
   if (!waterByDate || typeof waterByDate !== "object") waterByDate = {};
+  renderDietTodayWaterRow();
 }
 
 /* ---------- Firestore 저장/로드 (로그인 시) ---------- */
@@ -10063,6 +10086,7 @@ async function loadWaterFromFirestore(uid){
       waterByDate = doc.data().byDate || {};
     }
   } catch (e) { console.error("water load err", e); }
+  renderDietTodayWaterRow();
 }
 
 async function saveFoodTemplateToFirestore(item){
@@ -10682,21 +10706,36 @@ function setDietStatsMacroBar(prefix, consumedVal, targetVal){
   numEl.textContent = `${Math.round(consumedVal)}/${Math.round(targetVal)}g`;
 }
 
-/* ---------- 통계 탭: 물 섭취 위젯 ---------- */
+/* ---------- 물 섭취: 등록은 식단(오늘) 탭에서, 통계 탭은 표시만 ---------- */
 function getTodayWaterCount(){
   return waterByDate[formatTodayYYMMDD()] || 0;
 }
 
+function formatWaterMl(ml){
+  return ml >= 1000 ? `${(ml / 1000).toFixed(1)}L` : `${ml}ml`;
+}
+
+// 식단(오늘) 탭의 물 섭취 등록 바 갱신
+function renderDietTodayWaterRow(){
+  const countEl = document.getElementById('dietTodayWaterCount');
+  if (!countEl) return;
+  countEl.textContent = getTodayWaterCount();
+}
+
+// 통계 탭: 등록 없이 그래프(진행바)로만 표시, 단위는 L/ml
 function renderWaterWidget(){
-  const countEl = document.getElementById('dietWaterCount');
-  const goalEl = document.getElementById('dietWaterGoal');
+  const amountEl = document.getElementById('dietWaterAmount');
+  const goalEl = document.getElementById('dietWaterGoalAmount');
   const fillEl = document.getElementById('dietWaterFill');
-  if (!countEl || !fillEl) return;
+  if (!amountEl || !fillEl) return;
 
   const count = getTodayWaterCount();
-  countEl.textContent = count;
-  goalEl.textContent = WATER_GOAL_GLASSES;
-  const pct = Math.min(100, Math.round((count / WATER_GOAL_GLASSES) * 100));
+  const ml = count * WATER_ML_PER_GLASS;
+  const goalMl = WATER_GOAL_GLASSES * WATER_ML_PER_GLASS;
+
+  amountEl.textContent = formatWaterMl(ml);
+  goalEl.textContent = formatWaterMl(goalMl);
+  const pct = Math.min(100, Math.round((ml / goalMl) * 100));
   fillEl.style.width = pct + '%';
 }
 
@@ -10706,11 +10745,12 @@ function addWater(delta){
   waterByDate[today] = next;
   saveWaterToLocal();
   saveWaterToFirestore();
+  renderDietTodayWaterRow();
   renderWaterWidget();
 }
 
-document.getElementById('dietWaterPlusBtn')?.addEventListener('click', () => addWater(1));
-document.getElementById('dietWaterMinusBtn')?.addEventListener('click', () => addWater(-1));
+document.getElementById('dietTodayWaterPlusBtn')?.addEventListener('click', () => addWater(1));
+document.getElementById('dietTodayWaterMinusBtn')?.addEventListener('click', () => addWater(-1));
 
 /* ---------- 통계 탭: 최근 7일 칼로리 추이 ---------- */
 let dietTrendChartInstance = null;
