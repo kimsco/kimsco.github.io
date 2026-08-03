@@ -2467,6 +2467,11 @@ input[type="number"] {
   font-size: 15px;
   line-height: 1;
   cursor: pointer;
+  /* 🔥 버튼 안 글자/아이콘은 항상 정중앙(가로+세로) 정렬 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
 }
 .diet-water-log-controls button:active {
   background: rgba(255,255,255,0.08);
@@ -2484,6 +2489,10 @@ input[type="number"] {
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
+  /* 🔥 버튼 안 글자/아이콘은 항상 정중앙(가로+세로) 정렬 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .diet-weight-open-btn:active {
   background: rgba(255,255,255,0.08);
