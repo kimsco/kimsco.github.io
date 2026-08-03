@@ -10210,7 +10210,7 @@ const WATER_ML_PER_GLASS_DEFAULT = 250;
 let waterMlPerGlass = WATER_ML_PER_GLASS_DEFAULT; // 한 잔 용량(ml), 사용자가 직접 조정 가능
 
 let userWeight = { goal: null, current: null }; // 목표/현재 몸무게(kg)
-const WEIGHT_CHANGE_PER_WEEK = 0.5; // kg, 안전한 감량/증량 기준 추정치
+const KCAL_PER_KG_FAT = 7700; // kcal, 지방 1kg당 칼로리 근사치
 
 /* ---------- 로컬 저장/로드 ---------- */
 function saveUserSpecToLocal(){ lsSet(LS_KEYS.userSpec, userSpec); }
@@ -11031,9 +11031,25 @@ document.getElementById('dietWaterMlPerGlassInput')?.addEventListener('change', 
 /* ---------- 몸무게: 등록/팝업은 식단(오늘) 탭, 통계 탭은 현재 몸무게만 표시 ---------- */
 function computeWeeksLeft(current, goal){
   if (!current || !goal) return null;
-  const diff = Math.abs(current - goal);
-  if (diff < 0.05) return 0;
-  return Math.ceil(diff / WEIGHT_CHANGE_PER_WEEK);
+  const diff = current - goal; // 양수: 감량 필요, 음수: 증량 필요
+  if (Math.abs(diff) < 0.05) return { weeks: 0 };
+
+  const targets = calcTargets(userSpec);
+  if (!targets) return { weeks: null, reason: 'needsProfile' };
+
+  const weeklyKcalDelta = (targets.targetCalories - targets.tdee) * 7;
+  const weeklyWeightChangeKg = weeklyKcalDelta / KCAL_PER_KG_FAT;
+
+  // diff와 weeklyWeightChangeKg의 부호가 반대(=필요한 방향과 실제 칼로리 설정 방향이 다름)면 도달 불가
+  const needsLoss = diff > 0;
+  const willLose = weeklyWeightChangeKg < -0.01;
+  const willGain = weeklyWeightChangeKg > 0.01;
+  if ((needsLoss && !willLose) || (!needsLoss && !willGain)) {
+    return { weeks: null, reason: 'mismatched', weeklyWeightChangeKg };
+  }
+
+  const weeks = Math.ceil(Math.abs(diff) / Math.abs(weeklyWeightChangeKg));
+  return { weeks, weeklyWeightChangeKg, weeklyKcalDelta, diff };
 }
 
 function renderDietTodayWeightButton(){
@@ -11054,20 +11070,30 @@ function renderWeightWeeksLeftPreview(){
   if (!textEl) return;
   const goal = parseFloat(document.getElementById('weightGoalInput').value);
   const current = parseFloat(document.getElementById('weightCurrentInput').value);
-  const weeks = computeWeeksLeft(current, goal);
+  const result = computeWeeksLeft(current, goal);
 
-  if (weeks === null) {
+  if (result === null) {
     textEl.textContent = '';
     if (detailEl) detailEl.textContent = '';
-  } else if (weeks === 0) {
+  } else if (result.weeks === 0) {
     textEl.textContent = '이미 목표에 도달했어요 🎉';
     if (detailEl) detailEl.textContent = '';
+  } else if (result.reason === 'needsProfile') {
+    textEl.textContent = '';
+    if (detailEl) detailEl.textContent = '내 정보 수정에서 키/몸무게/나이를 입력하면 계산해드려요.';
+  } else if (result.reason === 'mismatched') {
+    textEl.textContent = '';
+    if (detailEl) detailEl.textContent = '지금 목표 설정(예: 유지/증량)으로는 이 방향으로 체중이 변하지 않아요. 내 정보 수정에서 목표를 바꿔보세요.';
   } else {
+    const { weeks, diff, weeklyKcalDelta, weeklyWeightChangeKg } = result;
     textEl.textContent = `목표까지 약 ${weeks}주 남았어요`;
     if (detailEl) {
-      const diff = Math.abs(current - goal).toFixed(1);
+      const diffAbs = Math.abs(diff).toFixed(1);
+      const dailyKcalDelta = Math.round(weeklyKcalDelta / 7);
+      const weeklyKcalRounded = Math.round(weeklyKcalDelta);
+      const weeklyChangeAbs = Math.abs(weeklyWeightChangeKg).toFixed(2);
       detailEl.textContent =
-        `|${current}kg − ${goal}kg| = ${diff}kg, 주당 ${WEIGHT_CHANGE_PER_WEEK}kg 변화 기준 → ${diff}kg ÷ ${WEIGHT_CHANGE_PER_WEEK}kg = ${weeks}주`;
+        `|${current}kg − ${goal}kg| = ${diffAbs}kg · 목표 칼로리 기준 하루 ${dailyKcalDelta > 0 ? '+' : ''}${dailyKcalDelta}kcal(주 ${weeklyKcalRounded > 0 ? '+' : ''}${weeklyKcalRounded}kcal) → 주당 약 ${weeklyChangeAbs}kg 변화 → ${diffAbs}kg ÷ ${weeklyChangeAbs}kg ≈ ${weeks}주`;
     }
   }
 }
