@@ -8449,6 +8449,9 @@ bottomTabBtns.forEach(btn => {
     if (target === 'tab4') {
       exerciseScreen.style.display = 'block';
       detailScreen.style.display = 'none';
+      // 🔥 로그인 직후 최초 1회 로드가 가끔 늦게 동기화되면서 기록이 비어 보이던
+      //    문제 때문에, 기록 탭에 들어올 때마다 다시 불러와서 갱신
+      if (auth.currentUser) loadAccessoryRecords();
     } else {
       detailScreen.style.display = 'none';
     }
@@ -8992,32 +8995,46 @@ async function loadAccessoryRecords() {
   const user = auth.currentUser;
   if (!user) return;
 
-  const snap = await db
-    .collection('users')
-    .doc(user.uid)
-    .collection('accessoryRecords')
-    .orderBy('createdAt', 'asc')
-    .get();
+  try {
+    // 🔥 orderBy('createdAt')는 serverTimestamp()가 아직 서버에서 확정되지 않은
+    //    (또는 오프라인 캐시에 null로 남아있는) 문서를 조용히 결과에서 빼버릴 수 있어서,
+    //    가끔 방금 기록한 세트가 안 보이는 원인이 됐음. 정렬 없이 전부 받아온 뒤
+    //    클라이언트에서 직접 정렬하도록 변경
+    const snap = await db
+      .collection('users')
+      .doc(user.uid)
+      .collection('accessoryRecords')
+      .get();
 
-  accRecordsByExercise = {};
+    const byExercise = {};
 
-  snap.forEach(doc => {
-    const d = doc.data();
-    if (!d.exercise) return;
+    snap.forEach(doc => {
+      const d = doc.data();
+      if (!d.exercise) return;
 
-    if (!accRecordsByExercise[d.exercise]) {
-      accRecordsByExercise[d.exercise] = [];
-    }
+      if (!byExercise[d.exercise]) {
+        byExercise[d.exercise] = [];
+      }
 
-    accRecordsByExercise[d.exercise].push({
-      id: doc.id,
-      ...d
+      byExercise[d.exercise].push({
+        id: doc.id,
+        ...d,
+        _sortMs: d.createdAt?.toMillis?.() ?? 0
+      });
     });
-  });
 
-  renderExercises(); // 목록
-  if (currentExerciseName) {
-    renderAccessoryRecords(currentExerciseName); // 카드
+    Object.values(byExercise).forEach(list => list.sort((a, b) => a._sortMs - b._sortMs));
+
+    accRecordsByExercise = byExercise;
+
+    renderExercises(); // 목록
+    if (currentExerciseName) {
+      renderAccessoryRecords(currentExerciseName); // 카드
+    }
+  } catch (e) {
+    // 🔥 여기서 실패해도 로그인 흐름의 나머지(내 정보/식단/루틴 로드 등)가
+    //    전부 멈추지 않도록 여기서 막고 로그만 남김
+    console.error("보조운동 기록 불러오기 실패", e);
   }
 }
 
