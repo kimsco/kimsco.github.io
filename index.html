@@ -3174,6 +3174,13 @@ input[type="number"] {
   border-top: 1px solid rgba(255,255,255,0.1);
 }
 .today-routine-save-prompt.hidden { display: none; }
+.today-routine-save-text {
+  font-size: 14px;
+  color: #fff;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 12px;
+}
 .today-routine-save-btn {
   -webkit-appearance: none;
   appearance: none;
@@ -4428,7 +4435,8 @@ input[type="number"] {
       <div id="myRoutineList"></div>
 
       <div id="todayRoutineSavePrompt" class="today-routine-save-prompt hidden">
-        <button type="button" id="todayRoutineSaveYesBtn" class="today-routine-save-btn primary">루틴으로 저장하기</button>
+        <div class="today-routine-save-text">이 루틴을 저장하시겠습니까?</div>
+        <button type="button" id="todayRoutineSaveYesBtn" class="today-routine-save-btn primary">저장하기</button>
       </div>
     </div>
   </div>
