@@ -3004,7 +3004,8 @@ input[type="number"] {
   color: #fff;
   font-weight: 700;
 }
-.diet-stats-water-count .diet-stats-water-goal {
+.diet-stats-water-count .diet-stats-water-goal,
+.diet-stats-weight-value .diet-stats-water-goal {
   font-size: 12px;
   color: #777;
   font-weight: 500;
@@ -3940,8 +3941,8 @@ input[type="number"] {
         </div>
 
         <div class="diet-stats-weight">
-          <div class="diet-stats-water-title">몸무게</div>
-          <div class="diet-stats-weight-value"><span id="dietStatsWeightValue">-</span></div>
+          <div class="diet-stats-water-title">현재 몸무게</div>
+          <div class="diet-stats-weight-value"><span id="dietStatsWeightValue">-</span><span class="diet-stats-water-goal">/ <span id="dietStatsWeightGoalValue">-</span></span></div>
         </div>
       </div>
     </div>
@@ -3970,6 +3971,12 @@ input[type="number"] {
     <div class="diet-stats-reco-title" style="margin:18px 0 8px;">최근 7일 칼로리</div>
     <div class="diet-stats-trend-wrap">
       <canvas id="dietTrendChart" width="330" height="120"></canvas>
+    </div>
+
+    <div class="diet-stats-reco-title" style="margin:18px 0 8px;">몸무게 변화 추이</div>
+    <div id="dietWeightTrendEmpty" class="diet-stats-reco-empty" style="display:none;">몸무게를 기록하면 변화 추이를 보여드려요.</div>
+    <div class="diet-stats-trend-wrap">
+      <canvas id="dietWeightTrendChart" width="330" height="120"></canvas>
     </div>
   </div>
   <div id="dietPanel-settings" class="dietPanel dietPanelPlaceholder">
@@ -10220,7 +10227,7 @@ const WATER_GOAL_GLASSES = 8;
 const WATER_ML_PER_GLASS_DEFAULT = 250;
 let waterMlPerGlass = WATER_ML_PER_GLASS_DEFAULT; // 한 잔 용량(ml), 사용자가 직접 조정 가능
 
-let userWeight = { goal: null, current: null }; // 목표/현재 몸무게(kg)
+let userWeight = { goal: null, current: null, log: {} }; // 목표/현재 몸무게(kg), log: { "YY.MM.DD": 몸무게 }
 const KCAL_PER_KG_FAT = 7700; // kcal, 지방 1kg당 칼로리 근사치
 
 /* ---------- 로컬 저장/로드 ---------- */
@@ -11071,8 +11078,10 @@ function renderDietTodayWeightButton(){
 
 function renderStatsWeightWidget(){
   const el = document.getElementById('dietStatsWeightValue');
+  const goalEl = document.getElementById('dietStatsWeightGoalValue');
   if (!el) return;
   el.textContent = userWeight.current ? `${userWeight.current}kg` : '-';
+  if (goalEl) goalEl.textContent = userWeight.goal ? `${userWeight.goal}kg` : '-';
 }
 
 function renderWeightWeeksLeftPreview(){
@@ -11162,10 +11171,16 @@ document.getElementById('weightModalSave')?.addEventListener('click', () => {
   userWeight.goal = parseFloat(document.getElementById('weightGoalInput').value) || null;
   userWeight.current = parseFloat(document.getElementById('weightCurrentInput').value) || null;
 
+  if (userWeight.current) {
+    userWeight.log = userWeight.log || {};
+    userWeight.log[formatTodayYYMMDD()] = userWeight.current;
+  }
+
   saveWeightToLocal();
   saveWeightToFirestore();
   renderDietTodayWeightButton();
   renderStatsWeightWidget();
+  renderWeightTrendChart();
   closeWeightModal();
 });
 
@@ -11220,6 +11235,75 @@ function renderDietTrendChart(){
   });
 }
 
+let dietWeightTrendChartInstance = null;
+
+function renderWeightTrendChart(){
+  const canvas = document.getElementById('dietWeightTrendChart');
+  const emptyEl = document.getElementById('dietWeightTrendEmpty');
+  if (!canvas || typeof Chart === 'undefined') return;
+
+  const log = userWeight.log || {};
+  const dates = Object.keys(log).sort();
+  const recentDates = dates.slice(-30);
+
+  if (dietWeightTrendChartInstance) {
+    dietWeightTrendChartInstance.destroy();
+    dietWeightTrendChartInstance = null;
+  }
+
+  if (recentDates.length === 0) {
+    canvas.style.display = 'none';
+    if (emptyEl) emptyEl.style.display = '';
+    return;
+  }
+  canvas.style.display = '';
+  if (emptyEl) emptyEl.style.display = 'none';
+
+  const labels = recentDates.map(key => {
+    const [, m, d] = key.split('.');
+    return `${parseInt(m, 10)}/${parseInt(d, 10)}`;
+  });
+  const weightValues = recentDates.map(key => log[key]);
+
+  const datasets = [{
+    data: weightValues,
+    borderColor: '#FFD700',
+    backgroundColor: 'rgba(255,215,0,0.12)',
+    tension: 0.25,
+    pointRadius: 3,
+    pointBackgroundColor: '#FFD700',
+    fill: true,
+  }];
+
+  if (userWeight.goal) {
+    datasets.push({
+      data: recentDates.map(() => userWeight.goal),
+      borderColor: 'rgba(255,255,255,0.4)',
+      borderDash: [4, 4],
+      pointRadius: 0,
+      fill: false,
+    });
+  }
+
+  const ctx = canvas.getContext('2d');
+  dietWeightTrendChartInstance = new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: false,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: (ctx) => ` ${ctx.parsed.y}kg` } },
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.5)', font: { size: 10 } } },
+        y: { display: false }
+      }
+    }
+  });
+}
+
 function renderDietStats(){
   const canvas = document.getElementById('dietStatsChart');
   if (!canvas) return;
@@ -11227,6 +11311,7 @@ function renderDietStats(){
   renderWaterWidget();
   renderStatsWeightWidget();
   renderDietTrendChart();
+  renderWeightTrendChart();
 
   const pctEl = document.getElementById('dietStatsChartPct');
   const subEl = document.getElementById('dietStatsChartSub');
