@@ -3174,22 +3174,11 @@ input[type="number"] {
   border-top: 1px solid rgba(255,255,255,0.1);
 }
 .today-routine-save-prompt.hidden { display: none; }
-.today-routine-save-text {
-  font-size: 14px;
-  color: #fff;
-  font-weight: 600;
-  text-align: center;
-  margin-bottom: 12px;
-}
-.today-routine-save-actions {
-  display: flex;
-  gap: 10px;
-}
 .today-routine-save-btn {
   -webkit-appearance: none;
   appearance: none;
-  flex: 1;
-  height: 42px;
+  width: 100%;
+  height: 46px;
   margin: 0;
   padding: 0;
   border: 1px solid rgba(255,255,255,0.25);
@@ -4439,11 +4428,7 @@ input[type="number"] {
       <div id="myRoutineList"></div>
 
       <div id="todayRoutineSavePrompt" class="today-routine-save-prompt hidden">
-        <div class="today-routine-save-text">이 루틴을 저장하시겠습니까?</div>
-        <div class="today-routine-save-actions">
-          <button type="button" id="todayRoutineSaveNoBtn" class="today-routine-save-btn">아니요</button>
-          <button type="button" id="todayRoutineSaveYesBtn" class="today-routine-save-btn primary">예</button>
-        </div>
+        <button type="button" id="todayRoutineSaveYesBtn" class="today-routine-save-btn primary">루틴으로 저장하기</button>
       </div>
     </div>
   </div>
@@ -6381,10 +6366,6 @@ document.getElementById("myRoutinePastRow").addEventListener("click", openMyRout
 /* ---------- 오늘의 운동을 루틴으로 저장 ---------- */
 const routineSaveModal = document.getElementById("routineSaveModal");
 let pendingTodayRoutineItems = null; // 저장 위치 선택 시점에 확정된 "오늘의 운동" 목록
-
-document.getElementById("todayRoutineSaveNoBtn").addEventListener("click", () => {
-  document.getElementById("todayRoutineSavePrompt").classList.add("hidden");
-});
 
 document.getElementById("todayRoutineSaveYesBtn").addEventListener("click", () => {
   pendingTodayRoutineItems = buildTodayExerciseList();
