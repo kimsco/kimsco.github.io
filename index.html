@@ -3145,6 +3145,68 @@ input[type="number"] {
   height: 1px;
   background: rgba(255,255,255,0.25);
 }
+/* 오늘의 운동: 오늘 기록한 종목 리스트 + 하단 저장 프롬프트 */
+.today-routine-ex-row {
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  font-size: 15px;
+  color: #fff;
+  font-weight: 600;
+}
+.today-routine-save-prompt {
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+.today-routine-save-prompt.hidden { display: none; }
+.today-routine-save-text {
+  font-size: 14px;
+  color: #fff;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 12px;
+}
+.today-routine-save-actions {
+  display: flex;
+  gap: 10px;
+}
+.today-routine-save-btn {
+  -webkit-appearance: none;
+  appearance: none;
+  flex: 1;
+  height: 42px;
+  margin: 0;
+  padding: 0;
+  border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 10px;
+  background: transparent;
+  color: rgba(255,255,255,0.75);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.today-routine-save-btn.primary {
+  background: #fff;
+  color: #000;
+  border-color: #fff;
+}
+.routine-save-existing-list {
+  max-height: 160px;
+  overflow-y: auto;
+}
+.routine-save-existing-row {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.85);
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  cursor: pointer;
+}
+.routine-save-existing-row:active {
+  background: rgba(255,255,255,0.12);
+}
 .my-routine-detail-card {
   border: 1px solid rgba(255,255,255,0.16);
   border-radius: 12px;
@@ -4295,7 +4357,7 @@ input[type="number"] {
     </div>
     <div id="myRoutineBody" style="flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; padding: 0 18px calc(24px + env(safe-area-inset-bottom));">
       <div id="myRoutinePastRow" class="my-routine-past-row">
-        <div class="my-routine-past-row-label">내 지난 루틴</div>
+        <div class="my-routine-past-row-label">오늘의 운동</div>
         <div class="my-routine-past-row-chevron">›</div>
       </div>
 
@@ -4342,21 +4404,46 @@ input[type="number"] {
   </div>
 </div>
 
-<!-- 내 지난 루틴: 부위별 기차 미리보기 목록 -->
+<!-- 오늘의 운동: 오늘 기록한 종목 목록 + 루틴으로 저장 -->
 <div id="myRoutinePastListOverlay" class="hidden" style="
     position:fixed; inset:0; background:#000; z-index:100001;
     overflow:hidden;
   ">
   <div id="myRoutinePastListScreen" style="height:100%; display:flex; flex-direction:column;">
     <div style="flex-shrink:0; padding: calc(28px + env(safe-area-inset-top)) 18px 16px; display:flex; align-items:center; cursor:pointer;" onclick="closeMyRoutinePastList()">
-      ← <span style="margin-left:6px; font-size:15px; font-weight:600; color:#fff;">내 지난 루틴</span>
+      ← <span style="margin-left:6px; font-size:15px; font-weight:600; color:#fff;">오늘의 운동</span>
     </div>
     <div id="myRoutinePastListBody" style="flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; padding: 0 18px calc(24px + env(safe-area-inset-bottom));">
       <div id="myRoutineEmpty" style="color:rgba(255,255,255,0.35); font-size:13px; margin: 20px 0;">
-        아직 기록된 운동이 없습니다.
+        아직 오늘 기록된 운동이 없습니다.
       </div>
 
       <div id="myRoutineList"></div>
+
+      <div id="todayRoutineSavePrompt" class="today-routine-save-prompt hidden">
+        <div class="today-routine-save-text">이 루틴을 저장하시겠습니까?</div>
+        <div class="today-routine-save-actions">
+          <button type="button" id="todayRoutineSaveNoBtn" class="today-routine-save-btn">아니요</button>
+          <button type="button" id="todayRoutineSaveYesBtn" class="today-routine-save-btn primary">예</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 오늘의 운동 저장 위치 선택 -->
+<div id="routineSaveModal" class="modal hidden">
+  <div class="modal-box">
+    <div class="modal-title">루틴 저장</div>
+    <div class="modal-desc">저장할 루틴 이름을 선택하거나 새로 입력하세요.</div>
+    <div class="food-modal-form">
+      <input type="text" id="routineSaveNameInput" class="my-routine-builder-name-input" placeholder="예: 김무진식 운동" style="margin-bottom:14px;">
+      <div id="routineSaveExistingList" class="routine-save-existing-list"></div>
+    </div>
+
+    <div class="modal-actions">
+      <button id="routineSaveCancelBtn" class="modal-btn">취소</button>
+      <button id="routineSaveConfirmBtn" class="modal-btn">저장</button>
     </div>
   </div>
 </div>
@@ -6169,38 +6256,71 @@ const myRoutineScreen = document.getElementById("myRoutineScreen");
 const myRoutineDetailOverlay = document.getElementById("myRoutineDetailOverlay");
 const myRoutineDetailScreen = document.getElementById("myRoutineDetailScreen");
 
-function renderMyRoutineList(){
+// 액세서리 부위(chest/back/shoulder/leg) 중 3대와 짝이 없는 "arm"은 루틴 저장 시
+// 빌더 파트키(이두/삼두 분리)가 필요해서 편의상 "biceps"로 취급 (기록 자체는 그대로 arm 리스트 공유)
+const MY_ROUTINE_PART_TO_BUILDER_PART = { chest: "chest", back: "back", shoulder: "shoulder", leg: "leg", arm: "biceps" };
+
+/* 오늘 날짜에 기록된 모든 종목(3대+액세서리)을, 부위 구분 없이 처음 기록한 순서대로 하나의 목록으로 */
+function buildTodayExerciseList(){
+  const todayStr = formatTodayYYMMDD();
+  const allSets = [];
+
+  Object.keys(accRecordsByExercise).forEach(exName => {
+    (accRecordsByExercise[exName] || []).forEach(r => {
+      if (r.date === todayStr) {
+        allSets.push({
+          type: "accessory", key: exName, displayName: r.exercise || exName,
+          partKey: MY_ROUTINE_PART_TO_BUILDER_PART[r.part] || "chest",
+          createdAt: dexTimeValue(r.createdAt)
+        });
+      }
+    });
+  });
+
+  Object.keys(PART_TO_LIFT).forEach(partKey => {
+    const liftKey = PART_TO_LIFT[partKey];
+    (records[liftKey] || []).forEach(r => {
+      if (r.date === todayStr) {
+        allSets.push({
+          type: "lift", key: liftKey, displayName: LIFT_DISPLAY_NAME[liftKey],
+          partKey: MY_ROUTINE_PART_TO_BUILDER_PART[partKey],
+          createdAt: dexTimeValue(r.firstAt || r.createdAt || 0)
+        });
+      }
+    });
+  });
+
+  allSets.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+
+  const seen = new Set();
+  const list = [];
+  allSets.forEach(r => {
+    const uid = r.type + ":" + r.key;
+    if (!seen.has(uid)) { seen.add(uid); list.push({ exercise: r.displayName, partKey: r.partKey }); }
+  });
+  return list;
+}
+
+function renderTodayRoutineList(){
   const listEl = document.getElementById("myRoutineList");
   const emptyEl = document.getElementById("myRoutineEmpty");
+  const promptEl = document.getElementById("todayRoutineSavePrompt");
 
-  const rows = MY_ROUTINE_PARTS
-    .map(p => ({ ...p, routine: buildRoutineForPart(p.key) }))
-    .filter(p => p.routine);
+  const items = buildTodayExerciseList();
 
-  if (!rows.length) {
+  if (!items.length) {
     emptyEl.style.display = "block";
     listEl.innerHTML = "";
+    promptEl.classList.add("hidden");
     return;
   }
   emptyEl.style.display = "none";
 
-  listEl.innerHTML = rows.map(p => `
-    <div class="my-routine-part-row" data-part="${p.key}">
-      <div class="my-routine-part-name">${p.label}</div>
-      <div class="my-routine-train">
-        ${p.routine.items.map((it, idx) => `
-          ${idx > 0 ? `<div class="my-routine-train-dash"></div>` : ``}
-          <div class="my-routine-train-card">${escapeHtml(it.displayName)}</div>
-        `).join("")}
-      </div>
-    </div>
+  listEl.innerHTML = items.map(it => `
+    <div class="today-routine-ex-row">${escapeHtml(it.exercise)}</div>
   `).join("");
 
-  listEl.querySelectorAll(".my-routine-part-row").forEach(row => {
-    row.addEventListener("click", () => {
-      openMyRoutineDetail(row.dataset.part);
-    });
-  });
+  promptEl.classList.remove("hidden");
 }
 
 function openMyRoutine(){
@@ -6227,13 +6347,85 @@ function openMyRoutinePastList(){
   myRoutinePastListOverlay.classList.remove("hidden");
   myRoutinePastListScreen.style.transform = "translateX(0)";
   document.getElementById("myRoutinePastListBody").scrollTop = 0;
-  renderMyRoutineList();
+  renderTodayRoutineList();
 }
 function closeMyRoutinePastList(){
   myRoutinePastListOverlay.classList.add("hidden");
   myRoutinePastListScreen.style.transform = "translateX(0)";
 }
 document.getElementById("myRoutinePastRow").addEventListener("click", openMyRoutinePastList);
+
+/* ---------- 오늘의 운동을 루틴으로 저장 ---------- */
+const routineSaveModal = document.getElementById("routineSaveModal");
+let pendingTodayRoutineItems = null; // 저장 위치 선택 시점에 확정된 "오늘의 운동" 목록
+
+document.getElementById("todayRoutineSaveNoBtn").addEventListener("click", () => {
+  document.getElementById("todayRoutineSavePrompt").classList.add("hidden");
+});
+
+document.getElementById("todayRoutineSaveYesBtn").addEventListener("click", () => {
+  pendingTodayRoutineItems = buildTodayExerciseList();
+  if (!pendingTodayRoutineItems.length) return;
+  openRoutineSaveModal();
+});
+
+function openRoutineSaveModal(){
+  document.getElementById("routineSaveNameInput").value = "";
+
+  const existingNames = Array.from(new Set(myRoutineTemplates.map(t => t.name).filter(Boolean)));
+  const listEl = document.getElementById("routineSaveExistingList");
+  listEl.innerHTML = existingNames.map(name => `
+    <div class="routine-save-existing-row" data-name="${escapeHtml(name)}">${escapeHtml(name)}</div>
+  `).join("");
+  listEl.querySelectorAll(".routine-save-existing-row").forEach(row => {
+    row.addEventListener("click", () => {
+      document.getElementById("routineSaveNameInput").value = row.dataset.name;
+    });
+  });
+
+  routineSaveModal.classList.remove("hidden");
+}
+function closeRoutineSaveModal(){
+  routineSaveModal.classList.add("hidden");
+}
+document.getElementById("routineSaveCancelBtn").addEventListener("click", closeRoutineSaveModal);
+
+document.getElementById("routineSaveConfirmBtn").addEventListener("click", () => {
+  const name = document.getElementById("routineSaveNameInput").value.trim();
+  if (!name) { alert("루틴 이름을 입력해주세요."); return; }
+  if (!pendingTodayRoutineItems || !pendingTodayRoutineItems.length) { closeRoutineSaveModal(); return; }
+
+  // 같은 이름의 기존 루틴 중 구성 종목이 완전히 동일한 게 있으면 중복으로 보고 막음
+  const todaySet = new Set(pendingTodayRoutineItems.map(it => it.exercise));
+  const isDuplicate = myRoutineTemplates.some(t => {
+    if (t.name !== name) return false;
+    const items = t.orderedItems || [];
+    if (items.length !== todaySet.size) return false;
+    return items.every(it => todaySet.has(it.exercise));
+  });
+  if (isDuplicate) {
+    alert("동일한 루틴이 이미 존재합니다.");
+    return; // 저장 위치 팝업 상태 그대로 유지
+  }
+
+  const parts = Array.from(new Set(pendingTodayRoutineItems.map(it => it.partKey)));
+  const item = {
+    id: "routine_" + Date.now() + "_" + Math.random().toString(16).slice(2),
+    name, parts,
+    orderedItems: pendingTodayRoutineItems.map(it => ({ partKey: it.partKey, exercise: it.exercise })),
+    createdAt: Date.now()
+  };
+
+  myRoutineTemplates.unshift(item);
+  saveMyRoutineTemplatesToLocal();
+  saveMyRoutineTemplateToFirestore(item);
+
+  pendingTodayRoutineItems = null;
+  closeRoutineSaveModal();
+  document.getElementById("todayRoutineSavePrompt").classList.add("hidden");
+  closeMyRoutinePastList();
+  renderMyRoutineTemplateSection();
+});
 
 /* 🔥 내 지난 루틴 화면: 왼쪽 끝에서 오른쪽으로 드래그하면 손가락 따라 끌려가며 닫힘 */
 (function(){
