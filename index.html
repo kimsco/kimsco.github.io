@@ -11121,7 +11121,16 @@ function renderStatsWeightWidget(){
     if (fillEl) fillEl.style.width = '100%';
     return;
   }
-  if (remainEl) remainEl.textContent = `목표까지 ${Math.abs(diff).toFixed(1)}kg 남았습니다`;
+  if (remainEl) {
+    const result = computeWeeksLeft(current, goal);
+    if (result && !result.reason && result.weeks) {
+      const rate = Math.abs(result.weeklyWeightChangeKg).toFixed(1);
+      const dir = result.weeklyWeightChangeKg < 0 ? '감량' : '증량';
+      remainEl.textContent = `주 ${rate}kg씩 ${dir} 약 ${result.weeks}주 남았습니다`;
+    } else {
+      remainEl.textContent = `목표까지 ${Math.abs(diff).toFixed(1)}kg 남았습니다`;
+    }
+  }
 
   if (fillEl) {
     const log = userWeight.log || {};
