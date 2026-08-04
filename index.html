@@ -3146,12 +3146,27 @@ input[type="number"] {
   background: rgba(255,255,255,0.25);
 }
 /* 오늘의 운동: 오늘 기록한 종목 리스트 + 하단 저장 프롬프트 */
-.today-routine-ex-row {
-  padding: 14px 0;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
-  font-size: 15px;
+.today-routine-ex-list {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 24px 0 8px;
+}
+.today-routine-ex-box {
+  padding: 14px 22px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.08);
+  font-size: 20px;
   color: #fff;
-  font-weight: 600;
+  font-weight: 700;
+  text-align: center;
+  word-break: keep-all;
+}
+.today-routine-ex-line {
+  width: 1px;
+  height: 16px;
+  background: rgba(255,255,255,0.25);
 }
 .today-routine-save-prompt {
   margin-top: 28px;
@@ -3195,12 +3210,15 @@ input[type="number"] {
   overflow-y: auto;
 }
 .routine-save-existing-row {
-  padding: 10px 12px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px;
   border-radius: 8px;
   background: rgba(255,255,255,0.06);
   color: rgba(255,255,255,0.85);
   font-size: 13px;
   font-weight: 600;
+  text-align: center;
   margin-bottom: 6px;
   cursor: pointer;
 }
@@ -4437,8 +4455,8 @@ input[type="number"] {
     <div class="modal-title">루틴 저장</div>
     <div class="modal-desc">저장할 루틴 이름을 선택하거나 새로 입력하세요.</div>
     <div class="food-modal-form">
-      <input type="text" id="routineSaveNameInput" class="my-routine-builder-name-input" placeholder="예: 김무진식 운동" style="margin-bottom:14px;">
       <div id="routineSaveExistingList" class="routine-save-existing-list"></div>
+      <input type="text" id="routineSaveNameInput" class="my-routine-builder-name-input" placeholder="새 루틴 이름 입력" style="margin:14px 0 0;">
     </div>
 
     <div class="modal-actions">
@@ -6316,9 +6334,14 @@ function renderTodayRoutineList(){
   }
   emptyEl.style.display = "none";
 
-  listEl.innerHTML = items.map(it => `
-    <div class="today-routine-ex-row">${escapeHtml(it.exercise)}</div>
-  `).join("");
+  listEl.innerHTML = `
+    <div class="today-routine-ex-list">
+      ${items.map((it, idx) => `
+        ${idx > 0 ? `<div class="today-routine-ex-line"></div>` : ``}
+        <div class="today-routine-ex-box">${escapeHtml(it.exercise)}</div>
+      `).join("")}
+    </div>
+  `;
 
   promptEl.classList.remove("hidden");
 }
