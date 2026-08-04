@@ -3974,7 +3974,6 @@ input[type="number"] {
     </div>
 
     <div class="diet-stats-reco-title" style="margin:18px 0 8px;">몸무게 변화 추이</div>
-    <div id="dietWeightTrendEmpty" class="diet-stats-reco-empty" style="display:none;">몸무게를 기록하면 변화 추이를 보여드려요.</div>
     <div class="diet-stats-trend-wrap">
       <canvas id="dietWeightTrendChart" width="330" height="120"></canvas>
     </div>
@@ -11239,31 +11238,33 @@ let dietWeightTrendChartInstance = null;
 
 function renderWeightTrendChart(){
   const canvas = document.getElementById('dietWeightTrendChart');
-  const emptyEl = document.getElementById('dietWeightTrendEmpty');
   if (!canvas || typeof Chart === 'undefined') return;
 
   const log = userWeight.log || {};
-  const dates = Object.keys(log).sort();
-  const recentDates = dates.slice(-30);
+  const logDates = Object.keys(log).sort();
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const anchor = logDates.length ? parseYYMMDD(logDates[0]) : today;
+  const daysSinceAnchor = Math.round((today - anchor) / 86400000);
+
+  const windowStart = daysSinceAnchor <= 4
+    ? anchor
+    : (() => { const d = new Date(today); d.setDate(d.getDate() - 4); return d; })();
+
+  const windowDates = Array.from({ length: 5 }, (_, i) => {
+    const d = new Date(windowStart);
+    d.setDate(d.getDate() + i);
+    return d;
+  });
+  const keys = windowDates.map(d => formatTodayYYMMDD(d));
+  const labels = windowDates.map(d => `${d.getMonth() + 1}/${d.getDate()}`);
+  const weightValues = keys.map(k => (k in log) ? log[k] : null);
 
   if (dietWeightTrendChartInstance) {
     dietWeightTrendChartInstance.destroy();
     dietWeightTrendChartInstance = null;
   }
-
-  if (recentDates.length === 0) {
-    canvas.style.display = 'none';
-    if (emptyEl) emptyEl.style.display = '';
-    return;
-  }
-  canvas.style.display = '';
-  if (emptyEl) emptyEl.style.display = 'none';
-
-  const labels = recentDates.map(key => {
-    const [, m, d] = key.split('.');
-    return `${parseInt(m, 10)}/${parseInt(d, 10)}`;
-  });
-  const weightValues = recentDates.map(key => log[key]);
 
   const datasets = [{
     data: weightValues,
@@ -11273,11 +11274,12 @@ function renderWeightTrendChart(){
     pointRadius: 3,
     pointBackgroundColor: '#FFD700',
     fill: true,
+    spanGaps: false,
   }];
 
   if (userWeight.goal) {
     datasets.push({
-      data: recentDates.map(() => userWeight.goal),
+      data: keys.map(() => userWeight.goal),
       borderColor: 'rgba(255,255,255,0.4)',
       borderDash: [4, 4],
       pointRadius: 0,
