@@ -3036,6 +3036,13 @@ input[type="number"] {
   color: #fff;
   font-weight: 700;
 }
+.diet-stats-weight-weeks {
+  font-size: 11px;
+  color: #FFD700;
+  font-weight: 600;
+  line-height: 1.3;
+  margin-top: 4px;
+}
 
 /* 최근 7일 칼로리 추이 */
 .diet-stats-trend-wrap {
@@ -3943,6 +3950,7 @@ input[type="number"] {
         <div class="diet-stats-weight">
           <div class="diet-stats-water-title">현재 몸무게</div>
           <div class="diet-stats-weight-value"><span id="dietStatsWeightValue">-</span><span class="diet-stats-water-goal">/ <span id="dietStatsWeightGoalValue">-</span></span></div>
+          <div id="dietStatsWeightWeeksText" class="diet-stats-weight-weeks"></div>
         </div>
       </div>
     </div>
@@ -11081,6 +11089,20 @@ function renderStatsWeightWidget(){
   if (!el) return;
   el.textContent = userWeight.current ? `${userWeight.current}kg` : '-';
   if (goalEl) goalEl.textContent = userWeight.goal ? `${userWeight.goal}kg` : '-';
+
+  const weeksEl = document.getElementById('dietStatsWeightWeeksText');
+  if (weeksEl) {
+    const result = computeWeeksLeft(userWeight.current, userWeight.goal);
+    if (!result || result.reason === 'needsProfile' || result.reason === 'mismatched') {
+      weeksEl.textContent = '';
+    } else if (result.weeks === 0) {
+      weeksEl.textContent = '목표에 도달했어요 🎉';
+    } else {
+      const rate = Math.abs(result.weeklyWeightChangeKg).toFixed(1);
+      const dir = result.weeklyWeightChangeKg < 0 ? '감량' : '증량';
+      weeksEl.textContent = `주 ${rate}kg씩 ${dir} 약 ${result.weeks}주 남았습니다`;
+    }
+  }
 }
 
 function renderWeightWeeksLeftPreview(){
