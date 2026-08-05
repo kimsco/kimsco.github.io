@@ -2764,6 +2764,52 @@ input[type="number"] {
   color: #fff;
 }
 
+/* 🔥 "내 식단" 좌(템플릿)/우(음식 DB 검색) 50:50 분할 */
+.diet-food-split-row {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+.diet-food-split-half {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.diet-food-split-divider {
+  width: 1px;
+  align-self: stretch;
+  background: rgba(255,255,255,0.14);
+  flex-shrink: 0;
+}
+.diet-food-split-scroll {
+  height: 320px;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+}
+/* 반폭 컬럼 안에서는 풀블리드용 음수 마진을 쓰면 옆 컬럼을 침범하므로 오버라이드 */
+.diet-food-split-half .food-template-card {
+  margin: 0;
+  padding: 12px 4px;
+}
+.diet-food-db-search {
+  width: 100%;
+  height: 42px;
+  background: #111;
+  border: 1px solid #2a2a2a;
+  border-radius: 10px;
+  color: #fff;
+  padding: 0 12px;
+  font-size: 14px;
+  box-sizing: border-box;
+  margin: 0 0 8px;
+}
+.diet-food-db-card {
+  padding: 12px 4px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  cursor: pointer;
+}
+
 .quick-add-meal-btn {
   -webkit-appearance: none;
   appearance: none;
@@ -3995,7 +4041,17 @@ input[type="number"] {
         <div style="font-size:14px; color:#aaa; font-weight:600;">내 식단</div>
         <button id="addFoodTemplateBtn" class="add-btn">+</button>
       </div>
-      <div id="foodTemplateList"></div>
+
+      <div class="diet-food-split-row">
+        <div class="diet-food-split-half">
+          <div id="foodTemplateList" class="diet-food-split-scroll"></div>
+        </div>
+        <div class="diet-food-split-divider"></div>
+        <div class="diet-food-split-half">
+          <input id="foodDbSearchInput" type="text" class="diet-food-db-search" placeholder="검색">
+          <div id="foodDbList" class="diet-food-split-scroll"></div>
+        </div>
+      </div>
 
       <button id="quickAddMealBtn" type="button" class="quick-add-meal-btn">추가</button>
 
@@ -12040,6 +12096,34 @@ function renderFoodTemplateList(){
     el.appendChild(card);
   });
 }
+
+/* 🔥 "내 식단" 우측: 준비된 음식 DB(FOOD_DB) 검색 + 클릭 시 오늘 식단에 바로 추가 */
+function renderFoodDbList(filterText = ""){
+  const el = document.getElementById("foodDbList");
+  const q = filterText.trim().toLowerCase();
+  const list = q ? FOOD_DB.filter(f => f.name.toLowerCase().includes(q)) : FOOD_DB;
+
+  if (!list.length) {
+    el.innerHTML = `<div style="color:#777; font-size:13px; padding:8px 0;">검색 결과가 없어요</div>`;
+    return;
+  }
+
+  el.innerHTML = "";
+  list.forEach(f => {
+    const card = document.createElement("div");
+    card.className = "diet-food-db-card";
+    card.innerHTML = `
+      <div class="food-template-name">${f.name}</div>
+      <div class="diet-stats-reco-macro">단백질 ${f.protein}g · 탄수 ${f.carb}g · 지방 ${f.fat}g</div>
+    `;
+    card.addEventListener("click", () => addMealFromTemplate(f));
+    el.appendChild(card);
+  });
+}
+document.getElementById("foodDbSearchInput").addEventListener("input", (e) => {
+  renderFoodDbList(e.target.value);
+});
+renderFoodDbList();
 
 function deleteFoodTemplate(id){
   foodTemplates = foodTemplates.filter(t => t.id !== id);
