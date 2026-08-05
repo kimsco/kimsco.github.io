@@ -411,24 +411,22 @@ button {
     color: rgba(255,255,255,0.92);
 }
 
-.load-older-records-btn {
-    -webkit-appearance: none;
-    appearance: none;
-    display: block;
-    width: 100%;
-    margin: 10px 0 0;
-    padding: 10px 0;
-    border: 1px solid rgba(255,255,255,0.2);
-    border-radius: 8px;
-    background: transparent;
-    color: rgba(255,255,255,0.7);
-    font-size: 12.5px;
-    font-weight: 600;
-    text-align: center;
-    cursor: pointer;
+.record-scroll-sentinel {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 16px 0;
 }
-.load-older-records-btn:active {
-    background: rgba(255,255,255,0.08);
+.record-loading-spinner {
+    width: 22px;
+    height: 22px;
+    border: 2px solid rgba(255,255,255,0.15);
+    border-top-color: rgba(255,255,255,0.75);
+    border-radius: 50%;
+    animation: record-spin 0.7s linear infinite;
+}
+@keyframes record-spin {
+    to { transform: rotate(360deg); }
 }
 
 .folderContent.active {
@@ -5234,16 +5232,63 @@ document.getElementById('delete-exercise-btn4').addEventListener('click', (e) =>
 /* ===============================
    카드 상세 렌더링 (핵심)
 ================================ */
-// 🔥 "이전 기록 더 보기" 버튼 클릭 시 온디맨드 조회 → 재렌더까지 공통 처리
-function wireLoadOlderRecordsBtn(btnId, fetchOlderFn, rerenderFn){
-  const btn = document.getElementById(btnId);
-  if (!btn) return;
-  btn.addEventListener('click', async () => {
-    btn.disabled = true;
-    btn.textContent = '불러오는 중...';
-    await fetchOlderFn();
-    rerenderFn();
+// 🔥 기록 목록 무한스크롤 공통 설정값/헬퍼
+const RECORD_ROWS_INITIAL = 12;
+const RECORD_ROWS_PER_PAGE = 10;
+const accessoryRowsVisible = new Map(); // 운동 이름별로 현재까지 펼친 행 수
+
+// rows: [{date, ...}] 형태의 평탄 배열. rowLineHtml(row, showDate)는 한 행의 내용 HTML만 반환.
+// 날짜 라벨/구분선은 배열 상의 앞뒤 행과 비교해 그때그때 계산하므로, 어느 지점에서 잘라도 자연스럽다.
+function buildFlatRowsHtml(rows, rowLineHtml){
+  return rows.map((row, i) => {
+    const showDate = i === 0 || rows[i - 1].date !== row.date;
+    const isLastOfDate = i === rows.length - 1 || rows[i + 1].date !== row.date;
+    const dividerHtml = isLastOfDate
+      ? `<div style="border-bottom:1px solid rgba(255,255,255,0.12); margin-top:10px; margin-bottom:13px;"></div>`
+      : '';
+    return rowLineHtml(row, showDate) + dividerHtml;
+  }).join('');
+}
+
+// containerEl 맨 끝에 로딩 스피너 sentinel을 붙이고, 스크롤로 뷰포트에 들어오면
+// 로컬에 더 보여줄 행이 있으면 그걸 먼저 펼치고, 없으면 서버에서 과거분을 온디맨드로 조회한다.
+function setupRecordInfiniteScroll(containerEl, totalRows, visibleCount, hasMoreRemote, onLoadMoreLocal, onFetchRemote){
+  const hasMoreLocal = totalRows > visibleCount;
+  if (!hasMoreLocal && !hasMoreRemote) return;
+
+  const sentinel = document.createElement('div');
+  sentinel.className = 'record-scroll-sentinel';
+  sentinel.innerHTML = `<div class="record-loading-spinner"></div>`;
+  containerEl.appendChild(sentinel);
+
+  const observer = new IntersectionObserver((entries) => {
+    if (!entries[0].isIntersecting) return;
+    observer.disconnect();
+    if (hasMoreLocal) {
+      setTimeout(onLoadMoreLocal, 300); // 로컬 전용 페이지도 스피너가 잠깐 보이도록
+    } else {
+      onFetchRemote();
+    }
+  }, { root: containerEl, rootMargin: '80px' });
+
+  observer.observe(sentinel);
+}
+
+function buildFlatAccessoryRows(exerciseName){
+  const list = accRecordsByExercise[exerciseName] || [];
+  const grouped = {};
+  list.forEach(r => {
+    const dateKey = r.date || "날짜없음";
+    if (!grouped[dateKey]) grouped[dateKey] = [];
+    grouped[dateKey].push(r);
   });
+  const dates = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
+  const flat = [];
+  dates.forEach(date => {
+    const raw = grouped[date].slice().sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+    raw.forEach(r => flat.push({ date, r }));
+  });
+  return flat;
 }
 
 function renderAccessoryRecords(exerciseName) {
@@ -5262,55 +5307,51 @@ function renderAccessoryRecords(exerciseName) {
   });
   if (backfilled) saveAccRecordsToLocal();
 
-  const olderLoaded = exerciseHistoryFullyLoaded.has(exerciseName);
-  const loadOlderBtnHtml = olderLoaded ? '' : `<button type="button" id="accLoadOlderBtn" class="load-older-records-btn">이전 기록 더 보기</button>`;
+  const flatRows = buildFlatAccessoryRows(exerciseName);
 
-  if (!list.length) {
-    el.innerHTML = `<div style="color:#777;font-size:13px;">기록이 여기에 쌓입니다</div>${loadOlderBtnHtml}`;
-    wireLoadOlderRecordsBtn('accLoadOlderBtn', () => ensureExerciseHistory(exerciseName), () => renderAccessoryRecords(exerciseName));
+  if (!flatRows.length) {
+    el.innerHTML = `<div style="color:#777;font-size:13px;">기록이 여기에 쌓입니다</div>`;
+    setupRecordInfiniteScroll(el, 0, 0, !exerciseHistoryFullyLoaded.has(exerciseName),
+      () => {},
+      async () => { await ensureExerciseHistory(exerciseName); renderAccessoryRecords(exerciseName); }
+    );
     return;
   }
 
-  // ✅ 날짜별 그룹화
-  const grouped = {};
-  list.forEach(r => {
-    const dateKey = r.date || "날짜없음";
-    if (!grouped[dateKey]) grouped[dateKey] = [];
-    grouped[dateKey].push(r);
-  });
+  if (!accessoryRowsVisible.has(exerciseName)) accessoryRowsVisible.set(exerciseName, RECORD_ROWS_INITIAL);
+  const visibleCount = Math.min(accessoryRowsVisible.get(exerciseName), flatRows.length);
+  const visibleRows = flatRows.slice(0, visibleCount);
 
-  // ✅ 최신 날짜가 위로
-  const dates = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
-
-  el.innerHTML = dates.map(date => {
-    // 같은 날짜 안에서는 입력한 순서 그대로(오래된 것 -> 최신)
-    const raw = grouped[date]
-      .slice()
-      .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
-
+  el.innerHTML = buildFlatRowsHtml(visibleRows, (row, showDate) => {
+    const r = row.r;
     return `
-      <div style="margin-bottom:13px;">
-        ${raw.map((r, idx) => `
-          <div style="display:flex; align-items:center; line-height:1.6;">
-            <div class="acc-record-line record-set" data-id="${r.id}" style="flex:1; text-align:left;">
-              ${formatSetLine(r.weight, r.reps, 1)}
-            </div>
-            <div style="
-              width:90px;
-              text-align:right;
-              color:rgba(255,255,255,0.75);
-              font-size:13px;
-            ">
-              ${idx === 0 ? date : ''}
-            </div>
-          </div>
-        `).join("")}
-        <div style="border-bottom:1px solid rgba(255,255,255,0.12); margin-top:10px;"></div>
+      <div style="display:flex; align-items:center; line-height:1.6;">
+        <div class="acc-record-line record-set" data-id="${r.id}" style="flex:1; text-align:left;">
+          ${formatSetLine(r.weight, r.reps, 1)}
+        </div>
+        <div style="
+          width:90px;
+          text-align:right;
+          color:rgba(255,255,255,0.75);
+          font-size:13px;
+        ">
+          ${showDate ? row.date : ''}
+        </div>
       </div>
     `;
-  }).join("") + loadOlderBtnHtml;
+  });
 
-  wireLoadOlderRecordsBtn('accLoadOlderBtn', () => ensureExerciseHistory(exerciseName), () => renderAccessoryRecords(exerciseName));
+  setupRecordInfiniteScroll(el, flatRows.length, visibleCount, !exerciseHistoryFullyLoaded.has(exerciseName),
+    () => {
+      accessoryRowsVisible.set(exerciseName, visibleCount + RECORD_ROWS_PER_PAGE);
+      renderAccessoryRecords(exerciseName);
+    },
+    async () => {
+      const added = await ensureExerciseHistory(exerciseName);
+      if (added) accessoryRowsVisible.set(exerciseName, visibleCount + RECORD_ROWS_PER_PAGE);
+      renderAccessoryRecords(exerciseName);
+    }
+  );
 }
 
 
@@ -5488,12 +5529,15 @@ async function ensureFullLiftHistory(liftKey){
   if (!user) { liftFullHistoryLoaded[liftKey] = true; return false; }
 
   try {
+    // 🔥 date까지 같이 필터링하면 서로 다른 필드에 대한 등호+범위 복합 쿼리가 되어
+    //    Firestore 복합 색인이 없으면 조용히 실패한다 — lift 단일 필드로만 걸어
+    //    해당 리프트의 전체 기록을 한 번에 받고(3개월치와 겹치는 건 dedupe로 처리),
+    //    색인 걱정 없이 항상 동작하게 함.
     const snap = await db
       .collection("users")
       .doc(user.uid)
       .collection("records")
       .where("lift", "==", liftKey)
-      .where("date", "<", getRecentWindowStartDateStr())
       .get();
 
     const existingIds = new Set((records[liftKey] || []).map(r => r.firestoreId));
@@ -5528,26 +5572,10 @@ async function ensureFullLiftHistory(liftKey){
 recordDate.value = formatTodayYYMMDD();
 
 // 렌더 함수: 현재 active folder의 목록을 그려줌
-function renderActiveBox(){
-    const activeBtn = document.querySelector('.folderBtn.active');
-    const target = activeBtn ? activeBtn.dataset.target : 'benchBox';
+const liftRowsVisible = { bench: RECORD_ROWS_INITIAL, squat: RECORD_ROWS_INITIAL, dead: RECORD_ROWS_INITIAL, ohp: RECORD_ROWS_INITIAL };
 
-    let arr = [];
-    if(target === 'benchBox') arr = records.bench;
-    else if(target === 'squatBox') arr = records.squat;
-    else if(target === 'deadBox') arr = records.dead;
-    else if(target === 'ohpBox')  arr = records.ohp;
-
-    const boxEl = document.getElementById(target);
-    const liftKey = target.replace('Box', '').toLowerCase();
-    const olderLoaded = liftFullHistoryLoaded[liftKey];
-    const loadOlderBtnHtml = olderLoaded ? '' : `<button type="button" id="liftLoadOlderBtn" class="load-older-records-btn">이전 기록 더 보기</button>`;
-
-    if(!arr || arr.length === 0){
-        boxEl.innerHTML = `<div style="color:#777;font-size:13px;">기록이 여기에 쌓입니다</div>${loadOlderBtnHtml}`;
-        wireLoadOlderRecordsBtn('liftLoadOlderBtn', () => ensureFullLiftHistory(liftKey), () => renderActiveBox());
-        return;
-    }
+function buildFlatLiftRows(liftKey){
+    const arr = records[liftKey] || [];
 
     // 날짜별 그룹화
     const grouped = {};
@@ -5557,23 +5585,21 @@ function renderActiveBox(){
     });
 
     // 최신 날짜 먼저
-    const dates = Object.keys(grouped)
-        .sort((a, b) => b.localeCompare(a));
+    const dates = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
 
-    boxEl.innerHTML = dates.map(date => {
-
+    const flat = [];
+    dates.forEach(date => {
         // 오래된 것 → 최신 순서로
         const raw = grouped[date]
-  .slice()
-  .sort((a,b) => {
-    const A = a.firstAt || a.createdAt || 0;
-    const B = b.firstAt || b.createdAt || 0;
-    return A - B; // ✅ 입력한 순서 그대로
-  });
+            .slice()
+            .sort((a, b) => {
+                const A = a.firstAt || a.createdAt || 0;
+                const B = b.firstAt || b.createdAt || 0;
+                return A - B; // ✅ 입력한 순서 그대로
+            });
 
         // 연속 동일 세트 묶기
         const packed = [];
-
         for (const r of raw) {
             const last = packed[packed.length - 1];
             const rid = r.firestoreId ? r.firestoreId : ("local_" + r.localId);
@@ -5591,35 +5617,69 @@ function renderActiveBox(){
             }
         }
 
-        return `
-            <div style="margin-bottom:13px;">
-                ${packed.map((p, idx) => `
-                    <div style="display:flex; align-items:center; line-height:1.6;">
-                        <div
-                            class="record-line"
-                            data-id="${p.ids[p.ids.length - 1]}"
-                            data-ids="${p.ids.join(',')}"
-                            style="flex:1; text-align:left; cursor:pointer;"
-                        >
-                            ${formatSetLine(p.weight, p.reps, p.sets)}
-                        </div>
+        packed.forEach(p => flat.push({ date, packedItem: p }));
+    });
 
-                        <div style="
-                            width:90px;
-                            text-align:right;
-                            color:rgba(255,255,255,0.75);
-                            font-size:13px;
-                        ">
-                            ${idx === 0 ? date : ''}
-                        </div>
-                    </div>
-                `).join('')}
-                <div style="border-bottom:1px solid rgba(255,255,255,0.12); margin-top:10px;"></div>
+    return flat;
+}
+
+function renderActiveBox(){
+    const activeBtn = document.querySelector('.folderBtn.active');
+    const target = activeBtn ? activeBtn.dataset.target : 'benchBox';
+    const liftKey = target.replace('Box', '').toLowerCase();
+    const boxEl = document.getElementById(target);
+
+    const flatRows = buildFlatLiftRows(liftKey);
+
+    if (!flatRows.length){
+        boxEl.innerHTML = `<div style="color:#777;font-size:13px;">기록이 여기에 쌓입니다</div>`;
+        setupRecordInfiniteScroll(boxEl, 0, 0, !liftFullHistoryLoaded[liftKey],
+            () => {},
+            async () => { await ensureFullLiftHistory(liftKey); renderActiveBox(); }
+        );
+        return;
+    }
+
+    if (!liftRowsVisible[liftKey]) liftRowsVisible[liftKey] = RECORD_ROWS_INITIAL;
+    const visibleCount = Math.min(liftRowsVisible[liftKey], flatRows.length);
+    const visibleRows = flatRows.slice(0, visibleCount);
+
+    boxEl.innerHTML = buildFlatRowsHtml(visibleRows, (row, showDate) => {
+        const p = row.packedItem;
+        return `
+            <div style="display:flex; align-items:center; line-height:1.6;">
+                <div
+                    class="record-line"
+                    data-id="${p.ids[p.ids.length - 1]}"
+                    data-ids="${p.ids.join(',')}"
+                    style="flex:1; text-align:left; cursor:pointer;"
+                >
+                    ${formatSetLine(p.weight, p.reps, p.sets)}
+                </div>
+
+                <div style="
+                    width:90px;
+                    text-align:right;
+                    color:rgba(255,255,255,0.75);
+                    font-size:13px;
+                ">
+                    ${showDate ? row.date : ''}
+                </div>
             </div>
         `;
-    }).join('') + loadOlderBtnHtml;
+    });
 
-    wireLoadOlderRecordsBtn('liftLoadOlderBtn', () => ensureFullLiftHistory(liftKey), () => renderActiveBox());
+    setupRecordInfiniteScroll(boxEl, flatRows.length, visibleCount, !liftFullHistoryLoaded[liftKey],
+        () => {
+            liftRowsVisible[liftKey] = visibleCount + RECORD_ROWS_PER_PAGE;
+            renderActiveBox();
+        },
+        async () => {
+            const added = await ensureFullLiftHistory(liftKey);
+            if (added) liftRowsVisible[liftKey] = visibleCount + RECORD_ROWS_PER_PAGE;
+            renderActiveBox();
+        }
+    );
 }
 renderActiveBox();
 
@@ -7045,12 +7105,13 @@ async function ensureExerciseHistory(name){
   if (!user) { exerciseHistoryFullyLoaded.add(name); return false; }
 
   try {
+    // 🔥 date까지 같이 필터링하면 복합 색인이 필요해 색인이 없으면 조용히 실패한다 —
+    //    exercise 단일 필드로만 걸어 해당 종목의 전체 기록을 한 번에 받음(dedupe로 안전).
     const snap = await db
       .collection("users")
       .doc(user.uid)
       .collection("accessoryRecords")
       .where("exercise", "==", name)
-      .where("date", "<", getRecentWindowStartDateStr())
       .get();
 
     if (!accRecordsByExercise[name]) accRecordsByExercise[name] = [];
@@ -9747,26 +9808,25 @@ async function loadAccessoryRecords() {
       .where('date', '>=', getRecentWindowStartDateStr())
       .get();
 
-    const byExercise = {};
-
+    // 🔥 여기서 accRecordsByExercise를 통째로 교체하면, "이전 기록 더 보기"
+    //    스크롤로 이미 병합해둔 과거(3개월 밖) 기록이 기록 탭 재진입마다 날아가고,
+    //    exerciseHistoryFullyLoaded 플래그는 true로 남아있어 다시는 재조회도 안 되는
+    //    버그가 있었다 — 종목별로 기존 배열에 dedupe 병합하는 방식으로 변경.
     snap.forEach(doc => {
       const d = doc.data();
       if (!d.exercise) return;
 
-      if (!byExercise[d.exercise]) {
-        byExercise[d.exercise] = [];
+      if (!accRecordsByExercise[d.exercise]) {
+        accRecordsByExercise[d.exercise] = [];
       }
 
-      byExercise[d.exercise].push({
-        id: doc.id,
-        ...d,
-        _sortMs: d.createdAt?.toMillis?.() ?? 0
-      });
+      const list = accRecordsByExercise[d.exercise];
+      const idx = list.findIndex(r => r.id === doc.id);
+      const item = { id: doc.id, ...d, _sortMs: d.createdAt?.toMillis?.() ?? 0 };
+      if (idx === -1) list.push(item); else list[idx] = item;
     });
 
-    Object.values(byExercise).forEach(list => list.sort((a, b) => a._sortMs - b._sortMs));
-
-    accRecordsByExercise = byExercise;
+    Object.values(accRecordsByExercise).forEach(list => list.sort((a, b) => (a._sortMs || 0) - (b._sortMs || 0)));
 
     renderExercises(); // 목록
     if (currentExerciseName) {
