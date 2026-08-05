@@ -11423,7 +11423,7 @@ document.getElementById('dietCalNext')?.addEventListener('click', async () => {
 });
 
 /* ---------- 식단 > 통계 탭: 오늘 요약 차트 + 부족 영양소 기반 음식 추천 ---------- */
-const FOOD_DB = [
+let FOOD_DB = [
   { name: "닭가슴살 100g", protein: 23, carb: 0, fat: 2 },
   { name: "닭다리살(껍질제거) 100g", protein: 19, carb: 0, fat: 8 },
   { name: "닭안심 100g", protein: 22, carb: 0, fat: 1 },
@@ -12124,6 +12124,18 @@ document.getElementById("foodDbSearchInput").addEventListener("input", (e) => {
   renderFoodDbList(e.target.value);
 });
 renderFoodDbList();
+
+// 🔥 식약처 식품영양성분DB 정제본(3,763건)을 온디맨드로 불러와 위 100개 하드코딩
+//    목록을 대체 — 실패해도(오프라인 등) 기존 100개로 계속 동작하도록 폴백 유지.
+fetch('/food-db-full.json')
+  .then(r => r.ok ? r.json() : null)
+  .then(data => {
+    if (Array.isArray(data) && data.length) {
+      FOOD_DB = data;
+      renderFoodDbList(document.getElementById('foodDbSearchInput').value);
+    }
+  })
+  .catch(() => {});
 
 function deleteFoodTemplate(id){
   foodTemplates = foodTemplates.filter(t => t.id !== id);
