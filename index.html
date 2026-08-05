@@ -11792,6 +11792,10 @@ function renderDietTrendChart(){
     options: {
       responsive: false,
       maintainAspectRatio: false,
+      // 🔥 칼로리가 적은 날은 막대가 짧아서 터치 판정 범위도 좁아지는 문제 —
+      //    intersect:false로 세로 위치와 무관하게, mode:'index'로 인접 막대와의
+      //    중간 지점까지 가로로 넓게 반응하게 함(툴팁이 뜨는 위치는 그대로).
+      interaction: { mode: 'index', intersect: false },
       plugins: {
         legend: { display: false },
         tooltip: { callbacks: { label: (ctx) => ` ${ctx.parsed.y} kcal` } },
