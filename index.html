@@ -5432,6 +5432,15 @@ function formatTodayYYMMDD(d = new Date()){
     return `${yy}.${mm}.${dd}`;
 }
 
+// 🔥 Firestore 읽기량 최적화: 로그인 시 최근 N개월치만 가져오고, 그 이전 데이터는
+//    해당 화면(그래프/루틴 상세/식단 달력)에 진입할 때만 별도로 온디맨드 조회한다.
+const RECENT_READ_WINDOW_MONTHS = 3;
+function getRecentWindowStartDateStr(baseDate = new Date()){
+  const d = new Date(baseDate);
+  d.setMonth(d.getMonth() - RECENT_READ_WINDOW_MONTHS);
+  return formatTodayYYMMDD(d);
+}
+
 // 초기 날짜 표시
 recordDate.value = formatTodayYYMMDD();
 
@@ -5645,6 +5654,16 @@ auth.onAuthStateChanged(async user => {
   // ✅ 여기부터는 네 기존 로직 그대로
   if (user) {
 
+    // 🔥 서버 응답을 기다리기 전에 로컬 캐시로 먼저 화면을 그려서 체감 딜레이를 없앰
+    //    (아래 Firestore 조회들이 끝나는 대로 최신값으로 자연스럽게 덮어써짐)
+    loadAllFromLocal();
+    loadUserSpecFromLocal();
+    loadFoodTemplatesFromLocal();
+    loadMealsFromLocal();
+    loadWaterFromLocal();
+    loadWeightFromLocal();
+    loadMyRoutineTemplatesFromLocal();
+
     // 🔥 5개 부위 종목 리스트를 백그라운드에서 미리 불러와 캐시에 저장
     //    (기다리지 않음 - 다른 로딩이랑 동시에 진행되어 첫 클릭 딜레이를 없앰)
     prefetchAllExerciseParts(user.uid);
@@ -5677,6 +5696,7 @@ try {
     .collection("users")
     .doc(user.uid)
     .collection("records")
+    .where("date", ">=", getRecentWindowStartDateStr())
     .get();
 
   records.bench = [];
@@ -6928,6 +6948,44 @@ function getLastSetsForExercise(name){
     .sort((a, b) => dexTimeValue(a.createdAt) - dexTimeValue(b.createdAt));
 }
 
+// 🔥 최근 창 안에 기록이 없는 종목만, 루틴 상세 화면 진입 시 온디맨드로 과거 기록을 추가 조회
+const exerciseHistoryFullyLoaded = new Set();
+async function ensureExerciseHistory(name){
+  if (exerciseHistoryFullyLoaded.has(name)) return false;
+  const user = auth.currentUser;
+  if (!user) { exerciseHistoryFullyLoaded.add(name); return false; }
+
+  try {
+    const snap = await db
+      .collection("users")
+      .doc(user.uid)
+      .collection("accessoryRecords")
+      .where("exercise", "==", name)
+      .where("date", "<", getRecentWindowStartDateStr())
+      .get();
+
+    if (!accRecordsByExercise[name]) accRecordsByExercise[name] = [];
+    const existingIds = new Set(accRecordsByExercise[name].map(r => r.id));
+    let added = false;
+    snap.forEach(doc => {
+      if (existingIds.has(doc.id)) return;
+      const d = doc.data();
+      accRecordsByExercise[name].push({ id: doc.id, ...d, _sortMs: d.createdAt?.toMillis?.() ?? 0 });
+      added = true;
+    });
+
+    exerciseHistoryFullyLoaded.add(name);
+    if (added) {
+      accRecordsByExercise[name].sort((a, b) => (a._sortMs || 0) - (b._sortMs || 0));
+      saveAccRecordsToLocal();
+    }
+    return added;
+  } catch (e) {
+    console.error("과거 보조운동 기록 추가 조회 실패", e);
+    return false;
+  }
+}
+
 /* 🔥 내가 만든 루틴(템플릿) 카드를 눌렀을 때: 기존 진행화면(오늘/지난기록 비교)과 동일한 화면으로 진입 */
 let myRoutineDetailSourceTemplate = null; // { template } — 삭제 버튼 노출 및 동작에 사용
 
@@ -6968,6 +7026,24 @@ function openMyRoutineDetailFromTemplate(template){
       </div>
     `;
   }).join("");
+
+  // 🔥 최근 창 안에 기록이 없어 "기록 없음"으로 뜬 종목만 과거 기록을 백그라운드로 확인
+  items.forEach((it, idx) => {
+    if (getLastSetsForExercise(it.exercise).length) return;
+    ensureExerciseHistory(it.exercise).then(added => {
+      if (!added) return;
+      const freshSets = getLastSetsForExercise(it.exercise);
+      if (!freshSets.length) return;
+      const pastColEl = listEl.querySelector(`.my-routine-detail-card[data-idx="${idx}"] .my-routine-col-past`);
+      if (!pastColEl) return;
+      pastColEl.innerHTML = `
+        <div class="my-routine-detail-sublabel">지난 기록</div>
+        ${freshSets.map(s => `
+          <div class="my-routine-detail-set">${formatKgSmart(s.weight)}kg × ${parseInt(s.reps,10)}회</div>
+        `).join("")}
+      `;
+    });
+  });
 
   listEl.querySelectorAll(".my-routine-save-btn").forEach(btn => {
     btn.addEventListener("click", async () => {
@@ -8084,6 +8160,10 @@ function openExerciseDex(){
   if (isDexAdmin()) dexRetryPendingSync().then(() => renderDexList()); // 🔥 이전에 실패했던 저장 자동 재시도
 }
 function closeExerciseDex(){
+  // 🔥 화면을 나가면 실시간 구독 해제 (다음에 다시 열 때 재구독됨)
+  if (dexFoldersUnsub) { dexFoldersUnsub(); dexFoldersUnsub = null; }
+  if (dexPostsUnsub) { dexPostsUnsub(); dexPostsUnsub = null; }
+
   exerciseDexOverlay.classList.add("hidden");
   exerciseDexScreen.style.transform = "translateX(0)";
   hideDexMenuInstant();
@@ -9575,6 +9655,7 @@ async function loadAccessoryRecords() {
       .collection('users')
       .doc(user.uid)
       .collection('accessoryRecords')
+      .where('date', '>=', getRecentWindowStartDateStr())
       .get();
 
     const byExercise = {};
@@ -10035,6 +10116,51 @@ function getActiveLiftKey(){
        : "ohp";
 }
 
+// 🔥 그래프는 전체 기간을 보여줘야 하므로, 최근 N개월 창 밖의 과거 기록을
+//    그래프를 열 때만 온디맨드로 추가 조회해서 병합한다 (리프트별로 한 번만).
+const liftFullHistoryLoaded = { bench: false, squat: false, dead: false, ohp: false };
+async function ensureFullLiftHistory(liftKey){
+  if (liftFullHistoryLoaded[liftKey]) return false;
+  const user = auth.currentUser;
+  if (!user) { liftFullHistoryLoaded[liftKey] = true; return false; }
+
+  try {
+    const snap = await db
+      .collection("users")
+      .doc(user.uid)
+      .collection("records")
+      .where("lift", "==", liftKey)
+      .where("date", "<", getRecentWindowStartDateStr())
+      .get();
+
+    const existingIds = new Set((records[liftKey] || []).map(r => r.firestoreId));
+    let added = false;
+    snap.forEach(doc => {
+      if (existingIds.has(doc.id)) return;
+      const d = doc.data();
+      records[liftKey].push({
+        firestoreId: doc.id,
+        date: d.date,
+        weight: d.weight,
+        reps: d.reps,
+        sets: 1,
+        createdAt: d.createdAt?.toMillis?.() || 0,
+        firstAt:  d.createdAt?.toMillis?.() || 0,
+        lastAt:   d.createdAt?.toMillis?.() || 0,
+        updatedAt: d.createdAt?.toMillis?.() || 0
+      });
+      added = true;
+    });
+
+    liftFullHistoryLoaded[liftKey] = true;
+    if (added) saveRecordsToLocal();
+    return added;
+  } catch (e) {
+    console.error("과거 리프트 기록 추가 조회 실패", e);
+    return false;
+  }
+}
+
 function openSheet(liftKey){
   document.body.classList.add("sheet-open");
   lastLiftKey = liftKey;
@@ -10064,8 +10190,12 @@ function openSheet(liftKey){
       graphSheet.classList.add("show");
       sheetOpen = true;
 
-      // 그래프 렌더 (시트가 열린 뒤)
+      // 그래프 렌더 (시트가 열린 뒤) — 우선 최근 창 데이터로 빠르게 그리고,
+      // 과거 기록이 더 있으면 백그라운드로 받아와서 다시 그림
       renderGraphForLift(liftKey);
+      ensureFullLiftHistory(liftKey).then(added => {
+        if (added && sheetOpen && lastLiftKey === liftKey) renderGraphForLift(liftKey);
+      });
     });
   });
 }
@@ -10647,7 +10777,9 @@ async function deleteMealFromFirestore(id){
 async function loadMealsFromFirestore(uid){
   try {
     const snap = await db.collection("users").doc(uid)
-      .collection("meals").get();
+      .collection("meals")
+      .where("date", ">=", getRecentWindowStartDateStr())
+      .get();
     mealsAll = [];
     snap.forEach(doc => mealsAll.push(doc.data()));
   } catch (e) { console.error("meal load err", e); }
@@ -11053,13 +11185,55 @@ function refreshDietCalendar(){
   }
 }
 
-document.getElementById('dietCalPrev')?.addEventListener('click', () => {
+// 🔥 최근 창 밖의 달로 넘어갈 때만 그 달의 식단 기록을 온디맨드로 추가 조회
+const mealsFullyLoadedMonths = new Set();
+async function ensureMealsForMonth(year, month){
+  const monthKey = `${year}-${month}`;
+  if (mealsFullyLoadedMonths.has(monthKey)) return false;
+  const user = auth.currentUser;
+  if (!user) { mealsFullyLoadedMonths.add(monthKey); return false; }
+
+  const monthStart = formatTodayYYMMDD(new Date(year, month, 1));
+  const monthEnd = formatTodayYYMMDD(new Date(year, month + 1, 0));
+
+  try {
+    const snap = await db
+      .collection("users")
+      .doc(user.uid)
+      .collection("meals")
+      .where("date", ">=", monthStart)
+      .where("date", "<=", monthEnd)
+      .get();
+
+    const existingIds = new Set(mealsAll.map(m => m.id));
+    let added = false;
+    snap.forEach(doc => {
+      const d = doc.data();
+      if (existingIds.has(d.id)) return;
+      mealsAll.push(d);
+      added = true;
+    });
+
+    mealsFullyLoadedMonths.add(monthKey);
+    if (added) saveMealsToLocal();
+    return added;
+  } catch (e) {
+    console.error("과거 식단 기록 추가 조회 실패", e);
+    return false;
+  }
+}
+
+document.getElementById('dietCalPrev')?.addEventListener('click', async () => {
   dietCalCurrent = new Date(dietCalCurrent.getFullYear(), dietCalCurrent.getMonth() - 1, 1);
   dietCalRender();
+  const added = await ensureMealsForMonth(dietCalCurrent.getFullYear(), dietCalCurrent.getMonth());
+  if (added) dietCalRender();
 });
-document.getElementById('dietCalNext')?.addEventListener('click', () => {
+document.getElementById('dietCalNext')?.addEventListener('click', async () => {
   dietCalCurrent = new Date(dietCalCurrent.getFullYear(), dietCalCurrent.getMonth() + 1, 1);
   dietCalRender();
+  const added = await ensureMealsForMonth(dietCalCurrent.getFullYear(), dietCalCurrent.getMonth());
+  if (added) dietCalRender();
 });
 
 /* ---------- 식단 > 통계 탭: 오늘 요약 차트 + 부족 영양소 기반 음식 추천 ---------- */
