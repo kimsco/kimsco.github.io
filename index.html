@@ -11835,6 +11835,21 @@ function renderWeightTrendChart(){
   const labels = windowDates.map(d => `${d.getMonth() + 1}/${d.getDate()}`);
   const weightValues = keys.map(k => (k in log) ? log[k] : null);
 
+  // 🔥 y축: 맨 처음 기록한 몸무게가 항상 정중앙에 오도록 하고, 기본 범위는
+  //    위/아래 1kg(총 2kg) — 화면엔 5일치만 보이는데 1주일 새 실제 증감량은
+  //    커봤자 1kg 안팎이라서. 실측 데이터가 그보다 더 벌어지면(가장 큰 편차
+  //    기준으로) 대칭으로 범위를 넓힌다. 목표 몸무게는 이 계산에 관여하지 않음.
+  const firstWeight = logDates.length ? log[logDates[0]] : null;
+  let yMin, yMax;
+  if (firstWeight != null) {
+    const deviations = weightValues
+      .filter(v => v != null)
+      .map(v => Math.abs(v - firstWeight));
+    const halfSpan = Math.max(1, ...deviations);
+    yMin = firstWeight - halfSpan;
+    yMax = firstWeight + halfSpan;
+  }
+
   if (dietWeightTrendChartInstance) {
     dietWeightTrendChartInstance.destroy();
     dietWeightTrendChartInstance = null;
@@ -11868,13 +11883,14 @@ function renderWeightTrendChart(){
     options: {
       responsive: false,
       maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
       plugins: {
         legend: { display: false },
         tooltip: { callbacks: { label: (ctx) => ` ${ctx.parsed.y}kg` } },
       },
       scales: {
         x: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.5)', font: { size: 10 } } },
-        y: { display: false }
+        y: { display: false, min: yMin, max: yMax }
       }
     }
   });
