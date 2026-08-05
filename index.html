@@ -11873,6 +11873,7 @@ function renderWeightTrendChart(){
       borderDash: [4, 4],
       pointRadius: 0,
       fill: false,
+      isGoalLine: true, // 🔥 목표선 자체는 그대로 그리되, 터치 시 뜨는 툴팁 항목에서는 제외하기 위한 표식
     });
   }
 
@@ -11886,7 +11887,10 @@ function renderWeightTrendChart(){
       interaction: { mode: 'index', intersect: false },
       plugins: {
         legend: { display: false },
-        tooltip: { callbacks: { label: (ctx) => ` ${ctx.parsed.y}kg` } },
+        tooltip: {
+          filter: (item) => !item.dataset.isGoalLine,
+          callbacks: { label: (ctx) => ` ${ctx.parsed.y}kg` },
+        },
       },
       scales: {
         x: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.5)', font: { size: 10 } } },
