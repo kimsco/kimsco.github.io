@@ -5233,9 +5233,9 @@ document.getElementById('delete-exercise-btn4').addEventListener('click', (e) =>
    카드 상세 렌더링 (핵심)
 ================================ */
 // 🔥 기록 목록 무한스크롤 공통 설정값/헬퍼
-const RECORD_ROWS_INITIAL = 12;
-const RECORD_ROWS_PER_PAGE = 10;
-const accessoryRowsVisible = new Map(); // 운동 이름별로 현재까지 펼친 행 수
+const RECORD_DAYS_INITIAL = 10;
+const RECORD_DAYS_PER_PAGE = 8;
+const accessoryDaysVisible = new Map(); // 운동 이름별로 현재까지 펼친 날짜(일) 수
 
 // rows: [{date, ...}] 형태의 평탄 배열. rowLineHtml(row, showDate)는 한 행의 내용 HTML만 반환.
 // 날짜 라벨/구분선은 배열 상의 앞뒤 행과 비교해 그때그때 계산하므로, 어느 지점에서 잘라도 자연스럽다.
@@ -5250,10 +5250,33 @@ function buildFlatRowsHtml(rows, rowLineHtml){
   }).join('');
 }
 
+// rows: 날짜순으로 그룹된 평탄 배열([{date, ...}]) 안의 고유 날짜 개수.
+function countDistinctDays(rows){
+  let count = 0, last = undefined;
+  for (const row of rows) {
+    if (row.date !== last) { count++; last = row.date; }
+  }
+  return count;
+}
+
+// rows 앞에서부터 서로 다른 날짜를 dayCount개 채운 지점(그 날짜의 마지막 행까지 포함)에서 자른다.
+function takeRowsThroughDays(rows, dayCount){
+  if (dayCount <= 0) return [];
+  let seenDays = 0, last = undefined, cut = rows.length;
+  for (let i = 0; i < rows.length; i++) {
+    if (rows[i].date !== last) {
+      seenDays++;
+      last = rows[i].date;
+      if (seenDays > dayCount) { cut = i; break; }
+    }
+  }
+  return rows.slice(0, cut);
+}
+
 // containerEl 맨 끝에 로딩 스피너 sentinel을 붙이고, 스크롤로 뷰포트에 들어오면
-// 로컬에 더 보여줄 행이 있으면 그걸 먼저 펼치고, 없으면 서버에서 과거분을 온디맨드로 조회한다.
-function setupRecordInfiniteScroll(containerEl, totalRows, visibleCount, hasMoreRemote, onLoadMoreLocal, onFetchRemote){
-  const hasMoreLocal = totalRows > visibleCount;
+// 로컬에 더 보여줄 날짜가 있으면 그걸 먼저 펼치고, 없으면 서버에서 과거분을 온디맨드로 조회한다.
+function setupRecordInfiniteScroll(containerEl, totalUnits, visibleUnits, hasMoreRemote, onLoadMoreLocal, onFetchRemote){
+  const hasMoreLocal = totalUnits > visibleUnits;
   if (!hasMoreLocal && !hasMoreRemote) return;
 
   const sentinel = document.createElement('div');
@@ -5318,9 +5341,10 @@ function renderAccessoryRecords(exerciseName) {
     return;
   }
 
-  if (!accessoryRowsVisible.has(exerciseName)) accessoryRowsVisible.set(exerciseName, RECORD_ROWS_INITIAL);
-  const visibleCount = Math.min(accessoryRowsVisible.get(exerciseName), flatRows.length);
-  const visibleRows = flatRows.slice(0, visibleCount);
+  if (!accessoryDaysVisible.has(exerciseName)) accessoryDaysVisible.set(exerciseName, RECORD_DAYS_INITIAL);
+  const totalDays = countDistinctDays(flatRows);
+  const visibleDays = Math.min(accessoryDaysVisible.get(exerciseName), totalDays);
+  const visibleRows = takeRowsThroughDays(flatRows, visibleDays);
 
   el.innerHTML = buildFlatRowsHtml(visibleRows, (row, showDate) => {
     const r = row.r;
@@ -5341,14 +5365,14 @@ function renderAccessoryRecords(exerciseName) {
     `;
   });
 
-  setupRecordInfiniteScroll(el, flatRows.length, visibleCount, !exerciseHistoryFullyLoaded.has(exerciseName),
+  setupRecordInfiniteScroll(el, totalDays, visibleDays, !exerciseHistoryFullyLoaded.has(exerciseName),
     () => {
-      accessoryRowsVisible.set(exerciseName, visibleCount + RECORD_ROWS_PER_PAGE);
+      accessoryDaysVisible.set(exerciseName, visibleDays + RECORD_DAYS_PER_PAGE);
       renderAccessoryRecords(exerciseName);
     },
     async () => {
       const added = await ensureExerciseHistory(exerciseName);
-      if (added) accessoryRowsVisible.set(exerciseName, visibleCount + RECORD_ROWS_PER_PAGE);
+      if (added) accessoryDaysVisible.set(exerciseName, visibleDays + RECORD_DAYS_PER_PAGE);
       renderAccessoryRecords(exerciseName);
     }
   );
@@ -5572,7 +5596,8 @@ async function ensureFullLiftHistory(liftKey){
 recordDate.value = formatTodayYYMMDD();
 
 // 렌더 함수: 현재 active folder의 목록을 그려줌
-const liftRowsVisible = { bench: RECORD_ROWS_INITIAL, squat: RECORD_ROWS_INITIAL, dead: RECORD_ROWS_INITIAL, ohp: RECORD_ROWS_INITIAL };
+// 리프트별로 현재까지 펼친 날짜(일) 수
+const liftDaysVisible = { bench: RECORD_DAYS_INITIAL, squat: RECORD_DAYS_INITIAL, dead: RECORD_DAYS_INITIAL, ohp: RECORD_DAYS_INITIAL };
 
 function buildFlatLiftRows(liftKey){
     const arr = records[liftKey] || [];
@@ -5640,9 +5665,10 @@ function renderActiveBox(){
         return;
     }
 
-    if (!liftRowsVisible[liftKey]) liftRowsVisible[liftKey] = RECORD_ROWS_INITIAL;
-    const visibleCount = Math.min(liftRowsVisible[liftKey], flatRows.length);
-    const visibleRows = flatRows.slice(0, visibleCount);
+    if (!liftDaysVisible[liftKey]) liftDaysVisible[liftKey] = RECORD_DAYS_INITIAL;
+    const totalDays = countDistinctDays(flatRows);
+    const visibleDays = Math.min(liftDaysVisible[liftKey], totalDays);
+    const visibleRows = takeRowsThroughDays(flatRows, visibleDays);
 
     boxEl.innerHTML = buildFlatRowsHtml(visibleRows, (row, showDate) => {
         const p = row.packedItem;
@@ -5669,14 +5695,14 @@ function renderActiveBox(){
         `;
     });
 
-    setupRecordInfiniteScroll(boxEl, flatRows.length, visibleCount, !liftFullHistoryLoaded[liftKey],
+    setupRecordInfiniteScroll(boxEl, totalDays, visibleDays, !liftFullHistoryLoaded[liftKey],
         () => {
-            liftRowsVisible[liftKey] = visibleCount + RECORD_ROWS_PER_PAGE;
+            liftDaysVisible[liftKey] = visibleDays + RECORD_DAYS_PER_PAGE;
             renderActiveBox();
         },
         async () => {
             const added = await ensureFullLiftHistory(liftKey);
-            if (added) liftRowsVisible[liftKey] = visibleCount + RECORD_ROWS_PER_PAGE;
+            if (added) liftDaysVisible[liftKey] = visibleDays + RECORD_DAYS_PER_PAGE;
             renderActiveBox();
         }
     );
