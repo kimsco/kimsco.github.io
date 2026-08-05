@@ -411,6 +411,26 @@ button {
     color: rgba(255,255,255,0.92);
 }
 
+.load-older-records-btn {
+    -webkit-appearance: none;
+    appearance: none;
+    display: block;
+    width: 100%;
+    margin: 10px 0 0;
+    padding: 10px 0;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 8px;
+    background: transparent;
+    color: rgba(255,255,255,0.7);
+    font-size: 12.5px;
+    font-weight: 600;
+    text-align: center;
+    cursor: pointer;
+}
+.load-older-records-btn:active {
+    background: rgba(255,255,255,0.08);
+}
+
 .folderContent.active {
     display: block;
 }
@@ -5214,6 +5234,18 @@ document.getElementById('delete-exercise-btn4').addEventListener('click', (e) =>
 /* ===============================
    카드 상세 렌더링 (핵심)
 ================================ */
+// 🔥 "이전 기록 더 보기" 버튼 클릭 시 온디맨드 조회 → 재렌더까지 공통 처리
+function wireLoadOlderRecordsBtn(btnId, fetchOlderFn, rerenderFn){
+  const btn = document.getElementById(btnId);
+  if (!btn) return;
+  btn.addEventListener('click', async () => {
+    btn.disabled = true;
+    btn.textContent = '불러오는 중...';
+    await fetchOlderFn();
+    rerenderFn();
+  });
+}
+
 function renderAccessoryRecords(exerciseName) {
   const el = document.getElementById('acc-records');
   if (!el) return;
@@ -5230,8 +5262,12 @@ function renderAccessoryRecords(exerciseName) {
   });
   if (backfilled) saveAccRecordsToLocal();
 
+  const olderLoaded = exerciseHistoryFullyLoaded.has(exerciseName);
+  const loadOlderBtnHtml = olderLoaded ? '' : `<button type="button" id="accLoadOlderBtn" class="load-older-records-btn">이전 기록 더 보기</button>`;
+
   if (!list.length) {
-    el.innerHTML = `<div style="color:#777;font-size:13px;">기록이 여기에 쌓입니다</div>`;
+    el.innerHTML = `<div style="color:#777;font-size:13px;">기록이 여기에 쌓입니다</div>${loadOlderBtnHtml}`;
+    wireLoadOlderRecordsBtn('accLoadOlderBtn', () => ensureExerciseHistory(exerciseName), () => renderAccessoryRecords(exerciseName));
     return;
   }
 
@@ -5272,7 +5308,9 @@ function renderAccessoryRecords(exerciseName) {
         <div style="border-bottom:1px solid rgba(255,255,255,0.12); margin-top:10px;"></div>
       </div>
     `;
-  }).join("");
+  }).join("") + loadOlderBtnHtml;
+
+  wireLoadOlderRecordsBtn('accLoadOlderBtn', () => ensureExerciseHistory(exerciseName), () => renderAccessoryRecords(exerciseName));
 }
 
 
@@ -5441,6 +5479,51 @@ function getRecentWindowStartDateStr(baseDate = new Date()){
   return formatTodayYYMMDD(d);
 }
 
+// 🔥 최근 창 밖의 과거 리프트 기록을, 그래프를 열거나 "이전 기록 더 보기"를 누를 때만
+//    온디맨드로 추가 조회해서 병합한다 (리프트별로 한 번만).
+const liftFullHistoryLoaded = { bench: false, squat: false, dead: false, ohp: false };
+async function ensureFullLiftHistory(liftKey){
+  if (liftFullHistoryLoaded[liftKey]) return false;
+  const user = auth.currentUser;
+  if (!user) { liftFullHistoryLoaded[liftKey] = true; return false; }
+
+  try {
+    const snap = await db
+      .collection("users")
+      .doc(user.uid)
+      .collection("records")
+      .where("lift", "==", liftKey)
+      .where("date", "<", getRecentWindowStartDateStr())
+      .get();
+
+    const existingIds = new Set((records[liftKey] || []).map(r => r.firestoreId));
+    let added = false;
+    snap.forEach(doc => {
+      if (existingIds.has(doc.id)) return;
+      const d = doc.data();
+      records[liftKey].push({
+        firestoreId: doc.id,
+        date: d.date,
+        weight: d.weight,
+        reps: d.reps,
+        sets: 1,
+        createdAt: d.createdAt?.toMillis?.() || 0,
+        firstAt:  d.createdAt?.toMillis?.() || 0,
+        lastAt:   d.createdAt?.toMillis?.() || 0,
+        updatedAt: d.createdAt?.toMillis?.() || 0
+      });
+      added = true;
+    });
+
+    liftFullHistoryLoaded[liftKey] = true;
+    if (added) saveRecordsToLocal();
+    return added;
+  } catch (e) {
+    console.error("과거 리프트 기록 추가 조회 실패", e);
+    return false;
+  }
+}
+
 // 초기 날짜 표시
 recordDate.value = formatTodayYYMMDD();
 
@@ -5456,9 +5539,13 @@ function renderActiveBox(){
     else if(target === 'ohpBox')  arr = records.ohp;
 
     const boxEl = document.getElementById(target);
+    const liftKey = target.replace('Box', '').toLowerCase();
+    const olderLoaded = liftFullHistoryLoaded[liftKey];
+    const loadOlderBtnHtml = olderLoaded ? '' : `<button type="button" id="liftLoadOlderBtn" class="load-older-records-btn">이전 기록 더 보기</button>`;
 
     if(!arr || arr.length === 0){
-        boxEl.innerHTML = `<div style="color:#777;font-size:13px;">기록이 여기에 쌓입니다</div>`;
+        boxEl.innerHTML = `<div style="color:#777;font-size:13px;">기록이 여기에 쌓입니다</div>${loadOlderBtnHtml}`;
+        wireLoadOlderRecordsBtn('liftLoadOlderBtn', () => ensureFullLiftHistory(liftKey), () => renderActiveBox());
         return;
     }
 
@@ -5530,7 +5617,9 @@ function renderActiveBox(){
                 <div style="border-bottom:1px solid rgba(255,255,255,0.12); margin-top:10px;"></div>
             </div>
         `;
-    }).join('');
+    }).join('') + loadOlderBtnHtml;
+
+    wireLoadOlderRecordsBtn('liftLoadOlderBtn', () => ensureFullLiftHistory(liftKey), () => renderActiveBox());
 }
 renderActiveBox();
 
@@ -10114,51 +10203,6 @@ function getActiveLiftKey(){
        : target === "squatBox" ? "squat"
        : target === "deadBox"  ? "dead"
        : "ohp";
-}
-
-// 🔥 그래프는 전체 기간을 보여줘야 하므로, 최근 N개월 창 밖의 과거 기록을
-//    그래프를 열 때만 온디맨드로 추가 조회해서 병합한다 (리프트별로 한 번만).
-const liftFullHistoryLoaded = { bench: false, squat: false, dead: false, ohp: false };
-async function ensureFullLiftHistory(liftKey){
-  if (liftFullHistoryLoaded[liftKey]) return false;
-  const user = auth.currentUser;
-  if (!user) { liftFullHistoryLoaded[liftKey] = true; return false; }
-
-  try {
-    const snap = await db
-      .collection("users")
-      .doc(user.uid)
-      .collection("records")
-      .where("lift", "==", liftKey)
-      .where("date", "<", getRecentWindowStartDateStr())
-      .get();
-
-    const existingIds = new Set((records[liftKey] || []).map(r => r.firestoreId));
-    let added = false;
-    snap.forEach(doc => {
-      if (existingIds.has(doc.id)) return;
-      const d = doc.data();
-      records[liftKey].push({
-        firestoreId: doc.id,
-        date: d.date,
-        weight: d.weight,
-        reps: d.reps,
-        sets: 1,
-        createdAt: d.createdAt?.toMillis?.() || 0,
-        firstAt:  d.createdAt?.toMillis?.() || 0,
-        lastAt:   d.createdAt?.toMillis?.() || 0,
-        updatedAt: d.createdAt?.toMillis?.() || 0
-      });
-      added = true;
-    });
-
-    liftFullHistoryLoaded[liftKey] = true;
-    if (added) saveRecordsToLocal();
-    return added;
-  } catch (e) {
-    console.error("과거 리프트 기록 추가 조회 실패", e);
-    return false;
-  }
 }
 
 function openSheet(liftKey){
