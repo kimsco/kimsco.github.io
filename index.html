@@ -2933,8 +2933,9 @@ input[type="number"] {
   color: #eee;
 }
 .meal-log-time {
-  font-size: 11px;
-  color: rgba(255,255,255,0.35);
+  font-size: 13px;
+  color: #fff;
+  font-weight: 600;
 }
 .meal-log-protein {
   font-size: 13px;
@@ -12490,7 +12491,6 @@ function renderTodayMealList(){
   el.innerHTML = "";
   todayMeals.forEach(m => {
     const count = m.count || 1;
-    const totalProtein = (Number(m.protein) || 0) * count;
     const nameLabel = count > 1 ? `${m.name} x ${count}` : m.name;
 
     const row = document.createElement("div");
@@ -12501,7 +12501,6 @@ function renderTodayMealList(){
       </div>
       <div style="display:flex; align-items:center; gap:10px;">
         <div class="meal-log-time">${m.time || ""}</div>
-        <div class="meal-log-protein">${totalProtein}g</div>
         <button class="mealDeleteBtn" data-id="${m.id}" style="background:none; border:none; color:#666; font-size:16px; cursor:pointer; padding:4px;">×</button>
       </div>
     `;
