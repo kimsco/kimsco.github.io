@@ -2757,7 +2757,10 @@ input[type="number"] {
 }
 
 .food-template-card {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
   background: transparent;
   border: none;
   border-bottom: 1px solid rgba(255,255,255,0.1);
@@ -2769,6 +2772,21 @@ input[type="number"] {
   font-size: 14px;
   font-weight: 500;
   color: #fff;
+}
+.food-template-card .food-template-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* 🔥 카드 우측(찾기 패널이 열리면 덮이는 자리)에 탄단지 표시 —
+   음식 DB 검색 카드(.diet-stats-reco-macro)와 같은 작은 노란 글씨 스타일 재사용 */
+.food-template-macro {
+  font-size: 11px;
+  color: #FFD700;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .diet-food-split-scroll {
@@ -12205,7 +12223,10 @@ function renderFoodTemplateList(){
   foodTemplates.forEach(item => {
     const card = document.createElement("div");
     card.className = "food-template-card";
-    card.innerHTML = `<div class="food-template-name">${item.name}</div>`;
+    card.innerHTML = `
+      <div class="food-template-name">${item.name}</div>
+      <div class="food-template-macro">탄 ${item.carb || 0} · 단 ${item.protein || 0} · 지 ${item.fat || 0}</div>
+    `;
 
     // 🔥 길게 누르면 삭제
     attachLongPress(card, {
