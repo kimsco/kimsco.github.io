@@ -2935,7 +2935,6 @@ input[type="number"] {
 .meal-log-time {
   font-size: 11px;
   color: rgba(255,255,255,0.35);
-  margin-top: 2px;
 }
 .meal-log-protein {
   font-size: 13px;
@@ -12365,9 +12364,11 @@ function addMealFromTemplate(item){
   const carb = Number(item.carb) || 0;
   const fat = Number(item.fat) || 0;
 
-  // 🔥 오늘 이미 같은 음식(이름+매크로)이 있으면 개수만 +1
+  // 🔥 같은 시간대(분 단위)에 같은 음식(이름+매크로)을 또 등록한 경우에만 개수 +1.
+  // 시간대가 다르면(예: 아침에 먹은 것과 저녁에 먹은 것) 합치지 않고 별도 기록으로 쌓는다.
   const existing = mealsAll.find(m =>
     m.date === today &&
+    m.time === nowLabel &&
     m.name === item.name &&
     (Number(m.protein) || 0) === protein &&
     (Number(m.carb) || 0) === carb &&
@@ -12497,9 +12498,9 @@ function renderTodayMealList(){
     row.innerHTML = `
       <div>
         <div class="meal-log-name" data-id="${m.id}">${nameLabel}</div>
-        <div class="meal-log-time">${m.time || ""}</div>
       </div>
       <div style="display:flex; align-items:center; gap:10px;">
+        <div class="meal-log-time">${m.time || ""}</div>
         <div class="meal-log-protein">${totalProtein}g</div>
         <button class="mealDeleteBtn" data-id="${m.id}" style="background:none; border:none; color:#666; font-size:16px; cursor:pointer; padding:4px;">×</button>
       </div>
