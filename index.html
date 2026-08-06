@@ -12225,7 +12225,7 @@ function renderFoodTemplateList(){
     card.className = "food-template-card";
     card.innerHTML = `
       <div class="food-template-name">${item.name}</div>
-      <div class="food-template-macro">탄수화물 ${item.carb || 0}g · 단백질 ${item.protein || 0}g · 지방 ${item.fat || 0}g</div>
+      <div class="food-template-macro">탄수 ${item.carb || 0}g · 단백질 ${item.protein || 0}g · 지방 ${item.fat || 0}g</div>
     `;
 
     // 🔥 길게 누르면 삭제
