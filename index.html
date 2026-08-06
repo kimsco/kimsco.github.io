@@ -4669,11 +4669,11 @@ input[type="number"] {
       <input id="foodModalName" type="text" placeholder="예: 닭가슴살 100g">
       <label>음식 이름</label>
 
-      <input id="foodModalProtein" type="number" placeholder="예: 24">
-      <label>단백질 (g)</label>
-
       <input id="foodModalCarb" type="number" placeholder="비워도 됨">
       <label>탄수화물 (g)</label>
+
+      <input id="foodModalProtein" type="number" placeholder="예: 24">
+      <label>단백질 (g)</label>
 
       <input id="foodModalFat" type="number" placeholder="비워도 됨">
       <label>지방 (g)</label>
@@ -12041,6 +12041,58 @@ function renderDietStats(){
   });
 }
 
+/* 🔥 꾹 누르기(롱프레스) 제스처 공용 헬퍼: 짧게 탭하면 onTap, 600ms 이상 누르고 있으면
+   onHold. 손가락/마우스가 12px 넘게 움직이면 롱프레스로 안 치고 취소. */
+function attachLongPress(el, { onTap, onHold, holdMs = 600, tolerance = 12 }){
+  let holdTimer = null;
+  let holdStartX = 0, holdStartY = 0;
+  let longPressFired = false;
+
+  function startHold(x, y){
+    longPressFired = false;
+    holdStartX = x; holdStartY = y;
+    holdTimer = setTimeout(() => {
+      longPressFired = true;
+      onHold();
+    }, holdMs);
+  }
+  function cancelHold(){ clearTimeout(holdTimer); }
+
+  el.addEventListener("mousedown", e => startHold(e.clientX, e.clientY));
+  el.addEventListener("mouseup", cancelHold);
+  el.addEventListener("mouseleave", cancelHold);
+
+  el.addEventListener("touchstart", e => {
+    const t = e.touches[0];
+    startHold(t.clientX, t.clientY);
+  }, { passive: true });
+  el.addEventListener("touchmove", e => {
+    const t = e.touches[0];
+    const dx = Math.abs(t.clientX - holdStartX);
+    const dy = Math.abs(t.clientY - holdStartY);
+    if (dx > tolerance || dy > tolerance) cancelHold();
+  }, { passive: true });
+  el.addEventListener("touchend", cancelHold);
+
+  el.addEventListener("click", () => {
+    if (longPressFired) { longPressFired = false; return; }
+    onTap();
+  });
+}
+
+// 🔥 템플릿 등록 모달/우측 음식 DB 롱프레스 둘 다 이걸로 실제 저장을 처리
+function addFoodTemplateItem({ name, protein, carb, fat }){
+  const item = {
+    id: "food_" + Date.now() + "_" + Math.random().toString(16).slice(2),
+    name, protein: protein || 0, carb: carb || 0, fat: fat || 0
+  };
+  foodTemplates.unshift(item);
+  saveFoodTemplatesToLocal();
+  saveFoodTemplateToFirestore(item);
+  renderFoodTemplateList();
+  return item;
+}
+
 /* ---------- 식단 템플릿 ---------- */
 function renderFoodTemplateList(){
   const el = document.getElementById("foodTemplateList");
@@ -12055,50 +12107,22 @@ function renderFoodTemplateList(){
     card.className = "food-template-card";
     card.innerHTML = `<div class="food-template-name">${item.name}</div>`;
 
-    // 🔥 길게 누르면 삭제 (카드마다 독립적으로 처리, 다른 시스템과 안 겹침)
-    let holdTimer = null;
-    let holdStartX = 0, holdStartY = 0;
-    let longPressFired = false;
-    const HOLD_TOLERANCE = 12;
-
-    function startHold(x, y){
-      longPressFired = false;
-      holdStartX = x; holdStartY = y;
-      holdTimer = setTimeout(() => {
-        longPressFired = true;
+    // 🔥 길게 누르면 삭제
+    attachLongPress(card, {
+      onTap: () => addMealFromTemplate(item),
+      onHold: () => {
         if (confirm(`"${item.name}" 템플릿을 삭제할까요?`)) {
           deleteFoodTemplate(item.id);
         }
-      }, 600);
-    }
-    function cancelHold(){ clearTimeout(holdTimer); }
-
-    card.addEventListener("mousedown", e => startHold(e.clientX, e.clientY));
-    card.addEventListener("mouseup", cancelHold);
-    card.addEventListener("mouseleave", cancelHold);
-
-    card.addEventListener("touchstart", e => {
-      const t = e.touches[0];
-      startHold(t.clientX, t.clientY);
-    }, { passive: true });
-    card.addEventListener("touchmove", e => {
-      const t = e.touches[0];
-      const dx = Math.abs(t.clientX - holdStartX);
-      const dy = Math.abs(t.clientY - holdStartY);
-      if (dx > HOLD_TOLERANCE || dy > HOLD_TOLERANCE) cancelHold();
-    }, { passive: true });
-    card.addEventListener("touchend", cancelHold);
-
-    card.addEventListener("click", () => {
-      if (longPressFired) { longPressFired = false; return; }
-      addMealFromTemplate(item);
+      },
     });
 
     el.appendChild(card);
   });
 }
 
-/* 🔥 "내 식단" 우측: 준비된 음식 DB(FOOD_DB) 검색 + 클릭 시 오늘 식단에 바로 추가 */
+/* 🔥 "내 식단" 우측: 준비된 음식 DB(FOOD_DB) 검색 + 클릭 시 오늘 식단에 바로 추가,
+   길게 누르면 내 식단 템플릿(좌측)으로 가져옴 */
 function renderFoodDbList(filterText = ""){
   const el = document.getElementById("foodDbList");
   const q = filterText.trim().toLowerCase();
@@ -12117,7 +12141,10 @@ function renderFoodDbList(filterText = ""){
       <div class="food-template-name">${f.name}</div>
       <div class="diet-stats-reco-macro">단백질 ${f.protein}g · 탄수 ${f.carb}g · 지방 ${f.fat}g</div>
     `;
-    card.addEventListener("click", () => addMealFromTemplate(f));
+    attachLongPress(card, {
+      onTap: () => addMealFromTemplate(f),
+      onHold: () => addFoodTemplateItem(f),
+    });
     el.appendChild(card);
   });
 }
@@ -12148,8 +12175,8 @@ function deleteFoodTemplate(id){
 const foodTemplateModal = document.getElementById("foodTemplateModal");
 document.getElementById("addFoodTemplateBtn").addEventListener("click", () => {
   document.getElementById("foodModalName").value = "";
-  document.getElementById("foodModalProtein").value = "";
   document.getElementById("foodModalCarb").value = "";
+  document.getElementById("foodModalProtein").value = "";
   document.getElementById("foodModalFat").value = "";
   foodTemplateModal.classList.remove("hidden");
 });
@@ -12158,8 +12185,8 @@ document.getElementById("foodModalCancel").addEventListener("click", () => {
 });
 document.getElementById("foodModalSave").addEventListener("click", () => {
   const name = document.getElementById("foodModalName").value.trim();
-  const protein = parseFloat(document.getElementById("foodModalProtein").value) || 0;
   const carb = parseFloat(document.getElementById("foodModalCarb").value) || 0;
+  const protein = parseFloat(document.getElementById("foodModalProtein").value) || 0;
   const fat = parseFloat(document.getElementById("foodModalFat").value) || 0;
 
   if (!name) {
@@ -12167,15 +12194,7 @@ document.getElementById("foodModalSave").addEventListener("click", () => {
     return;
   }
 
-  const item = {
-    id: "food_" + Date.now() + "_" + Math.random().toString(16).slice(2),
-    name, protein, carb, fat
-  };
-
-  foodTemplates.unshift(item);
-  saveFoodTemplatesToLocal();
-  saveFoodTemplateToFirestore(item);
-  renderFoodTemplateList();
+  addFoodTemplateItem({ name, protein, carb, fat });
   foodTemplateModal.classList.add("hidden");
 });
 
