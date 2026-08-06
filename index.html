@@ -12142,11 +12142,26 @@ function renderFoodTemplateList(){
   });
 }
 
-/* 🔥 "내 식단" 우측: 준비된 음식 DB(FOOD_DB) 검색 + 클릭 시 오늘 식단에 바로 추가,
-   길게 누르면 내 식단 템플릿(좌측)으로 가져옴 */
+/* 🔥 "내 식단" 우측: 준비된 음식 DB(FOOD_DB, 3,763건) 검색 + 클릭 시 오늘 식단에 바로 추가,
+   길게 누르면 내 식단 템플릿(좌측)으로 가져옴.
+   전체를 한 번에 DOM에 그리면(카드마다 롱프레스 리스너 여러 개씩 붙어서) 수천 개 노드가
+   생겨 openDietOverlay()의 강제 리플로우(offsetHeight)가 아주 느려지는 문제가 있었음
+   — 처음엔 30개만 그리고 스크롤하면 30개씩 더 펼치는 방식으로 변경(기록 목록 무한스크롤과
+   동일한 setupRecordInfiniteScroll 재사용, 서버 조회는 필요 없어 hasMoreRemote는 항상 false). */
+const FOOD_DB_LIST_INITIAL = 30;
+const FOOD_DB_LIST_PER_PAGE = 30;
+let foodDbListVisibleCount = FOOD_DB_LIST_INITIAL;
+let foodDbListLastFilter = null;
+
 function renderFoodDbList(filterText = ""){
   const el = document.getElementById("foodDbList");
   const q = filterText.trim().toLowerCase();
+
+  if (q !== foodDbListLastFilter) {
+    foodDbListVisibleCount = FOOD_DB_LIST_INITIAL; // 검색어가 바뀌면 처음부터 다시
+    foodDbListLastFilter = q;
+  }
+
   const list = q ? FOOD_DB.filter(f => f.name.toLowerCase().includes(q)) : FOOD_DB;
 
   if (!list.length) {
@@ -12154,8 +12169,11 @@ function renderFoodDbList(filterText = ""){
     return;
   }
 
+  const visibleCount = Math.min(foodDbListVisibleCount, list.length);
+  const visible = list.slice(0, visibleCount);
+
   el.innerHTML = "";
-  list.forEach(f => {
+  visible.forEach(f => {
     const card = document.createElement("div");
     card.className = "diet-food-db-card";
     card.innerHTML = `
@@ -12171,6 +12189,14 @@ function renderFoodDbList(filterText = ""){
     });
     el.appendChild(card);
   });
+
+  setupRecordInfiniteScroll(el, list.length, visibleCount, false,
+    () => {
+      foodDbListVisibleCount = visibleCount + FOOD_DB_LIST_PER_PAGE;
+      renderFoodDbList(filterText);
+    },
+    () => {} // 서버 조회 없음 — FOOD_DB는 이미 전부 메모리에 있음
+  );
 }
 
 // 🔥 우측 음식 DB 카드를 꾹 눌렀을 때 "내 템플릿에 저장" 확인 팝업에서 쓸 대상
