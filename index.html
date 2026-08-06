@@ -2818,32 +2818,27 @@ input[type="number"] {
   color: #fff;
 }
 
-/* 🔥 "찾기" 버튼으로 여는 음식 DB 검색 슬라이드 드로어(오른쪽에서 튀어나옴) */
-.food-search-drawer-overlay {
-  position: fixed;
+/* 🔥 "찾기" 버튼으로 여는 음식 DB 검색 패널 — 전체 화면이 아니라 "내 식단" 템플릿
+   박스 안에서만 우→좌로 슬라이드해 그 자리의 템플릿 목록을 덮는다 */
+.food-template-box {
+  position: relative;
+  height: 320px;
+  overflow: hidden;
+}
+.food-search-panel {
+  position: absolute;
   inset: 0;
-  z-index: 150000;
-  display: flex;
-  justify-content: flex-end;
-  background: rgba(0,0,0,0.5);
-}
-.food-search-drawer-overlay.hidden {
-  display: none;
-}
-.food-search-drawer {
-  width: 60%;
-  height: 100%;
   background: #000;
-  border-left: 1px solid rgba(255,255,255,0.14);
-  padding: calc(20px + env(safe-area-inset-top)) 16px 20px;
+  padding: 8px 4px 4px;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   transform: translateX(100%);
-  animation: foodSearchDrawerSlideIn 0.25s ease forwards;
+  transition: transform 0.28s ease;
+  z-index: 1;
 }
-@keyframes foodSearchDrawerSlideIn {
-  to { transform: translateX(0); }
+.food-search-panel.open {
+  transform: translateX(0);
 }
 .food-search-drawer-header {
   display: flex;
@@ -2868,8 +2863,8 @@ input[type="number"] {
   padding: 4px 6px;
   cursor: pointer;
 }
-/* 드로어 안에서는 고정 320px 대신 남은 세로 공간을 다 씀 */
-.food-search-drawer .diet-food-split-scroll {
+/* 패널 안에서는 고정 320px 대신 남은 세로 공간을 다 씀 */
+.food-search-panel .diet-food-split-scroll {
   height: auto;
   flex: 1;
 }
@@ -4114,7 +4109,18 @@ input[type="number"] {
         <span>찾기</span>
       </button>
 
-      <div id="foodTemplateList" class="diet-food-split-scroll" style="height:320px;"></div>
+      <div class="food-template-box">
+        <div id="foodTemplateList" class="diet-food-split-scroll" style="height:320px;"></div>
+
+        <div id="foodSearchPanel" class="food-search-panel">
+          <div class="food-search-drawer-header">
+            <div class="food-search-drawer-title">음식 찾기</div>
+            <button id="closeFoodSearchDrawerBtn" class="food-search-drawer-close" aria-label="닫기">✕</button>
+          </div>
+          <input id="foodDbSearchInput" type="text" class="diet-food-db-search" placeholder="검색">
+          <div id="foodDbList" class="diet-food-split-scroll"></div>
+        </div>
+      </div>
 
       <button id="quickAddMealBtn" type="button" class="quick-add-meal-btn">추가</button>
 
@@ -4781,18 +4787,6 @@ input[type="number"] {
       <button id="foodDbSaveCancelBtn" class="modal-btn">취소</button>
       <button id="foodDbSaveConfirmBtn" class="modal-btn">저장</button>
     </div>
-  </div>
-</div>
-
-<!-- 🔥 "찾기" 버튼을 누르면 우측에서 슬라이드로 튀어나오는 음식 DB 검색 패널 -->
-<div id="foodSearchDrawerOverlay" class="food-search-drawer-overlay hidden">
-  <div class="food-search-drawer">
-    <div class="food-search-drawer-header">
-      <div class="food-search-drawer-title">음식 찾기</div>
-      <button id="closeFoodSearchDrawerBtn" class="food-search-drawer-close" aria-label="닫기">✕</button>
-    </div>
-    <input id="foodDbSearchInput" type="text" class="diet-food-db-search" placeholder="검색">
-    <div id="foodDbList" class="diet-food-split-scroll"></div>
   </div>
 </div>
 
@@ -9313,7 +9307,6 @@ document.body.appendChild(dietSubTabBar);
 document.body.appendChild(document.getElementById('foodTemplateModal'));
 document.body.appendChild(document.getElementById('quickAddMealModal'));
 document.body.appendChild(document.getElementById('foodDbSaveConfirmModal'));
-document.body.appendChild(document.getElementById('foodSearchDrawerOverlay'));
 document.body.appendChild(document.getElementById('weightModal'));
 
 /* 🔥 안전장치: 화면이 꺼졌다 켜지거나 앱이 백그라운드에서 돌아올 때,
@@ -12289,16 +12282,14 @@ document.getElementById("foodDbSearchInput").addEventListener("input", (e) => {
 });
 renderFoodDbList();
 
-// 🔥 "찾기" 버튼으로 여는 음식 DB 검색 슬라이드 드로어
-const foodSearchDrawerOverlay = document.getElementById("foodSearchDrawerOverlay");
+// 🔥 "찾기" 버튼으로 "내 식단" 템플릿 박스 안에서 우→좌로 슬라이드해 여는 음식 DB 검색 패널
+//    (전체 화면을 덮는 오버레이가 아니라, 템플릿 목록이 있던 그 자리에서만 나타남)
+const foodSearchPanel = document.getElementById("foodSearchPanel");
 document.getElementById("openFoodSearchDrawerBtn").addEventListener("click", () => {
-  foodSearchDrawerOverlay.classList.remove("hidden");
+  foodSearchPanel.classList.add("open");
 });
 document.getElementById("closeFoodSearchDrawerBtn").addEventListener("click", () => {
-  foodSearchDrawerOverlay.classList.add("hidden");
-});
-foodSearchDrawerOverlay.addEventListener("click", (e) => {
-  if (e.target === foodSearchDrawerOverlay) foodSearchDrawerOverlay.classList.add("hidden");
+  foodSearchPanel.classList.remove("open");
 });
 
 // 🔥 식약처 식품영양성분DB 정제본(3,763건)을 온디맨드로 불러와 위 100개 하드코딩
