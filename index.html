@@ -2771,34 +2771,11 @@ input[type="number"] {
   color: #fff;
 }
 
-/* 🔥 "내 식단" 좌(템플릿)/우(음식 DB 검색) 50:50 분할 */
-.diet-food-split-row {
-  display: flex;
-  gap: 14px;
-  margin-bottom: 14px;
-}
-.diet-food-split-half {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-}
-.diet-food-split-divider {
-  width: 1px;
-  align-self: stretch;
-  background: rgba(255,255,255,0.14);
-  flex-shrink: 0;
-}
 .diet-food-split-scroll {
   height: 320px;
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
-}
-/* 반폭 컬럼 안에서는 풀블리드용 음수 마진을 쓰면 옆 컬럼을 침범하므로 오버라이드 */
-.diet-food-split-half .food-template-card {
-  margin: 0;
-  padding: 12px 4px;
 }
 .diet-food-db-search {
   width: 100%;
@@ -2816,6 +2793,85 @@ input[type="number"] {
   padding: 12px 4px;
   border-bottom: 1px solid rgba(255,255,255,0.1);
   cursor: pointer;
+}
+
+/* 🔥 "내 식단" 헤더 바로 밑, 템플릿 목록 위에 있는 "찾기" 버튼 — 누르면 우측 드로어가 열림 */
+.food-search-open-btn {
+  -webkit-appearance: none;
+  appearance: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px 4px;
+  margin: 0 0 4px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.85);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+}
+.food-search-open-btn:active {
+  color: #fff;
+}
+
+/* 🔥 "찾기" 버튼으로 여는 음식 DB 검색 슬라이드 드로어(오른쪽에서 튀어나옴) */
+.food-search-drawer-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 150000;
+  display: flex;
+  justify-content: flex-end;
+  background: rgba(0,0,0,0.5);
+}
+.food-search-drawer-overlay.hidden {
+  display: none;
+}
+.food-search-drawer {
+  width: 60%;
+  height: 100%;
+  background: #000;
+  border-left: 1px solid rgba(255,255,255,0.14);
+  padding: calc(20px + env(safe-area-inset-top)) 16px 20px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  animation: foodSearchDrawerSlideIn 0.25s ease forwards;
+}
+@keyframes foodSearchDrawerSlideIn {
+  to { transform: translateX(0); }
+}
+.food-search-drawer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.food-search-drawer-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+}
+.food-search-drawer-close {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  border: none;
+  color: rgba(255,255,255,0.6);
+  font-size: 18px;
+  line-height: 1;
+  padding: 4px 6px;
+  cursor: pointer;
+}
+/* 드로어 안에서는 고정 320px 대신 남은 세로 공간을 다 씀 */
+.food-search-drawer .diet-food-split-scroll {
+  height: auto;
+  flex: 1;
 }
 
 .quick-add-meal-btn {
@@ -4050,16 +4106,15 @@ input[type="number"] {
         <button id="addFoodTemplateBtn" class="add-btn">+</button>
       </div>
 
-      <div class="diet-food-split-row">
-        <div class="diet-food-split-half">
-          <div id="foodTemplateList" class="diet-food-split-scroll"></div>
-        </div>
-        <div class="diet-food-split-divider"></div>
-        <div class="diet-food-split-half">
-          <input id="foodDbSearchInput" type="text" class="diet-food-db-search" placeholder="검색">
-          <div id="foodDbList" class="diet-food-split-scroll"></div>
-        </div>
-      </div>
+      <button id="openFoodSearchDrawerBtn" type="button" class="food-search-open-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="7"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <span>찾기</span>
+      </button>
+
+      <div id="foodTemplateList" class="diet-food-split-scroll" style="height:320px;"></div>
 
       <button id="quickAddMealBtn" type="button" class="quick-add-meal-btn">추가</button>
 
@@ -4726,6 +4781,18 @@ input[type="number"] {
       <button id="foodDbSaveCancelBtn" class="modal-btn">취소</button>
       <button id="foodDbSaveConfirmBtn" class="modal-btn">저장</button>
     </div>
+  </div>
+</div>
+
+<!-- 🔥 "찾기" 버튼을 누르면 우측에서 슬라이드로 튀어나오는 음식 DB 검색 패널 -->
+<div id="foodSearchDrawerOverlay" class="food-search-drawer-overlay hidden">
+  <div class="food-search-drawer">
+    <div class="food-search-drawer-header">
+      <div class="food-search-drawer-title">음식 찾기</div>
+      <button id="closeFoodSearchDrawerBtn" class="food-search-drawer-close" aria-label="닫기">✕</button>
+    </div>
+    <input id="foodDbSearchInput" type="text" class="diet-food-db-search" placeholder="검색">
+    <div id="foodDbList" class="diet-food-split-scroll"></div>
   </div>
 </div>
 
@@ -9246,6 +9313,7 @@ document.body.appendChild(dietSubTabBar);
 document.body.appendChild(document.getElementById('foodTemplateModal'));
 document.body.appendChild(document.getElementById('quickAddMealModal'));
 document.body.appendChild(document.getElementById('foodDbSaveConfirmModal'));
+document.body.appendChild(document.getElementById('foodSearchDrawerOverlay'));
 document.body.appendChild(document.getElementById('weightModal'));
 
 /* 🔥 안전장치: 화면이 꺼졌다 켜지거나 앱이 백그라운드에서 돌아올 때,
@@ -12184,6 +12252,10 @@ function renderFoodDbList(filterText = ""){
       onTap: () => addMealFromTemplate(f),
       onHold: () => {
         pendingFoodDbSaveItem = f;
+        // 🔥 롱프레스 터치가 아직 안 끝난 상태라, 모달이 뜬 뒤에도 손가락을 움직이면
+        //    (터치 이벤트는 시작된 엘리먼트에 계속 바인딩되므로) 뒤의 목록이 드래그로
+        //    스크롤되는 문제가 있었음 — 모달 떠있는 동안은 스크롤 자체를 막아버림.
+        el.style.overflowY = "hidden";
         document.getElementById("foodDbSaveConfirmModal").classList.remove("hidden");
       },
     });
@@ -12204,16 +12276,30 @@ let pendingFoodDbSaveItem = null;
 document.getElementById("foodDbSaveCancelBtn").addEventListener("click", () => {
   pendingFoodDbSaveItem = null;
   document.getElementById("foodDbSaveConfirmModal").classList.add("hidden");
+  document.getElementById("foodDbList").style.overflowY = "";
 });
 document.getElementById("foodDbSaveConfirmBtn").addEventListener("click", () => {
   if (pendingFoodDbSaveItem) addFoodTemplateItem(pendingFoodDbSaveItem);
   pendingFoodDbSaveItem = null;
   document.getElementById("foodDbSaveConfirmModal").classList.add("hidden");
+  document.getElementById("foodDbList").style.overflowY = "";
 });
 document.getElementById("foodDbSearchInput").addEventListener("input", (e) => {
   renderFoodDbList(e.target.value);
 });
 renderFoodDbList();
+
+// 🔥 "찾기" 버튼으로 여는 음식 DB 검색 슬라이드 드로어
+const foodSearchDrawerOverlay = document.getElementById("foodSearchDrawerOverlay");
+document.getElementById("openFoodSearchDrawerBtn").addEventListener("click", () => {
+  foodSearchDrawerOverlay.classList.remove("hidden");
+});
+document.getElementById("closeFoodSearchDrawerBtn").addEventListener("click", () => {
+  foodSearchDrawerOverlay.classList.add("hidden");
+});
+foodSearchDrawerOverlay.addEventListener("click", (e) => {
+  if (e.target === foodSearchDrawerOverlay) foodSearchDrawerOverlay.classList.add("hidden");
+});
 
 // 🔥 식약처 식품영양성분DB 정제본(3,763건)을 온디맨드로 불러와 위 100개 하드코딩
 //    목록을 대체 — 실패해도(오프라인 등) 기존 100개로 계속 동작하도록 폴백 유지.
