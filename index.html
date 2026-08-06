@@ -10909,8 +10909,9 @@ function loadUserSpecFromLocal(){
 function saveFoodTemplatesToLocal(){ lsSet(LS_KEYS.foodTemplates, foodTemplates); }
 
 const DEFAULT_FOOD_TEMPLATES = [
-  { name: "닭가슴살 100g", protein: 23, carb: 0, fat: 0 },
-  { name: "계란", protein: 7, carb: 0, fat: 0 }
+  { name: "프로틴 파우더", protein: 23, carb: 0, fat: 0 },
+  { name: "계란", protein: 6.3, carb: 0.4, fat: 5 },
+  { name: "닭가슴살 100g", protein: 22, carb: 0, fat: 0.9 }
 ];
 
 function seedDefaultFoodTemplatesIfNeeded(){
