@@ -2858,26 +2858,29 @@ input[type="number"] {
 }
 .food-search-drawer-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  gap: 8px;
+  margin-bottom: 8px;
 }
-.food-search-drawer-title {
-  font-size: 15px;
-  font-weight: 700;
-  color: #fff;
-  white-space: nowrap;
+.food-search-drawer-header .diet-food-db-search {
+  width: auto;
+  min-width: 0; /* 🔥 input의 기본 최소폭(~200px)이 flex-shrink를 무시하고 넘치는 것 방지 */
+  flex: 1;
+  margin: 0;
 }
 .food-search-drawer-close {
   -webkit-appearance: none;
   appearance: none;
+  width: auto; /* 🔥 전역 button{width:100%} 리셋 무력화 */
   background: transparent;
   border: none;
   color: rgba(255,255,255,0.6);
   font-size: 18px;
   line-height: 1;
   padding: 4px 6px;
+  margin: 0;
   cursor: pointer;
+  flex-shrink: 0;
 }
 /* 패널 안에서는 고정 320px 대신 남은 세로 공간을 다 씀 */
 .food-search-panel .diet-food-split-scroll {
@@ -4130,10 +4133,9 @@ input[type="number"] {
 
         <div id="foodSearchPanel" class="food-search-panel">
           <div class="food-search-drawer-header">
-            <div class="food-search-drawer-title">검색</div>
+            <input id="foodDbSearchInput" type="text" class="diet-food-db-search" placeholder="검색">
             <button id="closeFoodSearchDrawerBtn" class="food-search-drawer-close" aria-label="닫기">✕</button>
           </div>
-          <input id="foodDbSearchInput" type="text" class="diet-food-db-search" placeholder="검색">
           <div id="foodDbList" class="diet-food-split-scroll"></div>
         </div>
       </div>
