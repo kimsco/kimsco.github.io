@@ -2515,29 +2515,6 @@ input[type="number"] {
   font-weight: 500;
   white-space: nowrap;
 }
-.diet-water-ml-unit.hidden {
-  display: none;
-}
-/* 🔥 ml/잔 입력칸 편집 중(포커스) 뜨는 확인 버튼 — 눌러야만 값이 반영됨,
-   그 외(다른 곳 탭 등)에는 취소로 간주하고 기존 값으로 복원 */
-.diet-water-ml-confirm {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 24px;
-  height: 24px;
-  flex-shrink: 0;
-  border-radius: 6px;
-  border: 1px solid rgba(255,255,255,0.3);
-  background: transparent;
-  color: #fff;
-  font-size: 13px;
-  line-height: 1;
-  padding: 0;
-  cursor: pointer;
-}
-.diet-water-ml-confirm.hidden {
-  display: none;
-}
 .diet-water-log-controls button {
   -webkit-appearance: none;
   appearance: none;
@@ -4148,8 +4125,7 @@ input[type="number"] {
           <button id="dietTodayWaterPlusBtn" type="button">+</button>
           <span class="diet-water-ml-group">
             <input id="dietWaterMlPerGlassInput" type="number" inputmode="numeric" pattern="[0-9]*" class="diet-water-ml-input" min="1">
-            <span id="dietWaterMlUnit" class="diet-water-ml-unit">ml/잔</span>
-            <button id="dietWaterMlConfirmBtn" type="button" class="diet-water-ml-confirm hidden" aria-label="확인">✓</button>
+            <span class="diet-water-ml-unit">ml/잔</span>
           </span>
         </div>
       </div>
@@ -11775,49 +11751,22 @@ function addWater(delta){
 document.getElementById('dietTodayWaterPlusBtn')?.addEventListener('click', () => addWater(1));
 document.getElementById('dietTodayWaterMinusBtn')?.addEventListener('click', () => addWater(-1));
 
-/* 🔥 ml/잔 입력칸: 탭하면 바로 지워진 빈 칸에서 숫자만 입력 -> ✓ 눌러야 반영.
-   ✓ 안 누르고 다른 곳을 탭하면(취소) 기존 값으로 되돌아감. */
+/* 🔥 ml/잔 입력칸: 탭하면 바로 지워진 빈 칸에서 숫자만 입력.
+   키패드의 확인(Done) 버튼을 누르면 blur되면서 입력값이 반영되고,
+   아무것도 입력하지 않은 채(취소) 빠져나가면 기존 값이 그대로 유지됨. */
 (() => {
   const mlInput = document.getElementById('dietWaterMlPerGlassInput');
-  const mlUnit = document.getElementById('dietWaterMlUnit');
-  const mlConfirmBtn = document.getElementById('dietWaterMlConfirmBtn');
-  if (!mlInput || !mlUnit || !mlConfirmBtn) return;
+  if (!mlInput) return;
 
-  let confirming = false;
+  mlInput.addEventListener('focus', () => { mlInput.value = ''; });
 
-  function enterEditMode(){
-    mlInput.value = '';
-    mlUnit.classList.add('hidden');
-    mlConfirmBtn.classList.remove('hidden');
-  }
-  function exitEditMode(){
-    mlUnit.classList.remove('hidden');
-    mlConfirmBtn.classList.add('hidden');
-  }
-  function confirmValue(){
+  mlInput.addEventListener('blur', () => {
     const val = parseInt(mlInput.value, 10);
-    waterMlPerGlass = (val && val > 0) ? val : waterMlPerGlass;
+    waterMlPerGlass = (val && val > 0) ? val : waterMlPerGlass; // 비어있으면(취소) 기존 값 유지
     mlInput.value = waterMlPerGlass;
     saveWaterToLocal();
     saveWaterToFirestore();
     renderWaterWidget();
-    exitEditMode();
-    confirming = false;
-    mlInput.blur();
-  }
-
-  mlInput.addEventListener('focus', enterEditMode);
-
-  // 🔥 confirm 버튼 mousedown/touchstart에서 먼저 막아야, 버튼을 누르는 동작 자체가
-  //    input의 blur(=취소 처리)를 트리거하지 않고 클릭까지 이어짐
-  mlConfirmBtn.addEventListener('mousedown', (e) => { e.preventDefault(); confirming = true; });
-  mlConfirmBtn.addEventListener('touchstart', (e) => { e.preventDefault(); confirming = true; }, { passive: false });
-  mlConfirmBtn.addEventListener('click', confirmValue);
-
-  mlInput.addEventListener('blur', () => {
-    if (confirming) return; // confirm 버튼 처리 중이면 여기서 취소 로직 건너뜀
-    mlInput.value = waterMlPerGlass; // 취소: 기존 값으로 복원, 저장 안 함
-    exitEditMode();
   });
 })();
 
