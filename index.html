@@ -991,6 +991,100 @@ cursor: pointer;
 }
 
 /* ===============================
+   ✅ 식단 > 설정 탭: AI 챗봇
+================================ */
+.diet-ai-chat-panel{
+  /* 🔥 메시지가 적을 때도 입력창이 화면 하단에 붙어있도록, 패널 자체를
+     dietOverlayBody의 보이는 영역 높이로 고정하고 내부에서만 스크롤시킴
+     (다른 곳의 calc(100vh - ...) 고정 높이 패널 패턴과 동일한 방식) */
+  height: calc(100vh - calc(20px + env(safe-area-inset-top)) - calc(120px + env(safe-area-inset-bottom)));
+  gap: 10px;
+}
+.diet-ai-chat-messages{
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 8px;
+}
+.diet-ai-chat-empty{
+  color: rgba(255,255,255,0.35);
+  font-size: 14px;
+  text-align: center;
+  padding: 40px 20px;
+}
+.diet-ai-chat-msg{
+  max-width: 85%;
+  padding: 10px 14px;
+  border-radius: 14px;
+  font-size: 14px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.diet-ai-chat-msg.user{
+  align-self: flex-end;
+  background: #fff;
+  color: #000;
+  border-bottom-right-radius: 4px;
+}
+.diet-ai-chat-msg.ai{
+  align-self: flex-start;
+  background: #111;
+  border: 1px solid #222;
+  color: #eee;
+  border-bottom-left-radius: 4px;
+}
+.diet-ai-chat-msg.ai.error{
+  border-color: #5a2323;
+  color: #ff9b9b;
+}
+.diet-ai-chat-msg.loading{
+  align-self: flex-start;
+  padding: 10px 14px;
+}
+.diet-ai-chat-inputbar{
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 0 4px;
+  background: #000;
+}
+.diet-ai-chat-input{
+  flex: 1;
+  min-width: 0;
+  width: auto;
+  height: 44px;
+  background: #111;
+  border: 1px solid #2a2a2a;
+  border-radius: 22px;
+  color: #fff;
+  padding: 0 16px;
+  font-size: 14px;
+  box-sizing: border-box;
+  margin: 0;
+}
+.diet-ai-chat-send{
+  -webkit-appearance: none;
+  appearance: none;
+  width: 44px; /* 🔥 전역 button{width:100%} 리셋 무력화 */
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: none;
+  background: #fff;
+  color: #000;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* ===============================
    ✅ 식단 라벨 FLIP 애니메이션용 임시 클론
    (원래 탭 자리 → 새 바의 자리로 실제로 미끄러지듯 이동하는 셰어드 엘리먼트)
 ================================ */
@@ -4264,8 +4358,14 @@ input[type="number"] {
       <canvas id="dietWeightTrendChart" width="330" height="120"></canvas>
     </div>
   </div>
-  <div id="dietPanel-settings" class="dietPanel dietPanelPlaceholder">
-    <div class="dietPanelPlaceholderText">설정 탭은 준비 중이에요.</div>
+  <div id="dietPanel-settings" class="dietPanel diet-ai-chat-panel">
+    <div id="aiChatMessages" class="diet-ai-chat-messages">
+      <div class="diet-ai-chat-empty">무엇이든 물어보세요 — 식단, 영양성분, 운동에 대해 답해드려요.</div>
+    </div>
+    <div class="diet-ai-chat-inputbar">
+      <input id="aiChatInput" type="text" class="diet-ai-chat-input" placeholder="무엇이든 물어보세요">
+      <button id="aiChatSendBtn" type="button" class="diet-ai-chat-send" aria-label="전송">↑</button>
+    </div>
   </div>
 
   </div>
@@ -9614,6 +9714,88 @@ function switchDietPanel(key){
 }
 dietSubTabBtns.forEach(btn => {
   btn.addEventListener('click', () => switchDietPanel(btn.dataset.dietTab));
+});
+
+/* ===============================
+   ✅ 식단 > 설정 탭: AI 챗봇
+   (Gemini API를 직접 부르지 않고, 키를 숨긴 Cloudflare Worker 프록시를 거침
+   — 배포 방법은 ai-proxy/README.md 참고)
+================================ */
+const AI_CHAT_PROXY_URL = "https://REPLACE-ME.workers.dev"; // 🔥 ai-proxy 배포 후 실제 주소로 교체
+
+let aiChatHistory = []; // [{role:"user"|"model", text}], 세션 중 메모리에만 보관(저장 안 함)
+
+function escapeHtml(str){
+  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+// 아주 가벼운 마크다운 유사 서식만 지원(외부 라이브러리 없이): **굵게**, 줄바꿈, "- " 목록
+function formatAiText(text){
+  const escaped = escapeHtml(text);
+  const bold = escaped.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+  return bold
+    .split("\n")
+    .map(line => line.replace(/^-\s+/, "• "))
+    .join("<br>");
+}
+
+function renderAiChatMessage(role, text, opts = {}){
+  const messagesEl = document.getElementById("aiChatMessages");
+  const emptyEl = messagesEl.querySelector(".diet-ai-chat-empty");
+  if (emptyEl) emptyEl.remove();
+
+  const bubble = document.createElement("div");
+  if (role === "loading") {
+    bubble.className = "diet-ai-chat-msg loading";
+    bubble.innerHTML = `<div class="record-loading-spinner"></div>`;
+  } else if (role === "user") {
+    bubble.className = "diet-ai-chat-msg user";
+    bubble.textContent = text;
+  } else {
+    bubble.className = "diet-ai-chat-msg ai" + (opts.error ? " error" : "");
+    bubble.innerHTML = formatAiText(text);
+  }
+  messagesEl.appendChild(bubble);
+  messagesEl.scrollIntoView?.({ block: "end" });
+  bubble.scrollIntoView?.({ block: "end", behavior: "smooth" });
+  return bubble;
+}
+
+async function sendAiChatMessage(){
+  const input = document.getElementById("aiChatInput");
+  const message = input.value.trim();
+  if (!message) return;
+
+  input.value = "";
+  renderAiChatMessage("user", message);
+  aiChatHistory.push({ role: "user", text: message });
+
+  const loadingBubble = renderAiChatMessage("loading");
+
+  try {
+    const res = await fetch(AI_CHAT_PROXY_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message, history: aiChatHistory.slice(-12) }),
+    });
+    const data = await res.json().catch(() => null);
+    loadingBubble.remove();
+
+    if (!res.ok || !data?.answer) {
+      renderAiChatMessage("ai", "답변을 가져오지 못했어요. 잠시 후 다시 시도해주세요.", { error: true });
+      return;
+    }
+    renderAiChatMessage("ai", data.answer);
+    aiChatHistory.push({ role: "model", text: data.answer });
+  } catch (e) {
+    loadingBubble.remove();
+    renderAiChatMessage("ai", "AI 서버에 연결하지 못했어요. 잠시 후 다시 시도해주세요.", { error: true });
+  }
+}
+
+document.getElementById("aiChatSendBtn")?.addEventListener("click", sendAiChatMessage);
+document.getElementById("aiChatInput")?.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") sendAiChatMessage();
 });
 
 /* ===============================
