@@ -2819,11 +2819,23 @@ input[type="number"] {
 }
 
 /* 🔥 "찾기" 버튼으로 여는 음식 DB 검색 패널 — 전체 화면이 아니라 "내 식단" 템플릿
-   박스 안에서만 우→좌로 슬라이드해 그 자리의 템플릿 목록을 덮는다 */
+   박스 안에서만 우→좌로 슬라이드해 그 자리의 템플릿 목록을 덮는다.
+   "찾기" 버튼도 이 박스 안에 포함시켜, 패널이 버튼 자리까지 한 칸 더 위에서부터
+   덮이도록 함(박스 높이도 버튼 높이만큼 늘림). */
 .food-template-box {
   position: relative;
-  height: 320px;
+  height: 368px;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
+}
+.food-template-box .food-search-open-btn {
+  flex-shrink: 0;
+}
+.food-template-box #foodTemplateList {
+  flex: 1;
+  min-height: 0;
+  height: auto;
 }
 .food-search-panel {
   position: absolute;
@@ -4105,20 +4117,20 @@ input[type="number"] {
         <button id="addFoodTemplateBtn" class="add-btn">+</button>
       </div>
 
-      <button id="openFoodSearchDrawerBtn" type="button" class="food-search-open-btn">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="11" cy="11" r="7"></circle>
-          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-        </svg>
-        <span>찾기</span>
-      </button>
-
       <div class="food-template-box">
-        <div id="foodTemplateList" class="diet-food-split-scroll" style="height:320px;"></div>
+        <button id="openFoodSearchDrawerBtn" type="button" class="food-search-open-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="7"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <span>찾기</span>
+        </button>
+
+        <div id="foodTemplateList" class="diet-food-split-scroll"></div>
 
         <div id="foodSearchPanel" class="food-search-panel">
           <div class="food-search-drawer-header">
-            <div class="food-search-drawer-title">음식 찾기</div>
+            <div class="food-search-drawer-title">검색</div>
             <button id="closeFoodSearchDrawerBtn" class="food-search-drawer-close" aria-label="닫기">✕</button>
           </div>
           <input id="foodDbSearchInput" type="text" class="diet-food-db-search" placeholder="검색">
