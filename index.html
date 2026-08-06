@@ -3249,6 +3249,13 @@ input[type="number"] {
   display: block;
   margin: 6px 0 14px 2px;
 }
+/* 🔥 품명/탄수화물/단백질/지방 입력 팝업(foodTemplateModal, quickAddMealModal):
+   라벨 글씨가 작고 흐려 잘 안 보이던 것 -> 크게, 흰색으로 */
+#foodTemplateModal .food-modal-form label,
+#quickAddMealModal .food-modal-form label {
+  font-size: 15px;
+  color: #fff;
+}
 
 /* 🔥 전체화면 오버레이들: 끝까지 스크롤하면 스프링처럼 튕겨 돌아오지 않고 그 자리에 멈추게 함
    (.app / .folderContent에는 이미 적용돼 있었는데, 이후 만든 전체화면들엔 빠져있었음) */
