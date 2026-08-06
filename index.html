@@ -2439,14 +2439,14 @@ input[type="number"] {
   border: none;
   padding: 4px 0 20px;
   text-align: center;
-  margin-bottom: 33px; /* 🔥 물 섭취 등록 바가 들어갈 자리 확보(기존 22px의 1.5배) */
+  margin-bottom: 16px; /* 🔥 지방 그래프 ~ 물 섭취 사이 여백(기존 33px의 절반) */
 }
 
 /* 식단(오늘) 탭: 물 섭취 / 몸무게 등록 바 (지방 그래프 ~ 내 식단 사이 여백에 배치) */
 .diet-water-log-row {
   display: flex;
   align-items: center;
-  margin-bottom: 14px;
+  margin-bottom: 7px; /* 🔥 물 섭취 ~ 내 식단 사이 여백(기존 14px의 절반) */
   gap: 14px;
 }
 .diet-water-log-half {
@@ -4115,7 +4115,7 @@ input[type="number"] {
 
     <div id="tab5ScrollArea">
 
-      <div style="display:flex; justify-content:space-between; align-items:center; margin:14px 0 10px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin:7px 0 10px;">
         <div style="font-size:14px; color:#aaa; font-weight:600;">내 식단</div>
         <button id="addFoodTemplateBtn" class="add-btn">+</button>
       </div>
