@@ -6266,27 +6266,8 @@ if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
 }
 
-/* 로그인 (구글) */
-googleLoginBtn.addEventListener('click', async ()=>{
-    try {
-      const provider = new firebase.auth.GoogleAuthProvider();
-      const result = await auth.signInWithPopup(provider);
-      const user = result.user;
-
-      // Firestore에서 사용자 문서 확인 (첫 가입인지 판단)
-      const userDocSnap = await db.collection('users').doc(user.uid).get();
-
-      if (!userDocSnap.exists) {
-        // 첫 가입: 동의 모달 표시
-        showConsentModal(user);
-      } else {
-        // 재로그인: 바로 완료
-        completeLogin(user);
-      }
-    } catch (e) {
-      alert('로그인 실패: ' + e.message);
-    }
-});
+/* 로그인 (구글) — 실제 로그인 버튼(설정 화면)이 쓰는 doGoogleLogin()과 동일 로직 재사용 */
+googleLoginBtn.addEventListener('click', () => doGoogleLogin());
 logoutBtn.addEventListener('click', ()=> auth.signOut());
 
 // ✅ 회원 탈퇴 버튼 (설정 화면, 로그아웃 바로 아래)
@@ -10872,9 +10853,25 @@ const logoutCancel = document.getElementById("logoutCancel");
 const logoutConfirm = document.getElementById("logoutConfirm");
 
 // ✅ 구글 로그인 함수 (게스트에서도 동작)
-function doGoogleLogin(){
-  const provider = new firebase.auth.GoogleAuthProvider();
-  auth.signInWithPopup(provider).catch(e => alert("로그인 실패: " + e.message));
+async function doGoogleLogin(){
+  try {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    const result = await auth.signInWithPopup(provider);
+    const user = result.user;
+
+    // Firestore에서 사용자 문서 확인 (첫 가입인지 판단)
+    const userDocSnap = await db.collection('users').doc(user.uid).get();
+
+    if (!userDocSnap.exists) {
+      // 첫 가입: 동의 모달 표시
+      showConsentModal(user);
+    } else {
+      // 재로그인: 바로 완료
+      completeLogin(user);
+    }
+  } catch (e) {
+    alert("로그인 실패: " + e.message);
+  }
 }
 
 // ✅ 설정 패널에서 "로그인 하기" 클릭 시 로그인
