@@ -1874,7 +1874,86 @@ html.light-mode-on .dex-post-card.has-image{
 #quickAddMealModal .modal-btn {
   color: #fff;
 }
-   
+
+/* ✅ 동의 모달 스타일 */
+.consent-scrollable {
+  max-height: 320px;
+  overflow-y: auto;
+  margin: 16px 0;
+  border: 1px solid #2a2a2a;
+  padding: 12px;
+  border-radius: 8px;
+  background: #0a0a0a;
+}
+
+.consent-section {
+  margin-bottom: 16px;
+}
+
+.consent-section h3 {
+  font-size: 14px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  color: #fff;
+}
+
+.consent-text {
+  font-size: 12px;
+  line-height: 1.5;
+  color: #999;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.consent-checkboxes {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 16px 0;
+}
+
+.consent-checkboxes label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #fff;
+  cursor: pointer;
+  user-select: none;
+}
+
+.consent-checkboxes input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+  cursor: pointer;
+  accent-color: #8bbcff;
+}
+
+#consentAgree:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  color: #555;
+}
+
+/* ✅ 모달 콘텐츠 스타일 */
+.modal-content {
+  color: #ccc;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+#deleteAccountBtn {
+  width: auto;
+  margin: 10px 0;
+  background: #dc3545 !important;
+  color: white !important;
+  font-weight: bold;
+}
+
+#deleteAccountBtn:hover {
+  background: #c82333 !important;
+}
+
    .settings-btn:focus-visible{
   outline: 2px solid rgba(255,215,0,0.7);
   outline-offset: 2px;
@@ -4870,7 +4949,112 @@ input[type="number"] {
 <div id="loginArea" style="display:none;">
   <button id="googleLoginBtn">Google 로그인</button>
   <button id="logoutBtn">로그아웃</button>
+  <button id="deleteAccountBtn" style="background:#dc3545; color:white;">회원탈퇴</button>
   <div id="userInfo"></div>
+</div>
+
+<!-- ✅ 회원가입 시 약관/개인정보 동의 모달 -->
+<div id="consentModal" class="modal hidden">
+  <div class="modal-box">
+    <div class="modal-title">이용약관 및 개인정보 동의</div>
+
+    <div class="consent-scrollable">
+      <!-- 이용약관 -->
+      <div class="consent-section">
+        <h3>이용약관</h3>
+        <div class="consent-text">
+MuscleFlow는 개인의 운동 및 식단 기록을 관리하는 PWA 서비스입니다.
+
+[서비스 이용 조건]
+- 만 14세 이상만 가입할 수 있습니다
+- Google 계정으로 로그인/가입합니다
+- 사용자가 입력한 데이터는 Google Firestore에 저장됩니다
+- 오프라인 상태에서도 로컬 저장소에 임시 저장됩니다
+
+[사용자의 책임]
+- 자신의 계정 보안 유지
+- 타인의 계정 무단 사용 금지
+- 불법 또는 부정적 목적의 사용 금지
+- 타인의 개인정보 입력 금지
+
+[서비스 변경 및 중단]
+- 운영자는 사전 공지 후 서비스를 변경하거나 중단할 수 있습니다
+- 중단 시 사용자 데이터는 30일 내에 삭제됩니다
+        </div>
+      </div>
+
+      <!-- 개인정보처리방침 -->
+      <div class="consent-section">
+        <h3>개인정보처리방침</h3>
+        <div class="consent-text">
+[수집하는 정보]
+- 이메일 (Google에서 제공)
+- 사용자 ID (Firebase가 생성)
+- 운동 기록 (사용자가 직접 입력: 운동명, 무게, 반복, 세트, 날짜)
+- 식단 기록 (사용자가 직접 입력: 음식명, 단백질, 탄수화물, 지방, 날짜)
+
+[정보 저장 위치]
+- Google Firestore (클라우드 데이터베이스)
+- 로컬 저장소 (브라우저 로컬스토리지)
+- 데이터는 Google 데이터센터에 저장됩니다
+
+[정보 사용 목적]
+- 운동/식단 기록 저장 및 조회
+- AI 챗봇 질문 응답 (질문만 전송, 개인정보 미포함)
+- 통계 및 차트 데이터 생성
+- 서비스 오류 분석 및 개선
+
+[정보 보호]
+- Firebase Security Rules로 사용자 본인의 데이터만 접근 가능
+- 다른 사용자의 데이터 접근 불가능
+
+[정보 삭제]
+- 회원 탈퇴 시 모든 Firestore 데이터는 즉시 삭제됩니다
+- 로컬 저장소 데이터도 함께 삭제됩니다
+- 삭제된 데이터는 복구되지 않습니다
+
+[제3자 제공]
+- Google Firestore (데이터 저장, 필수)
+- Cloudflare Workers (AI 챗봇 프록시)
+- 그 외 제3자에 제공하지 않습니다
+        </div>
+      </div>
+    </div>
+
+    <div class="consent-checkboxes">
+      <label>
+        <input type="checkbox" id="consentTerms"> 이용약관에 동의합니다 (필수)
+      </label>
+      <label>
+        <input type="checkbox" id="consentPrivacy"> 개인정보 처리방침에 동의합니다 (필수)
+      </label>
+    </div>
+
+    <div class="modal-actions">
+      <button id="consentReject" class="modal-btn">거절</button>
+      <button id="consentAgree" class="modal-btn" disabled>동의하고 로그인</button>
+    </div>
+  </div>
+</div>
+
+<!-- ✅ 회원탈퇴 확인 모달 -->
+<div id="deleteAccountModal" class="modal hidden">
+  <div class="modal-box">
+    <div class="modal-title">회원 탈퇴</div>
+    <div class="modal-content" style="padding:16px; line-height:1.6;">
+      <strong style="color:#ff6b6b;">⚠️ 주의!</strong><br><br>
+      회원을 탈퇴하시면 다음 데이터가 <strong>영구 삭제</strong>됩니다.<br><br>
+      • 기록된 모든 운동 데이터<br>
+      • 기록된 모든 식단 데이터<br>
+      • 프로필 정보<br><br>
+      <strong style="color:#ff0000;">❌ 삭제된 데이터는 복구할 수 없습니다!</strong><br><br>
+      정말 탈퇴하시겠습니까?
+    </div>
+    <div class="modal-actions">
+      <button id="deleteAccountCancel" class="modal-btn">취소</button>
+      <button id="deleteAccountConfirm" class="modal-btn" style="background:#dc3545; color:white;">탈퇴</button>
+    </div>
+  </div>
 </div>
 
 <!-- ✅ 로그아웃 확인 팝업 -->
@@ -6069,11 +6253,161 @@ const settingsLogoutText = document.getElementById("settingsLogoutText");
 const settingsGuestBadge = document.getElementById("settingsGuestBadge");
 
 /* 로그인 (구글) */
-googleLoginBtn.addEventListener('click', ()=>{
-    const provider = new firebase.auth.GoogleAuthProvider();
-    auth.signInWithPopup(provider).catch(e=>alert('로그인 실패: '+e.message));
+googleLoginBtn.addEventListener('click', async ()=>{
+    try {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      const result = await auth.signInWithPopup(provider);
+      const user = result.user;
+
+      // Firestore에서 사용자 문서 확인 (첫 가입인지 판단)
+      const userDocSnap = await db.collection('users').doc(user.uid).get();
+
+      if (!userDocSnap.exists) {
+        // 첫 가입: 동의 모달 표시
+        showConsentModal(user);
+      } else {
+        // 재로그인: 바로 완료
+        completeLogin(user);
+      }
+    } catch (e) {
+      alert('로그인 실패: ' + e.message);
+    }
 });
 logoutBtn.addEventListener('click', ()=> auth.signOut());
+
+// ✅ 회원 탈퇴 버튼
+const deleteAccountBtn = document.getElementById('deleteAccountBtn');
+if (deleteAccountBtn) {
+  deleteAccountBtn.addEventListener('click', () => {
+    const deleteAccountModal = document.getElementById('deleteAccountModal');
+    deleteAccountModal.classList.remove('hidden');
+
+    document.getElementById('deleteAccountCancel').onclick = () => {
+      deleteAccountModal.classList.add('hidden');
+    };
+
+    document.getElementById('deleteAccountConfirm').onclick = async () => {
+      await deleteUserAccount();
+      deleteAccountModal.classList.add('hidden');
+    };
+  });
+}
+
+// ✅ 회원 탈퇴 처리
+async function deleteUserAccount() {
+  try {
+    const user = auth.currentUser;
+    if (!user) {
+      alert('로그인 정보를 찾을 수 없습니다.');
+      return;
+    }
+
+    // (1) Firestore에서 사용자의 모든 컬렉션 삭제
+    const userDocRef = db.collection('users').doc(user.uid);
+
+    // records 컬렉션의 모든 문서 삭제
+    const recordsSnap = await userDocRef.collection('records').get();
+    if (recordsSnap.docs.length > 0) {
+      const recordsBatch = db.batch();
+      recordsSnap.docs.forEach(doc => {
+        recordsBatch.delete(doc.ref);
+      });
+      await recordsBatch.commit();
+    }
+
+    // diets 컬렉션의 모든 문서 삭제
+    const dietsSnap = await userDocRef.collection('diets').get();
+    if (dietsSnap.docs.length > 0) {
+      const dietsBatch = db.batch();
+      dietsSnap.docs.forEach(doc => {
+        dietsBatch.delete(doc.ref);
+      });
+      await dietsBatch.commit();
+    }
+
+    // threeRM 컬렉션 삭제
+    const threeRMSnap = await userDocRef.collection('threeRM').get();
+    if (threeRMSnap.docs.length > 0) {
+      const threeRMBatch = db.batch();
+      threeRMSnap.docs.forEach(doc => {
+        threeRMBatch.delete(doc.ref);
+      });
+      await threeRMBatch.commit();
+    }
+
+    // 사용자 문서 삭제
+    await userDocRef.delete();
+
+    // (2) Firebase Authentication에서 계정 삭제
+    await user.delete();
+
+    // (3) 로컬 저장소 초기화
+    localStorage.clear();
+
+    // (4) 로그아웃 & 페이지 새로고침
+    alert('회원 탈퇴가 완료되었습니다. 앱을 다시 시작합니다.');
+    location.reload();
+  } catch (error) {
+    console.error('회원 탈퇴 오류:', error);
+    alert('탈퇴 처리 중 오류가 발생했습니다: ' + error.message);
+  }
+}
+
+// ✅ 동의 모달 함수
+function showConsentModal(user) {
+  const modal = document.getElementById('consentModal');
+  const agreeBtn = document.getElementById('consentAgree');
+  const termsCheckbox = document.getElementById('consentTerms');
+  const privacyCheckbox = document.getElementById('consentPrivacy');
+  const rejectBtn = document.getElementById('consentReject');
+
+  modal.classList.remove('hidden');
+
+  // 두 체크박스 모두 체크되면 동의 버튼 활성화
+  const updateAgreeBtn = () => {
+    agreeBtn.disabled = !(termsCheckbox.checked && privacyCheckbox.checked);
+  };
+
+  termsCheckbox.addEventListener('change', updateAgreeBtn);
+  privacyCheckbox.addEventListener('change', updateAgreeBtn);
+
+  // 동의하고 로그인
+  agreeBtn.onclick = async () => {
+    try {
+      // Firestore에 사용자 문서 생성 (첫 생성)
+      await db.collection('users').doc(user.uid).set({
+        email: user.email,
+        uid: user.uid,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        consentedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+
+      modal.classList.add('hidden');
+      // 체크박스 초기화
+      termsCheckbox.checked = false;
+      privacyCheckbox.checked = false;
+      completeLogin(user);
+    } catch (error) {
+      alert('가입 처리 중 오류: ' + error.message);
+    }
+  };
+
+  // 거절 (로그아웃)
+  rejectBtn.onclick = async () => {
+    await auth.signOut();
+    modal.classList.add('hidden');
+    // 체크박스 초기화
+    termsCheckbox.checked = false;
+    privacyCheckbox.checked = false;
+    alert('로그인을 거절했습니다.');
+  };
+}
+
+// ✅ 로그인 완료 처리 (재로그인일 때도 호출)
+function completeLogin(user) {
+  // 기존 로그인 완료 로직은 auth.onAuthStateChanged에서 처리됨
+  console.log('로그인 완료:', user.email);
+}
 
 auth.onAuthStateChanged(async user => {
 
@@ -6081,10 +6415,14 @@ auth.onAuthStateChanged(async user => {
   if (user) {
     if (googleLoginBtn) googleLoginBtn.style.display = "none";
     if (logoutBtn) logoutBtn.style.display = "block";
+    const deleteAccountBtn = document.getElementById('deleteAccountBtn');
+    if (deleteAccountBtn) deleteAccountBtn.style.display = "block";
     if (userInfo) userInfo.textContent = user.displayName || user.email || "";
   } else {
     if (googleLoginBtn) googleLoginBtn.style.display = "block";
     if (logoutBtn) logoutBtn.style.display = "none";
+    const deleteAccountBtn = document.getElementById('deleteAccountBtn');
+    if (deleteAccountBtn) deleteAccountBtn.style.display = "none";
     if (userInfo) userInfo.textContent = "";
   }
 
