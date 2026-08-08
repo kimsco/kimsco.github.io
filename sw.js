@@ -15,5 +15,10 @@ self.addEventListener("install", e => {
 });
 
 self.addEventListener("fetch", e => {
+  // Worker API는 항상 네트워크에서 받기 (캐시 무시)
+  if (e.request.url.includes(".workers.dev")) {
+    return e.respondWith(fetch(e.request));
+  }
+  // 나머지 요청은 캐시 우선
   e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
 });
