@@ -1942,18 +1942,6 @@ html.light-mode-on .dex-post-card.has-image{
   line-height: 1.6;
 }
 
-#deleteAccountBtn {
-  width: auto;
-  margin: 10px 0;
-  background: #dc3545 !important;
-  color: white !important;
-  font-weight: bold;
-}
-
-#deleteAccountBtn:hover {
-  background: #c82333 !important;
-}
-
    .settings-btn:focus-visible{
   outline: 2px solid rgba(255,215,0,0.7);
   outline-offset: 2px;
@@ -2001,6 +1989,15 @@ html.light-mode-on .dex-post-card.has-image{
 
 .settings-logout-text:active{
   color: #ff6b6b;            /* 눌렀을 때만 살짝 빨강 */
+}
+
+.settings-delete-account-text{
+  margin-top: -4px;          /* 로그아웃 바로 아래 붙임 */
+  color: #a04040;            /* 항상 은은한 빨강 톤으로 구분 */
+}
+
+.settings-delete-account-text:active{
+  color: #ff3b3b;
 }
 
 .settings-btn svg {
@@ -4947,6 +4944,11 @@ input[type="number"] {
   로그아웃
 </div>
 
+<!-- ✅ 회원탈퇴 (로그아웃 바로 아래) -->
+<div id="settingsDeleteAccountText" class="settings-logout-text settings-delete-account-text">
+  회원탈퇴
+</div>
+
 
   </div>
 </div>
@@ -4954,7 +4956,6 @@ input[type="number"] {
 <div id="loginArea" style="display:none;">
   <button id="googleLoginBtn">Google 로그인</button>
   <button id="logoutBtn">로그아웃</button>
-  <button id="deleteAccountBtn" style="background:#dc3545; color:white;">회원탈퇴</button>
   <div id="userInfo"></div>
 </div>
 
@@ -6255,6 +6256,7 @@ recordAdd.addEventListener('click', async ()=>{
 
 
 const settingsLogoutText = document.getElementById("settingsLogoutText");
+const settingsDeleteAccountText = document.getElementById("settingsDeleteAccountText");
 const settingsGuestBadge = document.getElementById("settingsGuestBadge");
 
 /* ✅ 앱 버전 정의 */
@@ -6287,10 +6289,9 @@ googleLoginBtn.addEventListener('click', async ()=>{
 });
 logoutBtn.addEventListener('click', ()=> auth.signOut());
 
-// ✅ 회원 탈퇴 버튼
-const deleteAccountBtn = document.getElementById('deleteAccountBtn');
-if (deleteAccountBtn) {
-  deleteAccountBtn.addEventListener('click', () => {
+// ✅ 회원 탈퇴 버튼 (설정 화면, 로그아웃 바로 아래)
+if (settingsDeleteAccountText) {
+  settingsDeleteAccountText.addEventListener('click', () => {
     const deleteAccountModal = document.getElementById('deleteAccountModal');
     deleteAccountModal.classList.remove('hidden');
 
@@ -6427,14 +6428,10 @@ auth.onAuthStateChanged(async user => {
   if (user) {
     if (googleLoginBtn) googleLoginBtn.style.display = "none";
     if (logoutBtn) logoutBtn.style.display = "block";
-    const deleteAccountBtn = document.getElementById('deleteAccountBtn');
-    if (deleteAccountBtn) deleteAccountBtn.style.display = "block";
     if (userInfo) userInfo.textContent = user.displayName || user.email || "";
   } else {
     if (googleLoginBtn) googleLoginBtn.style.display = "block";
     if (logoutBtn) logoutBtn.style.display = "none";
-    const deleteAccountBtn = document.getElementById('deleteAccountBtn');
-    if (deleteAccountBtn) deleteAccountBtn.style.display = "none";
     if (userInfo) userInfo.textContent = "";
   }
 
@@ -6450,11 +6447,13 @@ auth.onAuthStateChanged(async user => {
     if (settingsEmailSub) settingsEmailSub.textContent = user.email || "";
 
     if (settingsLogoutText) settingsLogoutText.style.display = "block";
+    if (settingsDeleteAccountText) settingsDeleteAccountText.style.display = "block";
   } else {
     if (settingsLoginRow) settingsLoginRow.style.display = "flex";
     if (settingsAccountRow) settingsAccountRow.style.display = "none";
 
     if (settingsLogoutText) settingsLogoutText.style.display = "none";
+    if (settingsDeleteAccountText) settingsDeleteAccountText.style.display = "none";
   }
   // ✅ 여기부터는 네 기존 로직 그대로
   if (user) {
