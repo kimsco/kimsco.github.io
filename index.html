@@ -4937,6 +4937,11 @@ input[type="number"] {
       <div id="lightModeToggle" class="toggle-switch"></div>
     </div>
 
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-top:16px; padding-top:16px; border-top:1px solid rgba(255,255,255,0.08);">
+      <div class="settings-item" style="margin:0;">앱 버전</div>
+      <div class="settings-item" style="margin:0; color:#888; font-size:14px;" id="appVersionDisplay">0.1.0</div>
+    </div>
+
 <!-- ✅ 하단 로그아웃 버튼 (iOS 느낌) -->
 <div id="settingsLogoutText" class="settings-logout-text">
   로그아웃
@@ -6251,6 +6256,13 @@ recordAdd.addEventListener('click', async ()=>{
 
 const settingsLogoutText = document.getElementById("settingsLogoutText");
 const settingsGuestBadge = document.getElementById("settingsGuestBadge");
+
+/* ✅ 앱 버전 정의 */
+const APP_VERSION = "0.1.0";
+const appVersionDisplay = document.getElementById("appVersionDisplay");
+if (appVersionDisplay) {
+  appVersionDisplay.textContent = APP_VERSION;
+}
 
 /* 로그인 (구글) */
 googleLoginBtn.addEventListener('click', async ()=>{
