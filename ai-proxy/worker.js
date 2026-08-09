@@ -86,7 +86,15 @@ export default {
     const data = await resp.json();
     const answer = data?.candidates?.[0]?.content?.parts?.map((p) => p.text || "").join("") || "";
     if (!answer) {
-      return json({ error: "AI가 답변을 생성하지 못했습니다." }, 502, origin);
+      // 🔥 실제 원인(세이프티 필터 차단, MAX_TOKENS 등)을 그대로 노출해서
+      //    "답변 생성 실패"라고만 뜨고 원인을 못 찾는 상황 방지
+      const finishReason = data?.candidates?.[0]?.finishReason || "UNKNOWN";
+      const safetyRatings = data?.candidates?.[0]?.safetyRatings || data?.promptFeedback?.safetyRatings || null;
+      const promptBlockReason = data?.promptFeedback?.blockReason || null;
+      return json({
+        error: "AI가 답변을 생성하지 못했습니다.",
+        detail: JSON.stringify({ finishReason, promptBlockReason, safetyRatings, raw: data }).slice(0, 1000),
+      }, 502, origin);
     }
 
     return json({ answer }, 200, origin);
