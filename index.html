@@ -10388,11 +10388,13 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
   document.addEventListener('touchcancel', endDrag, { passive: true });
 })();
 
-/* 🔥 식단 페이지 안에서: 왼쪽 끝에서 오른쪽으로 스와이프하면
-   메뉴 드로어 대신 식단 페이지를 나가는 동작(뒤로가기 버튼과 동일)이 실행됨 */
+/* 🔥 식단 페이지 안에서: 왼쪽 끝에서 오른쪽으로 스와이프하면 메뉴 드로어와 같은 방식으로
+   손가락을 따라 실시간으로 화면이 끌려나오다가, 놓았을 때 기준(25%)을 넘으면 뒤로가기
+   버튼과 동일한 동작으로 완전히 닫히고, 못 넘으면 원래 자리로 스냅백됨 */
 (function(){
   const EDGE_ZONE = 30, COMMIT_MOVE = 8, CLOSE_RATIO = 0.25;
   let startX = 0, startY = 0, tracking = false, dragging = false;
+  let appEl = null;
 
   document.addEventListener('touchstart', (e) => {
     if (dietOverlay.classList.contains('hidden')) { tracking = false; return; }
@@ -10407,11 +10409,32 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
     if (!tracking) return;
     const t = e.touches[0];
     const dx = t.clientX - startX, dy = t.clientY - startY;
+
     if (!dragging) {
-      if (dx > COMMIT_MOVE && dx > Math.abs(dy) * 0.6) dragging = true;
+      if (dx > COMMIT_MOVE && dx > Math.abs(dy) * 0.6) {
+        dragging = true;
+        appEl = document.querySelector('.app');
+        dietOverlay.style.transition = 'none';
+        appEl.style.transition = 'none';
+      }
       else if (Math.abs(dy) > COMMIT_MOVE && Math.abs(dy) > dx) { tracking = false; }
+      else return;
     }
-  }, { passive: true });
+
+    if (dragging) {
+      e.preventDefault();
+      const width = window.innerWidth;
+      const moveX = Math.max(0, dx);
+      const progress = Math.min(1, moveX / width); // 0(완전 열림) ~ 1(완전 닫힘)
+
+      dietOverlay.style.transform = `translateX(${moveX}px)`;
+      dietOverlay.style.opacity = String(1 - progress);
+
+      // 뒤에 깔린 본 화면(.app)이 손가락을 따라 다시 드러나며 페이드인
+      appEl.style.transform = `translateX(${-16 * (1 - progress)}px)`;
+      appEl.style.opacity = String(progress);
+    }
+  }, { passive: false });
 
   function endDietSwipe(e){
     if (!tracking) return;
@@ -10424,7 +10447,29 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
     const dx = Math.max(0, t.clientX - startX);
 
     if (dx > width * CLOSE_RATIO) {
+      // 🔥 커밋: 드래그로 미리보기 중이던 inline 스타일을 원래 상태(.show 클래스가
+      //    그리는 완전히 열린 모습)로 되돌린 뒤, 뒤로가기 버튼과 동일한(FLIP 애니메이션
+      //    포함) 정식 닫기 로직을 그대로 재사용 — 같은 동기 실행 안에서 처리되므로
+      //    화면 깜빡임 없이 바로 이어짐
+      dietOverlay.style.transition = '';
+      dietOverlay.style.transform = '';
+      dietOverlay.style.opacity = '';
+      if (appEl) {
+        appEl.style.transition = '';
+        appEl.style.transform = '';
+        appEl.style.opacity = '';
+      }
       document.getElementById('dietBackCircleBtn').click();
+    } else {
+      // 🔥 기준 미달: 원래 열린 위치로 스냅백
+      dietOverlay.style.transition = 'transform 0.22s ease, opacity 0.22s ease';
+      dietOverlay.style.transform = 'translateX(0)';
+      dietOverlay.style.opacity = '1';
+      if (appEl) {
+        appEl.style.transition = 'transform 0.22s ease, opacity 0.22s ease';
+        appEl.style.transform = 'translateX(-16px)';
+        appEl.style.opacity = '0';
+      }
     }
   }
   document.addEventListener('touchend', endDietSwipe, { passive: true });
