@@ -3862,7 +3862,8 @@ input[type="number"] {
   box-sizing: border-box;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
-  touch-action: pan-x pan-y;
+  touch-action: pan-x; /* 🔥 가로 전용 캐러셀 — pan-y까지 허용돼 있어서 루틴이 길어져 카드가
+                          커질수록 세로 스크롤로 오인되는 문제(my-routine-train과 동일한 버그) */
   padding: 16px calc(50% - 60px);
   border-radius: 14px;
 }
