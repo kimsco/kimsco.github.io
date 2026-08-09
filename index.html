@@ -4858,6 +4858,23 @@ input[type="number"] {
   </div>
 </div>
 
+<!-- 루틴 만들기(+루틴 추가하기): 저장 위치 선택 — 오늘의 운동 저장 팝업과 동일한 구조 -->
+<div id="myRoutineBuilderNameModal" class="modal hidden">
+  <div class="modal-box">
+    <div class="modal-title">저장 위치 선택</div>
+    <div class="modal-desc">기존 루틴에 추가하거나 새 이름을 입력하세요.</div>
+    <div class="food-modal-form">
+      <div id="myRoutineBuilderNameExistingList" class="routine-save-existing-list"></div>
+      <input type="text" id="myRoutineBuilderNameModalInput" class="my-routine-builder-name-input" placeholder="새 루틴 이름 입력" style="margin:14px 0 0;">
+    </div>
+
+    <div class="modal-actions">
+      <button id="myRoutineBuilderNameCancelBtn" class="modal-btn">취소</button>
+      <button id="myRoutineBuilderNameConfirmBtn" class="modal-btn">확인</button>
+    </div>
+  </div>
+</div>
+
 <!-- 루틴 만들기: 부위 + 종목 선택 화면 -->
 <div id="myRoutineBuilderOverlay" class="hidden" style="
     position:fixed; inset:0; background:#111; z-index:100005;
@@ -4874,8 +4891,7 @@ input[type="number"] {
       <div class="my-routine-builder-title">루틴 만들기</div>
 
       <div class="my-routine-builder-sublabel">루틴 이름</div>
-      <div id="myRoutineBuilderExistingList" class="routine-save-existing-list"></div>
-      <input type="text" id="myRoutineBuilderNameInput" class="my-routine-builder-name-input" placeholder="예: 월요일 하체">
+      <button type="button" id="myRoutineBuilderNameRow" class="my-routine-builder-name-input" style="text-align:left; cursor:pointer; color:rgba(255,255,255,0.4);">저장위치를 선택하세요</button>
 
       <div class="my-routine-builder-sublabel">부위 선택</div>
       <div id="myRoutineBuilderParts" class="my-routine-builder-parts"></div>
@@ -7261,6 +7277,47 @@ document.getElementById("routineSaveConfirmBtn").addEventListener("click", () =>
   renderMyRoutineTemplateSection();
 });
 
+/* ---------- 루틴 만들기: "저장위치를 선택하세요" 팝업 (오늘의 운동 저장 팝업과 동일한 UI) ---------- */
+const myRoutineBuilderNameModal = document.getElementById("myRoutineBuilderNameModal");
+
+function openMyRoutineBuilderNameModal(){
+  const input = document.getElementById("myRoutineBuilderNameModalInput");
+  input.value = builderRoutineName || "";
+
+  const existingNames = Array.from(new Set(myRoutineTemplates.map(t => t.name).filter(Boolean)));
+  const listEl = document.getElementById("myRoutineBuilderNameExistingList");
+  listEl.innerHTML = existingNames.map(name => `
+    <div class="routine-save-existing-row" data-name="${escapeHtml(name)}">${escapeHtml(name)}</div>
+  `).join("");
+  listEl.querySelectorAll(".routine-save-existing-row").forEach(row => {
+    row.addEventListener("click", () => {
+      input.value = row.dataset.name;
+    });
+  });
+
+  myRoutineBuilderNameModal.classList.remove("hidden");
+}
+function closeMyRoutineBuilderNameModal(){
+  myRoutineBuilderNameModal.classList.add("hidden");
+}
+document.getElementById("myRoutineBuilderNameRow").addEventListener("click", openMyRoutineBuilderNameModal);
+document.getElementById("myRoutineBuilderNameCancelBtn").addEventListener("click", closeMyRoutineBuilderNameModal);
+myRoutineBuilderNameModal.addEventListener("click", (e) => {
+  if (e.target === myRoutineBuilderNameModal) closeMyRoutineBuilderNameModal();
+});
+
+document.getElementById("myRoutineBuilderNameConfirmBtn").addEventListener("click", () => {
+  const name = document.getElementById("myRoutineBuilderNameModalInput").value.trim();
+  if (!name) { alert("루틴 이름을 입력해주세요."); return; }
+
+  builderRoutineName = name;
+  const nameRowEl = document.getElementById("myRoutineBuilderNameRow");
+  nameRowEl.textContent = name;
+  nameRowEl.style.color = "#fff";
+
+  closeMyRoutineBuilderNameModal();
+});
+
 /* 🔥 내 지난 루틴 화면: 왼쪽 끝에서 오른쪽으로 드래그하면 손가락 따라 끌려가며 닫힘 */
 (function(){
   const EDGE_ZONE = 30, COMMIT_MOVE = 8, CLOSE_RATIO = 0.3;
@@ -7578,26 +7635,17 @@ const myRoutineBuilderOverlay = document.getElementById("myRoutineBuilderOverlay
 const myRoutineBuilderScreen = document.getElementById("myRoutineBuilderScreen");
 let builderSelectedExercises = {};          // { partKey: Set(종목명) } — 체크 상태 기억용
 let builderOrderedSelection = [];           // [{partKey, exercise}] — 누른 순서대로
+let builderRoutineName = "";                // "저장위치를 선택하세요" 팝업에서 고른/입력한 이름
 
 function openMyRoutineBuilder(){
   builderSelectedExercises = {};
   builderOrderedSelection = [];
-  document.getElementById("myRoutineBuilderNameInput").value = "";
+  builderRoutineName = "";
+  const nameRowEl = document.getElementById("myRoutineBuilderNameRow");
+  nameRowEl.textContent = "저장위치를 선택하세요";
+  nameRowEl.style.color = "rgba(255,255,255,0.4)";
   document.getElementById("myRoutineBuilderPartSections").innerHTML = "";
   renderBuilderOrderList();
-
-  // 🔥 "오늘의 운동" 저장 팝업처럼, 기존에 만들어둔 루틴 이름을 탭해서 그 폴더에
-  //    바로 추가할 수 있게 목록으로 보여줌 (새 이름을 입력하면 새 폴더가 됨)
-  const existingNames = Array.from(new Set(myRoutineTemplates.map(t => t.name).filter(Boolean)));
-  const existingListEl = document.getElementById("myRoutineBuilderExistingList");
-  existingListEl.innerHTML = existingNames.map(name => `
-    <div class="routine-save-existing-row" data-name="${escapeHtml(name)}">${escapeHtml(name)}</div>
-  `).join("");
-  existingListEl.querySelectorAll(".routine-save-existing-row").forEach(row => {
-    row.addEventListener("click", () => {
-      document.getElementById("myRoutineBuilderNameInput").value = row.dataset.name;
-    });
-  });
 
   const partsEl = document.getElementById("myRoutineBuilderParts");
   partsEl.innerHTML = MY_ROUTINE_BUILDER_PARTS.map(p => `
@@ -7715,8 +7763,8 @@ function renderBuilderOrderList(){
 document.getElementById("myRoutineBuilderCancel").addEventListener("click", closeMyRoutineBuilder);
 
 document.getElementById("myRoutineBuilderSaveBtn").addEventListener("click", async () => {
-  const name = document.getElementById("myRoutineBuilderNameInput").value.trim();
-  if (!name) { alert("루틴 이름을 입력해주세요."); return; }
+  const name = builderRoutineName.trim();
+  if (!name) { alert("저장위치(루틴 이름)를 선택해주세요."); return; }
   if (!builderOrderedSelection.length) { alert("종목을 1개 이상 선택해주세요."); return; }
 
   const parts = Array.from(new Set(builderOrderedSelection.map(it => it.partKey)));
