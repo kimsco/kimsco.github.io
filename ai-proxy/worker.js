@@ -6,7 +6,8 @@
 //
 // 배포 방법은 ai-proxy/README.md 참고.
 
-const MODEL = "gemini-2.5-flash-lite"; // 무료 티어: 하루 1,000회. 다른 모델로 바꾸려면 이 줄만 수정.
+const MODEL = "gemini-3-flash"; // 🔥 gemini-2.5-flash-lite가 신규 사용자에게 지원 종료(404)되어 교체.
+                                 // 무료 티어 하루 1,500회. 다른 모델로 바꾸려면 이 줄만 수정.
 
 const SYSTEM_INSTRUCTION =
   "너는 'MuscleFlow'라는 운동/식단 기록 앱 안에 들어있는 보조 AI야. " +
