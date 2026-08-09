@@ -8442,6 +8442,46 @@ function wireCarouselFocus(carouselEl){
   updateFocus();
 }
 
+/* 🔥 캐러셀(가로 전용, touch-action:pan-x) 안에서 시작된 드래그가 세로 방향이면,
+   카드 안에서 막혀버리지 않고 뒤에 있는 화면(myRoutineBody)이 대신 스크롤되게 함.
+   가로 방향이면 그대로 두어 네이티브 pan-x 가로 스크롤이 처리하게 함. */
+function wireCarouselVerticalPassthrough(carouselEl, scrollContainerEl){
+  const COMMIT_MOVE = 8;
+  let startX = 0, startY = 0, startScrollTop = 0, tracking = false, mode = null; // mode: 'h' | 'v' | null
+
+  carouselEl.addEventListener('touchstart', (e) => {
+    const t = e.touches[0];
+    startX = t.clientX; startY = t.clientY;
+    startScrollTop = scrollContainerEl.scrollTop;
+    tracking = true; mode = null;
+  }, { passive: true });
+
+  carouselEl.addEventListener('touchmove', (e) => {
+    if (!tracking) return;
+    const t = e.touches[0];
+    const dx = t.clientX - startX, dy = t.clientY - startY;
+
+    if (mode === null) {
+      if (Math.abs(dx) > COMMIT_MOVE && Math.abs(dx) > Math.abs(dy) * 0.6) {
+        mode = 'h'; // 가로: 아무 것도 안 하고 네이티브 pan-x 가로 스크롤에 맡김
+      } else if (Math.abs(dy) > COMMIT_MOVE && Math.abs(dy) > Math.abs(dx)) {
+        mode = 'v';
+      } else {
+        return;
+      }
+    }
+
+    if (mode === 'v') {
+      e.preventDefault();
+      scrollContainerEl.scrollTop = startScrollTop - dy;
+    }
+  }, { passive: false });
+
+  function endTrack(){ tracking = false; mode = null; }
+  carouselEl.addEventListener('touchend', endTrack, { passive: true });
+  carouselEl.addEventListener('touchcancel', endTrack, { passive: true });
+}
+
 function renderMyRoutineTemplateSection(){
   const sectionEl = document.getElementById("myRoutineTemplateSection");
 
@@ -8472,9 +8512,13 @@ function renderMyRoutineTemplateSection(){
     </div>
   `).join("");
 
+  const myRoutineBodyEl = document.getElementById("myRoutineBody");
   nameOrder.forEach((name, gi) => {
     const carouselEl = document.getElementById(`myRoutineCarousel-g${gi}`);
-    if (carouselEl) wireCarouselFocus(carouselEl);
+    if (carouselEl) {
+      wireCarouselFocus(carouselEl);
+      wireCarouselVerticalPassthrough(carouselEl, myRoutineBodyEl);
+    }
   });
 }
 
