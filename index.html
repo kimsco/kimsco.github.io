@@ -3122,7 +3122,9 @@ input[type="number"] {
   border: 1px solid #222;
   border-radius: 14px;
   padding: 4px 14px;
-  min-height: 200px;
+  height: 200px; /* 🔥 .meal-log-row 5개 분량 — 그 이상은 내부 스크롤 */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   box-sizing: border-box;
 }
 .today-meal-box.empty {
@@ -4334,9 +4336,9 @@ input[type="number"] {
 
       <div style="font-size:14px; color:#aaa; font-weight:600; margin:7px 0 10px;">오늘 먹은 것</div>
 
-      <button id="quickAddMealBtn" type="button" class="quick-add-meal-btn">추가</button>
-
       <div id="todayMealList" class="today-meal-box"></div>
+
+      <button id="quickAddMealBtn" type="button" class="quick-add-meal-btn">추가</button>
 
       <div style="display:flex; justify-content:space-between; align-items:center; margin:22px 0 10px;">
         <div style="font-size:14px; color:#aaa; font-weight:600;">내 식단</div>
