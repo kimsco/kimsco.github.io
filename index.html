@@ -2964,11 +2964,14 @@ input[type="number"] {
 
 .meal-added-toast {
   position: absolute;
-  left: 18px;
+  left: 0;
+  right: 0;
   top: 100%;
   margin-top: 2px;
   font-size: 12px;
-  color: #FFD700;
+  color: #fff;
+  font-weight: 700;
+  text-align: center;
   opacity: 0;
   transform: translateY(-4px);
   transition: opacity 0.25s ease, transform 0.25s ease;
@@ -12794,7 +12797,7 @@ function renderFoodTemplateList(){
     attachLongPress(card, {
       onTap: () => {
         addMealFromTemplate(item);
-        showAddedToast(card, "내 식단에 추가되었습니다");
+        showAddedToast(card, "오늘 먹은 것에 추가되었습니다");
       },
       onHold: () => {
         if (confirm(`"${item.name}" 템플릿을 삭제할까요?`)) {
@@ -12848,7 +12851,7 @@ function renderFoodDbList(filterText = ""){
     attachLongPress(card, {
       onTap: () => {
         addMealFromTemplate(f);
-        showAddedToast(card, "내 식단에 추가되었습니다");
+        showAddedToast(card, "오늘 먹은 것에 추가되었습니다");
       },
       onHold: () => {
         pendingFoodDbSaveItem = f;
