@@ -10366,7 +10366,7 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
     if (dragging) {
       e.preventDefault();
       const width = navDrawer.offsetWidth || window.innerWidth;
-      const moveX = Math.min(0, dx);
+      const moveX = Math.max(-width, Math.min(0, dx)); // 🔥 완전히 닫힌 위치(-width)보다 더 멀리 끌려나가지 않게 하한 고정
       navDrawer.style.transform = `translateX(${moveX}px)`;
 
       // 드래그 진행률에 비례해서 뒷배경 밀림 + 오버레이 어둠도 같이 줄어듦
