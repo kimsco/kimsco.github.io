@@ -1905,34 +1905,18 @@ html.light-mode-on .dex-post-card.has-image{
   word-break: break-word;
 }
 
-.consent-checkboxes {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin: 16px 0;
+.settings-login-consent-notice {
+  font-size: 11px;
+  color: #777;
+  padding: 0 0 12px;
+  line-height: 1.5;
+  text-align: center;
 }
 
-.consent-checkboxes label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  color: #fff;
+.consent-notice-link {
+  color: #999;
+  text-decoration: underline;
   cursor: pointer;
-  user-select: none;
-}
-
-.consent-checkboxes input[type="checkbox"] {
-  width: auto;
-  margin: 0;
-  cursor: pointer;
-  accent-color: #8bbcff;
-}
-
-#consentAgree:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-  color: #555;
 }
 
 /* ✅ 모달 콘텐츠 스타일 */
@@ -4912,6 +4896,11 @@ input[type="number"] {
     </div>
     <div class="row-right">›</div>
   </button>
+  <div id="settingsLoginConsentNotice" class="settings-login-consent-notice">
+    로그인 시 <span id="consentNoticePrivacyLink" class="consent-notice-link">개인정보 처리방침</span>,
+    <span id="consentNoticeTermsLink" class="consent-notice-link">서비스 이용약관</span>에
+    동의한 것으로 간주합니다
+  </div>
 
   <!-- 로그인 상태일 때만 보일 "계정" -->
   <div id="settingsAccountRow" class="settings-row static">
@@ -4959,10 +4948,10 @@ input[type="number"] {
   <div id="userInfo"></div>
 </div>
 
-<!-- ✅ 회원가입 시 약관/개인정보 동의 모달 -->
+<!-- ✅ 이용약관/개인정보처리방침 뷰어 (로그인 버튼 아래 링크로 열람) -->
 <div id="consentModal" class="modal hidden">
-  <div class="modal-box">
-    <div class="modal-title">이용약관 및 개인정보 동의</div>
+  <div class="modal-box" style="max-height:80vh; display:flex; flex-direction:column;">
+    <div class="modal-title">이용약관 및 개인정보처리방침</div>
 
     <div class="consent-scrollable">
       <!-- 이용약관 -->
@@ -5027,18 +5016,8 @@ MuscleFlow는 개인의 운동 및 식단 기록을 관리하는 PWA 서비스�
       </div>
     </div>
 
-    <div class="consent-checkboxes">
-      <label>
-        <input type="checkbox" id="consentTerms"> 이용약관에 동의합니다 (필수)
-      </label>
-      <label>
-        <input type="checkbox" id="consentPrivacy"> 개인정보 처리방침에 동의합니다 (필수)
-      </label>
-    </div>
-
-    <div class="modal-actions">
-      <button id="consentReject" class="modal-btn">거절</button>
-      <button id="consentAgree" class="modal-btn" disabled>동의하고 로그인</button>
+    <div class="modal-actions" style="grid-template-columns:1fr;">
+      <button id="consentCloseBtn" class="modal-btn">닫기</button>
     </div>
   </div>
 </div>
@@ -6347,60 +6326,24 @@ async function deleteUserAccount() {
   }
 }
 
-// ✅ 동의 모달 함수
-function showConsentModal(user) {
-  const modal = document.getElementById('consentModal');
-  const agreeBtn = document.getElementById('consentAgree');
-  const termsCheckbox = document.getElementById('consentTerms');
-  const privacyCheckbox = document.getElementById('consentPrivacy');
-  const rejectBtn = document.getElementById('consentReject');
-
-  modal.classList.remove('hidden');
-
-  // 두 체크박스 모두 체크되면 동의 버튼 활성화
-  const updateAgreeBtn = () => {
-    agreeBtn.disabled = !(termsCheckbox.checked && privacyCheckbox.checked);
-  };
-
-  termsCheckbox.addEventListener('change', updateAgreeBtn);
-  privacyCheckbox.addEventListener('change', updateAgreeBtn);
-
-  // 동의하고 로그인
-  agreeBtn.onclick = async () => {
-    try {
-      // Firestore에 사용자 문서 생성 (첫 생성)
-      await db.collection('users').doc(user.uid).set({
-        email: user.email,
-        uid: user.uid,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-        consentedAt: firebase.firestore.FieldValue.serverTimestamp(),
-      });
-
-      modal.classList.add('hidden');
-      // 체크박스 초기화
-      termsCheckbox.checked = false;
-      privacyCheckbox.checked = false;
-      completeLogin(user);
-    } catch (error) {
-      alert('가입 처리 중 오류: ' + error.message);
-    }
-  };
-
-  // 거절 (로그아웃)
-  rejectBtn.onclick = async () => {
-    await auth.signOut();
-    modal.classList.add('hidden');
-    // 체크박스 초기화
-    termsCheckbox.checked = false;
-    privacyCheckbox.checked = false;
-    alert('로그인을 거절했습니다.');
-  };
+// ✅ 이용약관/개인정보처리방침 뷰어 열기·닫기 (로그인 하기 버튼 아래 링크)
+const consentNoticePrivacyLink = document.getElementById('consentNoticePrivacyLink');
+const consentNoticeTermsLink = document.getElementById('consentNoticeTermsLink');
+const consentCloseBtn = document.getElementById('consentCloseBtn');
+if (consentNoticePrivacyLink) {
+  consentNoticePrivacyLink.addEventListener('click', () => {
+    document.getElementById('consentModal').classList.remove('hidden');
+  });
 }
-
-// ✅ 로그인 완료 처리 (재로그인일 때도 호출)
-function completeLogin(user) {
-  // 기존 로그인 완료 로직은 auth.onAuthStateChanged에서 처리됨
-  console.log('로그인 완료:', user.email);
+if (consentNoticeTermsLink) {
+  consentNoticeTermsLink.addEventListener('click', () => {
+    document.getElementById('consentModal').classList.remove('hidden');
+  });
+}
+if (consentCloseBtn) {
+  consentCloseBtn.addEventListener('click', () => {
+    document.getElementById('consentModal').classList.add('hidden');
+  });
 }
 
 auth.onAuthStateChanged(async user => {
@@ -6423,6 +6366,7 @@ auth.onAuthStateChanged(async user => {
 
    if (user) {
     if (settingsLoginRow) settingsLoginRow.style.display = "none";
+    if (settingsLoginConsentNotice) settingsLoginConsentNotice.style.display = "none";
     if (settingsAccountRow) settingsAccountRow.style.display = "flex";
 
     if (settingsEmailSub) settingsEmailSub.textContent = user.email || "";
@@ -6431,6 +6375,7 @@ auth.onAuthStateChanged(async user => {
     if (settingsDeleteAccountText) settingsDeleteAccountText.style.display = "block";
   } else {
     if (settingsLoginRow) settingsLoginRow.style.display = "flex";
+    if (settingsLoginConsentNotice) settingsLoginConsentNotice.style.display = "block";
     if (settingsAccountRow) settingsAccountRow.style.display = "none";
 
     if (settingsLogoutText) settingsLogoutText.style.display = "none";
@@ -10843,6 +10788,7 @@ try {
 
 // ✅ 설정 화면용 로그인/로그아웃 요소
 const settingsLoginRow = document.getElementById("settingsLoginRow");
+const settingsLoginConsentNotice = document.getElementById("settingsLoginConsentNotice");
 const settingsAccountRow = document.getElementById("settingsAccountRow");
 const settingsNameBig = document.getElementById("settingsNameBig");
 const settingsEmailSub = document.getElementById("settingsEmailSub");
@@ -10853,22 +10799,11 @@ const logoutCancel = document.getElementById("logoutCancel");
 const logoutConfirm = document.getElementById("logoutConfirm");
 
 // ✅ 구글 로그인 함수 (게스트에서도 동작)
+// 로그인 시 개인정보처리방침/이용약관에 동의한 것으로 간주(로그인 버튼 아래 안내 문구 참고)
 async function doGoogleLogin(){
   try {
     const provider = new firebase.auth.GoogleAuthProvider();
-    const result = await auth.signInWithPopup(provider);
-    const user = result.user;
-
-    // Firestore에서 사용자 문서 확인 (첫 가입인지 판단)
-    const userDocSnap = await db.collection('users').doc(user.uid).get();
-
-    if (!userDocSnap.exists) {
-      // 첫 가입: 동의 모달 표시
-      showConsentModal(user);
-    } else {
-      // 재로그인: 바로 완료
-      completeLogin(user);
-    }
+    await auth.signInWithPopup(provider);
   } catch (e) {
     alert("로그인 실패: " + e.message);
   }
