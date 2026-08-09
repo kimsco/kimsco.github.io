@@ -2182,6 +2182,44 @@ html.light-mode-on .dex-post-card.has-image{
   touch-action: pan-y;
 }
 
+/* ✅ 로그인 바텀시트 (75% 높이) */
+#loginSheet.login-sheet{
+  height: 75vh;
+  max-height: 75vh;
+}
+
+.login-sheet-body{
+  padding: 28px 24px 20px;
+}
+
+.login-sheet-title{
+  font-size: 20px;
+  font-weight: 800;
+  color: #fff;
+  text-align: center;
+}
+
+.login-sheet-sub{
+  margin-top: 8px;
+  font-size: 13px;
+  color: #888;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.login-pill-btn{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border-radius: 999px !important;
+  margin-top: 28px;
+}
+
+.login-pill-btn:active{
+  opacity: 0.85;
+}
+
    
    
    /* ===============================
@@ -4896,11 +4934,6 @@ input[type="number"] {
     </div>
     <div class="row-right">›</div>
   </button>
-  <div id="settingsLoginConsentNotice" class="settings-login-consent-notice">
-    로그인 시 <span id="consentNoticePrivacyLink" class="consent-notice-link">개인정보 처리방침</span>,
-    <span id="consentNoticeTermsLink" class="consent-notice-link">서비스 이용약관</span>에
-    동의한 것으로 간주합니다
-  </div>
 
   <!-- 로그인 상태일 때만 보일 "계정" -->
   <div id="settingsAccountRow" class="settings-row static">
@@ -4946,6 +4979,32 @@ input[type="number"] {
   <button id="googleLoginBtn">Google 로그인</button>
   <button id="logoutBtn">로그아웃</button>
   <div id="userInfo"></div>
+</div>
+
+<!-- ✅ 로그인 바텀시트: "로그인 하기" 클릭 시 하단에서 75% 높이로 올라옴 -->
+<div id="loginSheetOverlay" class="sheetOverlay hidden"></div>
+<div id="loginSheet" class="sheet login-sheet hidden" aria-hidden="true">
+  <div class="sheetHandle"><div class="sheetGrab"></div></div>
+  <div class="login-sheet-body">
+    <div class="login-sheet-title">로그인</div>
+    <div class="login-sheet-sub">로그인하면 운동 기록을 안전하게 보관할 수 있어요</div>
+
+    <button id="loginSheetGoogleBtn" class="login-pill-btn" type="button">
+      <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true">
+        <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"/>
+        <path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"/>
+        <path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.211 35.091 26.715 36 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/>
+        <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 0 1-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"/>
+      </svg>
+      Google로 계속하기
+    </button>
+
+    <div class="settings-login-consent-notice">
+      로그인 시 <span id="consentNoticePrivacyLink" class="consent-notice-link">개인정보 처리방침</span>,
+      <span id="consentNoticeTermsLink" class="consent-notice-link">서비스 이용약관</span>에
+      동의한 것으로 간주합니다
+    </div>
+  </div>
 </div>
 
 <!-- ✅ 이용약관/개인정보처리방침 뷰어 (로그인 버튼 아래 링크로 열람) -->
@@ -6366,7 +6425,6 @@ auth.onAuthStateChanged(async user => {
 
    if (user) {
     if (settingsLoginRow) settingsLoginRow.style.display = "none";
-    if (settingsLoginConsentNotice) settingsLoginConsentNotice.style.display = "none";
     if (settingsAccountRow) settingsAccountRow.style.display = "flex";
 
     if (settingsEmailSub) settingsEmailSub.textContent = user.email || "";
@@ -6375,7 +6433,6 @@ auth.onAuthStateChanged(async user => {
     if (settingsDeleteAccountText) settingsDeleteAccountText.style.display = "block";
   } else {
     if (settingsLoginRow) settingsLoginRow.style.display = "flex";
-    if (settingsLoginConsentNotice) settingsLoginConsentNotice.style.display = "block";
     if (settingsAccountRow) settingsAccountRow.style.display = "none";
 
     if (settingsLogoutText) settingsLogoutText.style.display = "none";
@@ -10788,7 +10845,6 @@ try {
 
 // ✅ 설정 화면용 로그인/로그아웃 요소
 const settingsLoginRow = document.getElementById("settingsLoginRow");
-const settingsLoginConsentNotice = document.getElementById("settingsLoginConsentNotice");
 const settingsAccountRow = document.getElementById("settingsAccountRow");
 const settingsNameBig = document.getElementById("settingsNameBig");
 const settingsEmailSub = document.getElementById("settingsEmailSub");
@@ -10809,10 +10865,52 @@ async function doGoogleLogin(){
   }
 }
 
-// ✅ 설정 패널에서 "로그인 하기" 클릭 시 로그인
+// ✅ 로그인 바텀시트 (75% 높이) — "로그인 하기" 클릭 시 바로 구글 팝업 대신 이 시트를 먼저 띄움
+const loginSheetOverlay = document.getElementById("loginSheetOverlay");
+const loginSheet = document.getElementById("loginSheet");
+const loginSheetGoogleBtn = document.getElementById("loginSheetGoogleBtn");
+
+function openLoginSheet(){
+  loginSheetOverlay.classList.remove("show");
+  loginSheet.classList.remove("show");
+
+  loginSheetOverlay.classList.remove("hidden");
+  loginSheet.classList.remove("hidden");
+  loginSheet.setAttribute("aria-hidden", "false");
+
+  void loginSheet.offsetHeight;
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      loginSheetOverlay.classList.add("show");
+      loginSheet.classList.add("show");
+    });
+  });
+}
+
+function closeLoginSheet(){
+  loginSheetOverlay.classList.remove("show");
+  loginSheet.classList.remove("show");
+  loginSheet.setAttribute("aria-hidden", "true");
+
+  setTimeout(() => {
+    loginSheetOverlay.classList.add("hidden");
+    loginSheet.classList.add("hidden");
+  }, 230);
+}
+
+if (loginSheetOverlay) loginSheetOverlay.addEventListener("click", closeLoginSheet);
+if (loginSheetGoogleBtn) {
+  loginSheetGoogleBtn.addEventListener("click", () => {
+    closeLoginSheet();
+    doGoogleLogin();
+  });
+}
+
+// ✅ 설정 패널에서 "로그인 하기" 클릭 시 바텀시트 오픈
 if (settingsLoginRow) {
   settingsLoginRow.addEventListener("click", () => {
-    doGoogleLogin();
+    openLoginSheet();
   });
 }
 
