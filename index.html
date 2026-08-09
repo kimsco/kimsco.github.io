@@ -10472,7 +10472,8 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
     if (dragging) {
       const width = navDrawer.offsetWidth || window.innerWidth;
       const progress = Math.max(0, Math.min(1, dx / width));
-      navDrawer.style.transform = `translateX(${-width + dx}px)`;
+      const clampedDx = Math.min(dx, width); // 🔥 완전히 열린 위치(translateX(0))보다 더 끌려나가지 않게 상한 고정
+      navDrawer.style.transform = `translateX(${-width + clampedDx}px)`;
       navDrawerDim.style.opacity = String(progress);
       const maxPush = Math.round(width / 5);
       setAppPush(maxPush * progress);
