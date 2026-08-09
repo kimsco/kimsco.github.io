@@ -12360,7 +12360,10 @@ function computeWeeksLeft(current, goal){
 function renderDietTodayWeightButton(){
   const el = document.getElementById('dietWeightCurrentText');
   if (!el) return;
-  el.textContent = userWeight.current ? `${userWeight.current}kg` : '입력하기';
+  // 🔥 "오늘 먹은 것"처럼 날짜가 바뀌면 초기화 — userWeight.current(마지막으로
+  //    입력한 값, 날짜 무관)가 아니라 오늘 날짜로 기록된 값이 있을 때만 표시
+  const todayWeight = (userWeight.log || {})[formatTodayYYMMDD()];
+  el.textContent = todayWeight ? `${todayWeight}kg` : '입력하기';
 }
 
 function renderStatsWeightWidget(){
