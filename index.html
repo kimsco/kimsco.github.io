@@ -4874,6 +4874,7 @@ input[type="number"] {
       <div class="my-routine-builder-title">루틴 만들기</div>
 
       <div class="my-routine-builder-sublabel">루틴 이름</div>
+      <div id="myRoutineBuilderExistingList" class="routine-save-existing-list"></div>
       <input type="text" id="myRoutineBuilderNameInput" class="my-routine-builder-name-input" placeholder="예: 월요일 하체">
 
       <div class="my-routine-builder-sublabel">부위 선택</div>
@@ -7584,6 +7585,19 @@ function openMyRoutineBuilder(){
   document.getElementById("myRoutineBuilderNameInput").value = "";
   document.getElementById("myRoutineBuilderPartSections").innerHTML = "";
   renderBuilderOrderList();
+
+  // 🔥 "오늘의 운동" 저장 팝업처럼, 기존에 만들어둔 루틴 이름을 탭해서 그 폴더에
+  //    바로 추가할 수 있게 목록으로 보여줌 (새 이름을 입력하면 새 폴더가 됨)
+  const existingNames = Array.from(new Set(myRoutineTemplates.map(t => t.name).filter(Boolean)));
+  const existingListEl = document.getElementById("myRoutineBuilderExistingList");
+  existingListEl.innerHTML = existingNames.map(name => `
+    <div class="routine-save-existing-row" data-name="${escapeHtml(name)}">${escapeHtml(name)}</div>
+  `).join("");
+  existingListEl.querySelectorAll(".routine-save-existing-row").forEach(row => {
+    row.addEventListener("click", () => {
+      document.getElementById("myRoutineBuilderNameInput").value = row.dataset.name;
+    });
+  });
 
   const partsEl = document.getElementById("myRoutineBuilderParts");
   partsEl.innerHTML = MY_ROUTINE_BUILDER_PARTS.map(p => `
