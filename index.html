@@ -12570,31 +12570,21 @@ function renderWeightTrendChart(){
   if (!canvas || typeof Chart === 'undefined') return;
 
   const log = userWeight.log || {};
-  const logDates = Object.keys(log).sort();
+  // 🔥 달력상 최근 5일이 아니라, 실제로 입력된 기록 중 최신 5개(날짜도 그 기록
+  //    기준)만 사용 — 입력 안 한 날이 껴서 그래프가 밀리는 문제 방지
+  const recentDates = Object.keys(log).sort().slice(-5);
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const anchor = logDates.length ? parseYYMMDD(logDates[0]) : today;
-  const daysSinceAnchor = Math.round((today - anchor) / 86400000);
-
-  const windowStart = daysSinceAnchor <= 4
-    ? anchor
-    : (() => { const d = new Date(today); d.setDate(d.getDate() - 4); return d; })();
-
-  const windowDates = Array.from({ length: 5 }, (_, i) => {
-    const d = new Date(windowStart);
-    d.setDate(d.getDate() + i);
-    return d;
+  const keys = recentDates;
+  const labels = recentDates.map(k => {
+    const d = parseYYMMDD(k);
+    return d ? `${d.getMonth() + 1}/${d.getDate()}` : k;
   });
-  const keys = windowDates.map(d => formatTodayYYMMDD(d));
-  const labels = windowDates.map(d => `${d.getMonth() + 1}/${d.getDate()}`);
-  const weightValues = keys.map(k => (k in log) ? log[k] : null);
+  const weightValues = keys.map(k => log[k]);
 
-  // 🔥 y축: 맨 처음 기록한 몸무게가 항상 정중앙에 오도록 하고, 기본 범위는
-  //    위/아래 1kg(총 2kg) — 화면엔 5일치만 보이는데 1주일 새 실제 증감량은
-  //    커봤자 1kg 안팎이라서. 실측 데이터가 그보다 더 벌어지면(가장 큰 편차
-  //    기준으로) 대칭으로 범위를 넓힌다. 목표 몸무게는 이 계산에 관여하지 않음.
-  const firstWeight = logDates.length ? log[logDates[0]] : null;
+  // 🔥 y축: 이 5개 기록 중 맨 처음(가장 오래된) 값이 항상 정중앙에 오도록 하고,
+  //    기본 범위는 위/아래 1kg(총 2kg). 실측 데이터가 그보다 더 벌어지면(가장 큰
+  //    편차 기준으로) 대칭으로 범위를 넓힌다. 목표 몸무게는 이 계산에 관여하지 않음.
+  const firstWeight = recentDates.length ? log[recentDates[0]] : null;
   let yMin, yMax;
   if (firstWeight != null) {
     const deviations = weightValues
