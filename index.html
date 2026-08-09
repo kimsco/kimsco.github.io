@@ -2949,6 +2949,7 @@ input[type="number"] {
 }
 
 .food-template-card {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -2959,6 +2960,25 @@ input[type="number"] {
   padding: 16px 18px;
   margin: 0 -18px;
   cursor: pointer;
+}
+
+.meal-added-toast {
+  position: absolute;
+  left: 18px;
+  top: 100%;
+  margin-top: 2px;
+  font-size: 12px;
+  color: #FFD700;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 5;
+}
+.meal-added-toast.show {
+  opacity: 1;
+  transform: translateY(0);
 }
 .food-template-name {
   font-size: 14px;
@@ -3000,6 +3020,7 @@ input[type="number"] {
   margin: 0 0 8px;
 }
 .diet-food-db-card {
+  position: relative;
   padding: 12px 4px;
   border-bottom: 1px solid rgba(255,255,255,0.1);
   cursor: pointer;
@@ -12734,6 +12755,25 @@ function addFoodTemplateItem({ name, protein, carb, fat }){
 }
 
 /* ---------- 식단 템플릿 ---------- */
+// 🔥 템플릿/음식 DB 카드를 탭해 오늘 식단에 추가했을 때, 그 카드 바로 아래
+//    한 줄에 안내 문구가 스르르 떴다가 사라지는 토스트
+function showAddedToast(anchorEl, text){
+  if (!anchorEl) return;
+  const toast = document.createElement("div");
+  toast.className = "meal-added-toast";
+  toast.textContent = text;
+  anchorEl.appendChild(toast);
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => toast.classList.add("show"));
+  });
+
+  setTimeout(() => {
+    toast.classList.remove("show");
+    setTimeout(() => toast.remove(), 300);
+  }, 1000);
+}
+
 function renderFoodTemplateList(){
   const el = document.getElementById("foodTemplateList");
   if (!foodTemplates.length) {
@@ -12752,7 +12792,10 @@ function renderFoodTemplateList(){
 
     // 🔥 길게 누르면 삭제
     attachLongPress(card, {
-      onTap: () => addMealFromTemplate(item),
+      onTap: () => {
+        addMealFromTemplate(item);
+        showAddedToast(card, "내 식단에 추가되었습니다");
+      },
       onHold: () => {
         if (confirm(`"${item.name}" 템플릿을 삭제할까요?`)) {
           deleteFoodTemplate(item.id);
@@ -12803,7 +12846,10 @@ function renderFoodDbList(filterText = ""){
       <div class="diet-stats-reco-macro">단백질 ${f.protein}g · 탄수 ${f.carb}g · 지방 ${f.fat}g</div>
     `;
     attachLongPress(card, {
-      onTap: () => addMealFromTemplate(f),
+      onTap: () => {
+        addMealFromTemplate(f);
+        showAddedToast(card, "내 식단에 추가되었습니다");
+      },
       onHold: () => {
         pendingFoodDbSaveItem = f;
         // 🔥 롱프레스 터치가 아직 안 끝난 상태라, 모달이 뜬 뒤에도 손가락을 움직이면
