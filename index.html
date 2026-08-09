@@ -10235,15 +10235,17 @@ async function sendAiChatMessage(){
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ message, history: aiChatHistory.slice(-12) }),
     });
-    const data = await res.json().catch(() => null);
+    const rawText = await res.text().catch(() => "");
+    let data = null;
+    try { data = JSON.parse(rawText); } catch (e) { /* JSON이 아닌 응답(에러 페이지 등) */ }
     loadingBubble.remove();
 
     if (!res.ok || !data?.answer) {
       // 🔥 원인을 알 수 없는 "답변을 가져오지 못했어요"로 뭉뚱그리지 않고,
-      //    Worker가 보내주는 실제 에러/디버그 정보를 그대로 보여줌(디버깅용)
+      //    Worker가 보내주는 실제 에러/디버그 정보(JSON이 아니면 원본 응답)를 그대로 보여줌(디버깅용)
       const debugMsg = data?.error
         ? `답변 생성 실패: ${data.error}${data.detail ? `\n(${data.detail})` : ""}`
-        : "답변을 가져오지 못했어요. 잠시 후 다시 시도해주세요.";
+        : `답변을 가져오지 못했어요. (상태 ${res.status})${rawText ? `\n${rawText.slice(0, 300)}` : ""}`;
       renderAiChatMessage("ai", debugMsg, { error: true });
       return;
     }
