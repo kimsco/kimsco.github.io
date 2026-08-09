@@ -2667,10 +2667,21 @@ input[type="number"] {
   font-weight: 600;
 }
 .diet-water-count-col {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  flex-shrink: 0; /* 🔥 -/+ 버튼 사이 폭은 "N잔" 하나만으로 결정되게 고정 */
+}
+/* 🔥 "물 섭취" 라벨은 레이아웃 폭에 영향을 주지 않도록 절대 위치로 "N잔" 위에 띄움
+   (좁은 칸에 줄바꿈되며 버튼 사이로 밀려 내려오던 문제 방지) */
+.diet-water-count-col .diet-water-log-label {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  margin-bottom: 4px;
 }
 .diet-water-log-controls {
   display: flex;
