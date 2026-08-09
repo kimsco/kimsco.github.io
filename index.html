@@ -3490,6 +3490,7 @@ input[type="number"] {
   gap: 0;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  touch-action: pan-x; /* 🔥 가로 전용 스크롤 — 이게 없으면 세로 스크롤로 오인해 화면 전체가 같이 끌려감 */
   padding-bottom: 2px;
 }
 .my-routine-train::-webkit-scrollbar { display: none; }
