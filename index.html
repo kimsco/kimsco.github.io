@@ -12571,20 +12571,36 @@ function renderWeightTrendChart(){
 
   const log = userWeight.log || {};
   // 🔥 달력상 최근 5일이 아니라, 실제로 입력된 기록 중 최신 5개(날짜도 그 기록
-  //    기준)만 사용 — 입력 안 한 날이 껴서 그래프가 밀리는 문제 방지
-  const recentDates = Object.keys(log).sort().slice(-5);
+  //    기준)만 왼쪽부터 채움 — 입력 안 한 날이 껴서 그래프가 밀리는 문제 방지.
+  //    5개 미만이면 남은 오른쪽 자리는 오늘/내일/모레/글피... 순서로 채워서
+  //    항상 5칸을 유지(값은 없음 = 그래프에는 안 찍히고 x축 자리만 차지).
+  const realDates = Object.keys(log).sort().slice(-5);
 
-  const keys = recentDates;
-  const labels = recentDates.map(k => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const lastReal = realDates.length ? parseYYMMDD(realDates[realDates.length - 1]) : null;
+  const cursor = (lastReal && lastReal >= today)
+    ? new Date(lastReal.getTime() + 86400000)
+    : new Date(today);
+
+  const placeholderDates = [];
+  for (let i = realDates.length; i < 5; i++) {
+    placeholderDates.push(formatTodayYYMMDD(cursor));
+    cursor.setDate(cursor.getDate() + 1);
+  }
+
+  const keys = [...realDates, ...placeholderDates];
+  const labels = keys.map(k => {
     const d = parseYYMMDD(k);
     return d ? `${d.getMonth() + 1}/${d.getDate()}` : k;
   });
-  const weightValues = keys.map(k => log[k]);
+  const weightValues = keys.map(k => (k in log) ? log[k] : null);
 
-  // 🔥 y축: 이 5개 기록 중 맨 처음(가장 오래된) 값이 항상 정중앙에 오도록 하고,
+  // 🔥 y축: 실제 기록 중 맨 처음(가장 오래된) 값이 항상 정중앙에 오도록 하고,
   //    기본 범위는 위/아래 1kg(총 2kg). 실측 데이터가 그보다 더 벌어지면(가장 큰
   //    편차 기준으로) 대칭으로 범위를 넓힌다. 목표 몸무게는 이 계산에 관여하지 않음.
-  const firstWeight = recentDates.length ? log[recentDates[0]] : null;
+  const firstWeight = realDates.length ? log[realDates[0]] : null;
   let yMin, yMax;
   if (firstWeight != null) {
     const deviations = weightValues
