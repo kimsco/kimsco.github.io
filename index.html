@@ -2637,7 +2637,7 @@ input[type="number"] {
 /* 식단(오늘) 탭: 물 섭취 / 몸무게 등록 바 (지방 그래프 ~ 내 식단 사이 여백에 배치) */
 .diet-water-log-row {
   display: flex;
-  align-items: center;
+  align-items: flex-start; /* 🔥 두 절반 모두 같은 Y에서 시작 — 라벨 줄끼리, 컨트롤 줄끼리 같은 가로선에 오도록 */
   margin-bottom: 7px; /* 🔥 물 섭취 ~ 내 식단 사이 여백(기존 14px의 절반) */
   gap: 14px;
 }
@@ -2665,23 +2665,13 @@ input[type="number"] {
   font-size: 16px;
   color: #aaa;
   font-weight: 600;
+  white-space: nowrap;
 }
 .diet-water-count-col {
-  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  flex-shrink: 0; /* 🔥 -/+ 버튼 사이 폭은 "N잔" 하나만으로 결정되게 고정 */
-}
-/* 🔥 "물 섭취" 라벨은 레이아웃 폭에 영향을 주지 않도록 절대 위치로 "N잔" 위에 띄움
-   (좁은 칸에 줄바꿈되며 버튼 사이로 밀려 내려오던 문제 방지) */
-.diet-water-count-col .diet-water-log-label {
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  white-space: nowrap;
-  margin-bottom: 4px;
+  flex-shrink: 0;
 }
 .diet-water-log-controls {
   display: flex;
@@ -2691,8 +2681,6 @@ input[type="number"] {
   font-size: 15px;
   color: #fff;
   font-weight: 600;
-  margin-top: 47px; /* 🔥 "물 섭취" 라벨이 절대위치로 빠지면서 생긴 높이만큼 보정 —
-                        "오늘의 몸무게"쪽 입력하기 버튼과 같은 선상에 오도록 */
 }
 .diet-water-count-wrap {
   display: inline-block;
@@ -2709,6 +2697,7 @@ input[type="number"] {
 .diet-water-ml-input {
   width: 40px;
   height: 28px;
+  margin: 0; /* 🔥 전역 input{margin:10px 0} 리셋 무력화 — 이게 없어서 컨트롤 줄 전체가 위아래로 부풀어 있었음 */
   background: #111;
   border: 1px solid #2a2a2a;
   border-radius: 6px;
@@ -2754,6 +2743,7 @@ input[type="number"] {
   appearance: none;
   align-self: center;
   height: 30px;
+  margin: 0; /* 🔥 전역 button{margin:10px 0} 리셋 무력화 */
   padding: 0 12px;
   border-radius: 8px;
   border: 1px solid rgba(255,255,255,0.25);
@@ -4337,10 +4327,10 @@ input[type="number"] {
 
     <div class="diet-water-log-row">
       <div class="diet-water-log-half">
+        <div class="diet-water-log-label">물 섭취</div>
         <div class="diet-water-log-controls">
           <button id="dietTodayWaterMinusBtn" type="button">−</button>
           <div class="diet-water-count-col">
-            <div class="diet-water-log-label">물 섭취</div>
             <span class="diet-water-count-wrap"><span id="dietTodayWaterCount">0</span>잔</span>
           </div>
           <button id="dietTodayWaterPlusBtn" type="button">+</button>
