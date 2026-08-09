@@ -3447,6 +3447,11 @@ input[type="number"] {
 #quickAddMealModal .food-modal-form label {
   font-size: 15px;
   color: #fff;
+  margin: 0 0 6px 2px; /* 🔥 라벨이 입력창 바로 위로 올라오므로 간격 재조정 */
+}
+#foodTemplateModal .food-modal-form input,
+#quickAddMealModal .food-modal-form input {
+  margin-bottom: 14px;
 }
 
 /* 🔥 전체화면 오버레이들: 끝까지 스크롤하면 스프링처럼 튕겨 돌아오지 않고 그 자리에 멈추게 함
@@ -5103,17 +5108,17 @@ MuscleFlow는 개인의 운동 및 식단 기록을 관리하는 PWA 서비스�
   <div class="modal-box">
     <div class="modal-title">무엇을 저장하시겠습니까?</div>
     <div class="food-modal-form">
-      <input id="foodModalName" type="text" placeholder="예: 닭가슴살 100g">
       <label>음식 이름</label>
+      <input id="foodModalName" type="text" placeholder="예: 닭가슴살 100g">
 
-      <input id="foodModalCarb" type="number" inputmode="decimal" placeholder="비워도 됨">
       <label>탄수화물 (g)</label>
+      <input id="foodModalCarb" type="number" inputmode="decimal" placeholder="비워도 됨">
 
-      <input id="foodModalProtein" type="number" inputmode="decimal" placeholder="예: 24">
       <label>단백질 (g)</label>
+      <input id="foodModalProtein" type="number" inputmode="decimal" placeholder="예: 24">
 
-      <input id="foodModalFat" type="number" inputmode="decimal" placeholder="비워도 됨">
       <label>지방 (g)</label>
+      <input id="foodModalFat" type="number" inputmode="decimal" placeholder="비워도 됨">
     </div>
 
     <div class="modal-actions">
@@ -5128,17 +5133,17 @@ MuscleFlow는 개인의 운동 및 식단 기록을 관리하는 PWA 서비스�
   <div class="modal-box">
     <div class="modal-title">오늘 먹은 것 추가</div>
     <div class="food-modal-form">
-      <input id="quickMealName" type="text" placeholder="예: 닭가슴살 100g">
       <label>이름</label>
+      <input id="quickMealName" type="text" placeholder="예: 닭가슴살 100g">
 
-      <input id="quickMealCarb" type="number" inputmode="decimal" placeholder="g">
       <label>탄수화물</label>
+      <input id="quickMealCarb" type="number" inputmode="decimal" placeholder="g">
 
-      <input id="quickMealProtein" type="number" inputmode="decimal" placeholder="g">
       <label>단백질</label>
+      <input id="quickMealProtein" type="number" inputmode="decimal" placeholder="g">
 
-      <input id="quickMealFat" type="number" inputmode="decimal" placeholder="g">
       <label>지방</label>
+      <input id="quickMealFat" type="number" inputmode="decimal" placeholder="g">
     </div>
 
     <div class="modal-actions">
