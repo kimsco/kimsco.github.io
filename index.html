@@ -3308,37 +3308,11 @@ input[type="number"] {
   text-align: right;
 }
 
-/* 추천 음식 가로 나열 */
-.diet-stats-reco-list-h {
-  display: flex;
-  gap: 10px;
-  overflow-x: auto;
-  padding-bottom: 4px;
-  -webkit-overflow-scrolling: touch;
-}
-.diet-stats-reco-card {
-  flex: 0 0 auto;
-  min-width: 128px;
-  background: #111;
-  border: 1px solid #222;
-  border-radius: 10px;
-  padding: 10px 12px;
-}
-.diet-stats-reco-name {
-  font-size: 12.5px;
-  color: #fff;
-  font-weight: 600;
-  white-space: nowrap;
-}
 .diet-stats-reco-macro {
   font-size: 11px;
   color: #FFD700;
   margin-top: 4px;
   white-space: nowrap;
-}
-.diet-stats-reco-empty {
-  font-size: 12px;
-  color: #777;
 }
 
 /* 물 섭취 위젯 (통계 탭 우측 상단) */
@@ -4444,9 +4418,6 @@ input[type="number"] {
         <div id="dietStatsFatNum" class="diet-stats-macro-bar-num">0/0g</div>
       </div>
     </div>
-
-    <div class="diet-stats-reco-title" style="margin:18px 0 8px;">추천 음식</div>
-    <div id="dietStatsRecoList" class="diet-stats-reco-list-h"></div>
 
     <div class="diet-stats-reco-title" style="margin:18px 0 8px;">최근 7일 칼로리</div>
     <div class="diet-stats-trend-wrap">
@@ -12678,7 +12649,6 @@ function renderDietStats(){
 
   const pctEl = document.getElementById('dietStatsChartPct');
   const subEl = document.getElementById('dietStatsChartSub');
-  const recoListEl = document.getElementById('dietStatsRecoList');
 
   const targets = calcTargets(userSpec);
   const todayMeals = getTodayMeals();
@@ -12697,7 +12667,6 @@ function renderDietStats(){
     setDietStatsMacroBar('Carb', 0, 0);
     setDietStatsMacroBar('Protein', 0, 0);
     setDietStatsMacroBar('Fat', 0, 0);
-    recoListEl.innerHTML = `<div class="diet-stats-reco-empty">설정에서 키/몸무게/나이를 입력하면 추천 음식을 계산해드려요.</div>`;
     renderDietStatsChart(0, 100);
     return;
   }
@@ -12710,44 +12679,6 @@ function renderDietStats(){
   setDietStatsMacroBar('Carb', sum.carb, targets.carbTarget);
   setDietStatsMacroBar('Protein', sum.protein, targets.proteinTarget);
   setDietStatsMacroBar('Fat', sum.fat, targets.fatTarget);
-
-  const remain = {
-    carb: Math.max(0, targets.carbTarget - sum.carb),
-    protein: Math.max(0, targets.proteinTarget - sum.protein),
-    fat: Math.max(0, targets.fatTarget - sum.fat),
-  };
-  const remainKcal = Math.max(0, targets.targetCalories - kcal);
-  const macroLabel = { protein: '단백질', carb: '탄수화물', fat: '지방' };
-
-  if (remainKcal <= 0) {
-    recoListEl.innerHTML = `<div class="diet-stats-reco-empty">오늘 목표를 이미 채우셨어요 🎉</div>`;
-    return;
-  }
-
-  const primary = Object.entries(remain).sort((a, b) => b[1] - a[1])[0][0];
-
-  const candidates = FOOD_DB
-    .filter(f => f[primary] > 0)
-    .map(f => ({ ...f, kcal: kcalOfMeals([f]) }))
-    .filter(f => f.kcal <= remainKcal + 150)
-    .sort((a, b) => b[primary] - a[primary])
-    .slice(0, 6);
-
-  if (!candidates.length) {
-    recoListEl.innerHTML = `<div class="diet-stats-reco-empty">추천할 음식이 없어요</div>`;
-    return;
-  }
-
-  recoListEl.innerHTML = '';
-  candidates.forEach(f => {
-    const card = document.createElement('div');
-    card.className = 'diet-stats-reco-card';
-    card.innerHTML = `
-      <div class="diet-stats-reco-name">${f.name}</div>
-      <div class="diet-stats-reco-macro">${f.kcal}kcal · ${macroLabel[primary]} ${f[primary]}g</div>
-    `;
-    recoListEl.appendChild(card);
-  });
 }
 
 /* 🔥 꾹 누르기(롱프레스) 제스처 공용 헬퍼: 짧게 탭하면 onTap, 600ms 이상 누르고 있으면
