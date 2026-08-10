@@ -6109,6 +6109,19 @@ function getRecentWindowStartDateStr(baseDate = new Date()){
   return formatTodayYYMMDD(d);
 }
 
+// 🔥 운동 기록(3대/보조운동)은 화면에도 처음엔 최근 10일치만 그려주는데(RECORD_DAYS_INITIAL),
+//    Firestore 조회는 그거랑 무관하게 항상 3개월치를 통째로 읽어오고 있었음 — 화면에 안 그리는
+//    나머지 2개월치도 읽기로 과금됐다는 뜻. 초기 조회 창을 "화면에 실제로 보여줄 만큼"으로
+//    줄이고, 그보다 더 과거 기록은(스크롤로 화면에 다 그려서 더 볼 게 없어지는 순간) 기존
+//    ensureFullLiftHistory/ensureExerciseHistory가 그때 가서 전체를 온디맨드로 채워준다
+//    (이 함수들은 이미 날짜 제한 없이 전체를 받아오는 구조라 그대로 재사용 가능).
+const RECORDS_INITIAL_WINDOW_DAYS = 30;
+function getRecordsInitialWindowStartDateStr(baseDate = new Date()){
+  const d = new Date(baseDate);
+  d.setDate(d.getDate() - RECORDS_INITIAL_WINDOW_DAYS);
+  return formatTodayYYMMDD(d);
+}
+
 // 🔥 최근 창 밖의 과거 리프트 기록을, 그래프를 열거나 "이전 기록 더 보기"를 누를 때만
 //    온디맨드로 추가 조회해서 병합한다 (리프트별로 한 번만).
 const liftFullHistoryLoaded = { bench: false, squat: false, dead: false, ohp: false };
@@ -6545,13 +6558,14 @@ auth.onAuthStateChanged(async user => {
         console.error("load threeRM err", e);
       }
 
-      /* records */
+      /* records: 처음엔 화면에 실제로 보여줄 만큼(최근 30일)만 읽고,
+         그보다 과거 기록은 스크롤로 더 볼 때 ensureFullLiftHistory가 온디맨드로 채움 */
   try {
     const snap = await db
       .collection("users")
       .doc(user.uid)
       .collection("records")
-      .where("date", ">=", getRecentWindowStartDateStr())
+      .where("date", ">=", getRecordsInitialWindowStartDateStr())
       .get();
 
     records.bench = [];
@@ -10761,7 +10775,7 @@ async function loadAccessoryRecords() {
       .collection('users')
       .doc(user.uid)
       .collection('accessoryRecords')
-      .where('date', '>=', getRecentWindowStartDateStr())
+      .where('date', '>=', getRecordsInitialWindowStartDateStr())
       .get();
 
     // 🔥 여기서 accRecordsByExercise를 통째로 교체하면, "이전 기록 더 보기"
