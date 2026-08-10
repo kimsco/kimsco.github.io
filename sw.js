@@ -1,4 +1,4 @@
-const CACHE = "mf-v2"; // 🔥 앱 이름(ttt) 등 정적 파일이 바뀔 때마다 버전을 올려야 기존 캐시가 갱신됨
+const CACHE = "mf-v3"; // 🔥 정적 파일이 바뀔 때마다 버전을 올려야 기존 캐시가 갱신됨
 const ASSETS = [
   "/",
   "/index.html",
@@ -25,10 +25,27 @@ self.addEventListener("activate", e => {
 });
 
 self.addEventListener("fetch", e => {
+  const url = e.request.url;
+
   // Worker API는 항상 네트워크에서 받기 (캐시 무시)
-  if (e.request.url.includes(".workers.dev")) {
+  if (url.includes(".workers.dev")) {
     return e.respondWith(fetch(e.request));
   }
-  // 나머지 요청은 캐시 우선
+
+  // 🔥 index.html(및 "/")은 네트워크 우선 — 캐시 버전을 깜빡 안 올려도 최신 코드가 바로 반영되게.
+  //    네트워크 실패(오프라인) 시에만 캐시로 폴백.
+  const isAppShell = e.request.mode === "navigate" || url.endsWith("/index.html") || url.endsWith("/");
+  if (isAppShell) {
+    return e.respondWith(
+      fetch(e.request)
+        .then(res => {
+          caches.open(CACHE).then(c => c.put(e.request, res.clone()));
+          return res;
+        })
+        .catch(() => caches.match(e.request))
+    );
+  }
+
+  // 나머지(아이콘, 음식DB 등 잘 안 바뀌는 파일)는 캐시 우선
   e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
 });
