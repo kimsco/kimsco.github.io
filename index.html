@@ -9082,9 +9082,10 @@ function openExerciseDex(){
   if (isDexAdmin()) dexRetryPendingSync().then(() => renderDexList()); // 🔥 이전에 실패했던 저장 자동 재시도
 }
 function closeExerciseDex(){
-  // 🔥 화면을 나가면 실시간 구독 해제 (다음에 다시 열 때 재구독됨)
-  if (dexFoldersUnsub) { dexFoldersUnsub(); dexFoldersUnsub = null; }
-  if (dexPostsUnsub) { dexPostsUnsub(); dexPostsUnsub = null; }
+  // 🔥 Firestore 읽기 절약: 화면을 나가도 구독은 유지해둔다.
+  //    dexFolders/dexPosts는 로그인 계정과 무관한 전역 공유 컬렉션이라, 열 때마다
+  //    구독을 껐다 켰다 하면 onSnapshot이 매번 컬렉션 전체를 다시 "읽기"로 과금한다.
+  //    앱이 켜져있는 동안 한 번만 구독해두고, 이후엔 실제로 바뀐 문서만큼만 과금된다.
 
   exerciseDexOverlay.classList.add("hidden");
   exerciseDexScreen.style.transform = "translateX(0)";
