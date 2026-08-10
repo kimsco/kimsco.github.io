@@ -1,4 +1,4 @@
-const CACHE = "mf-v2"; // 🔥 앱 이름(ttt) 등 정적 파일이 바뀔 때마다 버전을 올려야 기존 캐시가 갱신됨
+const CACHE = "mf-v3"; // 🔥 정적 파일이 바뀔 때마다 버전을 올려야 기존 캐시가 갱신됨
 const ASSETS = [
   "/",
   "/index.html",
