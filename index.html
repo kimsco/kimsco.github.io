@@ -6587,19 +6587,9 @@ auth.onAuthStateChanged(async user => {
     console.error("load records err", e);
   }
 
-      /* 달력 */
+      /* 달력: 이번 달치만 우선 로드 — 다른 달은 이전/다음달 버튼 누를 때 온디맨드로 불러옴 */
       try {
-        const snap = await db
-          .collection("users")
-          .doc(user.uid)
-          .collection("calendar")
-          .get();
-
-        calData = {};
-        snap.forEach(doc => {
-          calData[doc.id] = doc.data();
-        });
-
+        await ensureCalendarForMonth(calCurrent.getFullYear(), calCurrent.getMonth() + 1);
         calRender();
       } catch (e) {
         console.error("calendar load error", e);
@@ -6690,12 +6680,39 @@ const calPopupDate = document.getElementById("calPopupDate");
 const calMuscleBtns = calPopup.querySelectorAll(".muscles button");
 
 let calCurrent = new Date();
- 
-let calendarMode = "date"; 
+
+let calendarMode = "date";
 // "date" | "muscle"
 
 let calSelectedDate = null;
 let calSelectedMuscles = [];
+
+/* 🔥 Firestore 읽기 절약: 달력은 로그인 시 이번 달치만 받아오고, 다른 달로 넘길 때만
+   그 달을 온디맨드로 추가 조회한다(식단 달력의 ensureMealsForMonth와 같은 패턴).
+   문서 id가 "YYYY-M-D"(월/일 앞에 0 안 붙임) 형식이라 숫자 크기 비교 range 쿼리는
+   못 쓰고, "YYYY-M-" 접두어로 시작하는 문서만 걸러내는 prefix 쿼리를 사용 */
+const calLoadedMonths = new Set(); // "YYYY-M" 단위로, 이번 세션에 이미 Firestore에서 받아온 달
+async function ensureCalendarForMonth(year, month){
+  const monthKey = `${year}-${month}`;
+  if (calLoadedMonths.has(monthKey)) return;
+  const user = auth.currentUser;
+  if (!user) { calLoadedMonths.add(monthKey); return; }
+
+  try {
+    const prefix = `${year}-${month}-`;
+    const snap = await db.collection("users").doc(user.uid)
+      .collection("calendar")
+      .where(firebase.firestore.FieldPath.documentId(), ">=", prefix)
+      .where(firebase.firestore.FieldPath.documentId(), "<", prefix + "")
+      .get();
+
+    snap.forEach(doc => { calData[doc.id] = doc.data(); });
+    calLoadedMonths.add(monthKey);
+    saveCalendarToLocal();
+  } catch (e) {
+    console.error("calendar month load err", e);
+  }
+}
 
 
 function calRender() {
@@ -6939,13 +6956,17 @@ function calOpenPopup(key) {
 
 
 
-document.getElementById("calPrev").onclick = () => {
+document.getElementById("calPrev").onclick = async () => {
   calCurrent.setMonth(calCurrent.getMonth() - 1);
-  calRender();
+  calRender(); // 로컬에 있는 만큼 먼저 즉시 표시
+  await ensureCalendarForMonth(calCurrent.getFullYear(), calCurrent.getMonth() + 1);
+  calRender(); // 새로 받아온 게 있으면 반영해서 다시 그림
 };
 
-document.getElementById("calNext").onclick = () => {
+document.getElementById("calNext").onclick = async () => {
   calCurrent.setMonth(calCurrent.getMonth() + 1);
+  calRender();
+  await ensureCalendarForMonth(calCurrent.getFullYear(), calCurrent.getMonth() + 1);
   calRender();
 };
 
