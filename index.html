@@ -11895,6 +11895,21 @@ function closeMySpec(){
   mySpecScreen.style.transform = "translateX(0)";
 }
 
+/* 🔥 입력창(키/몸무게/나이 등)에 포커스가 가서 키보드가 뜨면, position:fixed인 이
+   화면의 높이는 그대로라 콘텐츠가 실제로는 넘치지 않은 걸로 계산돼서 스크롤이 안 먹고,
+   화면 하단(목표/저장 버튼 등)이 키보드에 가려진 채 스크롤로도 닿지 않는 문제가 있었음.
+   키보드 높이만큼 하단 padding을 늘려서 그만큼 더 스크롤할 수 있게 함. */
+if (window.visualViewport) {
+  const vv = window.visualViewport;
+  const adjustMySpecForKeyboard = () => {
+    if (mySpecOverlay.classList.contains("hidden")) return;
+    const keyboardHeight = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+    mySpecScreen.style.paddingBottom = `${24 + keyboardHeight}px`;
+  };
+  vv.addEventListener("resize", adjustMySpecForKeyboard);
+  vv.addEventListener("scroll", adjustMySpecForKeyboard);
+}
+
 document.getElementById("mySpecMenuBtn").addEventListener("click", () => {
   settingsOverlay.classList.add("hidden");
   openMySpec();
