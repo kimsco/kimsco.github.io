@@ -4673,7 +4673,7 @@ input[type="number"] {
     position:fixed; inset:0; background:#000; z-index:100000;
     overflow:hidden;
   ">
-  <div id="mySpecScreen" style="height:100%; overflow-y:auto; padding: calc(16px + env(safe-area-inset-top)) 18px 24px;">
+  <div id="mySpecScreen" style="height:100%; overflow-y:auto; padding: calc(16px + env(safe-area-inset-top)) 18px calc(24px + env(safe-area-inset-bottom));">
     <div style="display:flex; align-items:center; margin-bottom:16px; cursor:pointer;" onclick="closeMySpec()">
       ← <span style="margin-left:6px; font-size:15px; font-weight:600; color:#fff;">내 정보 수정</span>
     </div>
@@ -11904,7 +11904,7 @@ if (window.visualViewport) {
   const adjustMySpecForKeyboard = () => {
     if (mySpecOverlay.classList.contains("hidden")) return;
     const keyboardHeight = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
-    mySpecScreen.style.paddingBottom = `${24 + keyboardHeight}px`;
+    mySpecScreen.style.paddingBottom = `calc(24px + env(safe-area-inset-bottom) + ${keyboardHeight}px)`;
   };
   vv.addEventListener("resize", adjustMySpecForKeyboard);
   vv.addEventListener("scroll", adjustMySpecForKeyboard);
