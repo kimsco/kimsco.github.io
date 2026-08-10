@@ -5524,6 +5524,18 @@ function lsSet(key, value){
   }catch(e){}
 }
 
+// 🔥 Firestore 읽기 절약: 로그인(=앱 재실행)할 때마다 전체 데이터를 매번 다시
+//    읽어오지 않고, 최근에 이미 한 번 받아온 적 있으면 그 로컬 캐시를 그대로 쓴다.
+//    사용자당(uid별) 마지막 전체 동기화 시각을 기록해서 판단.
+const FULL_SYNC_STALE_MS = 60 * 60 * 1000; // 1시간
+function isFullSyncFresh(uid){
+  const ts = Number(lsGet(`mf_full_sync_at_${uid}`, 0)) || 0;
+  return (Date.now() - ts) < FULL_SYNC_STALE_MS;
+}
+function markFullSyncNow(uid){
+  lsSet(`mf_full_sync_at_${uid}`, Date.now());
+}
+
 /* ✅ 로컬에서 전체 불러오기 */
 function loadAllFromLocal(){
   // 3대
@@ -6495,105 +6507,119 @@ auth.onAuthStateChanged(async user => {
     loadWaterFromLocal();
     loadWeightFromLocal();
     loadMyRoutineTemplatesFromLocal();
+    renderSettingsIdentity(true);
 
-    // 🔥 5개 부위 종목 리스트를 백그라운드에서 미리 불러와 캐시에 저장
-    //    (기다리지 않음 - 다른 로딩이랑 동시에 진행되어 첫 클릭 딜레이를 없앰)
-    prefetchAllExerciseParts(user.uid);
+    if (isFullSyncFresh(user.uid)) {
+      // 🔥 Firestore 읽기 절약: 최근(FULL_SYNC_STALE_MS 이내)에 이미 전체를 받아온 적
+      //    있으면 재조회하지 않고 방금 로컬 캐시로 채운 화면을 그대로 사용한다.
+      //    (기록/식단 등을 직접 추가·수정하면 그 즉시 로컬+서버에 같이 반영되므로
+      //    캐시가 며칠 지나도 내가 이 기기에서 한 변경은 안 깨짐 — 다른 기기에서 한
+      //    변경만 이 시간(FULL_SYNC_STALE_MS)이 지나야 반영됨)
+      currentPart = 'chest';
+      currentExercises = loadAccListFromLocal(currentPart);
+      currentExercises = (currentExercises || []).filter(x => typeof x === "string" && x.trim());
+      renderExercises();
+    } else {
+      // 🔥 5개 부위 종목 리스트를 백그라운드에서 미리 불러와 캐시에 저장
+      //    (기다리지 않음 - 다른 로딩이랑 동시에 진행되어 첫 클릭 딜레이를 없앰)
+      prefetchAllExerciseParts(user.uid);
 
-    /* 3대 최신값 */
-    try {
-      const threeDoc = await db
-  .collection("users")
-  .doc(user.uid)
-  .collection("threeRM")
-  .doc("latest")
-  .get();
-
-if (threeDoc.exists) {
-  const data = threeDoc.data();
-  benchRM.value = data.bench || 0;
-  squatRM.value = data.squat || 0;
-  deadRM.value  = data.dead  || 0;
-  updateTotal3();
-}
-
-    } catch (e) {
-      console.error("load threeRM err", e);
-    }
-
-    /* records */
-    /* records */
-try {
-  const snap = await db
+      /* 3대 최신값 */
+      try {
+        const threeDoc = await db
     .collection("users")
     .doc(user.uid)
-    .collection("records")
-    .where("date", ">=", getRecentWindowStartDateStr())
+    .collection("threeRM")
+    .doc("latest")
     .get();
 
-  records.bench = [];
-  records.squat = [];
-  records.dead  = [];
-  records.ohp   = [];
+  if (threeDoc.exists) {
+    const data = threeDoc.data();
+    benchRM.value = data.bench || 0;
+    squatRM.value = data.squat || 0;
+    deadRM.value  = data.dead  || 0;
+    updateTotal3();
+  }
 
-  snap.forEach(doc => {
-    const d = doc.data();
-    if (!d || !d.lift) return;
+      } catch (e) {
+        console.error("load threeRM err", e);
+      }
 
-    const item = {
-  firestoreId: doc.id,
-  date: d.date,
-  weight: d.weight,
-  reps: d.reps,
-  sets: 1,
-  createdAt: d.createdAt?.toMillis?.() || 0,
-  firstAt:  d.createdAt?.toMillis?.() || 0,
-  lastAt:   d.createdAt?.toMillis?.() || 0,
-  updatedAt: d.createdAt?.toMillis?.() || 0
-};
+      /* records */
+  try {
+    const snap = await db
+      .collection("users")
+      .doc(user.uid)
+      .collection("records")
+      .where("date", ">=", getRecentWindowStartDateStr())
+      .get();
 
-    if (d.lift === "bench") records.bench.push(item);
-    if (d.lift === "squat") records.squat.push(item);
-    if (d.lift === "dead")  records.dead.push(item);
-    if (d.lift === "ohp")   records.ohp.push(item);
-  });
+    records.bench = [];
+    records.squat = [];
+    records.dead  = [];
+    records.ohp   = [];
 
-  renderActiveBox();
-  saveRecordsToLocal();
-} catch (e) {
-  console.error("load records err", e);
-}
+    snap.forEach(doc => {
+      const d = doc.data();
+      if (!d || !d.lift) return;
 
-    /* 달력 */
-    try {
-      const snap = await db
-        .collection("users")
-        .doc(user.uid)
-        .collection("calendar")
-        .get();
+      const item = {
+    firestoreId: doc.id,
+    date: d.date,
+    weight: d.weight,
+    reps: d.reps,
+    sets: 1,
+    createdAt: d.createdAt?.toMillis?.() || 0,
+    firstAt:  d.createdAt?.toMillis?.() || 0,
+    lastAt:   d.createdAt?.toMillis?.() || 0,
+    updatedAt: d.createdAt?.toMillis?.() || 0
+  };
 
-      calData = {};
-      snap.forEach(doc => {
-        calData[doc.id] = doc.data();
-      });
+      if (d.lift === "bench") records.bench.push(item);
+      if (d.lift === "squat") records.squat.push(item);
+      if (d.lift === "dead")  records.dead.push(item);
+      if (d.lift === "ohp")   records.ohp.push(item);
+    });
 
-      calRender();
-    } catch (e) {
-      console.error("calendar load error", e);
+    renderActiveBox();
+    saveRecordsToLocal();
+  } catch (e) {
+    console.error("load records err", e);
+  }
+
+      /* 달력 */
+      try {
+        const snap = await db
+          .collection("users")
+          .doc(user.uid)
+          .collection("calendar")
+          .get();
+
+        calData = {};
+        snap.forEach(doc => {
+          calData[doc.id] = doc.data();
+        });
+
+        calRender();
+      } catch (e) {
+        console.error("calendar load error", e);
+      }
+
+      await loadAccessoryRecords();
+      await loadUserSpecFromFirestore(user.uid);
+      renderSettingsIdentity(true); // 🔥 Firestore에서 저장된 사용자명을 불러온 뒤 다시 반영
+      await loadFoodTemplatesFromFirestore(user.uid);
+      await loadMealsFromFirestore(user.uid);
+      await loadWaterFromFirestore(user.uid);
+      await loadWeightFromFirestore(user.uid);
+      await loadMyRoutineTemplatesFromFirestore(user.uid);
+
+      // 🔥 기록탭: 로그인 상태가 확정된 후에 기본 부위(가슴) 로드 (레이스 컨디션 방지)
+      currentPart = 'chest';
+      await loadExercises(currentPart);
+
+      markFullSyncNow(user.uid);
     }
-
-    await loadAccessoryRecords();
-    await loadUserSpecFromFirestore(user.uid);
-    renderSettingsIdentity(true); // 🔥 Firestore에서 저장된 사용자명을 불러온 뒤 다시 반영
-    await loadFoodTemplatesFromFirestore(user.uid);
-    await loadMealsFromFirestore(user.uid);
-    await loadWaterFromFirestore(user.uid);
-    await loadWeightFromFirestore(user.uid);
-    await loadMyRoutineTemplatesFromFirestore(user.uid);
-
-    // 🔥 기록탭: 로그인 상태가 확정된 후에 기본 부위(가슴) 로드 (레이스 컨디션 방지)
-    currentPart = 'chest';
-    await loadExercises(currentPart);
 
   } else {
     // ✅ 게스트: 로컬에서 전부 복원
