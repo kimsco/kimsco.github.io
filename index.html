@@ -4986,8 +4986,9 @@ input[type="number"] {
     <div class="row-right">›</div>
   </button>
 
-  <!-- 로그인 상태일 때만 보일 "계정" -->
-  <div id="settingsAccountRow" class="settings-row static">
+  <!-- 로그인 상태일 때만 보일 "계정" — 로그인 여부 확인 전 "로그인 하기"와 잠깐 같이
+       보이지 않도록 기본값을 숨김으로 시작(onAuthStateChanged에서 확정되면 표시) -->
+  <div id="settingsAccountRow" class="settings-row static" style="display:none;">
     <div class="row-left">
       <div class="row-title" id="settingsNameBig">게스트</div>
       <div class="row-sub" id="settingsEmailSub">로그인하지 않음</div>
@@ -4998,7 +4999,7 @@ input[type="number"] {
      <!-- 메뉴 -->
     <div class="settings-list">
       <button id="mySpecMenuBtn" class="settings-item" style="width:100%; text-align:left; background:none; border:none; color:#fff; cursor:pointer;">내 정보 수정</button>
-      <div class="settings-item">문의</div>
+      <div class="settings-item" style="border-bottom:none; padding-bottom:0;">문의</div>
       <div class="settings-item muted">김무진한테 문의하세요</div>
     </div>
 
@@ -6376,7 +6377,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.2.1";
+const APP_VERSION = "0.2.3";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
