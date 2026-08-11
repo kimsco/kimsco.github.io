@@ -12,10 +12,8 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
 <title>ttt</title>
-<!-- 🔥 맨몸운동 페이지 제목용 명조체(나눔명조) — 시스템 폰트로는 기기마다 없을 수 있어 웹폰트로 확실히 로드 -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&display=swap" rel="stylesheet">
+<!-- 🔥 맨몸운동 페이지 제목용 폰트(잘난체) — 시스템 폰트로는 기기마다 없을 수 있어 웹폰트로 확실히 로드 -->
+<link rel="stylesheet" href="https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/yg-jalnan.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
 /* ===============================
@@ -4829,7 +4827,7 @@ input[type="number"] {
   <div id="bodyweightScreen" style="height:100%; display:flex; flex-direction:column;">
     <div id="bodyweightListHeader" style="flex-shrink:0; box-sizing:border-box; padding: calc(12px + env(safe-area-inset-top)) 10px 12px; display:flex; align-items:center; justify-content:space-between; gap:10px; background:rgba(0,0,0,0.92); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); border-bottom:1px solid rgba(255,255,255,0.04);">
       <button onclick="closeBodyweight()" style="all:unset; width:56px; height:56px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:32px; color:#aaa; cursor:pointer;">✕</button>
-      <span style="flex:1; min-width:0; text-align:center; font-family:'Nanum Myeongjo','AppleMyungjo','Batang',serif; font-size:1.2em; font-weight:700; letter-spacing:0.5px; line-height:1.4; color:#fff; opacity:0.95;">맨몸운동</span>
+      <span style="flex:1; min-width:0; text-align:center; font-family:'yg-jalnan',sans-serif; font-size:1.1em; letter-spacing:0.5px; line-height:1.4; color:#fff; opacity:0.95;">맨몸운동</span>
       <button id="openBodyweightMenuBtn" aria-label="메뉴" style="all:unset; width:56px; height:56px; flex-shrink:0; display:flex; align-items:center; justify-content:center; cursor:pointer; color:#ddd;">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
              stroke-linecap="round" stroke-linejoin="round">
@@ -6453,7 +6451,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.3.10";
+const APP_VERSION = "0.3.11";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
