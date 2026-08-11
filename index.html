@@ -4816,10 +4816,9 @@ input[type="number"] {
     overflow:hidden;
   ">
   <div id="bodyweightScreen" style="height:100%; display:flex; flex-direction:column;">
-    <div id="bodyweightListHeader" style="flex-shrink:0; padding: calc(28px + env(safe-area-inset-top)) 18px 16px; display:flex; align-items:center; justify-content:space-between;">
-      <div style="display:flex; align-items:center; cursor:pointer;" onclick="closeBodyweight()">
-        ← <span style="margin-left:6px; font-size:15px; font-weight:600; color:#fff;">맨몸운동</span>
-      </div>
+    <div id="bodyweightListHeader" style="flex-shrink:0; padding: calc(28px + env(safe-area-inset-top)) 18px 16px; display:flex; align-items:center; justify-content:space-between; gap:12px;">
+      <button onclick="closeBodyweight()" style="all:unset; width:28px; height:28px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:16px; color:#aaa; cursor:pointer;">✕</button>
+      <span style="flex:1; min-width:0; text-align:center; font-size:15px; font-weight:600; color:#fff;">맨몸운동</span>
       <button id="bodyweightAddBtn" class="add-btn">+</button>
     </div>
 
@@ -6430,7 +6429,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.3.2";
+const APP_VERSION = "0.3.3";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -7349,7 +7348,28 @@ const BODYWEIGHT_RENDER_OPTS = {
   onOpenDetail: (name) => openBodyweightDetail(name)
 };
 
-function openBodyweight(){
+// 🔥 처음 들어왔을 때 아무 종목도 없으면 기본 3종목을 한 번만 심어줌
+//    (food templates의 seedDefaultFoodTemplatesIfNeeded와 동일한 패턴)
+const BODYWEIGHT_DEFAULT_EXERCISES = ["푸시업", "풀업", "딥스"];
+function seedDefaultBodyweightExercisesIfNeeded(){
+  const alreadySeeded = lsGet("mf_bodyweight_seeded_v1", false);
+  if (alreadySeeded) { lsSet("mf_bodyweight_seeded_v1", true); return; }
+
+  if (currentExercises.length === 0) {
+    currentExercises = BODYWEIGHT_DEFAULT_EXERCISES.slice();
+    saveAccListToLocal("bodyweight", currentExercises);
+    const user = auth.currentUser;
+    if (user) {
+      db.collection('users').doc(user.uid)
+        .collection('accessories').doc('bodyweight')
+        .set({ list: currentExercises }, { merge: true })
+        .catch(e => console.error("맨몸운동 기본 종목 저장 실패", e));
+    }
+  }
+  lsSet("mf_bodyweight_seeded_v1", true);
+}
+
+async function openBodyweight(){
   bodyweightPrevPart = currentPart;
 
   bodyweightOverlay.classList.remove("hidden");
@@ -7363,7 +7383,9 @@ function openBodyweight(){
   document.getElementById("bodyweightExerciseList").scrollTop = 0;
 
   currentPart = "bodyweight";
-  loadExercises("bodyweight", BODYWEIGHT_RENDER_OPTS);
+  await loadExercises("bodyweight", BODYWEIGHT_RENDER_OPTS);
+  seedDefaultBodyweightExercisesIfNeeded();
+  renderExercises(BODYWEIGHT_RENDER_OPTS);
 }
 
 function closeBodyweight(){
@@ -7395,7 +7417,10 @@ function closeBodyweightDetail(){
 
 document.getElementById("navBodyweightBtn").addEventListener("click", () => {
   closeNavDrawer();
-  openBodyweight();
+  // 🔥 드로어 닫힘 애니메이션(220ms) 도중에 새 페이지를 바로 띄우면, 같은
+  //    z-index를 쓰는 드로어가 위에서 슬라이드로 걷히면서 "새 페이지가 우측에서
+  //    슝 나타나는" 것처럼 보였음 — 드로어가 완전히 닫힌 뒤 한 번에 전환되게 함
+  setTimeout(openBodyweight, 220);
 });
 
 /* 🔥 맨몸운동 화면: 왼쪽 끝에서 오른쪽으로 드래그하면 손가락 따라 끌려가며 닫힘
