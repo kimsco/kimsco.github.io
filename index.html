@@ -10957,6 +10957,20 @@ async function addAccessorySet() {
     }
   }
 
+  // 🔥 방금 기록을 남긴 종목을 목록 맨 위로 올림(생성일시 고정 순서 대신 최근 기록순)
+  const idx = currentExercises.indexOf(currentExerciseName);
+  if (idx > 0) {
+    currentExercises.splice(idx, 1);
+    currentExercises.unshift(currentExerciseName);
+    saveAccListToLocal(currentPart, currentExercises);
+    if (user) {
+      db.collection('users').doc(user.uid)
+        .collection('accessories').doc(currentPart)
+        .set({ list: currentExercises }, { merge: true })
+        .catch(e => console.error("종목 순서 저장 실패", e));
+    }
+  }
+
   // 화면 갱신
   document.getElementById("acc-weight").value = "";
   document.getElementById("acc-reps").value = "";
