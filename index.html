@@ -1722,6 +1722,12 @@ html.light-mode-on .dex-post-card.has-image{
   font-weight: 600;
 }
 
+/* 🔥 로그인 시 헤더의 "{이름}님" — 기존 대비 1.3배 크게 + 살짝 아래로 */
+#settingsHeaderName {
+  font-size: 20.8px;
+  margin-top: 6px;
+}
+
 .settings-email {
   font-size: 12px;
   color: #777;
@@ -6377,7 +6383,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.2.4";
+const APP_VERSION = "0.2.5";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
