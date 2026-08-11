@@ -1171,6 +1171,9 @@ cursor: pointer;
 #bodyweightOverlay.hidden {
   display: none;
 }
+#bodyweightMenuOverlay.hidden {
+  display: none;
+}
 #myRoutineDetailOverlay.hidden {
   display: none;
 }
@@ -4819,7 +4822,23 @@ input[type="number"] {
     <div id="bodyweightListHeader" style="flex-shrink:0; padding: calc(28px + env(safe-area-inset-top)) 18px 16px; display:flex; align-items:center; justify-content:space-between; gap:12px;">
       <button onclick="closeBodyweight()" style="all:unset; width:28px; height:28px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:16px; color:#aaa; cursor:pointer;">✕</button>
       <span style="flex:1; min-width:0; text-align:center; font-size:15px; font-weight:600; color:#fff;">맨몸운동</span>
-      <button id="bodyweightAddBtn" class="add-btn">+</button>
+      <button id="openBodyweightMenuBtn" class="menu-btn" aria-label="메뉴">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round">
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+
+    <!-- 우측에서 열리는 페이지 전용 메뉴 드로어 -->
+    <div id="bodyweightMenuOverlay" class="hidden" style="position:fixed; inset:0; z-index:100001; display:flex; justify-content:flex-end;">
+      <div id="bodyweightMenuDim" style="position:absolute; inset:0; background:rgba(0,0,0,0.5);"></div>
+      <div id="bodyweightMenuDrawer" style="position:relative; width:72%; max-width:280px; height:100%; background:#000; border-left:1px solid rgba(255,255,255,0.14); padding: calc(24px + env(safe-area-inset-top)) 20px 24px; box-sizing:border-box; display:flex; flex-direction:column; transform:translateX(100%);">
+        <div class="nav-drawer-title">메뉴</div>
+        <button id="bodyweightAddExerciseMenuBtn" class="nav-drawer-item">+ 종목 추가</button>
+      </div>
     </div>
 
     <!-- 종목 목록 화면 -->
@@ -5662,9 +5681,6 @@ const exerciseListEl = document.getElementById('exercise-list');
 const addExerciseBtn = document.getElementById('add-exercise-btn');
    
 addExerciseBtn.addEventListener('click', addExercise);
-// 🔥 BODYWEIGHT_RENDER_OPTS는 아래쪽(맨몸운동 섹션)에서 정의됨 — 클릭 시점에만
-//    참조하므로 정의 순서와 무관하게 안전
-document.getElementById('bodyweightAddBtn').addEventListener('click', () => addExercise(BODYWEIGHT_RENDER_OPTS));
 const partButtons = document.querySelectorAll('.folderBtn4');
 
 document.querySelectorAll('.folderBtn4').forEach(btn => {
@@ -6429,7 +6445,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.3.3";
+const APP_VERSION = "0.3.4";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -7381,6 +7397,7 @@ async function openBodyweight(){
   document.getElementById("bodyweightDetailScreen").style.display = "none";
   document.getElementById("bodyweightInputBar").style.display = "none";
   document.getElementById("bodyweightExerciseList").scrollTop = 0;
+  document.getElementById("bodyweightMenuOverlay").classList.add("hidden"); // 🔥 메뉴 드로어 연 채로 통째로 닫았다 다시 열 때 대비
 
   currentPart = "bodyweight";
   await loadExercises("bodyweight", BODYWEIGHT_RENDER_OPTS);
@@ -7421,6 +7438,34 @@ document.getElementById("navBodyweightBtn").addEventListener("click", () => {
   //    z-index를 쓰는 드로어가 위에서 슬라이드로 걷히면서 "새 페이지가 우측에서
   //    슝 나타나는" 것처럼 보였음 — 드로어가 완전히 닫힌 뒤 한 번에 전환되게 함
   setTimeout(openBodyweight, 220);
+});
+
+/* 맨몸운동 전용 우측 메뉴 드로어 ("+ 종목 추가"를 여기로 옮김) */
+const bodyweightMenuOverlay = document.getElementById("bodyweightMenuOverlay");
+const bodyweightMenuDrawer = document.getElementById("bodyweightMenuDrawer");
+
+function openBodyweightMenu(){
+  bodyweightMenuOverlay.classList.remove("hidden");
+  bodyweightMenuDrawer.style.animation = "none";
+  bodyweightMenuDrawer.style.transition = "none";
+  bodyweightMenuDrawer.style.transform = "translateX(100%)";
+  void bodyweightMenuDrawer.offsetWidth; // 🔥 강제 리플로우 — 트랜지션이 확실히 먹도록
+  bodyweightMenuDrawer.style.transition = "transform 0.25s ease";
+  bodyweightMenuDrawer.style.transform = "translateX(0)";
+}
+function closeBodyweightMenu(){
+  bodyweightMenuDrawer.style.transition = "transform 0.22s ease";
+  bodyweightMenuDrawer.style.transform = "translateX(100%)";
+  setTimeout(() => { bodyweightMenuOverlay.classList.add("hidden"); }, 220);
+}
+
+document.getElementById("openBodyweightMenuBtn").addEventListener("click", openBodyweightMenu);
+bodyweightMenuOverlay.addEventListener("click", closeBodyweightMenu);
+bodyweightMenuDrawer.addEventListener("click", (e) => e.stopPropagation());
+
+document.getElementById("bodyweightAddExerciseMenuBtn").addEventListener("click", () => {
+  closeBodyweightMenu();
+  addExercise(BODYWEIGHT_RENDER_OPTS);
 });
 
 /* 🔥 맨몸운동 화면: 왼쪽 끝에서 오른쪽으로 드래그하면 손가락 따라 끌려가며 닫힘
