@@ -4965,7 +4965,9 @@ input[type="number"] {
   <div id="navDrawer" class="nav-drawer" onclick="event.stopPropagation()">
     <div class="nav-drawer-title">메뉴</div>
     <button id="navThreeSummaryBtn" class="nav-drawer-item">3대 총합</button>
-    <button id="navExerciseDexBtn" class="nav-drawer-item">운동도감</button>
+    <!-- 🔥 운동도감 일시 폐쇄: 데이터/로직은 그대로 두고 메뉴 진입만 막음.
+         나중에 다시 열려면 이 버튼의 style="display:none;"만 지우면 됨 -->
+    <button id="navExerciseDexBtn" class="nav-drawer-item" style="display:none;">운동도감</button>
     <button id="navMyRoutineBtn" class="nav-drawer-item">내 루틴</button>
     <button id="navTestRoutineRoomBtn" class="nav-drawer-item">Test Routine Room</button>
   </div>
@@ -6384,7 +6386,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.2.6";
+const APP_VERSION = "0.2.7";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
