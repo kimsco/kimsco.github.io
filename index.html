@@ -6552,6 +6552,7 @@ auth.onAuthStateChanged(async user => {
     squatRM.value = data.squat || 0;
     deadRM.value  = data.dead  || 0;
     updateTotal3();
+    saveThreeToLocal(); // 🔥 로컬 저장 누락 버그 수정(재조회 생략 캐시가 비어있던 원인)
   }
 
       } catch (e) {
@@ -7699,6 +7700,7 @@ async function loadMyRoutineTemplatesFromFirestore(uid){
       .collection("myRoutineTemplates").get();
     myRoutineTemplates = [];
     snap.forEach(doc => myRoutineTemplates.push(doc.data()));
+    saveMyRoutineTemplatesToLocal(); // 🔥 로컬 저장 누락 버그 수정(재조회 생략 캐시가 비어있던 원인)
   } catch (e) { console.error("루틴 템플릿 로드 실패", e); }
 }
 
@@ -10797,6 +10799,7 @@ async function loadAccessoryRecords() {
     });
 
     Object.values(accRecordsByExercise).forEach(list => list.sort((a, b) => (a._sortMs || 0) - (b._sortMs || 0)));
+    saveAccRecordsToLocal(); // 🔥 로컬 저장 누락 버그 수정(재조회 생략 캐시가 비어있던 원인)
 
     renderExercises(); // 목록
     if (currentExerciseName) {
@@ -11798,6 +11801,8 @@ async function loadUserSpecFromFirestore(uid){
       .collection("profile").doc("spec").get();
     if (doc.exists) {
       userSpec = { ...userSpec, ...doc.data() };
+      saveUserSpecToLocal(); // 🔥 로컬에도 저장해둬야, 다음 실행 시 캐시가 신선해서 재조회를
+                              //    건너뛸 때도 이름/스펙이 남아있음(이게 빠져있던 버그)
     }
   } catch (e) { console.error("spec load err", e); }
   applySpecToUI();
@@ -11822,6 +11827,7 @@ async function loadWaterFromFirestore(uid){
       const d = doc.data();
       waterByDate = d.byDate || {};
       waterMlPerGlass = d.mlPerGlass || WATER_ML_PER_GLASS_DEFAULT;
+      saveWaterToLocal(); // 🔥 로컬 저장 누락 버그 수정(재조회 생략 캐시가 비어있던 원인)
     }
   } catch (e) { console.error("water load err", e); }
   renderDietTodayWaterRow();
@@ -11843,6 +11849,7 @@ async function loadWeightFromFirestore(uid){
       .collection("profile").doc("weight").get();
     if (doc.exists) {
       userWeight = { ...userWeight, ...doc.data() };
+      saveWeightToLocal(); // 🔥 로컬 저장 누락 버그 수정(재조회 생략 캐시가 비어있던 원인)
     }
   } catch (e) { console.error("weight load err", e); }
   renderDietTodayWeightButton();
@@ -11873,6 +11880,7 @@ async function loadFoodTemplatesFromFirestore(uid){
       .collection("foodTemplates").get();
     foodTemplates = [];
     snap.forEach(doc => foodTemplates.push(doc.data()));
+    saveFoodTemplatesToLocal(); // 🔥 로컬 저장 누락 버그 수정(재조회 생략 캐시가 비어있던 원인)
   } catch (e) { console.error("template load err", e); }
   seedDefaultFoodTemplatesIfNeeded();
   renderFoodTemplateList();
@@ -11904,6 +11912,7 @@ async function loadMealsFromFirestore(uid){
       .get();
     mealsAll = [];
     snap.forEach(doc => mealsAll.push(doc.data()));
+    saveMealsToLocal(); // 🔥 로컬 저장 누락 버그 수정(재조회 생략 캐시가 비어있던 원인)
   } catch (e) { console.error("meal load err", e); }
   renderTodayMealList();
   renderMacroSummary();
