@@ -1171,6 +1171,10 @@ cursor: pointer;
 #bodyweightOverlay.hidden {
   display: none;
 }
+#bodyweightMenuOverlay {
+  display: flex;
+  justify-content: flex-end;
+}
 #bodyweightMenuOverlay.hidden {
   display: none;
 }
@@ -4833,7 +4837,7 @@ input[type="number"] {
     </div>
 
     <!-- 우측에서 열리는 페이지 전용 메뉴 드로어 -->
-    <div id="bodyweightMenuOverlay" class="hidden" style="position:fixed; inset:0; z-index:100001; display:flex; justify-content:flex-end;">
+    <div id="bodyweightMenuOverlay" class="hidden" style="position:fixed; inset:0; z-index:100001;">
       <div id="bodyweightMenuDim" style="position:absolute; inset:0; background:rgba(0,0,0,0.5);"></div>
       <div id="bodyweightMenuDrawer" style="position:relative; width:72%; max-width:280px; height:100%; background:#000; border-left:1px solid rgba(255,255,255,0.14); padding: calc(24px + env(safe-area-inset-top)) 20px 24px; box-sizing:border-box; display:flex; flex-direction:column; transform:translateX(100%);">
         <div class="nav-drawer-title">메뉴</div>
@@ -6445,7 +6449,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.3.6";
+const APP_VERSION = "0.3.7";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
