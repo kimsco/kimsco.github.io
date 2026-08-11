@@ -1949,6 +1949,7 @@ html.light-mode-on .dex-post-card.has-image{
   width: 28px;         /* 클릭 영역(너무 크지 않게) */
   height: 28px;
   margin-left: auto;   /* 🔥 게스트 배지가 숨겨져도(로그인 시) 항상 오른쪽 끝에 고정 */
+  margin-top: 12px;    /* 🔥 옆의 "{이름}님" 글자를 내린 만큼 같이 아래로 */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -6383,7 +6384,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.2.5";
+const APP_VERSION = "0.2.6";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
