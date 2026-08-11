@@ -1800,6 +1800,12 @@ html.light-mode-on .dex-post-card.has-image{
   text-overflow: ellipsis;
 }
 
+/* 🔥 계정 행: 이름은 위 헤더로 옮기고 이메일만 표시 — row-title(15px)과
+   기존 row-sub(12px) 사이 크기로 */
+#settingsEmailSub{
+  font-size: 13.5px;
+}
+
 .row-right{
   color: #777;
   font-size: 22px;
@@ -4964,8 +4970,8 @@ input[type="number"] {
     <!-- 헤더 -->
     <div class="settings-header">
       <div id="settingsGuestBadge">
-        <div class="settings-name">게스트</div>
-        <div class="settings-email">로그인하지 않음</div>
+        <div class="settings-name" id="settingsHeaderName">게스트</div>
+        <div class="settings-email" id="settingsHeaderSub">로그인하지 않음</div>
       </div>
       <button id="closeSettingsBtn">✕</button>
     </div>
@@ -6366,6 +6372,8 @@ recordAdd.addEventListener('click', async ()=>{
 const settingsLogoutText = document.getElementById("settingsLogoutText");
 const settingsDeleteAccountText = document.getElementById("settingsDeleteAccountText");
 const settingsGuestBadge = document.getElementById("settingsGuestBadge");
+const settingsHeaderName = document.getElementById("settingsHeaderName");
+const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
 const APP_VERSION = "0.2.0";
@@ -12087,15 +12095,20 @@ function applySpecToUI(){
 /* 🔥 설정 화면 계정 행에 표시할 사용자명 갱신
    (직접 입력한 이름이 있으면 그걸, 없으면 "사용자명" 기본값 표시) */
 function renderSettingsIdentity(isLoggedIn){
-  // 🔥 로그인하면 헤더의 "게스트/로그인하지 않음" 배지는 자리 자체가 없어지고,
-  //    게스트일 때만 표시됨
-  if (settingsGuestBadge) settingsGuestBadge.style.display = isLoggedIn ? "none" : "block";
+  // 🔥 헤더 배지는 이제 로그인 여부와 상관없이 항상 표시:
+  //    게스트면 "게스트"/"로그인하지 않음", 로그인하면 "{이름}님"만 표시(이메일은 숨김,
+  //    계정 행에서 대신 보여줌)
+  if (settingsGuestBadge) settingsGuestBadge.style.display = "block";
 
   if (isLoggedIn) {
     const displayName = (userSpec.name && userSpec.name.trim()) || "사용자명";
-    if (settingsNameBig) settingsNameBig.textContent = displayName;
+    if (settingsHeaderName) settingsHeaderName.textContent = `${displayName}님`;
+    if (settingsHeaderSub) settingsHeaderSub.style.display = "none";
+    if (settingsNameBig) settingsNameBig.style.display = "none"; // 계정 행엔 이메일만 남김
   } else {
-    if (settingsNameBig) settingsNameBig.textContent = "게스트";
+    if (settingsHeaderName) settingsHeaderName.textContent = "게스트";
+    if (settingsHeaderSub) settingsHeaderSub.style.display = "block";
+    if (settingsNameBig) settingsNameBig.style.display = "";
   }
 }
 
