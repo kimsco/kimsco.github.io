@@ -6453,7 +6453,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.3.12";
+const APP_VERSION = "0.3.13";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -7441,11 +7441,12 @@ function closeBodyweightDetail(){
 }
 
 document.getElementById("navBodyweightBtn").addEventListener("click", () => {
-  closeNavDrawer();
-  // 🔥 드로어 닫힘 애니메이션(220ms) 도중에 새 페이지를 바로 띄우면, 같은
-  //    z-index를 쓰는 드로어가 위에서 슬라이드로 걷히면서 "새 페이지가 우측에서
-  //    슝 나타나는" 것처럼 보였음 — 드로어가 완전히 닫힌 뒤 한 번에 전환되게 함
-  setTimeout(openBodyweight, 220);
+  // 🔥 드로어가 닫히는 애니메이션을 다 기다리지 않고, 누르자마자 바로 페이지로
+  //    이동 — 드로어는 애니메이션 없이 즉시 사라지고(closeNavDrawerInstant),
+  //    새 페이지가 그 자리에 바로 뜨기 때문에 "슬라이드로 나타나는" 것처럼
+  //    보이던 예전 문제도 그대로 안 생김(둘 다 같은 프레임에 즉시 전환)
+  closeNavDrawerInstant();
+  openBodyweight();
 });
 
 /* 맨몸운동 전용 우측 메뉴 드로어 ("+ 종목 추가"를 여기로 옮김) */
@@ -10608,6 +10609,18 @@ function closeNavDrawer(){
     navDrawer.style.transition = "none";
     navDrawer.style.transform = "translateX(0)";
   }, 220);
+}
+
+// 🔥 다른 화면으로 즉시 넘어갈 때 쓰는 버전 — 닫힘 애니메이션 없이 바로 사라짐
+//    (애니메이션을 기다렸다가 넘어가면 "느리다"는 피드백이 있어서 추가)
+function closeNavDrawerInstant(){
+  navDrawer.style.transition = "none";
+  navDrawer.style.transform = "translateX(0)";
+  navDrawerDim.style.transition = "none";
+  navDrawerDim.style.opacity = "0";
+  setAppPushTransition("none");
+  setAppPush(0);
+  navDrawerOverlay.classList.add("hidden");
 }
 
 document.getElementById("openNavDrawerBtn").addEventListener("click", openNavDrawer);
