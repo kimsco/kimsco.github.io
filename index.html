@@ -4823,9 +4823,9 @@ input[type="number"] {
     overflow:hidden;
   ">
   <div id="bodyweightScreen" style="height:100%; display:flex; flex-direction:column;">
-    <div id="bodyweightListHeader" style="flex-shrink:0; padding: calc(28px + env(safe-area-inset-top)) 18px 16px; display:flex; align-items:center; justify-content:space-between; gap:12px;">
+    <div id="bodyweightListHeader" style="flex-shrink:0; box-sizing:border-box; padding: calc(12px + env(safe-area-inset-top)) 10px 12px; display:flex; align-items:center; justify-content:space-between; gap:10px; background:rgba(0,0,0,0.92); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); border-bottom:1px solid rgba(255,255,255,0.04);">
       <button onclick="closeBodyweight()" style="all:unset; width:56px; height:56px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:32px; color:#aaa; cursor:pointer;">✕</button>
-      <span style="flex:1; min-width:0; text-align:center; font-size:15px; font-weight:600; color:#fff;">맨몸운동</span>
+      <span class="topText">맨몸운동</span>
       <button id="openBodyweightMenuBtn" class="menu-btn" aria-label="메뉴">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
              stroke-linecap="round" stroke-linejoin="round">
@@ -6449,7 +6449,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.3.7";
+const APP_VERSION = "0.3.8";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
