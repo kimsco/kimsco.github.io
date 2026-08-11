@@ -4807,6 +4807,41 @@ input[type="number"] {
   </div>
 </div>
 
+<!-- 맨몸운동: 종목별 기록 로그 (부위 구분 없는 단일 목록) -->
+<div id="bodyweightOverlay" class="hidden" style="
+    position:fixed; inset:0; background:#000; z-index:100000;
+    overflow:hidden;
+  ">
+  <div id="bodyweightScreen" style="height:100%; display:flex; flex-direction:column;">
+    <div id="bodyweightListHeader" style="flex-shrink:0; padding: calc(28px + env(safe-area-inset-top)) 18px 16px; display:flex; align-items:center; justify-content:space-between;">
+      <div style="display:flex; align-items:center; cursor:pointer;" onclick="closeBodyweight()">
+        ← <span style="margin-left:6px; font-size:15px; font-weight:600; color:#fff;">맨몸운동</span>
+      </div>
+      <button id="bodyweightAddBtn" class="add-btn">+</button>
+    </div>
+
+    <!-- 종목 목록 화면 -->
+    <div id="bodyweightListScreen" style="flex:1; min-height:0; display:flex; flex-direction:column;">
+      <div id="bodyweightExerciseList" style="flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; padding: 0 18px calc(24px + env(safe-area-inset-bottom));"></div>
+    </div>
+
+    <!-- 종목 상세(기록 입력) 화면 -->
+    <div id="bodyweightDetailScreen" style="display:none; flex:1; min-height:0; flex-direction:column; padding: calc(28px + env(safe-area-inset-top)) 18px 0;">
+      <div style="display:flex; align-items:center; margin-bottom:10px; cursor:pointer;" onclick="closeBodyweightDetail()">
+        ← <span id="bodyweightDetailName" style="margin-left:6px; font-size:15px; font-weight:600; color:#fff;"></span>
+      </div>
+      <div id="bodyweightAccRecords" class="folderContent active" style="flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; padding-bottom:76px;"></div>
+    </div>
+  </div>
+
+  <!-- 상세 화면에서만 보이는 무게(선택)/횟수 입력 바 -->
+  <div id="bodyweightInputBar" class="recordFloatBar" style="display:none;">
+    <input id="bodyweightWeight" type="number" placeholder="kg(선택)">
+    <input id="bodyweightReps" type="number" placeholder="회">
+    <button type="button" onclick="addAccessorySet(BODYWEIGHT_RENDER_OPTS)">저장</button>
+  </div>
+</div>
+
 <!-- 🔔 알림 배너 (iOS 스타일) -->
 <div id="myRoutineBannerOverlay" style="position:fixed; inset:0; z-index:200000; pointer-events:none; display:none;">
   <div id="myRoutineBanner" style="
@@ -4969,6 +5004,8 @@ input[type="number"] {
          나중에 다시 열려면 이 버튼의 style="display:none;"만 지우면 됨 -->
     <button id="navExerciseDexBtn" class="nav-drawer-item" style="display:none;">운동도감</button>
     <button id="navMyRoutineBtn" class="nav-drawer-item">내 루틴</button>
+    <button id="navBodyweightBtn" class="nav-drawer-item">맨몸운동</button>
+    <!-- 🔥 아직 실험 단계인 테스트용 버튼이라 맨 아래로 -->
     <button id="navTestRoutineRoomBtn" class="nav-drawer-item">Test Routine Room</button>
   </div>
 </div>
@@ -5623,6 +5660,9 @@ const exerciseListEl = document.getElementById('exercise-list');
 const addExerciseBtn = document.getElementById('add-exercise-btn');
    
 addExerciseBtn.addEventListener('click', addExercise);
+// 🔥 BODYWEIGHT_RENDER_OPTS는 아래쪽(맨몸운동 섹션)에서 정의됨 — 클릭 시점에만
+//    참조하므로 정의 순서와 무관하게 안전
+document.getElementById('bodyweightAddBtn').addEventListener('click', () => addExercise(BODYWEIGHT_RENDER_OPTS));
 const partButtons = document.querySelectorAll('.folderBtn4');
 
 document.querySelectorAll('.folderBtn4').forEach(btn => {
@@ -5895,8 +5935,9 @@ function buildFlatAccessoryRows(exerciseName){
   return flat;
 }
 
-function renderAccessoryRecords(exerciseName) {
-  const el = document.getElementById('acc-records');
+function renderAccessoryRecords(exerciseName, opts) {
+  opts = opts || {};
+  const el = document.getElementById(opts.recordsElId || 'acc-records');
   if (!el) return;
 
   const list = accRecordsByExercise[exerciseName] || [];
@@ -5917,7 +5958,7 @@ function renderAccessoryRecords(exerciseName) {
     el.innerHTML = `<div style="color:#777;font-size:13px;">기록이 여기에 쌓입니다</div>`;
     setupRecordInfiniteScroll(el, 0, 0, !exerciseHistoryFullyLoaded.has(exerciseName),
       () => {},
-      async () => { await ensureExerciseHistory(exerciseName); renderAccessoryRecords(exerciseName); }
+      async () => { await ensureExerciseHistory(exerciseName); renderAccessoryRecords(exerciseName, opts); }
     );
     return;
   }
@@ -5949,12 +5990,12 @@ function renderAccessoryRecords(exerciseName) {
   setupRecordInfiniteScroll(el, totalDays, visibleDays, !exerciseHistoryFullyLoaded.has(exerciseName),
     () => {
       accessoryDaysVisible.set(exerciseName, visibleDays + RECORD_DAYS_PER_PAGE);
-      renderAccessoryRecords(exerciseName);
+      renderAccessoryRecords(exerciseName, opts);
     },
     async () => {
       const added = await ensureExerciseHistory(exerciseName);
       if (added) accessoryDaysVisible.set(exerciseName, visibleDays + RECORD_DAYS_PER_PAGE);
-      renderAccessoryRecords(exerciseName);
+      renderAccessoryRecords(exerciseName, opts);
     }
   );
 }
@@ -5966,7 +6007,7 @@ function renderAccessoryRecords(exerciseName) {
 
 let exercisesByPart = {}; // 🔥 종목 목록 전용
 
-async function addExercise() {
+async function addExercise(opts) {
   if (!currentPart) return alert("먼저 부위를 선택하세요.");
 
   const name = prompt("운동 종목을 입력하시오");
@@ -5984,7 +6025,7 @@ async function addExercise() {
   }
 
   currentExercises.unshift(clean);   // 최신이 위
-  renderExercises();
+  renderExercises(opts);
    // ✅ 게스트/로그인 공통: 로컬 저장
 saveAccListToLocal(currentPart, currentExercises);
 
@@ -6386,7 +6427,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.2.7";
+const APP_VERSION = "0.3.0";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -7287,6 +7328,124 @@ document.getElementById("navMyRoutineBtn").addEventListener("click", () => {
   closeNavDrawer();
   openMyRoutine();
 });
+
+/* ===============================
+   맨몸운동: 종목별 기록 로그 (부위 구분 없는 단일 목록)
+   - 새 저장소 없음: 기존 accRecordsByExercise / accessories 컬렉션을
+     "bodyweight"라는 부위값으로 그대로 재사용
+================================ */
+const bodyweightOverlay = document.getElementById("bodyweightOverlay");
+const bodyweightScreen = document.getElementById("bodyweightScreen");
+let bodyweightPrevPart = null; // 🔥 닫을 때 기록탭의 currentPart를 원래대로 복원하기 위함
+
+const BODYWEIGHT_RENDER_OPTS = {
+  listElId: "bodyweightExerciseList",
+  recordsElId: "bodyweightAccRecords",
+  weightElId: "bodyweightWeight",
+  repsElId: "bodyweightReps",
+  onOpenDetail: (name) => openBodyweightDetail(name)
+};
+
+function openBodyweight(){
+  bodyweightPrevPart = currentPart;
+
+  bodyweightOverlay.classList.remove("hidden");
+  bodyweightScreen.style.transition = "none"; // 🔥 열 때는 슬라이드 없이 한 번에 바로 뜨게
+  bodyweightScreen.style.transform = "translateX(0)";
+
+  document.getElementById("bodyweightListHeader").style.display = "flex"; // 🔥 스와이프로 상세화면 채 통째로 닫았다 다시 열 때 대비
+  document.getElementById("bodyweightListScreen").style.display = "flex";
+  document.getElementById("bodyweightDetailScreen").style.display = "none";
+  document.getElementById("bodyweightInputBar").style.display = "none";
+  document.getElementById("bodyweightExerciseList").scrollTop = 0;
+
+  currentPart = "bodyweight";
+  loadExercises("bodyweight", BODYWEIGHT_RENDER_OPTS);
+}
+
+function closeBodyweight(){
+  bodyweightOverlay.classList.add("hidden");
+  bodyweightScreen.style.transform = "translateX(0)";
+  currentPart = bodyweightPrevPart; // 🔥 기록탭이 원래 보고 있던 부위로 복원
+}
+
+function openBodyweightDetail(name){
+  currentExerciseName = name;
+  if (!accRecordsByExercise[name]) accRecordsByExercise[name] = [];
+
+  document.getElementById("bodyweightDetailName").textContent = name;
+  document.getElementById("bodyweightListHeader").style.display = "none"; // 🔥 바깥 헤더(+버튼)와 중복 방지
+  document.getElementById("bodyweightListScreen").style.display = "none";
+  document.getElementById("bodyweightDetailScreen").style.display = "flex";
+  document.getElementById("bodyweightInputBar").style.display = "flex";
+
+  renderAccessoryRecords(name, BODYWEIGHT_RENDER_OPTS);
+}
+
+function closeBodyweightDetail(){
+  document.getElementById("bodyweightDetailScreen").style.display = "none";
+  document.getElementById("bodyweightInputBar").style.display = "none";
+  document.getElementById("bodyweightListHeader").style.display = "flex";
+  document.getElementById("bodyweightListScreen").style.display = "flex";
+  currentExerciseName = null;
+}
+
+document.getElementById("navBodyweightBtn").addEventListener("click", () => {
+  closeNavDrawer();
+  openBodyweight();
+});
+
+/* 🔥 맨몸운동 화면: 왼쪽 끝에서 오른쪽으로 드래그하면 손가락 따라 끌려가며 닫힘
+   ("내 루틴"과 동일한 패턴 재사용, 양쪽 clamp 모두 적용돼있는 검증된 버전) */
+(function(){
+  const EDGE_ZONE = 30, COMMIT_MOVE = 8, CLOSE_RATIO = 0.3;
+  let startX = 0, startY = 0, tracking = false, dragging = false;
+
+  bodyweightScreen.addEventListener('touchstart', (e) => {
+    const t = e.touches[0];
+    if (t.clientX <= EDGE_ZONE) {
+      startX = t.clientX; startY = t.clientY;
+      tracking = true; dragging = false;
+      bodyweightScreen.style.transition = 'none';
+    } else { tracking = false; }
+  }, { passive: true });
+
+  bodyweightScreen.addEventListener('touchmove', (e) => {
+    if (!tracking) return;
+    const t = e.touches[0];
+    const dx = t.clientX - startX, dy = t.clientY - startY;
+    if (!dragging) {
+      if (dx > COMMIT_MOVE && dx > Math.abs(dy) * 0.6) dragging = true;
+      else if (Math.abs(dy) > COMMIT_MOVE && Math.abs(dy) > dx) { tracking = false; return; }
+      else return;
+    }
+    if (dragging) {
+      e.preventDefault();
+      bodyweightScreen.style.transform = `translateX(${Math.max(0, dx)}px)`;
+    }
+  }, { passive: false });
+
+  function endDrag(e){
+    if (!tracking) return;
+    const wasDragging = dragging;
+    tracking = false; dragging = false;
+    if (!wasDragging) return;
+
+    const width = bodyweightScreen.offsetWidth || window.innerWidth;
+    const t = e.changedTouches[0];
+    const dx = Math.max(0, t.clientX - startX);
+    bodyweightScreen.style.transition = 'transform 0.22s ease';
+
+    if (dx > width * CLOSE_RATIO) {
+      bodyweightScreen.style.transform = `translateX(${width}px)`;
+      setTimeout(() => { closeBodyweight(); bodyweightScreen.style.transition = 'none'; }, 220);
+    } else {
+      bodyweightScreen.style.transform = 'translateX(0)';
+    }
+  }
+  bodyweightScreen.addEventListener('touchend', endDrag, { passive: true });
+  bodyweightScreen.addEventListener('touchcancel', endDrag, { passive: true });
+})();
 
 /* 내 지난 루틴: 부위별 기차 미리보기 목록 화면 */
 const myRoutinePastListOverlay = document.getElementById("myRoutinePastListOverlay");
@@ -10706,18 +10865,23 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
 
 
 // 카드 렌더링
-function renderExercises() {
+function renderExercises(opts) {
+  opts = opts || {};
+  const targetEl = opts.listElId ? document.getElementById(opts.listElId) : exerciseListEl;
+  const onOpenDetail = opts.onOpenDetail || openExerciseDetail;
+  if (!targetEl) return;
+
   // ✅ 루프 전에 딱 1번만 정리
   currentExercises = (currentExercises || [])
     .filter(x => typeof x === 'string' && x.trim());
 
   if (!currentExercises.length) {
-    exerciseListEl.innerHTML =
+    targetEl.innerHTML =
       `<div style="color:#777;font-size:13px;">아직 추가된 종목이 없습니다</div>`;
     return;
   }
 
-  exerciseListEl.innerHTML = '';
+  targetEl.innerHTML = '';
 
   currentExercises.forEach(name => {
     const card = document.createElement('div');
@@ -10727,9 +10891,9 @@ function renderExercises() {
       <div class="exercise-name">${name}</div>
     `;
 
-    card.addEventListener('click', () => openExerciseDetail(name));
+    card.addEventListener('click', () => onOpenDetail(name));
 
-    exerciseListEl.appendChild(card);
+    targetEl.appendChild(card);
   });
 }
 
@@ -10866,7 +11030,7 @@ async function saveExerciseToDB(exerciseName) {
 /* 🔥 로그인 직후 5개 부위 종목 리스트를 전부 미리 불러와 로컬 캐시에 저장
    (loadExercises의 "캐시 우선 표시" 로직이 이 캐시를 즉시 활용하게 됨) */
 async function prefetchAllExerciseParts(uid){
-  const parts = ['chest', 'back', 'shoulder', 'leg', 'arm'];
+  const parts = ['chest', 'back', 'shoulder', 'leg', 'arm', 'bodyweight'];
   try {
     await Promise.all(parts.map(async (part) => {
       const doc = await db
@@ -10884,14 +11048,14 @@ async function prefetchAllExerciseParts(uid){
   }
 }
 
-async function loadExercises(part) {
+async function loadExercises(part, opts) {
   const user = auth.currentUser;
 
   if (!user) {
     // ✅ 게스트: 로컬에서 part별 리스트 로드
     currentExercises = loadAccListFromLocal(part);
     currentExercises = (currentExercises || []).filter(x => typeof x === "string" && x.trim());
-    renderExercises();
+    renderExercises(opts);
     return;
   }
 
@@ -10899,7 +11063,7 @@ async function loadExercises(part) {
   //    Firestore 최신 데이터로 뒤이어 갱신
   const cached = loadAccListFromLocal(part);
   currentExercises = (cached || []).filter(x => typeof x === "string" && x.trim());
-  renderExercises();
+  renderExercises(opts);
 
   const uid = user.uid;
   const doc = await db
@@ -10915,17 +11079,23 @@ async function loadExercises(part) {
   currentExercises = doc.exists ? (doc.data().list || []) : [];
   currentExercises = currentExercises.filter(x => typeof x === "string" && x.trim());
   saveAccListToLocal(part, currentExercises); // 다음 진입을 위해 캐시 갱신
-  renderExercises();
+  renderExercises(opts);
 }
 
 
 
-async function addAccessorySet() {
+async function addAccessorySet(opts) {
+  opts = opts || {};
+  const weightElId = opts.weightElId || "acc-weight";
+  const repsElId = opts.repsElId || "acc-reps";
+  const listElId = opts.listElId; // renderExercises로 그대로 전달(없으면 기본 기록탭 목록)
+
   if (!currentExerciseName) return alert("종목을 먼저 선택하세요.");
 
-  const w = parseFloat(document.getElementById("acc-weight").value);
-  const r = parseInt(document.getElementById("acc-reps").value, 10);
-  if (!w || !r) return alert("kg / 회를 입력하세요.");
+  // 🔥 무게는 선택(맨몸운동처럼 무게 없이 횟수만 기록하는 경우 지원), 횟수는 필수
+  const w = parseFloat(document.getElementById(weightElId).value) || 0;
+  const r = parseInt(document.getElementById(repsElId).value, 10);
+  if (!r) return alert("회를 입력하세요.");
 
   const user = auth.currentUser;
 
@@ -10990,10 +11160,10 @@ async function addAccessorySet() {
   }
 
   // 화면 갱신
-  document.getElementById("acc-weight").value = "";
-  document.getElementById("acc-reps").value = "";
-  renderAccessoryRecords(currentExerciseName);
-  renderExercises();
+  document.getElementById(weightElId).value = "";
+  document.getElementById(repsElId).value = "";
+  renderAccessoryRecords(currentExerciseName, opts);
+  renderExercises(opts);
 }
 
 
