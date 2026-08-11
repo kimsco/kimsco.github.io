@@ -4820,7 +4820,7 @@ input[type="number"] {
   ">
   <div id="bodyweightScreen" style="height:100%; display:flex; flex-direction:column;">
     <div id="bodyweightListHeader" style="flex-shrink:0; padding: calc(28px + env(safe-area-inset-top)) 18px 16px; display:flex; align-items:center; justify-content:space-between; gap:12px;">
-      <button onclick="closeBodyweight()" style="all:unset; width:28px; height:28px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:16px; color:#aaa; cursor:pointer;">✕</button>
+      <button onclick="closeBodyweight()" style="all:unset; width:56px; height:56px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:32px; color:#aaa; cursor:pointer;">✕</button>
       <span style="flex:1; min-width:0; text-align:center; font-size:15px; font-weight:600; color:#fff;">맨몸운동</span>
       <button id="openBodyweightMenuBtn" class="menu-btn" aria-label="메뉴">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -6445,7 +6445,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.3.5";
+const APP_VERSION = "0.3.6";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -7468,57 +7468,7 @@ document.getElementById("bodyweightAddExerciseMenuBtn").addEventListener("click"
   addExercise(BODYWEIGHT_RENDER_OPTS);
 });
 
-/* 🔥 맨몸운동 화면: 왼쪽 끝에서 오른쪽으로 드래그하면 손가락 따라 끌려가며 닫힘
-   ("내 루틴"과 동일한 패턴 재사용, 양쪽 clamp 모두 적용돼있는 검증된 버전) */
-(function(){
-  const EDGE_ZONE = 30, COMMIT_MOVE = 8, CLOSE_RATIO = 0.3;
-  let startX = 0, startY = 0, tracking = false, dragging = false;
-
-  bodyweightScreen.addEventListener('touchstart', (e) => {
-    const t = e.touches[0];
-    if (t.clientX <= EDGE_ZONE) {
-      startX = t.clientX; startY = t.clientY;
-      tracking = true; dragging = false;
-      bodyweightScreen.style.transition = 'none';
-    } else { tracking = false; }
-  }, { passive: true });
-
-  bodyweightScreen.addEventListener('touchmove', (e) => {
-    if (!tracking) return;
-    const t = e.touches[0];
-    const dx = t.clientX - startX, dy = t.clientY - startY;
-    if (!dragging) {
-      if (dx > COMMIT_MOVE && dx > Math.abs(dy) * 0.6) dragging = true;
-      else if (Math.abs(dy) > COMMIT_MOVE && Math.abs(dy) > dx) { tracking = false; return; }
-      else return;
-    }
-    if (dragging) {
-      e.preventDefault();
-      bodyweightScreen.style.transform = `translateX(${Math.max(0, dx)}px)`;
-    }
-  }, { passive: false });
-
-  function endDrag(e){
-    if (!tracking) return;
-    const wasDragging = dragging;
-    tracking = false; dragging = false;
-    if (!wasDragging) return;
-
-    const width = bodyweightScreen.offsetWidth || window.innerWidth;
-    const t = e.changedTouches[0];
-    const dx = Math.max(0, t.clientX - startX);
-    bodyweightScreen.style.transition = 'transform 0.22s ease';
-
-    if (dx > width * CLOSE_RATIO) {
-      bodyweightScreen.style.transform = `translateX(${width}px)`;
-      setTimeout(() => { closeBodyweight(); bodyweightScreen.style.transition = 'none'; }, 220);
-    } else {
-      bodyweightScreen.style.transform = 'translateX(0)';
-    }
-  }
-  bodyweightScreen.addEventListener('touchend', endDrag, { passive: true });
-  bodyweightScreen.addEventListener('touchcancel', endDrag, { passive: true });
-})();
+/* 🔥 맨몸운동 화면은 스와이프로 못 나가게(오탈출 방지) — 상단 X 버튼으로만 닫힘 */
 
 /* 내 지난 루틴: 부위별 기차 미리보기 목록 화면 */
 const myRoutinePastListOverlay = document.getElementById("myRoutinePastListOverlay");
