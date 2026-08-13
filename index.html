@@ -2917,6 +2917,7 @@ input[type="number"] {
   color: rgba(255,255,255,0.4);
 }
 .cal-progress-track {
+  position: relative;
   height: 8px; /* 🔥 탄단지 막대와 두께 통일 (기존 3px) */
   border-radius: 999px;
   background: rgba(255,255,255,0.18);
@@ -2927,6 +2928,14 @@ input[type="number"] {
   height: 100%;
   background: rgba(255,255,255,0.85);
   transition: width 0.25s ease;
+}
+.bar-highlight {
+  position: absolute;
+  top: 0; bottom: 0;
+  background: #FFD700;
+  opacity: 0.85;
+  display: none;
+  transition: left 0.25s ease, width 0.25s ease;
 }
 
 /* 🔥 탄/단/지 좌(그래프) : 우(수치) = 3 : 2 비율, 가운데 세로 구분선 */
@@ -2969,6 +2978,7 @@ input[type="number"] {
   color: rgba(255,255,255,0.5);
 }
 .macro-bar-track {
+  position: relative;
   flex: 1;
   height: 8px; /* 🔥 통계 탭 탄단지 막대(8px)와 두께 통일 (기존 3px) */
   border-radius: 999px;
@@ -3220,6 +3230,48 @@ input[type="number"] {
   font-size: 13px;
   color: #fff;
   font-weight: 600;
+}
+
+/* 🔥 오늘 식단 카드 뒤집기 (탭하면 뒷면에 영양성분 표시) */
+.meal-flip-container {
+  perspective: 1000px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.meal-flip-inner {
+  position: relative;
+  transition: transform 0.5s;
+  transform-style: preserve-3d;
+  cursor: pointer;
+}
+.meal-flip-inner.flipped {
+  transform: rotateX(180deg);
+}
+.meal-flip-front, .meal-flip-back {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.meal-flip-front {
+  position: relative;
+}
+.meal-flip-back {
+  position: absolute;
+  inset: 0;
+  transform: rotateX(180deg);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 0;
+}
+.meal-flip-back-name {
+  font-size: 12px;
+  color: rgba(255,255,255,0.5);
+}
+.meal-flip-back-macros {
+  font-size: 13px;
+  color: #FFD700;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 /* ===============================
@@ -4338,21 +4390,22 @@ input[type="number"] {
       </div>
       <div class="cal-progress-track">
         <div id="calProgressFill" class="cal-progress-fill" style="width:0%;"></div>
+        <div id="calProgressHighlight" class="bar-highlight"></div>
       </div>
 
       <div class="macro-split">
         <div class="macro-split-left">
           <div class="macro-bar-row">
             <div class="macro-bar-label">탄수화물</div>
-            <div class="macro-bar-track"><div id="carbBarFill" class="macro-bar-fill" style="width:0%;"></div></div>
+            <div class="macro-bar-track"><div id="carbBarFill" class="macro-bar-fill" style="width:0%;"></div><div id="carbBarHighlight" class="bar-highlight"></div></div>
           </div>
           <div class="macro-bar-row">
             <div class="macro-bar-label">단백질</div>
-            <div class="macro-bar-track"><div id="proteinBarFill" class="macro-bar-fill" style="width:0%;"></div></div>
+            <div class="macro-bar-track"><div id="proteinBarFill" class="macro-bar-fill" style="width:0%;"></div><div id="proteinBarHighlight" class="bar-highlight"></div></div>
           </div>
           <div class="macro-bar-row">
             <div class="macro-bar-label">지방</div>
-            <div class="macro-bar-track"><div id="fatBarFill" class="macro-bar-fill" style="width:0%;"></div></div>
+            <div class="macro-bar-track"><div id="fatBarFill" class="macro-bar-fill" style="width:0%;"></div><div id="fatBarHighlight" class="bar-highlight"></div></div>
           </div>
         </div>
         <div class="macro-split-divider"></div>
@@ -6453,7 +6506,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.3.13";
+const APP_VERSION = "0.4.0";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -12442,6 +12495,55 @@ function getTodayMeals(){
   return mealsAll.filter(m => m.date === today);
 }
 
+function getTodayMealsSorted(){
+  return getTodayMeals().slice().sort((a,b) => (b.createdAt||0) - (a.createdAt||0));
+}
+
+/* 🔥 카드 뒤집기 상태 (아코디언 - 한 번에 하나만 뒤집힘) */
+let flippedMealId = null;
+
+function toggleMealFlip(mealId){
+  flippedMealId = (flippedMealId === mealId) ? null : mealId;
+  renderTodayMealList();
+  renderMealHighlight();
+}
+
+function macroAmount(meal, key){
+  return (Number(meal[key]) || 0) * (meal.count || 1);
+}
+
+function positionHighlight(elId, thisAmount, beforeAmount, target){
+  const el = document.getElementById(elId);
+  if (!el) return;
+  if (!target) { el.style.display = "none"; return; }
+  const leftPct = Math.min(100, (beforeAmount / target) * 100);
+  const widthPct = Math.max(0, Math.min(100 - leftPct, (thisAmount / target) * 100));
+  el.style.left = leftPct + "%";
+  el.style.width = widthPct + "%";
+  el.style.display = "block";
+}
+
+/* 🔥 뒤집힌 카드가 상단 칼로리/탄단지 그래프에서 차지하는 구간을 노란색으로 표시 */
+function renderMealHighlight(){
+  const ids = ["calProgressHighlight", "carbBarHighlight", "proteinBarHighlight", "fatBarHighlight"];
+  const hideAll = () => ids.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = "none"; });
+
+  if (!flippedMealId) { hideAll(); return; }
+
+  const targets = calcTargets(userSpec);
+  const meals = getTodayMealsSorted();
+  const idx = meals.findIndex(m => m.id === flippedMealId);
+  if (idx < 0 || !targets) { hideAll(); return; }
+
+  const meal = meals[idx];
+  const before = meals.slice(0, idx);
+
+  positionHighlight("calProgressHighlight", kcalOfMeals([meal]), kcalOfMeals(before), targets.targetCalories);
+  positionHighlight("carbBarHighlight", macroAmount(meal, "carb"), before.reduce((s,m) => s + macroAmount(m,"carb"), 0), targets.carbTarget);
+  positionHighlight("proteinBarHighlight", macroAmount(meal, "protein"), before.reduce((s,m) => s + macroAmount(m,"protein"), 0), targets.proteinTarget);
+  positionHighlight("fatBarHighlight", macroAmount(meal, "fat"), before.reduce((s,m) => s + macroAmount(m,"fat"), 0), targets.fatTarget);
+}
+
 function renderMacroSummary(){
   const targets = calcTargets(userSpec);
   const todayMeals = getTodayMeals();
@@ -12476,6 +12578,7 @@ function renderMacroSummary(){
     carbNumEl.textContent = `${sum.carb}/0`;
     proteinNumEl.textContent = `${sum.protein}/0`;
     fatNumEl.textContent = `${sum.fat}/0`;
+    renderMealHighlight();
     return;
   }
 
@@ -12495,6 +12598,8 @@ function renderMacroSummary(){
   carbNumEl.textContent = `${sum.carb}/${targets.carbTarget}`;
   proteinNumEl.textContent = `${sum.protein}/${targets.proteinTarget}`;
   fatNumEl.textContent = `${sum.fat}/${targets.fatTarget}`;
+
+  renderMealHighlight();
 }
 
 /* ---------- 식단 > 기록 탭: 날짜별 칼로리 달력 ---------- */
@@ -13607,6 +13712,7 @@ quickAddMealModal.addEventListener("click", (e) => {
 });
 
 function deleteMeal(id){
+  if (flippedMealId === id) flippedMealId = null;
   mealsAll = mealsAll.filter(m => m.id !== id);
   saveMealsToLocal();
   deleteMealFromFirestore(id);
@@ -13618,7 +13724,7 @@ function deleteMeal(id){
 
 function renderTodayMealList(){
   const el = document.getElementById("todayMealList");
-  const todayMeals = getTodayMeals().slice().sort((a,b) => (b.createdAt||0) - (a.createdAt||0));
+  const todayMeals = getTodayMealsSorted();
 
   if (!todayMeals.length) {
     el.classList.add("empty");
@@ -13631,28 +13737,48 @@ function renderTodayMealList(){
   todayMeals.forEach(m => {
     const count = m.count || 1;
     const nameLabel = count > 1 ? `${m.name} x ${count}` : m.name;
+    const kcal = kcalOfMeals([m]);
+    const macroLabel = `탄 ${macroAmount(m,"carb")}g · 단 ${macroAmount(m,"protein")}g · 지 ${macroAmount(m,"fat")}g · ${kcal}kcal`;
 
-    const row = document.createElement("div");
-    row.className = "meal-log-row";
-    row.innerHTML = `
-      <div>
-        <div class="meal-log-name" data-id="${m.id}">${nameLabel}</div>
-      </div>
-      <div style="display:flex; align-items:center; gap:10px;">
-        <div class="meal-log-time">${m.time || ""}</div>
-        <button class="mealDeleteBtn" data-id="${m.id}" style="background:none; border:none; color:#666; font-size:16px; cursor:pointer; padding:4px;">×</button>
+    const container = document.createElement("div");
+    container.className = "meal-flip-container";
+    container.innerHTML = `
+      <div class="meal-flip-inner${m.id === flippedMealId ? " flipped" : ""}" data-id="${m.id}">
+        <div class="meal-flip-front meal-log-row" style="border-bottom:none;">
+          <div>
+            <div class="meal-log-name" data-id="${m.id}">${nameLabel}</div>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div class="meal-log-time">${m.time || ""}</div>
+            <button class="mealDeleteBtn" data-id="${m.id}" style="background:none; border:none; color:#666; font-size:16px; cursor:pointer; padding:4px;">×</button>
+          </div>
+        </div>
+        <div class="meal-flip-back">
+          <div class="meal-flip-back-name">${m.name}</div>
+          <div class="meal-flip-back-macros">${macroLabel}</div>
+        </div>
       </div>
     `;
-    el.appendChild(row);
+    el.appendChild(container);
   });
 
+  let justLongPressed = false;
+
   el.querySelectorAll(".mealDeleteBtn").forEach(btn => {
-    btn.addEventListener("click", () => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
       if (confirm("이 기록을 삭제할까요?")) deleteMeal(btn.dataset.id);
     });
   });
 
-  // 🔥 이름(예: "계란 x 2")을 길게 누르면 개수 수정
+  el.querySelectorAll(".meal-flip-inner").forEach(inner => {
+    inner.addEventListener("click", () => {
+      if (justLongPressed) { justLongPressed = false; return; }
+      toggleMealFlip(inner.dataset.id);
+    });
+  });
+
+  // 🔥 이름(예: "계란 x 2")을 길게 누르면 개수 수정 (탭하면 카드 뒤집기와 구분)
   el.querySelectorAll(".meal-log-name").forEach(nameEl => {
     let holdTimer = null;
     let startX = 0, startY = 0;
@@ -13660,7 +13786,10 @@ function renderTodayMealList(){
 
     function start(x, y){
       startX = x; startY = y;
-      holdTimer = setTimeout(() => editMealCount(nameEl.dataset.id), 550);
+      holdTimer = setTimeout(() => {
+        justLongPressed = true;
+        editMealCount(nameEl.dataset.id);
+      }, 550);
     }
     function cancel(){ clearTimeout(holdTimer); }
 
