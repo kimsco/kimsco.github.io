@@ -6508,7 +6508,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.4.4";
+const APP_VERSION = "0.4.5";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -13291,6 +13291,7 @@ function renderWeightTrendChart(){
     pointBackgroundColor: '#FFD700',
     fill: true,
     spanGaps: false,
+    clip: 8, // 🔥 layout.padding만으로는 chartArea 경계에서 여전히 잘리므로, 그 여백만큼 점이 밖으로 그려지도록 허용
   }];
 
   if (userWeight.goal) {
@@ -13312,7 +13313,7 @@ function renderWeightTrendChart(){
       responsive: false,
       maintainAspectRatio: false,
       interaction: { mode: 'index', intersect: false },
-      layout: { padding: { top: 6, bottom: 6 } }, // 🔥 y축 min/max에 딱 걸리는 점(최상단/최하단)이 잘려 보이지 않도록 여백 확보
+      layout: { padding: { top: 8, bottom: 8 } }, // 🔥 y축 min/max에 딱 걸리는 점(최상단/최하단)이 잘려 보이지 않도록 여백 확보 (아래 dataset의 clip 값과 맞춤)
       plugins: {
         legend: { display: false },
         tooltip: {
