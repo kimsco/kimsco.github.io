@@ -3241,10 +3241,12 @@ input[type="number"] {
   position: relative;
   transition: transform 0.5s;
   transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
   cursor: pointer;
 }
 .meal-flip-inner.flipped {
   transform: rotateX(180deg);
+  -webkit-transform: rotateX(180deg);
 }
 .meal-flip-front, .meal-flip-back {
   backface-visibility: hidden;
@@ -6506,7 +6508,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.4.1";
+const APP_VERSION = "0.4.2";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -12503,8 +12505,19 @@ function getTodayMealsSorted(){
 let flippedMealId = null;
 
 function toggleMealFlip(mealId){
+  const prevId = flippedMealId;
   flippedMealId = (flippedMealId === mealId) ? null : mealId;
-  renderTodayMealList();
+
+  // 🔥 리스트를 통째로 다시 그리면 flipped 클래스가 이미 붙은 새 엘리먼트가
+  // 삽입되어 CSS transition의 시작 프레임이 없어진다(=애니메이션 없이 순간
+  // 전환됨). 기존 DOM 엘리먼트를 그대로 두고 클래스만 토글해야 회전 애니메이션이
+  // 재생된다.
+  if (prevId && prevId !== mealId) {
+    document.querySelector(`.meal-flip-inner[data-id="${prevId}"]`)?.classList.remove("flipped");
+  }
+  document.querySelector(`.meal-flip-inner[data-id="${mealId}"]`)
+    ?.classList.toggle("flipped", flippedMealId === mealId);
+
   renderMealHighlight();
 }
 
