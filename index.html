@@ -1135,10 +1135,8 @@ cursor: pointer;
 .settings-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.4);
+  background: #000;
   z-index: 100000;
-  display: flex;
-  justify-content: flex-end;
 }
 
 .settings-overlay.hidden {
@@ -1702,11 +1700,9 @@ html.light-mode-on .dex-post-card.has-image{
 }
 
 .settings-panel {
-  width: 82%;
-  max-width: 320px;
+  width: 100%;
   height: 100%;
-  background: #111;
-  padding: 20px;
+  background: #000;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -1719,16 +1715,54 @@ html.light-mode-on .dex-post-card.has-image{
   to { transform: translateX(0); }
 }
 
-/* 헤더 */
-.settings-header {
+/* 헤더: 좌측 상단 "‹ 설정" */
+.settings-header-bar {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
-  margin-bottom: 24px;
-  min-height: 44px; /* 🔥 로그인 시 게스트 배지가 사라져도 헤더 높이는 게스트와 동일하게 유지(배지 margin-top 6px 포함) */
+  gap: 2px;
+  padding: calc(14px + env(safe-area-inset-top)) 10px 14px;
+}
+
+.settings-header-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.settings-body {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: none;
+  padding: 4px 16px calc(40px + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+}
+
+.settings-card {
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 20px;
+}
+
+.settings-section-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #777;
+  margin: 0 4px 8px;
+}
+
+.settings-item-icon {
+  display: inline-block;
+  width: 22px;
+  margin-right: 2px;
 }
 
 #settingsGuestBadge {
-  margin-top: 6px; /* 🔥 "게스트"/"로그인하지 않음" 글자를 살짝 아래로 */
+  margin-top: 2px;
+  margin-bottom: 8px;
 }
 
 .settings-name {
@@ -1736,20 +1770,14 @@ html.light-mode-on .dex-post-card.has-image{
   font-weight: 600;
 }
 
-/* 🔥 로그인 시 헤더의 "{이름}님" — 기존 대비 1.3배 크게 + 살짝 아래로 */
+/* 🔥 로그인 시 프로필 카드의 "{이름}님" — 기존 대비 1.3배 크게 */
 #settingsHeaderName {
   font-size: 20.8px;
-  margin-top: 12px;
 }
 
 .settings-email {
   font-size: 12px;
   color: #777;
-}
-
-/* 리스트 */
-.settings-list {
-  border-top: 1px solid #222;
 }
 
 .settings-item {
@@ -1957,21 +1985,19 @@ html.light-mode-on .dex-post-card.has-image{
   outline-offset: 2px;
   border-radius: 8px;
 }
-/* 설정 패널 X 버튼 */
+/* 설정 헤더 뒤로가기 버튼 */
 #closeSettingsBtn{
   all: unset;
-  width: 28px;         /* 클릭 영역(너무 크지 않게) */
-  height: 28px;
-  margin-left: auto;   /* 🔥 게스트 배지가 숨겨져도(로그인 시) 항상 오른쪽 끝에 고정 */
-  margin-top: 12px;    /* 🔥 옆의 "{이름}님" 글자를 내린 만큼 같이 아래로 */
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
 
-  font-size: 16px;     /* ✕ 자체 크기 */
+  font-size: 30px;     /* ‹ 자체 크기 */
   line-height: 1;
 
-  color: #aaa;
+  color: #eee;
   cursor: pointer;
   border-radius: 8px;
 }
@@ -1980,10 +2006,6 @@ html.light-mode-on .dex-post-card.has-image{
   transform: scale(0.92);
   background: rgba(255,255,255,0.06);
 }
-
-.settings-header{
-  padding-right: 2px;
-}   
 
 /* 설정 화면 맨 밑 로그아웃 (텍스트형) */
 .settings-logout-text{
@@ -5096,18 +5118,22 @@ input[type="number"] {
 
 <div id="settingsOverlay" class="settings-overlay hidden">
   <div class="settings-panel">
-    
-    <!-- 헤더 -->
-    <div class="settings-header">
-      <div id="settingsGuestBadge">
-        <div class="settings-name" id="settingsHeaderName">게스트</div>
-        <div class="settings-email" id="settingsHeaderSub">로그인하지 않음</div>
-      </div>
-      <button id="closeSettingsBtn">✕</button>
+
+    <!-- 헤더: 좌측 상단 "‹ 설정" -->
+    <div class="settings-header-bar">
+      <button id="closeSettingsBtn" aria-label="뒤로가기">‹</button>
+      <span class="settings-header-title">설정</span>
     </div>
 
-<!-- ✅ 프로필/로그인 영역 -->
-<div class="settings-section">
+    <div class="settings-body">
+
+<!-- ✅ 카드 1: 프로필/로그인 -->
+<div class="settings-card">
+  <div id="settingsGuestBadge">
+    <div class="settings-name" id="settingsHeaderName">게스트</div>
+    <div class="settings-email" id="settingsHeaderSub">로그인하지 않음</div>
+  </div>
+
   <!-- 게스트일 때만 보일 "로그인 하기" -->
   <button id="settingsLoginRow" class="settings-row">
     <div class="row-left">
@@ -5125,35 +5151,41 @@ input[type="number"] {
     </div>
   </div>
 </div>
- 
-     <!-- 메뉴 -->
-    <div class="settings-list">
-      <button id="mySpecMenuBtn" class="settings-item" style="width:100%; text-align:left; background:none; color:#fff; cursor:pointer;">내 정보 수정</button>
-      <div class="settings-item" style="border-bottom:none; padding-bottom:0;">문의</div>
-      <div class="settings-item muted">김무진한테 문의하세요</div>
-    </div>
 
-    <div style="display:flex; align-items:center; justify-content:space-between; margin-top:16px;">
-      <div class="settings-item" style="margin:0; border-bottom:none;">화면 모드</div>
-      <div id="lightModeToggle" class="toggle-switch"></div>
-    </div>
+<!-- ✅ 카드 2: 계정 -->
+<div class="settings-section-label">계정</div>
+<div class="settings-card">
+  <button id="mySpecMenuBtn" class="settings-item" style="width:100%; text-align:left; background:none; color:#fff; cursor:pointer;">
+    <span class="settings-item-icon">👤</span>내 정보 수정
+  </button>
+  <div class="settings-item" style="border-bottom:none; padding-bottom:0;">
+    <span class="settings-item-icon">✉️</span>문의
+  </div>
+  <div class="settings-item muted" style="padding-top:2px; border-bottom:none;">김무진한테 문의하세요</div>
+</div>
 
-    <div style="display:flex; align-items:center; justify-content:space-between; margin-top:16px; padding-top:16px; border-top:1px solid rgba(255,255,255,0.08);">
-      <div class="settings-item" style="margin:0; border-bottom:none;">앱 버전</div>
-      <div class="settings-item" style="margin:0; border-bottom:none; color:#888; font-size:14px;" id="appVersionDisplay">0.1.0</div>
-    </div>
+<!-- ✅ 카드 3: 일반 -->
+<div class="settings-section-label">일반</div>
+<div class="settings-card">
+  <div class="settings-item" style="display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #222;">
+    <span><span class="settings-item-icon">🌓</span>화면 모드</span>
+    <div id="lightModeToggle" class="toggle-switch"></div>
+  </div>
+  <div class="settings-item" style="display:flex; align-items:center; justify-content:space-between; border-bottom:none;">
+    <span><span class="settings-item-icon">ℹ️</span>앱 버전</span>
+    <span style="color:#888; font-size:14px;" id="appVersionDisplay">0.1.0</span>
+  </div>
+</div>
 
-<!-- ✅ 하단 로그아웃 버튼 (iOS 느낌) -->
+<!-- ✅ 하단 로그아웃/회원탈퇴 (카드 밖, 텍스트 링크) -->
 <div id="settingsLogoutText" class="settings-logout-text">
   로그아웃
 </div>
-
-<!-- ✅ 회원탈퇴 (로그아웃 바로 아래) -->
 <div id="settingsDeleteAccountText" class="settings-logout-text settings-delete-account-text">
   회원탈퇴
 </div>
 
-
+    </div>
   </div>
 </div>
 
@@ -6508,7 +6540,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.4.5";
+const APP_VERSION = "0.5.0";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -11370,13 +11402,6 @@ openSettingsBtn.addEventListener("click", () => {
 
 closeSettingsBtn.addEventListener("click", () => {
   settingsOverlay.classList.add("hidden");
-});
-
-// 바깥 클릭 시 닫기
-settingsOverlay.addEventListener("click", (e) => {
-  if (e.target === settingsOverlay) {
-    settingsOverlay.classList.add("hidden");
-  }
 });
 
 
