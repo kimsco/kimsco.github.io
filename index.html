@@ -6508,7 +6508,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.4.3";
+const APP_VERSION = "0.4.4";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -13312,6 +13312,7 @@ function renderWeightTrendChart(){
       responsive: false,
       maintainAspectRatio: false,
       interaction: { mode: 'index', intersect: false },
+      layout: { padding: { top: 6, bottom: 6 } }, // 🔥 y축 min/max에 딱 걸리는 점(최상단/최하단)이 잘려 보이지 않도록 여백 확보
       plugins: {
         legend: { display: false },
         tooltip: {
