@@ -7669,7 +7669,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.33";
+const APP_VERSION = "0.5.34";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -13058,7 +13058,12 @@ document.body.appendChild(navDrawerOverlay);
 // 🔥 navDrawerOverlay를 body 바로 밑으로 옮겼기 때문에, 이제 .app만 밀면 됨(상쇄 이동 불필요)
 function setAppPush(px){
   const appEl = document.querySelector('.app');
-  if (appEl) appEl.style.transform = `translateX(${px}px)`;
+  if (!appEl) return;
+  // 🔥 px가 0이어도 'translateX(0px)'처럼 transform 값이 남아있으면 .app이 새로운
+  //    containing block이 되어, 그 안의 position:fixed 자식(topBar/bottomTab 등)의
+  //    좌표계가 뷰포트가 아니라 .app 기준으로 바뀌어버림 — 드로어를 닫아 밀림이 0으로
+  //    돌아온 상태에서는 transform 자체를 비워서 완전히 원상태로 되돌림
+  appEl.style.transform = px ? `translateX(${px}px)` : '';
 }
 function setAppPushTransition(css){
   const appEl = document.querySelector('.app');
