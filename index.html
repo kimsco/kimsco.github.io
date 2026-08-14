@@ -1626,18 +1626,80 @@ cursor: pointer;
 .bw-log-date-total-row span:first-child { color: rgba(255,255,255,0.5); }
 .bw-log-date-total-row span:last-child { color: #fff; font-weight: 700; }
 
-/* 아직 구현되지 않은 메뉴(목표) */
-.bw-placeholder {
-  flex: 1;
-  min-height: 0;
+/* 맨몸운동 「04 — 목표」 목록 */
+.bw-goal-cards { display: flex; flex-direction: column; gap: 12px; margin-bottom: 14px; }
+.bw-goal-card { background: #111; border: 1px solid #222; border-radius: 16px; padding: 18px 20px; cursor: pointer; }
+.bw-goal-card:active { opacity: 0.85; }
+.bw-goal-card-en { font-size: 18px; font-weight: 800; color: #fff; }
+.bw-goal-card-desc { font-size: 13px; color: rgba(255,255,255,0.5); margin-top: 2px; margin-bottom: 16px; }
+.bw-goal-numbers { font-size: 20px; font-weight: 800; color: #fff; margin-bottom: 10px; }
+.bw-goal-numbers .muted { color: rgba(255,255,255,0.35); font-weight: 700; }
+.bw-goal-progress-bar { height: 8px; border-radius: 4px; background: #1c1c1c; overflow: hidden; margin-bottom: 8px; }
+.bw-goal-progress-fill { height: 100%; background: #fff; border-radius: 4px; }
+.bw-goal-progress-meta { display: flex; align-items: center; justify-content: space-between; font-size: 12.5px; color: rgba(255,255,255,0.5); margin-bottom: 14px; }
+.bw-goal-card-best { font-size: 12.5px; color: rgba(255,255,255,0.45); }
+.bw-goal-card-best b { color: #fff; font-weight: 700; }
+.bw-goal-card-completed-badge { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 12px; }
+.bw-goal-card-completed-date { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 10px; }
+
+/* 목표 생성/수정 */
+.bw-goal-field-label { font-size: 13px; font-weight: 600; color: #777; margin: 20px 2px 10px; }
+.bw-goal-field-label:first-child { margin-top: 4px; }
+.bw-goal-picker-btn {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 14px;
+  padding: 15px 16px;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
 }
-.bw-placeholder-text {
-  color: #777;
-  font-size: 14px;
+.bw-goal-picker-arrow { color: rgba(255,255,255,0.35); font-size: 12px; }
+.bw-goal-picker-list { margin-top: 8px; background: #111; border: 1px solid #222; border-radius: 14px; overflow: hidden; }
+.bw-goal-picker-item { padding: 14px 16px; font-size: 14.5px; color: #fff; border-bottom: 1px solid #1c1c1c; cursor: pointer; }
+.bw-goal-picker-item:last-child { border-bottom: none; }
+.bw-goal-picker-item:active { background: #1a1a1a; }
+.bw-goal-target-input-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 14px;
+  padding: 15px 16px;
 }
+.bw-goal-target-input-row input {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #fff;
+  font-size: 22px;
+  font-weight: 800;
+  -webkit-appearance: none;
+}
+.bw-goal-target-input-row span { color: rgba(255,255,255,0.5); font-size: 14px; font-weight: 600; }
+.bw-goal-preview-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 2px; font-size: 14px; }
+.bw-goal-preview-row span:first-child { color: rgba(255,255,255,0.5); }
+.bw-goal-preview-row span:last-child { color: #fff; font-weight: 700; }
+
+/* 목표 상세 */
+.bw-goal-detail-actions { display: flex; gap: 16px; margin-bottom: 4px; }
+.bw-goal-detail-action { font-size: 13px; color: rgba(255,255,255,0.45); text-decoration: underline; cursor: pointer; }
+.bw-goal-detail-stat-row { margin-bottom: 18px; }
+.bw-goal-detail-stat-label { font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.4); letter-spacing: 0.3px; margin-bottom: 6px; }
+.bw-goal-detail-stat-value { font-size: 28px; font-weight: 800; color: #fff; }
+.bw-goal-detail-progress-pct { font-size: 14px; font-weight: 700; color: #fff; text-align: right; margin-top: 8px; margin-bottom: 6px; }
+.bw-goal-detail-remain { font-size: 14px; color: rgba(255,255,255,0.55); }
+.bw-goal-detail-completed-badge { font-size: 14px; font-weight: 700; color: #fff; letter-spacing: 0.5px; margin-bottom: 20px; }
 
 /* 오늘의 운동: 가로 스크롤 퀵 액세스 */
 .bw-today-label {
@@ -5796,15 +5858,91 @@ input[type="number"] {
       </div>
     </div>
 
-    <!-- 1b단계: 준비 중 화면 (04 목표 공용) -->
-    <div id="bodyweightPlaceholderScreen" style="display:none; flex:1; min-height:0; flex-direction:column;">
+    <!-- 1l단계: 목표 메인 화면 (04 — 목표) -->
+    <div id="bodyweightGoalScreen" style="display:none; flex:1; min-height:0; flex-direction:column;">
       <div class="bw-header">
-        <button onclick="closeBodyweightPlaceholder()" class="bw-header-back" aria-label="뒤로가기">←</button>
-        <span id="bodyweightPlaceholderTitle" class="bw-header-title"></span>
+        <button onclick="closeBodyweightGoal()" class="bw-header-back" aria-label="뒤로가기">←</button>
         <span class="bw-header-spacer"></span>
       </div>
-      <div class="bw-placeholder">
-        <div id="bodyweightPlaceholderText" class="bw-placeholder-text">준비 중입니다</div>
+      <div class="bw-log-scroll">
+        <div class="bw-routine-hero">
+          <div class="bw-routine-hero-en">GOALS</div>
+          <div class="bw-routine-hero-kr">목표</div>
+          <div class="bw-routine-hero-tagline">내가 달성하고 싶은 것</div>
+        </div>
+
+        <div id="bodyweightGoalEmpty" class="bw-log-empty" style="display:none;">
+          <div class="bw-log-empty-text">아직 목표가 없습니다.<br>달성하고 싶은 첫 번째 목표를<br>만들어보세요.</div>
+          <button id="bodyweightGoalEmptyAddBtn" class="bw-finish-btn">+ 목표 추가</button>
+        </div>
+
+        <div id="bodyweightGoalContent">
+          <div id="bodyweightGoalCards" class="bw-goal-cards"></div>
+          <button id="bodyweightGoalAddBtn" class="bw-add-btn">+ 목표 추가</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 1m단계: 목표 생성/수정 화면 -->
+    <div id="bodyweightGoalCreateScreen" style="display:none; flex:1; min-height:0; flex-direction:column; padding: calc(20px + env(safe-area-inset-top)) 18px calc(24px + env(safe-area-inset-bottom));">
+      <div class="bw-detail-header" onclick="closeBodyweightGoalCreate()">
+        <span class="bw-detail-back">←</span>
+        <span id="bodyweightGoalCreateHeaderName" class="bw-detail-title">새로운 목표</span>
+      </div>
+
+      <div class="bw-detail-body">
+        <div class="bw-goal-field-label">어떤 운동인가요?</div>
+        <button id="bodyweightGoalExercisePickerBtn" class="bw-goal-picker-btn" type="button">
+          <span id="bodyweightGoalExercisePickerLabel">운동 선택</span>
+          <span class="bw-goal-picker-arrow">▾</span>
+        </button>
+        <div id="bodyweightGoalExercisePickerList" class="bw-goal-picker-list" style="display:none;"></div>
+
+        <div class="bw-goal-field-label">목표를 정해주세요</div>
+        <div class="bw-goal-target-input-row">
+          <input id="bodyweightGoalTargetInput" type="number" inputmode="numeric" placeholder="0">
+          <span>회</span>
+        </div>
+
+        <div class="bw-detail-divider"></div>
+
+        <div class="bw-goal-preview-row"><span>현재 기록</span><span id="bodyweightGoalPreviewCurrent">-</span></div>
+        <div class="bw-goal-preview-row"><span>목표</span><span id="bodyweightGoalPreviewTarget">-</span></div>
+        <div class="bw-goal-preview-row"><span>목표까지</span><span id="bodyweightGoalPreviewRemain">-</span></div>
+      </div>
+
+      <button id="bodyweightGoalSubmitBtn" class="bw-finish-btn">목표 만들기</button>
+    </div>
+
+    <!-- 1n단계: 목표 상세 화면 -->
+    <div id="bodyweightGoalDetailScreen" style="display:none; flex:1; min-height:0; flex-direction:column; padding: calc(20px + env(safe-area-inset-top)) 18px calc(24px + env(safe-area-inset-bottom));">
+      <div class="bw-detail-header" onclick="closeBodyweightGoalDetail()">
+        <span class="bw-detail-back">←</span>
+        <span id="bodyweightGoalDetailHeaderName" class="bw-detail-title"></span>
+      </div>
+
+      <div class="bw-detail-body">
+        <div id="bodyweightGoalDetailEn" class="bw-log-detail-en"></div>
+        <div id="bodyweightGoalDetailKr" class="bw-log-detail-kr"></div>
+
+        <div class="bw-goal-detail-actions">
+          <span id="bodyweightGoalEditLink" class="bw-goal-detail-action">수정</span>
+          <span id="bodyweightGoalDeleteLink" class="bw-goal-detail-action">삭제</span>
+        </div>
+
+        <div class="bw-detail-divider"></div>
+
+        <div id="bodyweightGoalDetailBody"></div>
+
+        <div class="bw-detail-divider"></div>
+
+        <div class="bw-log-section-label">기록 변화</div>
+        <div id="bodyweightGoalDetailChart" class="bw-log-chart"></div>
+
+        <div class="bw-detail-divider"></div>
+
+        <div class="bw-log-section-label">최근 최고 기록</div>
+        <div id="bodyweightGoalDetailRecent" class="bw-log-recent-list"></div>
       </div>
     </div>
 
@@ -7431,7 +7569,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.28";
+const APP_VERSION = "0.5.29";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -8351,11 +8489,7 @@ const bodyweightOverlay = document.getElementById("bodyweightOverlay");
 const bodyweightScreen = document.getElementById("bodyweightScreen");
 let bodyweightPrevPart = null; // 🔥 닫을 때 기록탭의 currentPart를 원래대로 복원하기 위함
 
-// 🔥 메뉴(01~04 카드) — "기본운동"/"루틴"만 실제 기능이 있고, 나머지는 눌렀을 때 준비 중 화면
-const BODYWEIGHT_MENU_LABELS = {
-  goal: "목표"
-};
-
+// 🔥 메뉴(01~04 카드) — 4개 전부 실제 기능으로 연결됨
 function bodyweightMenuBasicSub(){
   const names = (currentExercises || []).filter(x => typeof x === "string" && x.trim());
   if (!names.length) return "아직 추가된 운동이 없습니다";
@@ -8878,6 +9012,344 @@ function closeBodyweightLogDateDetail(){
   renderBodyweightLog();
 }
 
+// ============================================================
+// 🔥 「04 — 목표」 — 03 기록에 저장된 실제 데이터를 목표와 연결해서
+// 현재 기록/진행률/달성 여부를 항상 자동으로 계산한다. currentValue를
+// 별도로 저장하지 않고(사용자가 직접 수정 못 하게), 매번 03 기록 데이터
+// 기준으로 다시 계산 — 이게 "기록이 쌓일 때마다 목표가 자동 갱신"의 핵심.
+// 초기 버전은 스펙 14번에 따라 ① 반복 횟수 목표(type:"rep")만 완전히
+// 구현하고, routine/volume은 데이터 구조만 열어둔다.
+// ============================================================
+
+const BODYWEIGHT_GOAL_SEED = [
+  { type: "rep", exerciseName: "풀업", targetValue: 20 },
+  { type: "rep", exerciseName: "푸시업", targetValue: 50 },
+  { type: "rep", exerciseName: "딥스", targetValue: 30 },
+];
+
+let bodyweightGoals = [];
+function loadBodyweightGoals(){
+  bodyweightGoals = lsGet("mf_bodyweight_goals_v1", []);
+  if (!Array.isArray(bodyweightGoals)) bodyweightGoals = [];
+}
+function saveBodyweightGoals(){
+  lsSet("mf_bodyweight_goals_v1", bodyweightGoals);
+}
+function seedDefaultBodyweightGoalsIfNeeded(){
+  const alreadySeeded = lsGet("mf_bodyweight_goals_seeded_v1", false);
+  if (alreadySeeded) return;
+  if (bodyweightGoals.length === 0) {
+    bodyweightGoals = BODYWEIGHT_GOAL_SEED.map(g => ({
+      id: "goal_" + Date.now() + "_" + Math.random(),
+      type: g.type,
+      exerciseId: g.exerciseName,
+      exerciseName: g.exerciseName,
+      targetValue: g.targetValue,
+      status: "active",
+      createdAt: Date.now(),
+      completedAt: null,
+    }));
+    saveBodyweightGoals();
+  }
+  lsSet("mf_bodyweight_goals_seeded_v1", true);
+}
+
+// 반복 횟수 목표(type:"rep")의 현재 기록 = 03 기록에 저장된 해당 운동의 최고 기록.
+// routine/volume 타입은 이번 버전 범위 밖 — 후속 단계에서 각자의 계산 로직을 추가하면 됨.
+function bodyweightGoalCurrentValue(goal){
+  if (goal.type === "rep") {
+    return bodyweightLogExerciseStats(goal.exerciseName).best;
+  }
+  return 0;
+}
+function bodyweightGoalProgress(goal){
+  if (!goal.targetValue) return 0;
+  const current = bodyweightGoalCurrentValue(goal);
+  return Math.max(0, Math.min(100, Math.round((current / goal.targetValue) * 100)));
+}
+function bodyweightGoalIsAchieved(goal){
+  return bodyweightGoalCurrentValue(goal) >= goal.targetValue;
+}
+// 목표 화면에 들어올 때마다 호출 — 그 사이 01/02에서 쌓인 기록으로 달성 조건을
+// 만족했으면 이 시점에 "active -> completed" 전환 + 달성일 기록
+function bodyweightSyncGoalStatuses(){
+  let changed = false;
+  bodyweightGoals.forEach(g => {
+    if (g.status === "active" && bodyweightGoalIsAchieved(g)) {
+      g.status = "completed";
+      g.completedAt = Date.now();
+      changed = true;
+    }
+  });
+  if (changed) saveBodyweightGoals();
+}
+function bodyweightGoalDescText(goal){
+  return `${goal.exerciseName} ${goal.targetValue}개`;
+}
+function bodyweightGoalCompletedDateText(goal){
+  if (!goal.completedAt) return "";
+  const d = new Date(goal.completedAt);
+  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function bodyweightMenuGoalSub(){
+  if (!bodyweightGoals.length) return "내가 달성할 것";
+  const done = bodyweightGoals.filter(g => g.status === "completed").length;
+  return `목표 ${bodyweightGoals.length}개 · 달성 ${done}개`;
+}
+
+function renderBodyweightGoalCards(){
+  const hasAny = bodyweightGoals.length > 0;
+  document.getElementById("bodyweightGoalEmpty").style.display = hasAny ? "none" : "block";
+  document.getElementById("bodyweightGoalContent").style.display = hasAny ? "block" : "none";
+  if (!hasAny) {
+    document.getElementById("bodyweightGoalCards").innerHTML = "";
+    return;
+  }
+
+  const el = document.getElementById("bodyweightGoalCards");
+  el.innerHTML = bodyweightGoals.map(g => {
+    const current = bodyweightGoalCurrentValue(g);
+    const progress = bodyweightGoalProgress(g);
+    if (g.status === "completed") {
+      return `
+        <div class="bw-goal-card" data-id="${g.id}">
+          <div class="bw-goal-card-en">${escapeHtml(bodyweightDisplayNameEn(g.exerciseName))}</div>
+          <div class="bw-goal-card-desc">${escapeHtml(bodyweightGoalDescText(g))}</div>
+          <div class="bw-goal-card-completed-badge">✓ 달성 완료</div>
+          <div class="bw-goal-numbers">${current} / ${g.targetValue}회</div>
+          <div class="bw-goal-card-completed-date">목표 달성일: ${bodyweightGoalCompletedDateText(g)}</div>
+        </div>
+      `;
+    }
+    const remain = Math.max(0, g.targetValue - current);
+    return `
+      <div class="bw-goal-card" data-id="${g.id}">
+        <div class="bw-goal-card-en">${escapeHtml(bodyweightDisplayNameEn(g.exerciseName))}</div>
+        <div class="bw-goal-card-desc">${escapeHtml(bodyweightGoalDescText(g))}</div>
+        <div class="bw-goal-numbers">${current} <span class="muted">/ ${g.targetValue}회</span></div>
+        <div class="bw-goal-progress-bar"><div class="bw-goal-progress-fill" style="width:${progress}%;"></div></div>
+        <div class="bw-goal-progress-meta"><span>${remain}회 남음</span><span>${progress}%</span></div>
+        <div class="bw-goal-card-best">최고 기록 <b>${current}회</b></div>
+      </div>
+    `;
+  }).join("");
+
+  el.querySelectorAll(".bw-goal-card").forEach(card => {
+    card.addEventListener("click", () => openBodyweightGoalDetail(card.dataset.id));
+  });
+}
+
+function openBodyweightGoal(){
+  bodyweightSyncGoalStatuses(); // 🔥 그 사이 쌓인 기록으로 방금 달성됐을 수도 있으니 들어올 때마다 재확인
+  document.getElementById("bodyweightMenuScreen").style.display = "none";
+  document.getElementById("bodyweightGoalScreen").style.display = "flex";
+  renderBodyweightGoalCards();
+}
+function closeBodyweightGoal(){
+  document.getElementById("bodyweightGoalScreen").style.display = "none";
+  document.getElementById("bodyweightMenuScreen").style.display = "flex";
+  renderBodyweightMenu(); // 🔥 "04 목표" 카드 요약(목표/달성 개수)도 바로 반영
+}
+
+document.getElementById("bodyweightGoalAddBtn").addEventListener("click", () => openBodyweightGoalCreate());
+document.getElementById("bodyweightGoalEmptyAddBtn").addEventListener("click", () => openBodyweightGoalCreate());
+
+// ---- 목표 생성/수정 화면 ----
+let bodyweightGoalEditingId = null;
+let bodyweightGoalCreateSelectedExercise = null;
+
+function bodyweightGoalCreateUpdatePreview(){
+  const target = parseInt(document.getElementById("bodyweightGoalTargetInput").value, 10) || 0;
+  const name = bodyweightGoalCreateSelectedExercise;
+  const current = name ? bodyweightLogExerciseStats(name).best : 0;
+  const hasRecord = name && current > 0;
+
+  document.getElementById("bodyweightGoalPreviewCurrent").textContent = name
+    ? (hasRecord ? `${current}회` : "아직 기록 없음")
+    : "-";
+  document.getElementById("bodyweightGoalPreviewTarget").textContent = target ? `${target}회` : "-";
+  document.getElementById("bodyweightGoalPreviewRemain").textContent =
+    (name && target) ? `${Math.max(0, target - current)}회` : "-";
+}
+
+function bodyweightGoalCreateSelectExercise(name){
+  bodyweightGoalCreateSelectedExercise = name;
+  document.getElementById("bodyweightGoalExercisePickerLabel").textContent = bodyweightDisplayNameEn(name) + " · " + name;
+  document.getElementById("bodyweightGoalExercisePickerList").style.display = "none";
+  bodyweightGoalCreateUpdatePreview();
+}
+
+document.getElementById("bodyweightGoalExercisePickerBtn").addEventListener("click", () => {
+  const listEl = document.getElementById("bodyweightGoalExercisePickerList");
+  const names = (currentExercises || []).filter(x => typeof x === "string" && x.trim());
+  if (!names.length) {
+    listEl.innerHTML = `<div class="bw-goal-picker-item" style="color:#777; cursor:default;">등록된 운동이 없습니다. 01 기본운동에서 먼저 추가해주세요.</div>`;
+    listEl.style.display = "block";
+    return;
+  }
+  listEl.innerHTML = names.map(n => `<div class="bw-goal-picker-item" data-name="${escapeHtml(n)}">${escapeHtml(bodyweightDisplayNameEn(n))} · ${escapeHtml(n)}</div>`).join("");
+  listEl.querySelectorAll(".bw-goal-picker-item[data-name]").forEach(item => {
+    item.addEventListener("click", () => bodyweightGoalCreateSelectExercise(item.dataset.name));
+  });
+  listEl.style.display = listEl.style.display === "none" ? "block" : "none";
+});
+
+document.getElementById("bodyweightGoalTargetInput").addEventListener("input", bodyweightGoalCreateUpdatePreview);
+
+function openBodyweightGoalCreate(editGoal){
+  bodyweightGoalEditingId = editGoal ? editGoal.id : null;
+  document.getElementById("bodyweightGoalCreateHeaderName").textContent = editGoal ? "목표 수정" : "새로운 목표";
+  document.getElementById("bodyweightGoalSubmitBtn").textContent = editGoal ? "목표 수정하기" : "목표 만들기";
+  document.getElementById("bodyweightGoalExercisePickerList").style.display = "none";
+
+  if (editGoal) {
+    bodyweightGoalCreateSelectedExercise = editGoal.exerciseName;
+    document.getElementById("bodyweightGoalExercisePickerLabel").textContent =
+      bodyweightDisplayNameEn(editGoal.exerciseName) + " · " + editGoal.exerciseName;
+    document.getElementById("bodyweightGoalTargetInput").value = editGoal.targetValue;
+  } else {
+    bodyweightGoalCreateSelectedExercise = null;
+    document.getElementById("bodyweightGoalExercisePickerLabel").textContent = "운동 선택";
+    document.getElementById("bodyweightGoalTargetInput").value = "";
+  }
+  bodyweightGoalCreateUpdatePreview();
+
+  document.getElementById("bodyweightGoalScreen").style.display = "none";
+  document.getElementById("bodyweightGoalDetailScreen").style.display = "none";
+  document.getElementById("bodyweightGoalCreateScreen").style.display = "flex";
+}
+function closeBodyweightGoalCreate(){
+  document.getElementById("bodyweightGoalCreateScreen").style.display = "none";
+  if (bodyweightGoalEditingId) {
+    openBodyweightGoalDetail(bodyweightGoalEditingId);
+  } else {
+    document.getElementById("bodyweightGoalScreen").style.display = "flex";
+    renderBodyweightGoalCards();
+  }
+}
+
+document.getElementById("bodyweightGoalSubmitBtn").addEventListener("click", () => {
+  const name = bodyweightGoalCreateSelectedExercise;
+  const target = parseInt(document.getElementById("bodyweightGoalTargetInput").value, 10);
+  if (!name) return alert("운동을 선택하세요.");
+  if (!target || target < 1) return alert("목표 수치를 입력하세요.");
+
+  if (bodyweightGoalEditingId) {
+    const goal = bodyweightGoals.find(g => g.id === bodyweightGoalEditingId);
+    if (goal) {
+      goal.exerciseId = name;
+      goal.exerciseName = name;
+      goal.targetValue = target;
+      // 🔥 목표 수치를 바꾸면 달성 여부가 다시 바뀔 수 있으니 재확인
+      if (goal.status === "completed" && !bodyweightGoalIsAchieved(goal)) {
+        goal.status = "active";
+        goal.completedAt = null;
+      }
+    }
+  } else {
+    bodyweightGoals.push({
+      id: "goal_" + Date.now() + "_" + Math.random(),
+      type: "rep",
+      exerciseId: name,
+      exerciseName: name,
+      targetValue: target,
+      status: "active",
+      createdAt: Date.now(),
+      completedAt: null,
+    });
+  }
+  saveBodyweightGoals();
+  bodyweightSyncGoalStatuses();
+
+  const justSavedId = bodyweightGoalEditingId;
+  bodyweightGoalEditingId = null;
+  document.getElementById("bodyweightGoalCreateScreen").style.display = "none";
+  document.getElementById("bodyweightGoalDetailScreen").style.display = "none";
+  document.getElementById("bodyweightGoalScreen").style.display = "flex";
+  renderBodyweightGoalCards();
+});
+
+// ---- 목표 상세 화면 ----
+let bodyweightGoalActiveId = null;
+
+function openBodyweightGoalDetail(id){
+  const goal = bodyweightGoals.find(g => g.id === id);
+  if (!goal) return;
+  bodyweightGoalActiveId = id;
+
+  document.getElementById("bodyweightGoalDetailHeaderName").textContent = bodyweightDisplayNameEn(goal.exerciseName);
+  document.getElementById("bodyweightGoalDetailEn").textContent = bodyweightDisplayNameEn(goal.exerciseName);
+  document.getElementById("bodyweightGoalDetailKr").textContent = bodyweightGoalDescText(goal);
+
+  const current = bodyweightGoalCurrentValue(goal);
+  const bodyEl = document.getElementById("bodyweightGoalDetailBody");
+  if (goal.status === "completed") {
+    bodyEl.innerHTML = `
+      <div class="bw-goal-detail-completed-badge">✓ GOAL COMPLETE</div>
+      <div class="bw-goal-detail-stat-row">
+        <div class="bw-goal-detail-stat-label">최고 기록</div>
+        <div class="bw-goal-detail-stat-value">${current}회</div>
+      </div>
+      <div class="bw-goal-detail-stat-row">
+        <div class="bw-goal-detail-stat-label">달성일</div>
+        <div class="bw-goal-detail-stat-value">${bodyweightGoalCompletedDateText(goal)}</div>
+      </div>
+    `;
+  } else {
+    const progress = bodyweightGoalProgress(goal);
+    const remain = Math.max(0, goal.targetValue - current);
+    bodyEl.innerHTML = `
+      <div class="bw-goal-detail-stat-row">
+        <div class="bw-goal-detail-stat-label">현재 기록</div>
+        <div class="bw-goal-detail-stat-value">${current}회</div>
+      </div>
+      <div class="bw-goal-detail-stat-row">
+        <div class="bw-goal-detail-stat-label">목표</div>
+        <div class="bw-goal-detail-stat-value">${goal.targetValue}회</div>
+      </div>
+      <div class="bw-goal-progress-bar"><div class="bw-goal-progress-fill" style="width:${progress}%;"></div></div>
+      <div class="bw-goal-detail-progress-pct">${progress}%</div>
+      <div class="bw-goal-detail-remain">${remain}회 남음</div>
+    `;
+  }
+
+  const daily = bodyweightLogExerciseDailyTotals(goal.exerciseName);
+  renderBodyweightLogChart(document.getElementById("bodyweightGoalDetailChart"), daily);
+
+  const recentDaily = daily.slice().sort((a, b) => b.date.localeCompare(a.date)).slice(0, 8);
+  document.getElementById("bodyweightGoalDetailRecent").innerHTML = recentDaily.length
+    ? recentDaily.map(d => `
+        <div class="bw-log-record-row is-static">
+          <div class="bw-log-record-date">${bodyweightLogDateLabel(d.date)}</div>
+          <div class="bw-log-record-main"><div class="bw-log-record-name">${d.total}회</div></div>
+        </div>
+      `).join("")
+    : `<div style="color:#777; font-size:13px; padding:8px 2px;">아직 기록이 없습니다</div>`;
+
+  document.getElementById("bodyweightGoalScreen").style.display = "none";
+  document.getElementById("bodyweightGoalCreateScreen").style.display = "none";
+  document.getElementById("bodyweightGoalDetailScreen").style.display = "flex";
+}
+function closeBodyweightGoalDetail(){
+  document.getElementById("bodyweightGoalDetailScreen").style.display = "none";
+  document.getElementById("bodyweightGoalScreen").style.display = "flex";
+  renderBodyweightGoalCards();
+}
+
+document.getElementById("bodyweightGoalEditLink").addEventListener("click", () => {
+  const goal = bodyweightGoals.find(g => g.id === bodyweightGoalActiveId);
+  if (goal) openBodyweightGoalCreate(goal);
+});
+document.getElementById("bodyweightGoalDeleteLink").addEventListener("click", () => {
+  if (!confirm("목표를 삭제하시겠습니까?")) return;
+  bodyweightGoals = bodyweightGoals.filter(g => g.id !== bodyweightGoalActiveId);
+  saveBodyweightGoals();
+  document.getElementById("bodyweightGoalDetailScreen").style.display = "none";
+  document.getElementById("bodyweightGoalScreen").style.display = "flex";
+  renderBodyweightGoalCards();
+});
+
 function renderBodyweightMenu(){
   const el = document.getElementById("bodyweightMenuList");
   el.innerHTML = `
@@ -8902,7 +9374,7 @@ function renderBodyweightMenu(){
     <div class="bw-menu-card" data-menu="goal">
       <div class="bw-menu-num">04</div>
       <div class="bw-menu-title">목표</div>
-      <div class="bw-menu-sub">내가 달성할 것</div>
+      <div class="bw-menu-sub">${bodyweightMenuGoalSub()}</div>
       <div class="bw-menu-arrow">→</div>
     </div>
   `;
@@ -8913,7 +9385,7 @@ function renderBodyweightMenu(){
       if (key === "basic") openBodyweightBasic();
       else if (key === "routine") openBodyweightRoutineList();
       else if (key === "log") openBodyweightLog();
-      else openBodyweightPlaceholder(key, BODYWEIGHT_MENU_LABELS[key]);
+      else if (key === "goal") openBodyweightGoal();
     });
   });
 }
@@ -8929,18 +9401,6 @@ function closeBodyweightBasic(){
   document.getElementById("bodyweightBasicScreen").style.display = "none";
   document.getElementById("bodyweightMenuScreen").style.display = "flex";
   renderBodyweightMenu(); // 🔥 방금 기록한 세트가 "01 기본운동" 카드 요약에도 바로 반영되도록
-}
-
-function openBodyweightPlaceholder(key, label){
-  document.getElementById("bodyweightPlaceholderTitle").textContent = label;
-  document.getElementById("bodyweightPlaceholderText").textContent = `${label} 준비 중입니다`;
-  document.getElementById("bodyweightMenuScreen").style.display = "none";
-  document.getElementById("bodyweightPlaceholderScreen").style.display = "flex";
-}
-
-function closeBodyweightPlaceholder(){
-  document.getElementById("bodyweightPlaceholderScreen").style.display = "none";
-  document.getElementById("bodyweightMenuScreen").style.display = "flex";
 }
 
 const BODYWEIGHT_RENDER_OPTS = {
@@ -9101,11 +9561,16 @@ async function openBodyweight(){
   document.getElementById("bodyweightLogExerciseDetailScreen").style.display = "none";
   document.getElementById("bodyweightLogSetDetailScreen").style.display = "none";
   document.getElementById("bodyweightLogDateDetailScreen").style.display = "none";
-  document.getElementById("bodyweightPlaceholderScreen").style.display = "none";
+  document.getElementById("bodyweightGoalScreen").style.display = "none";
+  document.getElementById("bodyweightGoalCreateScreen").style.display = "none";
+  document.getElementById("bodyweightGoalDetailScreen").style.display = "none";
   document.getElementById("bodyweightDetailScreen").style.display = "none";
 
   currentPart = "bodyweight";
   loadBodyweightRoutineRecords();
+  loadBodyweightGoals();
+  seedDefaultBodyweightGoalsIfNeeded();
+  bodyweightSyncGoalStatuses();
   await loadExercises("bodyweight", BODYWEIGHT_RENDER_OPTS);
   seedDefaultBodyweightExercisesIfNeeded();
   renderBodyweightMenu();
@@ -9224,7 +9689,9 @@ function attachBwSwipeBack(screenEl, closeFn){
   ["bodyweightLogExerciseDetailScreen", closeBodyweightLogExerciseDetail],
   ["bodyweightLogSetDetailScreen", closeBodyweightLogSetDetail],
   ["bodyweightLogDateDetailScreen", closeBodyweightLogDateDetail],
-  ["bodyweightPlaceholderScreen", closeBodyweightPlaceholder],
+  ["bodyweightGoalScreen", closeBodyweightGoal],
+  ["bodyweightGoalCreateScreen", closeBodyweightGoalCreate],
+  ["bodyweightGoalDetailScreen", closeBodyweightGoalDetail],
   ["bodyweightDetailScreen", closeBodyweightDetail],
 ].forEach(([id, closeFn]) => attachBwSwipeBack(document.getElementById(id), closeFn));
 
