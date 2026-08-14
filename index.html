@@ -1754,10 +1754,17 @@ html.light-mode-on .dex-post-card.has-image{
   width: 24px;
   height: 24px;
   margin-right: 8px;
-  vertical-align: middle;
   object-fit: contain;
   position: relative;
   top: -1.5px;
+}
+
+/* 🔥 화면모드/앱버전처럼 아이콘+라벨을 한 덩어리(flex item)로 묶어야 하는 행 —
+   inline vertical-align 대신 순수 flex로 정렬해서 오른쪽 요소(토글/버전 텍스트)의
+   높이 차이에 따라 브라우저마다 다르게 계산되던 상하 정렬 오차를 없앰 */
+.settings-item-label {
+  display: inline-flex;
+  align-items: center;
 }
 
 #settingsGuestBadge {
@@ -5172,11 +5179,11 @@ input[type="number"] {
 <div class="settings-section-label">일반</div>
 <div class="settings-card">
   <div class="settings-item" style="justify-content:space-between; border-bottom:1px solid #222;">
-    <span><img src="icons/setting-mode.png" class="settings-item-icon" alt="">화면 모드</span>
+    <span class="settings-item-label"><img src="icons/setting-mode.png" class="settings-item-icon" alt="">화면 모드</span>
     <div id="lightModeToggle" class="toggle-switch"></div>
   </div>
   <div class="settings-item" style="justify-content:space-between; border-bottom:none;">
-    <span><img src="icons/setting-version.png" class="settings-item-icon" alt="">앱 버전</span>
+    <span class="settings-item-label"><img src="icons/setting-version.png" class="settings-item-icon" alt="">앱 버전</span>
     <span style="color:#888; font-size:14px;" id="appVersionDisplay">0.1.0</span>
   </div>
 </div>
@@ -6544,7 +6551,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.14";
+const APP_VERSION = "0.5.15";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
