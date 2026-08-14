@@ -1785,7 +1785,7 @@ html.light-mode-on .dex-post-card.has-image{
 #settingsGuestBadge {
   margin-top: 2px;
   margin-bottom: 0;
-  padding-bottom: 60px;
+  padding-bottom: 14px;
   border-bottom: 1px solid #222;
 }
 
@@ -1829,7 +1829,7 @@ html.light-mode-on .dex-post-card.has-image{
   -webkit-appearance: none;
   appearance: none;
   width: 100%;
-  min-height: 51px; /* 🔥 로그인 전(1줄)/후(2줄) 텍스트 줄 수가 달라도 세로 폭을 동일하게 고정 */
+  min-height: 65px; /* 🔥 로그인 전(1줄)/후(2줄) 텍스트 줄 수가 달라도 세로 폭을 동일하게 고정 */
   background: transparent;
   border: none;
   color: #eee;
@@ -6566,7 +6566,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.18";
+const APP_VERSION = "0.5.19";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
