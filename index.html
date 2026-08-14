@@ -1172,13 +1172,242 @@ cursor: pointer;
 #bodyweightOverlay.hidden {
   display: none;
 }
-#bodyweightMenuOverlay {
+
+/* ===============================
+   맨몸운동 「01 — 기본운동」
+================================ */
+.bw-header {
+  flex-shrink: 0;
+  box-sizing: border-box;
+  padding: calc(14px + env(safe-area-inset-top)) 10px 14px;
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
+  gap: 4px;
+  background: rgba(0,0,0,0.92);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255,255,255,0.04);
 }
-#bodyweightMenuOverlay.hidden {
-  display: none;
+.bw-header-back {
+  all: unset;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  color: #eee;
+  cursor: pointer;
 }
+.bw-header-back:active { transform: scale(0.92); }
+.bw-header-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #fff;
+}
+.bw-header-spacer { width: 36px; flex-shrink: 0; }
+
+/* 오늘의 운동: 가로 스크롤 퀵 액세스 */
+.bw-today-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #777;
+  margin: 18px 4px 10px;
+}
+.bw-today-row {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 4px;
+  margin-bottom: 20px;
+}
+.bw-today-card {
+  flex-shrink: 0;
+  min-width: 92px;
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 14px;
+  padding: 14px 12px;
+  text-align: center;
+  cursor: pointer;
+}
+.bw-today-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.6);
+  letter-spacing: 0.3px;
+  margin-bottom: 6px;
+  white-space: nowrap;
+}
+.bw-today-count {
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+}
+
+/* 기본운동 목록 */
+.bw-list-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.bw-exercise-card {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 14px;
+  background: #111;
+  border: 1px solid #222;
+}
+.bw-exercise-card:active { opacity: 0.85; }
+.bw-exercise-num {
+  flex-shrink: 0;
+  width: 26px;
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.35);
+}
+.bw-exercise-names {
+  flex: 1;
+  min-width: 0;
+}
+.bw-exercise-en {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.3px;
+}
+.bw-exercise-kr {
+  font-size: 12.5px;
+  color: rgba(255,255,255,0.45);
+  margin-top: 2px;
+}
+.bw-exercise-recent {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.55);
+  white-space: nowrap;
+}
+.bw-exercise-arrow {
+  flex-shrink: 0;
+  font-size: 18px;
+  color: rgba(255,255,255,0.3);
+}
+.bw-add-btn {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  margin-top: 14px;
+  padding: 15px;
+  border-radius: 14px;
+  background: transparent;
+  border: 1px solid #222;
+  color: rgba(255,255,255,0.6);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.bw-add-btn:active { background: #111; }
+
+/* 종목 상세(오늘 기록) 화면 */
+.bw-detail-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 24px;
+  cursor: pointer;
+}
+.bw-detail-back {
+  font-size: 22px;
+  color: #eee;
+}
+.bw-detail-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 0.3px;
+}
+.bw-detail-body { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.bw-detail-section-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #777;
+  margin-bottom: 12px;
+}
+.bw-today-sets {
+  display: flex;
+  flex-direction: column;
+}
+.bw-set-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 2px;
+  border-bottom: 1px solid #1c1c1c;
+  font-size: 15px;
+}
+.bw-set-row:last-child { border-bottom: none; }
+.bw-set-label { color: rgba(255,255,255,0.55); }
+.bw-set-count { color: #fff; font-weight: 700; }
+.bw-today-sets-empty {
+  color: #777;
+  font-size: 13px;
+  padding: 8px 2px 4px;
+}
+.bw-add-set-btn {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  margin-top: 12px;
+  padding: 13px;
+  border-radius: 12px;
+  background: transparent;
+  border: 1px dashed #333;
+  color: rgba(255,255,255,0.55);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.bw-add-set-btn:active { background: #111; }
+.bw-detail-divider {
+  height: 1px;
+  background: #222;
+  margin: 22px 0 16px;
+}
+.bw-detail-total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-size: 15px;
+  color: rgba(255,255,255,0.55);
+  font-weight: 600;
+}
+#bodyweightTodayTotal {
+  font-size: 22px;
+  font-weight: 800;
+  color: #fff;
+}
+.bw-finish-btn {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  flex-shrink: 0;
+  margin-top: 16px;
+  padding: 16px;
+  border-radius: 14px;
+  background: #fff;
+  border: none;
+  color: #000;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.bw-finish-btn:active { opacity: 0.85; }
 #myRoutineDetailOverlay.hidden {
   display: none;
 }
@@ -4930,47 +5159,45 @@ input[type="number"] {
     overflow:hidden;
   ">
   <div id="bodyweightScreen" style="height:100%; display:flex; flex-direction:column;">
-    <div id="bodyweightListHeader" style="flex-shrink:0; box-sizing:border-box; padding: calc(12px + env(safe-area-inset-top)) 10px 12px; display:flex; align-items:center; justify-content:space-between; gap:10px; background:rgba(0,0,0,0.92); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); border-bottom:1px solid rgba(255,255,255,0.04);">
-      <button onclick="closeBodyweight()" style="all:unset; width:56px; height:56px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:32px; color:#aaa; cursor:pointer;">✕</button>
-      <span style="flex:1; min-width:0; text-align:center; font-family:'Nanum Myeongjo','AppleMyungjo','Batang',serif; font-size:1.2em; font-weight:700; letter-spacing:0.5px; line-height:1.4; color:#fff; opacity:0.95;">맨몸운동</span>
-      <button id="openBodyweightMenuBtn" aria-label="메뉴" style="all:unset; width:56px; height:56px; flex-shrink:0; display:flex; align-items:center; justify-content:center; cursor:pointer; color:#ddd;">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-             stroke-linecap="round" stroke-linejoin="round">
-          <line x1="3" y1="6" x2="21" y2="6"></line>
-          <line x1="3" y1="12" x2="21" y2="12"></line>
-          <line x1="3" y1="18" x2="21" y2="18"></line>
-        </svg>
-      </button>
-    </div>
-
-    <!-- 우측에서 열리는 페이지 전용 메뉴 드로어 -->
-    <div id="bodyweightMenuOverlay" class="hidden" style="position:fixed; inset:0; z-index:100001;">
-      <div id="bodyweightMenuDim" style="position:absolute; inset:0; background:rgba(0,0,0,0.5);"></div>
-      <div id="bodyweightMenuDrawer" style="position:relative; width:72%; max-width:280px; height:100%; background:#000; border-left:1px solid rgba(255,255,255,0.14); padding: calc(24px + env(safe-area-inset-top)) 20px 24px; box-sizing:border-box; display:flex; flex-direction:column; transform:translateX(100%);">
-        <div class="nav-drawer-title">메뉴</div>
-        <button id="bodyweightAddExerciseMenuBtn" class="nav-drawer-item">+ 종목 추가</button>
-      </div>
+    <div id="bodyweightListHeader" class="bw-header">
+      <button onclick="closeBodyweight()" class="bw-header-back" aria-label="뒤로가기">←</button>
+      <span class="bw-header-title">기본운동</span>
+      <span class="bw-header-spacer"></span>
     </div>
 
     <!-- 종목 목록 화면 -->
     <div id="bodyweightListScreen" style="flex:1; min-height:0; display:flex; flex-direction:column;">
-      <div id="bodyweightExerciseList" style="flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; padding: 0 18px calc(24px + env(safe-area-inset-bottom));"></div>
+      <div id="bodyweightExerciseList" style="flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; padding: 4px 18px calc(24px + env(safe-area-inset-bottom));"></div>
     </div>
 
-    <!-- 종목 상세(기록 입력) 화면 -->
-    <div id="bodyweightDetailScreen" style="display:none; flex:1; min-height:0; flex-direction:column; padding: calc(28px + env(safe-area-inset-top)) 18px 0;">
-      <div style="display:flex; align-items:center; margin-bottom:10px; cursor:pointer;" onclick="closeBodyweightDetail()">
-        ← <span id="bodyweightDetailName" style="margin-left:6px; font-size:15px; font-weight:600; color:#fff;"></span>
+    <!-- 종목 상세(기록) 화면 -->
+    <div id="bodyweightDetailScreen" style="display:none; flex:1; min-height:0; flex-direction:column; padding: calc(20px + env(safe-area-inset-top)) 18px calc(20px + env(safe-area-inset-bottom));">
+      <div class="bw-detail-header" onclick="closeBodyweightDetail()">
+        <span class="bw-detail-back">←</span>
+        <span id="bodyweightDetailName" class="bw-detail-title"></span>
       </div>
-      <div id="bodyweightAccRecords" class="folderContent active" style="flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; padding-bottom:76px;"></div>
+
+      <div class="bw-detail-body">
+        <div class="bw-detail-section-label">오늘</div>
+        <div id="bodyweightTodaySets" class="bw-today-sets"></div>
+        <button id="bodyweightAddSetBtn" class="bw-add-set-btn">+ 세트 추가</button>
+
+        <div class="bw-detail-divider"></div>
+
+        <div class="bw-detail-total">
+          <span>총</span>
+          <span id="bodyweightTodayTotal">0회</span>
+        </div>
+      </div>
+
+      <button id="bodyweightFinishBtn" class="bw-finish-btn">기록 완료</button>
     </div>
   </div>
 
-  <!-- 상세 화면에서만 보이는 무게(선택)/횟수 입력 바 -->
-  <div id="bodyweightInputBar" class="recordFloatBar" style="display:none;">
-    <input id="bodyweightWeight" type="number" placeholder="kg(선택)">
-    <input id="bodyweightReps" type="number" placeholder="회">
-    <button type="button" onclick="addAccessorySet(BODYWEIGHT_RENDER_OPTS)">저장</button>
+  <!-- addAccessorySet()이 읽어가는 값 저장용(화면에는 안 보임, "+ 세트 추가"가 채워넣음) -->
+  <div style="display:none;">
+    <input id="bodyweightWeight" type="number">
+    <input id="bodyweightReps" type="number">
   </div>
 </div>
 
@@ -6566,7 +6793,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.21";
+const APP_VERSION = "0.5.22";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -7488,7 +7715,6 @@ let bodyweightPrevPart = null; // 🔥 닫을 때 기록탭의 currentPart를 �
 
 const BODYWEIGHT_RENDER_OPTS = {
   listElId: "bodyweightExerciseList",
-  recordsElId: "bodyweightAccRecords",
   weightElId: "bodyweightWeight",
   repsElId: "bodyweightReps",
   onOpenDetail: (name) => openBodyweightDetail(name)
@@ -7515,6 +7741,120 @@ function seedDefaultBodyweightExercisesIfNeeded(){
   lsSet("mf_bodyweight_seeded_v1", true);
 }
 
+// 🔥 카드에 영문명을 같이 보여주기 위한 표시용 매핑 — 기록 자체는 여전히 한글
+// 이름(currentExercises에 담긴 값) 기준으로 저장됨. 매핑에 없는 커스텀 종목은
+// 원래 이름을 그대로 대문자로 보여줌.
+const BODYWEIGHT_NAME_EN = {
+  "푸시업": "PUSH UP", "풀업": "PULL UP", "딥스": "DIPS", "스쿼트": "SQUAT",
+  "런지": "LUNGE", "플랭크": "PLANK", "버피": "BURPEE", "친업": "CHIN UP"
+};
+function bodyweightDisplayNameEn(name){
+  return BODYWEIGHT_NAME_EN[name] || name.toUpperCase();
+}
+
+function bodyweightSumRepsForDate(name, dateStr){
+  return (accRecordsByExercise[name] || [])
+    .filter(r => r.date === dateStr)
+    .reduce((sum, r) => sum + (Number(r.reps) || 0), 0);
+}
+
+// 🔥 "최근 기록": 오늘 기록이 있으면 오늘 합계, 없으면 가장 최근 날짜의 합계
+function bodyweightRecentTotal(name){
+  const list = accRecordsByExercise[name] || [];
+  if (!list.length) return null;
+  const today = formatTodayYYMMDD();
+  const todayTotal = bodyweightSumRepsForDate(name, today);
+  if (todayTotal > 0) return todayTotal;
+  const dates = [...new Set(list.map(r => r.date))].sort((a, b) => b.localeCompare(a));
+  return dates.length ? bodyweightSumRepsForDate(name, dates[0]) : null;
+}
+
+// 🔥 「01 — 기본운동」 목록 화면: 오늘의 운동(가로 퀵액세스) + 번호 매긴 세로 목록 + 운동 추가
+function renderBodyweightExerciseList(){
+  const listEl = document.getElementById("bodyweightExerciseList");
+  currentExercises = (currentExercises || []).filter(x => typeof x === "string" && x.trim());
+
+  if (!currentExercises.length) {
+    listEl.innerHTML = `
+      <div style="color:#777; font-size:13px; padding:32px 4px;">아직 추가된 운동이 없습니다</div>
+      <button id="bodyweightAddExerciseBtn" class="bw-add-btn">+ 운동 추가</button>
+    `;
+    document.getElementById("bodyweightAddExerciseBtn").addEventListener("click", bodyweightAddExercise);
+    return;
+  }
+
+  const quickHtml = `
+    <div class="bw-today-label">오늘의 운동</div>
+    <div class="bw-today-row">
+      ${currentExercises.map(name => {
+        const total = bodyweightRecentTotal(name);
+        return `
+          <div class="bw-today-card" data-name="${escapeHtml(name)}">
+            <div class="bw-today-name">${escapeHtml(bodyweightDisplayNameEn(name))}</div>
+            <div class="bw-today-count">${total != null ? total + "회" : "-"}</div>
+          </div>
+        `;
+      }).join("")}
+    </div>
+  `;
+
+  const listHtml = `
+    <div class="bw-list-section">
+      ${currentExercises.map((name, i) => {
+        const total = bodyweightRecentTotal(name);
+        return `
+          <div class="bw-exercise-card" data-name="${escapeHtml(name)}">
+            <div class="bw-exercise-num">${String(i + 1).padStart(2, "0")}</div>
+            <div class="bw-exercise-names">
+              <div class="bw-exercise-en">${escapeHtml(bodyweightDisplayNameEn(name))}</div>
+              <div class="bw-exercise-kr">${escapeHtml(name)}</div>
+            </div>
+            <div class="bw-exercise-recent">${total != null ? "최근 " + total + "회" : ""}</div>
+            <div class="bw-exercise-arrow">›</div>
+          </div>
+        `;
+      }).join("")}
+    </div>
+    <button id="bodyweightAddExerciseBtn" class="bw-add-btn">+ 운동 추가</button>
+  `;
+
+  listEl.innerHTML = quickHtml + listHtml;
+
+  listEl.querySelectorAll(".bw-today-card, .bw-exercise-card").forEach(card => {
+    card.addEventListener("click", () => openBodyweightDetail(card.dataset.name));
+  });
+  document.getElementById("bodyweightAddExerciseBtn").addEventListener("click", bodyweightAddExercise);
+}
+
+async function bodyweightAddExercise(){
+  // 🔥 addExercise()가 내부적으로 renderExercises()도 같이 호출하지만(다른 화면용 카드
+  // 스타일), 그 직후 우리 스타일로 다시 그려서 덮어씀
+  await addExercise(BODYWEIGHT_RENDER_OPTS);
+  renderBodyweightExerciseList();
+}
+
+// 🔥 「오늘」 세트 목록 + 합계 렌더 (기록탭의 전체 히스토리 피드와 달리, 오늘 것만 보여줌 —
+// 이 화면은 도감이 아니라 "빠르게 기록"이 목적)
+function renderBodyweightDetail(name){
+  const today = formatTodayYYMMDD();
+  const todaySets = (accRecordsByExercise[name] || [])
+    .filter(r => r.date === today)
+    .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+
+  const setsEl = document.getElementById("bodyweightTodaySets");
+  setsEl.innerHTML = todaySets.length
+    ? todaySets.map((r, i) => `
+        <div class="bw-set-row">
+          <span class="bw-set-label">세트 ${i + 1}</span>
+          <span class="bw-set-count">${r.reps}회</span>
+        </div>
+      `).join("")
+    : `<div class="bw-today-sets-empty">아직 기록한 세트가 없습니다</div>`;
+
+  const total = todaySets.reduce((sum, r) => sum + (Number(r.reps) || 0), 0);
+  document.getElementById("bodyweightTodayTotal").textContent = `${total}회`;
+}
+
 async function openBodyweight(){
   bodyweightPrevPart = currentPart;
 
@@ -7525,14 +7865,12 @@ async function openBodyweight(){
   document.getElementById("bodyweightListHeader").style.display = "flex"; // 🔥 스와이프로 상세화면 채 통째로 닫았다 다시 열 때 대비
   document.getElementById("bodyweightListScreen").style.display = "flex";
   document.getElementById("bodyweightDetailScreen").style.display = "none";
-  document.getElementById("bodyweightInputBar").style.display = "none";
   document.getElementById("bodyweightExerciseList").scrollTop = 0;
-  document.getElementById("bodyweightMenuOverlay").classList.add("hidden"); // 🔥 메뉴 드로어 연 채로 통째로 닫았다 다시 열 때 대비
 
   currentPart = "bodyweight";
   await loadExercises("bodyweight", BODYWEIGHT_RENDER_OPTS);
   seedDefaultBodyweightExercisesIfNeeded();
-  renderExercises(BODYWEIGHT_RENDER_OPTS);
+  renderBodyweightExerciseList();
 }
 
 function closeBodyweight(){
@@ -7545,22 +7883,36 @@ function openBodyweightDetail(name){
   currentExerciseName = name;
   if (!accRecordsByExercise[name]) accRecordsByExercise[name] = [];
 
-  document.getElementById("bodyweightDetailName").textContent = name;
-  document.getElementById("bodyweightListHeader").style.display = "none"; // 🔥 바깥 헤더(+버튼)와 중복 방지
+  document.getElementById("bodyweightDetailName").textContent = bodyweightDisplayNameEn(name);
+  document.getElementById("bodyweightListHeader").style.display = "none"; // 🔥 바깥 헤더와 중복 방지
   document.getElementById("bodyweightListScreen").style.display = "none";
   document.getElementById("bodyweightDetailScreen").style.display = "flex";
-  document.getElementById("bodyweightInputBar").style.display = "flex";
 
-  renderAccessoryRecords(name, BODYWEIGHT_RENDER_OPTS);
+  renderBodyweightDetail(name);
 }
 
 function closeBodyweightDetail(){
   document.getElementById("bodyweightDetailScreen").style.display = "none";
-  document.getElementById("bodyweightInputBar").style.display = "none";
   document.getElementById("bodyweightListHeader").style.display = "flex";
   document.getElementById("bodyweightListScreen").style.display = "flex";
   currentExerciseName = null;
+  renderBodyweightExerciseList(); // 🔥 방금 추가한 세트가 목록의 "최근 기록"에도 바로 반영되도록
 }
+
+document.getElementById("bodyweightAddSetBtn").addEventListener("click", () => {
+  const input = prompt("횟수를 입력하세요");
+  if (input === null) return;
+  const reps = parseInt(input, 10);
+  if (!reps || reps < 1) { alert("올바른 횟수를 입력하세요."); return; }
+
+  document.getElementById("bodyweightWeight").value = "";
+  document.getElementById("bodyweightReps").value = String(reps);
+  addAccessorySet(BODYWEIGHT_RENDER_OPTS).then(() => {
+    renderBodyweightDetail(currentExerciseName);
+  });
+});
+
+document.getElementById("bodyweightFinishBtn").addEventListener("click", closeBodyweightDetail);
 
 document.getElementById("navBodyweightBtn").addEventListener("click", () => {
   // 🔥 드로어가 닫히는 애니메이션을 다 기다리지 않고, 누르자마자 바로 페이지로
@@ -7571,35 +7923,7 @@ document.getElementById("navBodyweightBtn").addEventListener("click", () => {
   openBodyweight();
 });
 
-/* 맨몸운동 전용 우측 메뉴 드로어 ("+ 종목 추가"를 여기로 옮김) */
-const bodyweightMenuOverlay = document.getElementById("bodyweightMenuOverlay");
-const bodyweightMenuDrawer = document.getElementById("bodyweightMenuDrawer");
-
-function openBodyweightMenu(){
-  bodyweightMenuOverlay.classList.remove("hidden");
-  bodyweightMenuDrawer.style.animation = "none";
-  bodyweightMenuDrawer.style.transition = "none";
-  bodyweightMenuDrawer.style.transform = "translateX(100%)";
-  void bodyweightMenuDrawer.offsetWidth; // 🔥 강제 리플로우 — 트랜지션이 확실히 먹도록
-  bodyweightMenuDrawer.style.transition = "transform 0.25s ease";
-  bodyweightMenuDrawer.style.transform = "translateX(0)";
-}
-function closeBodyweightMenu(){
-  bodyweightMenuDrawer.style.transition = "transform 0.22s ease";
-  bodyweightMenuDrawer.style.transform = "translateX(100%)";
-  setTimeout(() => { bodyweightMenuOverlay.classList.add("hidden"); }, 220);
-}
-
-document.getElementById("openBodyweightMenuBtn").addEventListener("click", openBodyweightMenu);
-bodyweightMenuOverlay.addEventListener("click", closeBodyweightMenu);
-bodyweightMenuDrawer.addEventListener("click", (e) => e.stopPropagation());
-
-document.getElementById("bodyweightAddExerciseMenuBtn").addEventListener("click", () => {
-  closeBodyweightMenu();
-  addExercise(BODYWEIGHT_RENDER_OPTS);
-});
-
-/* 🔥 맨몸운동 화면은 스와이프로 못 나가게(오탈출 방지) — 상단 X 버튼으로만 닫힘 */
+/* 🔥 맨몸운동 화면은 스와이프로 못 나가게(오탈출 방지) — 상단 ← 버튼으로만 닫힘 */
 
 /* 내 지난 루틴: 부위별 기차 미리보기 목록 화면 */
 const myRoutinePastListOverlay = document.getElementById("myRoutinePastListOverlay");
