@@ -1432,7 +1432,201 @@ cursor: pointer;
   color: #fff;
 }
 
-/* 아직 구현되지 않은 메뉴(기록/목표) */
+/* 맨몸운동 「03 — 기록」 메인 */
+.bw-log-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0 18px calc(24px + env(safe-area-inset-bottom));
+}
+.bw-log-empty { text-align: center; padding: 60px 4px 20px; }
+.bw-log-empty-text {
+  font-size: 15px;
+  line-height: 1.7;
+  color: rgba(255,255,255,0.55);
+  margin-bottom: 24px;
+}
+.bw-log-hero-stat {
+  text-align: center;
+  padding: 18px 0 22px;
+  border-bottom: 1px solid #1c1c1c;
+  margin-bottom: 18px;
+}
+.bw-log-hero-stat-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  color: rgba(255,255,255,0.4);
+  margin-bottom: 8px;
+}
+.bw-log-hero-stat-value {
+  font-size: 44px;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+.bw-log-hero-stat-caption { font-size: 13px; color: rgba(255,255,255,0.5); }
+.bw-log-stat-row { display: flex; gap: 12px; margin-bottom: 24px; }
+.bw-log-stat-card {
+  flex: 1;
+  min-width: 0;
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 14px;
+  padding: 16px;
+  text-align: center;
+}
+.bw-log-stat-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  color: rgba(255,255,255,0.4);
+  margin-bottom: 8px;
+}
+.bw-log-stat-value { font-size: 24px; font-weight: 800; color: #fff; margin-bottom: 4px; }
+.bw-log-stat-caption { font-size: 11.5px; color: rgba(255,255,255,0.45); }
+.bw-log-section-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #777;
+  margin: 0 4px 10px;
+}
+.bw-log-recent-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 22px; }
+.bw-log-record-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 14px;
+  padding: 14px 16px;
+  cursor: pointer;
+}
+.bw-log-record-row:active { opacity: 0.85; }
+.bw-log-record-row.is-static { cursor: default; }
+.bw-log-record-row.is-static:active { opacity: 1; }
+.bw-log-record-date { flex-shrink: 0; width: 44px; font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.4); }
+.bw-log-record-main { flex: 1; min-width: 0; }
+.bw-log-record-name { font-size: 15px; font-weight: 700; color: #fff; }
+.bw-log-record-meta { font-size: 12.5px; color: rgba(255,255,255,0.5); margin-top: 2px; }
+.bw-log-link-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 14px;
+  padding: 16px 18px;
+  margin-bottom: 24px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
+}
+.bw-log-link-row:active { opacity: 0.85; }
+.bw-menu-arrow-inline { color: rgba(255,255,255,0.3); font-size: 16px; }
+
+/* 날짜별 기록 달력 */
+.bw-log-cal { background: #111; border: 1px solid #222; border-radius: 16px; padding: 14px 12px 16px; }
+.bw-log-cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.bw-log-cal-month { font-size: 14px; font-weight: 700; color: #fff; letter-spacing: 0.3px; }
+.bw-log-cal-nav {
+  all: unset;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255,255,255,0.5);
+  font-size: 18px;
+  cursor: pointer;
+}
+.bw-log-cal-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  font-size: 11px;
+  color: #555;
+  text-align: center;
+  margin-bottom: 4px;
+}
+.bw-log-cal-days { display: grid; grid-template-columns: repeat(7, 1fr); row-gap: 6px; }
+.bw-log-cal-day {
+  position: relative;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12.5px;
+  color: rgba(255,255,255,0.7);
+  cursor: default;
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+.bw-log-cal-day.is-empty { visibility: hidden; }
+.bw-log-cal-day.has-record { color: #fff; font-weight: 700; cursor: pointer; }
+.bw-log-cal-day.has-record::after {
+  content: "";
+  position: absolute;
+  bottom: 3px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #fff;
+}
+.bw-log-cal-day.is-today { border: 1px solid rgba(255,255,255,0.4); }
+
+/* 운동별 기록 목록 */
+.bw-log-exercise-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 4px 18px calc(24px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.bw-log-exercise-card {
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 14px;
+  padding: 16px;
+  cursor: pointer;
+}
+.bw-log-exercise-card:active { opacity: 0.85; }
+.bw-log-exercise-name-en { font-size: 16px; font-weight: 700; color: #fff; }
+.bw-log-exercise-name-kr { font-size: 12.5px; color: rgba(255,255,255,0.45); margin-top: 2px; margin-bottom: 10px; }
+.bw-log-exercise-meta-row { display: flex; gap: 16px; font-size: 12.5px; color: rgba(255,255,255,0.55); }
+
+/* 운동 상세 기록 */
+.bw-log-detail-en { font-size: 24px; font-weight: 800; color: #fff; margin-bottom: 4px; }
+.bw-log-detail-kr { font-size: 14px; color: rgba(255,255,255,0.5); margin-bottom: 14px; }
+.bw-log-stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.bw-log-stat-tile { background: #111; border: 1px solid #222; border-radius: 14px; padding: 14px 16px; }
+.bw-log-stat-tile-label { font-size: 11.5px; color: rgba(255,255,255,0.4); margin-bottom: 6px; }
+.bw-log-stat-tile-value { font-size: 20px; font-weight: 800; color: #fff; }
+
+/* 기록 변화 그래프(단순 선형 SVG) */
+.bw-log-chart { min-height: 140px; }
+.bw-log-chart-empty { color: #777; font-size: 13px; padding: 30px 4px; text-align: center; }
+.bw-log-chart svg { width: 100%; height: 140px; display: block; }
+
+/* 날짜별 기록 상세 */
+.bw-log-date-total-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 2px;
+  font-size: 14px;
+}
+.bw-log-date-total-row span:first-child { color: rgba(255,255,255,0.5); }
+.bw-log-date-total-row span:last-child { color: #fff; font-weight: 700; }
+
+/* 아직 구현되지 않은 메뉴(목표) */
 .bw-placeholder {
   flex: 1;
   min-height: 0;
@@ -5458,7 +5652,151 @@ input[type="number"] {
       <button id="bodyweightRoutineStartBtn" class="bw-finish-btn">운동 시작</button>
     </div>
 
-    <!-- 1b단계: 준비 중 화면 (03 기록 / 04 목표 공용) -->
+    <!-- 1g단계: 기록 메인 화면 (03 — 기록) -->
+    <div id="bodyweightLogScreen" style="display:none; flex:1; min-height:0; flex-direction:column;">
+      <div class="bw-header">
+        <button onclick="closeBodyweightLog()" class="bw-header-back" aria-label="뒤로가기">←</button>
+        <span class="bw-header-spacer"></span>
+      </div>
+      <div class="bw-log-scroll">
+        <div class="bw-routine-hero">
+          <div class="bw-routine-hero-en">RECORD</div>
+          <div class="bw-routine-hero-kr">기록</div>
+          <div class="bw-routine-hero-tagline">나의 맨몸운동 기록</div>
+        </div>
+
+        <div id="bodyweightLogEmpty" class="bw-log-empty" style="display:none;">
+          <div class="bw-log-empty-text">기록이 아직 없습니다.<br>운동을 시작하고<br>첫 기록을 남겨보세요.</div>
+          <button id="bodyweightLogEmptyStartBtn" class="bw-finish-btn">운동 시작</button>
+        </div>
+
+        <div id="bodyweightLogContent">
+          <div class="bw-log-hero-stat">
+            <div class="bw-log-hero-stat-label">TOTAL WORKOUTS</div>
+            <div id="bodyweightLogTotalWorkouts" class="bw-log-hero-stat-value">0</div>
+            <div class="bw-log-hero-stat-caption">운동 횟수</div>
+          </div>
+          <div class="bw-log-stat-row">
+            <div class="bw-log-stat-card">
+              <div class="bw-log-stat-label">TOTAL SETS</div>
+              <div id="bodyweightLogTotalSets" class="bw-log-stat-value">0</div>
+              <div class="bw-log-stat-caption">총 세트</div>
+            </div>
+            <div class="bw-log-stat-card">
+              <div class="bw-log-stat-label">TOTAL REPS</div>
+              <div id="bodyweightLogTotalReps" class="bw-log-stat-value">0</div>
+              <div class="bw-log-stat-caption">총 반복 횟수</div>
+            </div>
+          </div>
+
+          <div class="bw-log-section-label">최근 기록</div>
+          <div id="bodyweightLogRecent" class="bw-log-recent-list"></div>
+
+          <div id="bodyweightLogExerciseListLink" class="bw-log-link-row">
+            <span>운동별 기록</span>
+            <span class="bw-menu-arrow-inline">→</span>
+          </div>
+
+          <div class="bw-log-section-label">날짜별 기록</div>
+          <div class="bw-log-cal">
+            <div class="bw-log-cal-header">
+              <button id="bodyweightLogCalPrev" class="bw-log-cal-nav" aria-label="이전 달">‹</button>
+              <div id="bodyweightLogCalMonth" class="bw-log-cal-month"></div>
+              <button id="bodyweightLogCalNext" class="bw-log-cal-nav" aria-label="다음 달">›</button>
+            </div>
+            <div class="bw-log-cal-weekdays">
+              <div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div>
+            </div>
+            <div id="bodyweightLogCalDays" class="bw-log-cal-days"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 1h단계: 운동별 기록 목록 -->
+    <div id="bodyweightLogExerciseListScreen" style="display:none; flex:1; min-height:0; flex-direction:column;">
+      <div class="bw-header">
+        <button onclick="closeBodyweightLogExerciseList()" class="bw-header-back" aria-label="뒤로가기">←</button>
+        <span class="bw-header-title">운동별 기록</span>
+        <span class="bw-header-spacer"></span>
+      </div>
+      <div id="bodyweightLogExerciseList" class="bw-log-exercise-list"></div>
+    </div>
+
+    <!-- 1i단계: 운동 상세 기록 -->
+    <div id="bodyweightLogExerciseDetailScreen" style="display:none; flex:1; min-height:0; flex-direction:column; padding: calc(20px + env(safe-area-inset-top)) 18px calc(24px + env(safe-area-inset-bottom));">
+      <div class="bw-detail-header" onclick="closeBodyweightLogExerciseDetail()">
+        <span class="bw-detail-back">←</span>
+        <span id="bodyweightLogExerciseDetailHeaderName" class="bw-detail-title"></span>
+      </div>
+
+      <div class="bw-detail-body">
+        <div id="bodyweightLogExerciseDetailEn" class="bw-log-detail-en"></div>
+        <div id="bodyweightLogExerciseDetailKr" class="bw-log-detail-kr"></div>
+
+        <div class="bw-detail-divider"></div>
+
+        <div class="bw-log-stat-grid">
+          <div class="bw-log-stat-tile">
+            <div class="bw-log-stat-tile-label">최고 기록</div>
+            <div id="bodyweightLogExerciseBest" class="bw-log-stat-tile-value">0회</div>
+          </div>
+          <div class="bw-log-stat-tile">
+            <div class="bw-log-stat-tile-label">총 횟수</div>
+            <div id="bodyweightLogExerciseTotalReps" class="bw-log-stat-tile-value">0회</div>
+          </div>
+          <div class="bw-log-stat-tile">
+            <div class="bw-log-stat-tile-label">총 세트</div>
+            <div id="bodyweightLogExerciseTotalSets" class="bw-log-stat-tile-value">0세트</div>
+          </div>
+          <div class="bw-log-stat-tile">
+            <div class="bw-log-stat-tile-label">운동 횟수</div>
+            <div id="bodyweightLogExerciseSessions" class="bw-log-stat-tile-value">0회</div>
+          </div>
+        </div>
+
+        <div class="bw-detail-divider"></div>
+
+        <div class="bw-log-section-label">기록 변화</div>
+        <div id="bodyweightLogExerciseChart" class="bw-log-chart"></div>
+
+        <div class="bw-detail-divider"></div>
+
+        <div class="bw-log-section-label">최근 기록</div>
+        <div id="bodyweightLogExerciseRecent" class="bw-log-recent-list"></div>
+      </div>
+    </div>
+
+    <!-- 1j단계: 세트별 기록 -->
+    <div id="bodyweightLogSetDetailScreen" style="display:none; flex:1; min-height:0; flex-direction:column; padding: calc(20px + env(safe-area-inset-top)) 18px calc(24px + env(safe-area-inset-bottom));">
+      <div class="bw-detail-header" onclick="closeBodyweightLogSetDetail()">
+        <span class="bw-detail-back">←</span>
+        <span id="bodyweightLogSetDetailHeaderName" class="bw-detail-title"></span>
+      </div>
+      <div class="bw-detail-body">
+        <div id="bodyweightLogSetDetailList" class="bw-today-sets"></div>
+      </div>
+      <div class="bw-detail-total">
+        <span>총</span>
+        <span id="bodyweightLogSetDetailTotal">0회</span>
+      </div>
+    </div>
+
+    <!-- 1k단계: 날짜별 기록 상세 -->
+    <div id="bodyweightLogDateDetailScreen" style="display:none; flex:1; min-height:0; flex-direction:column; padding: calc(20px + env(safe-area-inset-top)) 18px calc(24px + env(safe-area-inset-bottom));">
+      <div class="bw-detail-header" onclick="closeBodyweightLogDateDetail()">
+        <span class="bw-detail-back">←</span>
+        <span id="bodyweightLogDateDetailHeaderName" class="bw-detail-title"></span>
+      </div>
+      <div class="bw-detail-body">
+        <div id="bodyweightLogDateDetailList" class="bw-log-recent-list"></div>
+        <div class="bw-detail-divider"></div>
+        <div class="bw-log-date-total-row"><span>총 세트</span><span id="bodyweightLogDateDetailTotalSets">0세트</span></div>
+        <div class="bw-log-date-total-row"><span>총 횟수</span><span id="bodyweightLogDateDetailTotalReps">0회</span></div>
+      </div>
+    </div>
+
+    <!-- 1b단계: 준비 중 화면 (04 목표 공용) -->
     <div id="bodyweightPlaceholderScreen" style="display:none; flex:1; min-height:0; flex-direction:column;">
       <div class="bw-header">
         <button onclick="closeBodyweightPlaceholder()" class="bw-header-back" aria-label="뒤로가기">←</button>
@@ -7093,7 +7431,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.26";
+const APP_VERSION = "0.5.27";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -8015,7 +8353,7 @@ let bodyweightPrevPart = null; // 🔥 닫을 때 기록탭의 currentPart를 �
 
 // 🔥 메뉴(01~04 카드) — "기본운동"/"루틴"만 실제 기능이 있고, 나머지는 눌렀을 때 준비 중 화면
 const BODYWEIGHT_MENU_LABELS = {
-  log: "기록", goal: "목표"
+  goal: "목표"
 };
 
 function bodyweightMenuBasicSub(){
@@ -8091,11 +8429,15 @@ function openBodyweightRoutineList(){
 function closeBodyweightRoutineList(){
   document.getElementById("bodyweightRoutineListScreen").style.display = "none";
   document.getElementById("bodyweightMenuScreen").style.display = "flex";
+  renderBodyweightMenu(); // 🔥 방금 완료한 루틴 기록이 "03 기록" 카드 요약에도 바로 반영되도록
 }
+
+let bodyweightRoutineActiveKey = null;
 
 function openBodyweightRoutineDetail(key){
   const routine = BODYWEIGHT_ROUTINES.find(r => r.key === key);
   if (!routine) return;
+  bodyweightRoutineActiveKey = key;
 
   document.getElementById("bodyweightRoutineDetailHeaderName").textContent = routine.nameEn;
   document.getElementById("bodyweightRoutineDetailEn").textContent = routine.nameEn;
@@ -8125,8 +8467,416 @@ function closeBodyweightRoutineDetail(){
 }
 
 document.getElementById("bodyweightRoutineStartBtn").addEventListener("click", () => {
-  alert("운동 세션 기능은 곧 추가될 예정입니다.");
+  const routine = BODYWEIGHT_ROUTINES.find(r => r.key === bodyweightRoutineActiveKey);
+  if (!routine) return;
+  saveBodyweightRoutineRecord(routine);
+  alert(`${routine.nameEn} 루틴을 기록했습니다! (${routine.sets}세트 · ${bodyweightRoutineTotalReps(routine)}회)`);
 });
+
+// ============================================================
+// 🔥 「03 — 기록」 — 01 기본운동 + 02 루틴에서 발생한 실제 기록을 통합해서 보여줌.
+// 새로운 저장 구조를 새로 만들지 않고 accRecordsByExercise(01 기본운동에서 이미 씀)를
+// 그대로 재사용하고, 루틴 완료 기록만 최소한의 로컬 저장소를 추가로 둠.
+// ============================================================
+
+let bodyweightRoutineRecords = [];
+function loadBodyweightRoutineRecords(){
+  bodyweightRoutineRecords = lsGet("mf_bodyweight_routine_records_v1", []);
+  if (!Array.isArray(bodyweightRoutineRecords)) bodyweightRoutineRecords = [];
+}
+function saveBodyweightRoutineRecords(){
+  lsSet("mf_bodyweight_routine_records_v1", bodyweightRoutineRecords);
+}
+function saveBodyweightRoutineRecord(routine){
+  bodyweightRoutineRecords.push({
+    id: "routine_" + Date.now() + "_" + Math.random(),
+    date: formatTodayYYMMDD(),
+    routineKey: routine.key,
+    routineName: routine.nameEn,
+    exercises: routine.exercises.map(ex => ({ en: ex.en, kr: ex.kr, reps: ex.reps })),
+    totalSets: routine.sets,
+    totalReps: bodyweightRoutineTotalReps(routine),
+    completedAt: Date.now(),
+  });
+  saveBodyweightRoutineRecords();
+}
+
+// 01 기본운동 기록 중 맨몸운동 파트(part === "bodyweight")만 — accRecordsByExercise는
+// 다른 부위 탭(가슴/등/어깨/하체/팔)과 이름 기준으로 공유되는 전역 저장소라 반드시 필터링
+function bodyweightAllExerciseSets(){
+  const out = [];
+  Object.keys(accRecordsByExercise || {}).forEach(name => {
+    (accRecordsByExercise[name] || []).forEach(r => {
+      if (r.part === "bodyweight") out.push(r);
+    });
+  });
+  return out;
+}
+
+// (날짜, 운동명) 단위로 세트를 묶은 "세션" 목록 — 01 기본운동 기록
+function bodyweightExerciseSessions(){
+  const map = new Map();
+  bodyweightAllExerciseSets().forEach(r => {
+    const key = r.date + "|" + r.exercise;
+    if (!map.has(key)) {
+      map.set(key, { date: r.date, exercise: r.exercise, sets: 0, totalReps: 0, sortKey: 0 });
+    }
+    const s = map.get(key);
+    s.sets += 1;
+    s.totalReps += Number(r.reps) || 0;
+    s.sortKey = Math.max(s.sortKey, Number(r.createdAt) || 0);
+  });
+  return [...map.values()];
+}
+
+// 01 기본운동 세션 + 02 루틴 완료 기록을 합친 통합 "최근 기록" (최신순)
+function bodyweightAllSessions(){
+  const exSessions = bodyweightExerciseSessions().map(s => ({
+    type: "exercise",
+    date: s.date,
+    name: bodyweightDisplayNameEn(s.exercise),
+    exercise: s.exercise,
+    sets: s.sets,
+    totalReps: s.totalReps,
+    sortKey: s.sortKey,
+  }));
+  const routineSessions = bodyweightRoutineRecords.map(r => ({
+    type: "routine",
+    date: r.date,
+    name: r.routineName,
+    routineKey: r.routineKey,
+    sets: r.totalSets,
+    totalReps: r.totalReps,
+    sortKey: r.completedAt,
+  }));
+  return [...exSessions, ...routineSessions].sort((a, b) => b.sortKey - a.sortKey);
+}
+
+function bodyweightLogDateLabel(dateStr){
+  const today = formatTodayYYMMDD();
+  const yesterday = formatTodayYYMMDD(new Date(Date.now() - 86400000));
+  if (dateStr === today) return "오늘";
+  if (dateStr === yesterday) return "어제";
+  return dateStr.slice(3); // "26.08.12" -> "08.12"
+}
+
+function bodyweightLogTotals(){
+  const exSets = bodyweightAllExerciseSets();
+  const exReps = exSets.reduce((sum, r) => sum + (Number(r.reps) || 0), 0);
+  const routineSets = bodyweightRoutineRecords.reduce((sum, r) => sum + (Number(r.totalSets) || 0), 0);
+  const routineReps = bodyweightRoutineRecords.reduce((sum, r) => sum + (Number(r.totalReps) || 0), 0);
+  const totalWorkouts = bodyweightExerciseSessions().length + bodyweightRoutineRecords.length;
+  return {
+    totalWorkouts,
+    totalSets: exSets.length + routineSets,
+    totalReps: exReps + routineReps,
+  };
+}
+
+function bodyweightMenuLogSub(){
+  const totals = bodyweightLogTotals();
+  if (totals.totalWorkouts === 0) return "아직 기록이 없습니다";
+  return `총 ${totals.totalWorkouts}회 운동 · ${totals.totalReps.toLocaleString()}회`;
+}
+
+function bodyweightLogExerciseNames(){
+  const namesWithRecords = new Set(bodyweightAllExerciseSets().map(r => r.exercise));
+  const ordered = [];
+  (currentExercises || []).forEach(n => { if (!ordered.includes(n)) ordered.push(n); });
+  namesWithRecords.forEach(n => { if (!ordered.includes(n)) ordered.push(n); });
+  return ordered.filter(n => namesWithRecords.has(n));
+}
+
+function bodyweightLogExerciseStats(name){
+  const sets = bodyweightAllExerciseSets().filter(r => r.exercise === name);
+  const best = sets.reduce((max, r) => Math.max(max, Number(r.reps) || 0), 0);
+  const totalReps = sets.reduce((sum, r) => sum + (Number(r.reps) || 0), 0);
+  const sessions = new Set(sets.map(r => r.date)).size;
+  return { best, totalReps, totalSets: sets.length, sessions };
+}
+
+function bodyweightLogExerciseDailyTotals(name){
+  const map = new Map();
+  bodyweightAllExerciseSets().filter(r => r.exercise === name).forEach(r => {
+    map.set(r.date, (map.get(r.date) || 0) + (Number(r.reps) || 0));
+  });
+  return [...map.entries()]
+    .map(([date, total]) => ({ date, total }))
+    .sort((a, b) => a.date.localeCompare(b.date));
+}
+
+function bodyweightLogSetsForExerciseDate(name, dateStr){
+  return bodyweightAllExerciseSets()
+    .filter(r => r.exercise === name && r.date === dateStr)
+    .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+}
+
+function bodyweightLogDatesWithRecords(){
+  const set = new Set();
+  bodyweightAllExerciseSets().forEach(r => set.add(r.date));
+  bodyweightRoutineRecords.forEach(r => set.add(r.date));
+  return set;
+}
+
+function bodyweightLogSessionsForDate(dateStr){
+  return bodyweightAllSessions().filter(s => s.date === dateStr);
+}
+
+// 단순 선형 SVG 그래프 — 그라데이션/그림자 없이 점+선으로만 구성
+function renderBodyweightLogChart(containerEl, dailyTotals){
+  if (dailyTotals.length < 2) {
+    containerEl.innerHTML = `<div class="bw-log-chart-empty">기록이 쌓이면 변화가 표시됩니다.</div>`;
+    return;
+  }
+  const W = 320, H = 140, PAD_X = 18, PAD_Y = 18;
+  const maxV = Math.max(...dailyTotals.map(d => d.total));
+  const range = Math.max(1, maxV);
+  const stepX = (W - PAD_X * 2) / (dailyTotals.length - 1);
+
+  const points = dailyTotals.map((d, i) => ({
+    x: PAD_X + i * stepX,
+    y: H - PAD_Y - (d.total / range) * (H - PAD_Y * 2),
+    total: d.total,
+    date: d.date,
+  }));
+
+  const pathD = points.map((p, i) => (i === 0 ? "M" : "L") + p.x.toFixed(1) + "," + p.y.toFixed(1)).join(" ");
+  const dots = points.map(p => `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3" fill="#fff"></circle>`).join("");
+
+  const labelIdx = [...new Set([0, Math.floor((points.length - 1) / 2), points.length - 1])];
+  const labels = labelIdx.map(i => {
+    const p = points[i];
+    const mm = parseInt(p.date.split(".")[1], 10);
+    return `<text x="${p.x.toFixed(1)}" y="${H - 2}" font-size="10" fill="rgba(255,255,255,0.4)" text-anchor="middle">${mm}월</text>`;
+  }).join("");
+
+  containerEl.innerHTML = `
+    <svg viewBox="0 0 ${W} ${H}">
+      <text x="${PAD_X}" y="12" font-size="10" fill="rgba(255,255,255,0.4)">${maxV}</text>
+      <path d="${pathD}" fill="none" stroke="#fff" stroke-width="2"></path>
+      ${dots}
+      ${labels}
+    </svg>
+  `;
+}
+
+function renderBodyweightLog(){
+  const totals = bodyweightLogTotals();
+  const hasAny = totals.totalWorkouts > 0;
+
+  document.getElementById("bodyweightLogEmpty").style.display = hasAny ? "none" : "block";
+  document.getElementById("bodyweightLogContent").style.display = hasAny ? "block" : "none";
+  if (!hasAny) return;
+
+  document.getElementById("bodyweightLogTotalWorkouts").textContent = totals.totalWorkouts;
+  document.getElementById("bodyweightLogTotalSets").textContent = totals.totalSets;
+  document.getElementById("bodyweightLogTotalReps").textContent = totals.totalReps.toLocaleString();
+
+  const recent = bodyweightAllSessions().slice(0, 8);
+  const recentEl = document.getElementById("bodyweightLogRecent");
+  recentEl.innerHTML = recent.map(s => `
+    <div class="bw-log-record-row${s.type === "routine" ? " is-static" : ""}" data-type="${s.type}" data-exercise="${escapeHtml(s.exercise || "")}">
+      <div class="bw-log-record-date">${bodyweightLogDateLabel(s.date)}</div>
+      <div class="bw-log-record-main">
+        <div class="bw-log-record-name">${escapeHtml(s.name)}</div>
+        <div class="bw-log-record-meta">${s.sets}세트 · ${s.totalReps}회</div>
+      </div>
+    </div>
+  `).join("");
+  recentEl.querySelectorAll('.bw-log-record-row[data-type="exercise"]').forEach(row => {
+    row.addEventListener("click", () => openBodyweightLogExerciseDetail(row.dataset.exercise, "main"));
+  });
+
+  renderBodyweightLogCalendar();
+}
+
+let bodyweightLogCalDate = new Date();
+
+function renderBodyweightLogCalendar(){
+  const year = bodyweightLogCalDate.getFullYear();
+  const month = bodyweightLogCalDate.getMonth();
+  const MONTH_NAMES = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+  document.getElementById("bodyweightLogCalMonth").textContent = `${year} ${MONTH_NAMES[month]}`;
+
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const recordDates = bodyweightLogDatesWithRecords();
+  const todayStr = formatTodayYYMMDD();
+
+  let html = "";
+  for (let i = 0; i < firstDay; i++) html += `<div class="bw-log-cal-day is-empty"></div>`;
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = formatTodayYYMMDD(new Date(year, month, d));
+    const cls = ["bw-log-cal-day"];
+    if (recordDates.has(dateStr)) cls.push("has-record");
+    if (dateStr === todayStr) cls.push("is-today");
+    html += `<div class="${cls.join(" ")}" data-date="${dateStr}">${d}</div>`;
+  }
+  const daysEl = document.getElementById("bodyweightLogCalDays");
+  daysEl.innerHTML = html;
+  daysEl.querySelectorAll(".bw-log-cal-day.has-record").forEach(cell => {
+    cell.addEventListener("click", () => openBodyweightLogDateDetail(cell.dataset.date));
+  });
+}
+
+document.getElementById("bodyweightLogCalPrev").addEventListener("click", () => {
+  bodyweightLogCalDate = new Date(bodyweightLogCalDate.getFullYear(), bodyweightLogCalDate.getMonth() - 1, 1);
+  renderBodyweightLogCalendar();
+});
+document.getElementById("bodyweightLogCalNext").addEventListener("click", () => {
+  bodyweightLogCalDate = new Date(bodyweightLogCalDate.getFullYear(), bodyweightLogCalDate.getMonth() + 1, 1);
+  renderBodyweightLogCalendar();
+});
+
+function openBodyweightLog(){
+  document.getElementById("bodyweightMenuScreen").style.display = "none";
+  document.getElementById("bodyweightLogScreen").style.display = "flex";
+  bodyweightLogCalDate = new Date();
+  renderBodyweightLog();
+}
+function closeBodyweightLog(){
+  document.getElementById("bodyweightLogScreen").style.display = "none";
+  document.getElementById("bodyweightMenuScreen").style.display = "flex";
+}
+
+document.getElementById("bodyweightLogExerciseListLink").addEventListener("click", openBodyweightLogExerciseList);
+document.getElementById("bodyweightLogEmptyStartBtn").addEventListener("click", () => {
+  document.getElementById("bodyweightLogScreen").style.display = "none";
+  openBodyweightBasic();
+});
+
+function renderBodyweightLogExerciseList(){
+  const names = bodyweightLogExerciseNames();
+  const el = document.getElementById("bodyweightLogExerciseList");
+  if (!names.length) {
+    el.innerHTML = `<div style="color:#777; font-size:13px; padding:32px 4px;">아직 기록이 없습니다</div>`;
+    return;
+  }
+  el.innerHTML = names.map(name => {
+    const stats = bodyweightLogExerciseStats(name);
+    return `
+      <div class="bw-log-exercise-card" data-name="${escapeHtml(name)}">
+        <div class="bw-log-exercise-name-en">${escapeHtml(bodyweightDisplayNameEn(name))}</div>
+        <div class="bw-log-exercise-name-kr">${escapeHtml(name)}</div>
+        <div class="bw-log-exercise-meta-row">
+          <span>최고 ${stats.best}회</span>
+          <span>총 ${stats.totalReps.toLocaleString()}회</span>
+        </div>
+      </div>
+    `;
+  }).join("");
+  el.querySelectorAll(".bw-log-exercise-card").forEach(card => {
+    card.addEventListener("click", () => openBodyweightLogExerciseDetail(card.dataset.name, "list"));
+  });
+}
+
+function openBodyweightLogExerciseList(){
+  document.getElementById("bodyweightLogScreen").style.display = "none";
+  document.getElementById("bodyweightLogExerciseListScreen").style.display = "flex";
+  renderBodyweightLogExerciseList();
+}
+function closeBodyweightLogExerciseList(){
+  document.getElementById("bodyweightLogExerciseListScreen").style.display = "none";
+  document.getElementById("bodyweightLogScreen").style.display = "flex";
+}
+
+let bodyweightLogActiveExerciseName = null;
+let bodyweightLogExerciseDetailFrom = "main";
+
+function openBodyweightLogExerciseDetail(name, from){
+  bodyweightLogActiveExerciseName = name;
+  bodyweightLogExerciseDetailFrom = from || "main";
+
+  document.getElementById("bodyweightLogExerciseDetailHeaderName").textContent = bodyweightDisplayNameEn(name);
+  document.getElementById("bodyweightLogExerciseDetailEn").textContent = bodyweightDisplayNameEn(name);
+  document.getElementById("bodyweightLogExerciseDetailKr").textContent = name;
+
+  const stats = bodyweightLogExerciseStats(name);
+  document.getElementById("bodyweightLogExerciseBest").textContent = `${stats.best}회`;
+  document.getElementById("bodyweightLogExerciseTotalReps").textContent = `${stats.totalReps.toLocaleString()}회`;
+  document.getElementById("bodyweightLogExerciseTotalSets").textContent = `${stats.totalSets}세트`;
+  document.getElementById("bodyweightLogExerciseSessions").textContent = `${stats.sessions}회`;
+
+  const daily = bodyweightLogExerciseDailyTotals(name);
+  renderBodyweightLogChart(document.getElementById("bodyweightLogExerciseChart"), daily);
+
+  const recentDaily = daily.slice().sort((a, b) => b.date.localeCompare(a.date)).slice(0, 8);
+  const recentEl = document.getElementById("bodyweightLogExerciseRecent");
+  recentEl.innerHTML = recentDaily.map(d => `
+    <div class="bw-log-record-row" data-date="${d.date}">
+      <div class="bw-log-record-date">${bodyweightLogDateLabel(d.date)}</div>
+      <div class="bw-log-record-main">
+        <div class="bw-log-record-name">${d.total}회</div>
+      </div>
+    </div>
+  `).join("");
+  recentEl.querySelectorAll(".bw-log-record-row").forEach(row => {
+    row.addEventListener("click", () => openBodyweightLogSetDetail(name, row.dataset.date));
+  });
+
+  document.getElementById("bodyweightLogScreen").style.display = "none";
+  document.getElementById("bodyweightLogExerciseListScreen").style.display = "none";
+  document.getElementById("bodyweightLogExerciseDetailScreen").style.display = "flex";
+}
+
+function closeBodyweightLogExerciseDetail(){
+  document.getElementById("bodyweightLogExerciseDetailScreen").style.display = "none";
+  if (bodyweightLogExerciseDetailFrom === "list") {
+    document.getElementById("bodyweightLogExerciseListScreen").style.display = "flex";
+  } else {
+    document.getElementById("bodyweightLogScreen").style.display = "flex";
+    renderBodyweightLog();
+  }
+}
+
+function openBodyweightLogSetDetail(name, dateStr){
+  document.getElementById("bodyweightLogSetDetailHeaderName").textContent = dateStr.slice(3);
+
+  const sets = bodyweightLogSetsForExerciseDate(name, dateStr);
+  document.getElementById("bodyweightLogSetDetailList").innerHTML = sets.map((r, i) => `
+    <div class="bw-set-row">
+      <span class="bw-set-label">SET ${i + 1}</span>
+      <span class="bw-set-count">${r.reps}회</span>
+    </div>
+  `).join("");
+
+  const total = sets.reduce((sum, r) => sum + (Number(r.reps) || 0), 0);
+  document.getElementById("bodyweightLogSetDetailTotal").textContent = `${total}회`;
+
+  document.getElementById("bodyweightLogExerciseDetailScreen").style.display = "none";
+  document.getElementById("bodyweightLogSetDetailScreen").style.display = "flex";
+}
+function closeBodyweightLogSetDetail(){
+  document.getElementById("bodyweightLogSetDetailScreen").style.display = "none";
+  document.getElementById("bodyweightLogExerciseDetailScreen").style.display = "flex";
+}
+
+function openBodyweightLogDateDetail(dateStr){
+  document.getElementById("bodyweightLogDateDetailHeaderName").textContent = dateStr.slice(3);
+
+  const sessions = bodyweightLogSessionsForDate(dateStr);
+  document.getElementById("bodyweightLogDateDetailList").innerHTML = sessions.map(s => `
+    <div class="bw-log-record-row is-static">
+      <div class="bw-log-record-main">
+        <div class="bw-log-record-name">${escapeHtml(s.name)}</div>
+        <div class="bw-log-record-meta">${s.sets}세트 · ${s.totalReps}회</div>
+      </div>
+    </div>
+  `).join("");
+
+  const totalSets = sessions.reduce((sum, s) => sum + s.sets, 0);
+  const totalReps = sessions.reduce((sum, s) => sum + s.totalReps, 0);
+  document.getElementById("bodyweightLogDateDetailTotalSets").textContent = `${totalSets}세트`;
+  document.getElementById("bodyweightLogDateDetailTotalReps").textContent = `${totalReps}회`;
+
+  document.getElementById("bodyweightLogScreen").style.display = "none";
+  document.getElementById("bodyweightLogDateDetailScreen").style.display = "flex";
+}
+function closeBodyweightLogDateDetail(){
+  document.getElementById("bodyweightLogDateDetailScreen").style.display = "none";
+  document.getElementById("bodyweightLogScreen").style.display = "flex";
+  renderBodyweightLog();
+}
 
 function renderBodyweightMenu(){
   const el = document.getElementById("bodyweightMenuList");
@@ -8146,7 +8896,7 @@ function renderBodyweightMenu(){
     <div class="bw-menu-card" data-menu="log">
       <div class="bw-menu-num">03</div>
       <div class="bw-menu-title">기록</div>
-      <div class="bw-menu-sub">내 데이터</div>
+      <div class="bw-menu-sub">${bodyweightMenuLogSub()}</div>
       <div class="bw-menu-arrow">→</div>
     </div>
     <div class="bw-menu-card" data-menu="goal">
@@ -8162,6 +8912,7 @@ function renderBodyweightMenu(){
     card.addEventListener("click", () => {
       if (key === "basic") openBodyweightBasic();
       else if (key === "routine") openBodyweightRoutineList();
+      else if (key === "log") openBodyweightLog();
       else openBodyweightPlaceholder(key, BODYWEIGHT_MENU_LABELS[key]);
     });
   });
@@ -8341,14 +9092,20 @@ async function openBodyweight(){
   bodyweightScreen.style.transition = "none"; // 🔥 열 때는 슬라이드 없이 한 번에 바로 뜨게
   bodyweightScreen.style.transform = "translateX(0)";
 
-  document.getElementById("bodyweightMenuScreen").style.display = "flex"; // 🔥 열 때마다 항상 메뉴(01~06 카드)부터 보여줌
+  document.getElementById("bodyweightMenuScreen").style.display = "flex"; // 🔥 열 때마다 항상 메뉴(01~04 카드)부터 보여줌
   document.getElementById("bodyweightBasicScreen").style.display = "none";
   document.getElementById("bodyweightRoutineListScreen").style.display = "none";
   document.getElementById("bodyweightRoutineDetailScreen").style.display = "none";
+  document.getElementById("bodyweightLogScreen").style.display = "none";
+  document.getElementById("bodyweightLogExerciseListScreen").style.display = "none";
+  document.getElementById("bodyweightLogExerciseDetailScreen").style.display = "none";
+  document.getElementById("bodyweightLogSetDetailScreen").style.display = "none";
+  document.getElementById("bodyweightLogDateDetailScreen").style.display = "none";
   document.getElementById("bodyweightPlaceholderScreen").style.display = "none";
   document.getElementById("bodyweightDetailScreen").style.display = "none";
 
   currentPart = "bodyweight";
+  loadBodyweightRoutineRecords();
   await loadExercises("bodyweight", BODYWEIGHT_RENDER_OPTS);
   seedDefaultBodyweightExercisesIfNeeded();
   renderBodyweightMenu();
