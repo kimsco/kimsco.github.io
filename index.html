@@ -6545,7 +6545,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.7";
+const APP_VERSION = "0.5.8";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -11415,14 +11415,15 @@ closeSettingsBtn.addEventListener("click", () => {
   settingsOverlay.classList.add("hidden");
 });
 
-/* 🔥 설정 화면: 메뉴드로우바처럼 화면 어디를 잡아도 오른쪽으로 드래그하면 손가락 따라 끌려가며 닫힘 */
+/* 🔥 설정 화면: 왼쪽 끝을 잡고 오른쪽으로 드래그하면 손가락 따라 끌려가며 닫힘 */
 (function(){
   const settingsPanel = document.getElementById("settingsPanel");
-  const COMMIT_MOVE = 8, CLOSE_RATIO = 0.3;
+  const EDGE_ZONE = 30, COMMIT_MOVE = 8, CLOSE_RATIO = 0.3;
   let startX = 0, startY = 0, tracking = false, dragging = false;
 
   settingsPanel.addEventListener('touchstart', (e) => {
     const t = e.touches[0];
+    if (t.clientX > EDGE_ZONE) { tracking = false; return; }
     startX = t.clientX; startY = t.clientY;
     tracking = true; dragging = false;
     settingsPanel.style.transition = 'none';
