@@ -7585,7 +7585,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.30";
+const APP_VERSION = "0.5.31";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -9641,6 +9641,11 @@ function closeBodyweight(){
   bodyweightOverlay.classList.add("hidden");
   bodyweightScreen.style.transform = "translateX(0)";
   currentPart = bodyweightPrevPart; // 🔥 기록탭이 원래 보고 있던 부위로 복원
+
+  // 🔥 맨몸운동을 여는 동안 currentExercises가 "bodyweight" 목록으로 바뀐 채 남아있어서,
+  //    닫은 뒤 기록탭에 재진입하면(로그인 시 loadAccessoryRecords가 renderExercises를 호출)
+  //    엉뚱하게 맨몸운동 종목이 기록탭 목록에 뜨는 문제가 있었음 — 원래 부위 목록으로 다시 로드
+  if (currentPart) loadExercises(currentPart);
 }
 
 function openBodyweightDetail(name){
