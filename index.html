@@ -1706,6 +1706,7 @@ html.light-mode-on .dex-post-card.has-image{
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
+  touch-action: pan-y;
 
   transform: translateX(100%);
   animation: slideIn 0.25s ease forwards;
@@ -6545,7 +6546,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.8";
+const APP_VERSION = "0.5.9";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
