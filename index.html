@@ -7431,7 +7431,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.27";
+const APP_VERSION = "0.5.28";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -9159,7 +9159,74 @@ document.getElementById("navBodyweightBtn").addEventListener("click", () => {
   openBodyweight();
 });
 
-/* 🔥 맨몸운동 화면은 스와이프로 못 나가게(오탈출 방지) — 상단 ← 버튼으로만 닫힘 */
+/* 🔥 맨몸운동 첫 화면(메뉴)은 스와이프로 못 나가게(오탈출 방지) — 상단 X 버튼으로만 닫힘.
+   그 안의 하위 화면(← 버튼이 있는 화면들)은 아래에서 왼쪽 끝→오른쪽 스와이프로 뒤로가기 가능 */
+function attachBwSwipeBack(screenEl, closeFn){
+  const EDGE_ZONE = 30, COMMIT_MOVE = 8, CLOSE_RATIO = 0.3;
+  let startX = 0, startY = 0, tracking = false, dragging = false;
+
+  screenEl.addEventListener('touchstart', (e) => {
+    const t = e.touches[0];
+    if (t.clientX <= EDGE_ZONE) {
+      startX = t.clientX; startY = t.clientY;
+      tracking = true; dragging = false;
+      screenEl.style.transition = 'none';
+    } else { tracking = false; }
+  }, { passive: true });
+
+  screenEl.addEventListener('touchmove', (e) => {
+    if (!tracking) return;
+    const t = e.touches[0];
+    const dx = t.clientX - startX, dy = t.clientY - startY;
+    if (!dragging) {
+      if (dx > COMMIT_MOVE && dx > Math.abs(dy) * 0.6) dragging = true;
+      else if (Math.abs(dy) > COMMIT_MOVE && Math.abs(dy) > dx) { tracking = false; return; }
+      else return;
+    }
+    if (dragging) {
+      e.preventDefault();
+      screenEl.style.transform = `translateX(${Math.max(0, dx)}px)`;
+    }
+  }, { passive: false });
+
+  function endDrag(e){
+    if (!tracking) return;
+    const wasDragging = dragging;
+    tracking = false; dragging = false;
+    if (!wasDragging) return;
+
+    const width = screenEl.offsetWidth || window.innerWidth;
+    const t = e.changedTouches[0];
+    const dx = Math.max(0, t.clientX - startX);
+    screenEl.style.transition = 'transform 0.22s ease';
+
+    if (dx > width * CLOSE_RATIO) {
+      screenEl.style.transform = `translateX(${width}px)`;
+      setTimeout(() => {
+        closeFn();
+        screenEl.style.transition = 'none';
+        screenEl.style.transform = 'translateX(0)'; // 🔥 재사용되는 화면이라 다음에 열릴 때를 위해 원위치로 리셋
+      }, 220);
+    } else {
+      screenEl.style.transform = 'translateX(0)';
+    }
+  }
+  screenEl.addEventListener('touchend', endDrag, { passive: true });
+  screenEl.addEventListener('touchcancel', endDrag, { passive: true });
+}
+
+[
+  ["bodyweightBasicScreen", closeBodyweightBasic],
+  ["bodyweightRoutineListScreen", closeBodyweightRoutineList],
+  ["bodyweightRoutineDetailScreen", closeBodyweightRoutineDetail],
+  ["bodyweightLogScreen", closeBodyweightLog],
+  ["bodyweightLogExerciseListScreen", closeBodyweightLogExerciseList],
+  ["bodyweightLogExerciseDetailScreen", closeBodyweightLogExerciseDetail],
+  ["bodyweightLogSetDetailScreen", closeBodyweightLogSetDetail],
+  ["bodyweightLogDateDetailScreen", closeBodyweightLogDateDetail],
+  ["bodyweightPlaceholderScreen", closeBodyweightPlaceholder],
+  ["bodyweightDetailScreen", closeBodyweightDetail],
+].forEach(([id, closeFn]) => attachBwSwipeBack(document.getElementById(id), closeFn));
 
 /* 내 지난 루틴: 부위별 기차 미리보기 목록 화면 */
 const myRoutinePastListOverlay = document.getElementById("myRoutinePastListOverlay");
