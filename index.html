@@ -1206,19 +1206,46 @@ cursor: pointer;
   color: #fff;
 }
 .bw-header-spacer { width: 36px; flex-shrink: 0; }
-.bw-header-titles {
+
+/* 맨몸운동 첫 화면(메뉴) 전용 탑바 — 홈 탑바 스타일 + 나눔명조 (0.3.12 스타일 복원) */
+.bw-menu-header {
+  flex-shrink: 0;
+  box-sizing: border-box;
+  padding: calc(12px + env(safe-area-inset-top)) 10px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: rgba(0,0,0,0.92);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.bw-menu-header-close {
+  all: unset;
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  color: #aaa;
+  cursor: pointer;
+}
+.bw-menu-header-title {
   flex: 1;
   min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.bw-header-subtitle {
-  font-size: 11px;
+  text-align: center;
+  font-family: 'Nanum Myeongjo', 'AppleMyungjo', 'Batang', serif;
+  font-size: 1.2em;
   font-weight: 700;
-  color: rgba(255,255,255,0.35);
-  letter-spacing: 1.2px;
+  letter-spacing: 0.5px;
+  line-height: 1.4;
+  color: #fff;
+  opacity: 0.95;
 }
+.bw-menu-header-spacer { width: 56px; flex-shrink: 0; }
 
 /* 맨몸운동 메뉴(01~06 카드) */
 .bw-menu-list {
@@ -5372,13 +5399,10 @@ input[type="number"] {
 
     <!-- 0단계: 메뉴(01~06 카드) 화면 -->
     <div id="bodyweightMenuScreen" style="flex:1; min-height:0; display:flex; flex-direction:column;">
-      <div class="bw-header">
-        <button onclick="closeBodyweight()" class="bw-header-back" aria-label="뒤로가기">←</button>
-        <div class="bw-header-titles">
-          <span class="bw-header-title">맨몸운동</span>
-          <span class="bw-header-subtitle">BODYWEIGHT</span>
-        </div>
-        <span class="bw-header-spacer"></span>
+      <div class="bw-menu-header">
+        <button onclick="closeBodyweight()" class="bw-menu-header-close" aria-label="닫기">✕</button>
+        <span class="bw-menu-header-title">맨몸운동</span>
+        <span class="bw-menu-header-spacer"></span>
       </div>
       <div id="bodyweightMenuList" class="bw-menu-list"></div>
     </div>
@@ -7069,7 +7093,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.25";
+const APP_VERSION = "0.5.26";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
