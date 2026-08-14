@@ -1756,8 +1756,11 @@ html.light-mode-on .dex-post-card.has-image{
 
 .settings-item-icon {
   display: inline-block;
-  width: 22px;
-  margin-right: 2px;
+  width: 24px;
+  height: 24px;
+  margin-right: 8px;
+  vertical-align: middle;
+  object-fit: contain;
 }
 
 #settingsGuestBadge {
@@ -5156,10 +5159,10 @@ input[type="number"] {
 <div class="settings-section-label">계정</div>
 <div class="settings-card">
   <button id="mySpecMenuBtn" class="settings-item" style="width:100%; text-align:left; background:none; color:#fff; cursor:pointer;">
-    <span class="settings-item-icon">👤</span>내 정보 수정
+    <img src="icons/setting-profile.png" class="settings-item-icon" alt="">내 정보 수정
   </button>
   <div class="settings-item" style="border-bottom:none; padding-bottom:0;">
-    <span class="settings-item-icon">✉️</span>문의
+    <img src="icons/setting-inquiry.png" class="settings-item-icon" alt="">문의
   </div>
   <div class="settings-item muted" style="padding-top:2px; border-bottom:none;">김무진한테 문의하세요</div>
 </div>
@@ -5168,11 +5171,11 @@ input[type="number"] {
 <div class="settings-section-label">일반</div>
 <div class="settings-card">
   <div class="settings-item" style="display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #222;">
-    <span><span class="settings-item-icon">🌓</span>화면 모드</span>
+    <span><img src="icons/setting-mode.png" class="settings-item-icon" alt="">화면 모드</span>
     <div id="lightModeToggle" class="toggle-switch"></div>
   </div>
   <div class="settings-item" style="display:flex; align-items:center; justify-content:space-between; border-bottom:none;">
-    <span><span class="settings-item-icon">ℹ️</span>앱 버전</span>
+    <span><img src="icons/setting-version.png" class="settings-item-icon" alt="">앱 버전</span>
     <span style="color:#888; font-size:14px;" id="appVersionDisplay">0.1.0</span>
   </div>
 </div>
@@ -6540,7 +6543,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.0";
+const APP_VERSION = "0.5.1";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
