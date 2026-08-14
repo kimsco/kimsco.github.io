@@ -1135,7 +1135,6 @@ cursor: pointer;
 .settings-overlay {
   position: fixed;
   inset: 0;
-  background: #000;
   z-index: 100000;
 }
 
@@ -6541,7 +6540,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.10";
+const APP_VERSION = "0.5.11";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -11404,6 +11403,20 @@ const closeSettingsBtn = document.getElementById("closeSettingsBtn");
 const settingsOverlay = document.getElementById("settingsOverlay");
 const settingsPanelEl = document.getElementById("settingsPanel");
 
+// 🔥 settingsOverlay가 원래 .app 내부에 중첩되어 있어서, .app에 transform이 걸리면
+// 이 안의 position:fixed 요소(설정 패널 자신 포함)의 기준점이 뷰포트가 아니라 .app으로
+// 바뀌어버림(navDrawerOverlay와 동일한 문제) — body 바로 밑으로 옮겨서 항상 뷰포트 기준으로 고정
+document.body.appendChild(settingsOverlay);
+
+// 🔥 설정 화면 뒤로 살짝 밀리며 페이드아웃되는 본 화면(.app) — 메뉴드로우바(setAppPush)와
+// 반대 방향(왼쪽)으로, dietOverlay가 열릴 때 쓰는 것과 동일한 push+fade 패턴
+function setSettingsAppPush(progress){ // progress: 0(설정 완전히 덮음) ~ 1(설정 완전히 사라짐=본 화면 그대로)
+  const appEl = document.querySelector('.app');
+  if (!appEl) return;
+  appEl.style.transform = `translateX(${-16 * (1 - progress)}px)`;
+  appEl.style.opacity = String(progress);
+}
+
 openSettingsBtn.addEventListener("click", () => {
   settingsOverlay.classList.remove("hidden");
   // 🔥 CSS 애니메이션에 의존하지 않고 JS로 직접 슬라이드인 처리
@@ -11412,16 +11425,23 @@ openSettingsBtn.addEventListener("click", () => {
   settingsPanelEl.style.animation = "none";
   settingsPanelEl.style.transition = "none";
   settingsPanelEl.style.transform = "translateX(100%)";
+  setSettingsAppPush(1);
+  const appEl0 = document.querySelector('.app');
+  if (appEl0) appEl0.style.transition = "none";
   void settingsPanelEl.offsetWidth; // 강제 리플로우
   settingsPanelEl.style.transition = "transform 0.25s ease";
   settingsPanelEl.style.transform = "translateX(0)";
+  if (appEl0) appEl0.style.transition = "transform 0.25s ease, opacity 0.25s ease";
+  setSettingsAppPush(0);
 });
 
 closeSettingsBtn.addEventListener("click", () => {
   settingsOverlay.classList.add("hidden");
+  const appEl = document.querySelector('.app');
+  if (appEl) { appEl.style.transition = ""; appEl.style.transform = ""; appEl.style.opacity = ""; }
 });
 
-/* 🔥 설정 화면: 왼쪽 끝을 잡고 오른쪽으로 드래그하면 손가락 따라 끌려가며 닫힘 */
+/* 🔥 설정 화면: 왼쪽 끝을 잡고 오른쪽으로 드래그하면 손가락 따라 끌려가며 닫힘 (뒤로 본 화면이 살짝 밀리며 나타남) */
 (function(){
   const settingsPanel = document.getElementById("settingsPanel");
   const EDGE_ZONE = 30, COMMIT_MOVE = 8, CLOSE_RATIO = 0.3;
@@ -11433,6 +11453,8 @@ closeSettingsBtn.addEventListener("click", () => {
     startX = t.clientX; startY = t.clientY;
     tracking = true; dragging = false;
     settingsPanel.style.transition = 'none';
+    const appEl = document.querySelector('.app');
+    if (appEl) appEl.style.transition = 'none';
   }, { passive: true });
 
   settingsPanel.addEventListener('touchmove', (e) => {
@@ -11446,7 +11468,10 @@ closeSettingsBtn.addEventListener("click", () => {
     }
     if (dragging) {
       e.preventDefault();
-      settingsPanel.style.transform = `translateX(${Math.max(0, dx)}px)`;
+      const width = settingsPanel.offsetWidth || window.innerWidth;
+      const clampedDx = Math.max(0, dx);
+      settingsPanel.style.transform = `translateX(${clampedDx}px)`;
+      setSettingsAppPush(Math.min(1, clampedDx / width));
     }
   }, { passive: false });
 
@@ -11460,16 +11485,21 @@ closeSettingsBtn.addEventListener("click", () => {
     const t = e.changedTouches[0];
     const dx = Math.max(0, t.clientX - startX);
     settingsPanel.style.transition = 'transform 0.22s ease';
+    const appEl = document.querySelector('.app');
+    if (appEl) appEl.style.transition = 'transform 0.22s ease, opacity 0.22s ease';
 
     if (dx > width * CLOSE_RATIO) {
       settingsPanel.style.transform = `translateX(${width}px)`;
+      setSettingsAppPush(1);
       setTimeout(() => {
         settingsOverlay.classList.add("hidden");
         settingsPanel.style.transition = 'none';
         settingsPanel.style.transform = 'translateX(0)';
+        if (appEl) { appEl.style.transition = ''; appEl.style.transform = ''; appEl.style.opacity = ''; }
       }, 220);
     } else {
       settingsPanel.style.transform = 'translateX(0)';
+      setSettingsAppPush(0);
     }
   }
   settingsPanel.addEventListener('touchend', endDrag, { passive: true });
