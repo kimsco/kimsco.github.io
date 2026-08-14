@@ -5122,7 +5122,7 @@ input[type="number"] {
 </div>
 
 <div id="settingsOverlay" class="settings-overlay hidden">
-  <div class="settings-panel">
+  <div class="settings-panel" id="settingsPanel">
 
     <!-- 헤더: 좌측 상단 "‹ 설정" -->
     <div class="settings-header-bar">
@@ -6545,7 +6545,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.5";
+const APP_VERSION = "0.5.6";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -11414,6 +11414,62 @@ openSettingsBtn.addEventListener("click", () => {
 closeSettingsBtn.addEventListener("click", () => {
   settingsOverlay.classList.add("hidden");
 });
+
+/* 🔥 설정 화면: 왼쪽 끝에서 오른쪽으로 드래그하면 손가락 따라 끌려가며 닫힘 */
+(function(){
+  const settingsPanel = document.getElementById("settingsPanel");
+  const EDGE_ZONE = 30, COMMIT_MOVE = 8, CLOSE_RATIO = 0.3;
+  let startX = 0, startY = 0, tracking = false, dragging = false;
+
+  settingsPanel.addEventListener('touchstart', (e) => {
+    const t = e.touches[0];
+    if (t.clientX <= EDGE_ZONE) {
+      startX = t.clientX; startY = t.clientY;
+      tracking = true; dragging = false;
+      settingsPanel.style.transition = 'none';
+    } else { tracking = false; }
+  }, { passive: true });
+
+  settingsPanel.addEventListener('touchmove', (e) => {
+    if (!tracking) return;
+    const t = e.touches[0];
+    const dx = t.clientX - startX, dy = t.clientY - startY;
+    if (!dragging) {
+      if (dx > COMMIT_MOVE && dx > Math.abs(dy) * 0.6) dragging = true;
+      else if (Math.abs(dy) > COMMIT_MOVE && Math.abs(dy) > dx) { tracking = false; return; }
+      else return;
+    }
+    if (dragging) {
+      e.preventDefault();
+      settingsPanel.style.transform = `translateX(${Math.max(0, dx)}px)`;
+    }
+  }, { passive: false });
+
+  function endDrag(e){
+    if (!tracking) return;
+    const wasDragging = dragging;
+    tracking = false; dragging = false;
+    if (!wasDragging) return;
+
+    const width = settingsPanel.offsetWidth || window.innerWidth;
+    const t = e.changedTouches[0];
+    const dx = Math.max(0, t.clientX - startX);
+    settingsPanel.style.transition = 'transform 0.22s ease';
+
+    if (dx > width * CLOSE_RATIO) {
+      settingsPanel.style.transform = `translateX(${width}px)`;
+      setTimeout(() => {
+        settingsOverlay.classList.add("hidden");
+        settingsPanel.style.transition = 'none';
+        settingsPanel.style.transform = 'translateX(0)';
+      }, 220);
+    } else {
+      settingsPanel.style.transform = 'translateX(0)';
+    }
+  }
+  settingsPanel.addEventListener('touchend', endDrag, { passive: true });
+  settingsPanel.addEventListener('touchcancel', endDrag, { passive: true });
+})();
 
 
 /* ✨ 다크/라이트 모드 토글: 검정↔흰색 자동 반전 + 회색 톤 유지 + 색상(빨강/노랑 등)은 최대한 원래대로
