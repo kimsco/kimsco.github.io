@@ -6566,7 +6566,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.20";
+const APP_VERSION = "0.5.21";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -6583,6 +6583,9 @@ googleLoginBtn.addEventListener('click', () => doGoogleLogin());
 logoutBtn.addEventListener('click', ()=> auth.signOut());
 
 // ✅ 회원 탈퇴 버튼 (설정 화면, 로그아웃 바로 아래)
+// 🔥 설정 화면이 열려있는 동안(.app이 push/fade된 상태) 그 위에 뜨는 모달이라
+// logoutModal과 같은 이유로 body 바로 밑으로 옮김
+document.body.appendChild(document.getElementById('deleteAccountModal'));
 if (settingsDeleteAccountText) {
   settingsDeleteAccountText.addEventListener('click', () => {
     const deleteAccountModal = document.getElementById('deleteAccountModal');
@@ -11461,11 +11464,17 @@ openSettingsBtn.addEventListener("click", () => {
   setSettingsAppPush(0);
 });
 
-closeSettingsBtn.addEventListener("click", () => {
+// 🔥 설정 화면을 닫는 모든 경로(뒤로가기 버튼/스와이프/내부 메뉴 이동 등)가
+// 반드시 이 함수를 거치도록 해서, .app의 push/fade 상태가 항상 확실히 원복되게 함
+// (개별 경로마다 따로 리셋하다가 하나라도 빠지면 .app이 계속 밀리고 투명한 채로
+// 남아 뒤에 여는 다른 오버레이까지 안 보이게 되는 버그가 있었음)
+function closeSettings(){
   settingsOverlay.classList.add("hidden");
   const appEl = document.querySelector('.app');
   if (appEl) { appEl.style.transition = ""; appEl.style.transform = ""; appEl.style.opacity = ""; }
-});
+}
+
+closeSettingsBtn.addEventListener("click", closeSettings);
 
 /* 🔥 설정 화면: 왼쪽 끝을 잡고 오른쪽으로 드래그하면 손가락 따라 끌려가며 닫힘 (뒤로 본 화면이 살짝 밀리며 나타남) */
 (function(){
@@ -11560,6 +11569,9 @@ const settingsEmailSub = document.getElementById("settingsEmailSub");
 const logoutModal = document.getElementById("logoutModal");
 const logoutCancel = document.getElementById("logoutCancel");
 const logoutConfirm = document.getElementById("logoutConfirm");
+// 🔥 설정 화면이 열려있는 동안(.app이 push/fade된 상태) 그 위에 뜨는 모달이라
+// 같은 이유로 body 바로 밑으로 옮김
+document.body.appendChild(logoutModal);
 
 // ✅ 구글 로그인 함수 (게스트에서도 동작)
 // 로그인 시 개인정보처리방침/이용약관에 동의한 것으로 간주(로그인 버튼 아래 안내 문구 참고)
@@ -11576,6 +11588,14 @@ async function doGoogleLogin(){
 const loginSheetOverlay = document.getElementById("loginSheetOverlay");
 const loginSheet = document.getElementById("loginSheet");
 const loginSheetGoogleBtn = document.getElementById("loginSheetGoogleBtn");
+
+// 🔥 로그인 바텀시트는 설정 화면을 닫지 않고 그 위에 뜨는 구조라 .app의 push/fade가
+// 적용된 채로 열릴 수 있음 — loginSheetOverlay/loginSheet가 원래 .app 내부에
+// 중첩되어 있어서 .app에 transform이 걸리면(설정 화면이 열려있는 동안) 그 안의
+// z-index가 settingsOverlay(body 바로 밑, 새 스태킹 컨텍스트 밖)보다 못 이기고
+// opacity까지 물려받아 안 보이는 버그가 있었음 — body 바로 밑으로 옮겨서 해결
+document.body.appendChild(loginSheetOverlay);
+document.body.appendChild(loginSheet);
 
 function openLoginSheet(){
   loginSheetOverlay.classList.remove("show");
@@ -11637,7 +11657,7 @@ logoutCancel.addEventListener("click", () => {
 logoutConfirm.addEventListener("click", async () => {
   logoutModal.classList.add("hidden");
   await auth.signOut();
-  settingsOverlay.classList.add("hidden");
+  closeSettings();
 });
 
 // ✅ 모달 바깥 클릭 닫기
@@ -12408,6 +12428,9 @@ function calcTargets(spec){
 
 /* ---------- 내 정보 수정 화면 UI ---------- */
 const mySpecOverlay = document.getElementById("mySpecOverlay");
+// 🔥 settingsOverlay/loginSheet와 동일한 이유로 body 바로 밑으로 옮김
+// (.app 내부에 중첩되어 있으면 .app의 push/fade transform·opacity에 영향받음)
+document.body.appendChild(mySpecOverlay);
 const mySpecScreen = document.getElementById("mySpecScreen");
 const specName = document.getElementById("specName");
 const specHeight = document.getElementById("specHeight");
@@ -12446,7 +12469,7 @@ if (window.visualViewport) {
 }
 
 document.getElementById("mySpecMenuBtn").addEventListener("click", () => {
-  settingsOverlay.classList.add("hidden");
+  closeSettings();
   openMySpec();
 });
 
