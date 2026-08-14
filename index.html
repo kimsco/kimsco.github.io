@@ -6543,11 +6543,17 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.2";
+const APP_VERSION = "0.5.3";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
 }
+
+// 🔥 이미지 파일 내용이 바뀌어도 URL이 같으면 브라우저가 옛 캐시를 계속 쓸 수 있어서,
+// APP_VERSION을 쿼리스트링으로 붙여 버전이 올라갈 때마다 자동으로 캐시를 무효화시킴
+document.querySelectorAll(".settings-item-icon").forEach(img => {
+  img.src = img.src + (img.src.includes("?") ? "&" : "?") + "v=" + APP_VERSION;
+});
 
 /* 로그인 (구글) — 실제 로그인 버튼(설정 화면)이 쓰는 doGoogleLogin()과 동일 로직 재사용 */
 googleLoginBtn.addEventListener('click', () => doGoogleLogin());
