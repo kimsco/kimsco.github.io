@@ -7669,7 +7669,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.32";
+const APP_VERSION = "0.5.33";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -8637,17 +8637,34 @@ function bodyweightAllRoutines(){
   return [...BODYWEIGHT_ROUTINE_SEED, ...bodyweightCustomRoutines];
 }
 
+// 🔥 각 루틴을 마지막으로 "운동 시작"한 시각(없으면 0) — bodyweightRoutineRecords에서 계산
+function bodyweightRoutineLastPerformedAt(key){
+  let last = 0;
+  bodyweightRoutineRecords.forEach(r => {
+    if (r.routineKey === key && r.completedAt > last) last = r.completedAt;
+  });
+  return last;
+}
+
+// 🔥 최근에 수행한 루틴이 맨 위로 오도록 정렬 — 한 번도 안 한 루틴들은 원래 순서(시드→생성순) 그대로 뒤에 유지
+function bodyweightSortedRoutines(){
+  return bodyweightAllRoutines()
+    .map((r, i) => ({ r, i, last: bodyweightRoutineLastPerformedAt(r.key) }))
+    .sort((a, b) => (b.last - a.last) || (a.i - b.i))
+    .map(x => x.r);
+}
+
 function bodyweightRoutineTotalReps(routine){
   return routine.exercises.reduce((sum, ex) => sum + ex.reps, 0) * routine.sets;
 }
 
 function bodyweightMenuRoutineSub(){
-  return bodyweightAllRoutines().map(r => r.nameEn).join(" · ");
+  return bodyweightSortedRoutines().map(r => r.nameEn).join(" · ");
 }
 
 function renderBodyweightRoutineList(){
   const el = document.getElementById("bodyweightRoutineCards");
-  el.innerHTML = bodyweightAllRoutines().map(r => `
+  el.innerHTML = bodyweightSortedRoutines().map(r => `
     <div class="bw-routine-card" data-routine="${r.key}">
       <div class="bw-routine-card-name">${escapeHtml(r.nameEn)}</div>
       <div class="bw-routine-card-desc">${escapeHtml(r.cardDesc)}</div>
@@ -8711,6 +8728,7 @@ function openBodyweightRoutineDetail(key){
 function closeBodyweightRoutineDetail(){
   document.getElementById("bodyweightRoutineDetailScreen").style.display = "none";
   document.getElementById("bodyweightRoutineListScreen").style.display = "flex";
+  renderBodyweightRoutineList(); // 🔥 방금 "운동 시작"한 루틴이 즉시 맨 위로 올라오도록
 }
 
 document.getElementById("bodyweightRoutineStartBtn").addEventListener("click", () => {
