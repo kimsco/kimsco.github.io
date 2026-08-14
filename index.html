@@ -1384,6 +1384,60 @@ cursor: pointer;
 }
 .bw-routine-card .bw-menu-arrow { bottom: 16px; }
 
+/* 「02 — 루틴」 생성 화면 */
+.bw-text-input {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  box-sizing: border-box;
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 14px;
+  padding: 15px 16px;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  outline: none;
+}
+.bw-text-input::placeholder { color: rgba(255,255,255,0.3); font-weight: 500; }
+.bw-routine-create-exlist { display: flex; flex-direction: column; gap: 8px; }
+.bw-routine-create-ex-empty { font-size: 13px; color: #555; padding: 4px 2px; }
+.bw-routine-create-ex-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 14px;
+  padding: 12px 14px;
+}
+.bw-routine-create-ex-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bw-routine-create-ex-reps {
+  width: 52px;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #333;
+  outline: none;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  text-align: center;
+  -webkit-appearance: none;
+}
+.bw-routine-create-ex-reps-suffix { flex-shrink: 0; color: rgba(255,255,255,0.4); font-size: 12px; }
+.bw-routine-create-ex-remove { flex-shrink: 0; color: rgba(255,255,255,0.35); font-size: 15px; cursor: pointer; padding: 4px; }
+
 /* 「02 — 루틴」 상세(개별 루틴) */
 .bw-routine-detail-en {
   font-size: 24px;
@@ -5702,7 +5756,37 @@ input[type="number"] {
           <div class="bw-routine-hero-tagline">오늘 어떤 루틴을 할까요?</div>
         </div>
         <div id="bodyweightRoutineCards" class="bw-routine-cards"></div>
+        <button id="bodyweightRoutineAddBtn" class="bw-add-btn">+ 루틴 추가</button>
       </div>
+    </div>
+
+    <!-- 1c-2단계: 루틴 생성 화면 -->
+    <div id="bodyweightRoutineCreateScreen" style="display:none; flex:1; min-height:0; flex-direction:column; padding: calc(20px + env(safe-area-inset-top)) 18px calc(24px + env(safe-area-inset-bottom));">
+      <div class="bw-detail-header" onclick="closeBodyweightRoutineCreate()">
+        <span class="bw-detail-back">←</span>
+        <span class="bw-detail-title">새로운 루틴</span>
+      </div>
+
+      <div class="bw-detail-body">
+        <div class="bw-goal-field-label">제목</div>
+        <input id="bodyweightRoutineCreateTitleInput" class="bw-text-input" type="text" placeholder="예) 아침 루틴" maxlength="20">
+
+        <div class="bw-goal-field-label">부제목</div>
+        <input id="bodyweightRoutineCreateSubtitleInput" class="bw-text-input" type="text" placeholder="예) 가볍게 시작하는 루틴" maxlength="30">
+
+        <div class="bw-goal-field-label">몇 세트 할까요?</div>
+        <div class="bw-goal-target-input-row">
+          <input id="bodyweightRoutineCreateSetsInput" type="number" inputmode="numeric" placeholder="0">
+          <span>세트</span>
+        </div>
+
+        <div class="bw-goal-field-label">운동 종목</div>
+        <div id="bodyweightRoutineCreateExList" class="bw-routine-create-exlist"></div>
+        <button id="bodyweightRoutineCreateAddExBtn" class="bw-add-btn" type="button">+ 종목 추가</button>
+        <div id="bodyweightRoutineCreateExPickerList" class="bw-goal-picker-list" style="display:none;"></div>
+      </div>
+
+      <button id="bodyweightRoutineCreateSubmitBtn" class="bw-finish-btn">루틴 만들기</button>
     </div>
 
     <!-- 1d단계: 루틴 상세 화면 -->
@@ -7585,7 +7669,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.31";
+const APP_VERSION = "0.5.32";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -8514,7 +8598,7 @@ function bodyweightMenuBasicSub(){
 
 // 🔥 「02 — 루틴」 데이터 — 각 루틴은 "종목별 동일 세트 수"를 가정하고,
 // TOTAL REPS = (종목별 reps 합) × sets 로 계산
-const BODYWEIGHT_ROUTINES = [
+const BODYWEIGHT_ROUTINE_SEED = [
   {
     key: "push",
     nameEn: "PUSH",
@@ -8540,17 +8624,30 @@ const BODYWEIGHT_ROUTINES = [
   },
 ];
 
+// 🔥 사용자가 직접 만든 루틴("+ 루틴 추가") — 로컬에 저장되고, 시드 루틴 뒤에 이어붙여서 보여줌
+let bodyweightCustomRoutines = [];
+function loadBodyweightCustomRoutines(){
+  bodyweightCustomRoutines = lsGet("mf_bodyweight_custom_routines_v1", []);
+  if (!Array.isArray(bodyweightCustomRoutines)) bodyweightCustomRoutines = [];
+}
+function saveBodyweightCustomRoutines(){
+  lsSet("mf_bodyweight_custom_routines_v1", bodyweightCustomRoutines);
+}
+function bodyweightAllRoutines(){
+  return [...BODYWEIGHT_ROUTINE_SEED, ...bodyweightCustomRoutines];
+}
+
 function bodyweightRoutineTotalReps(routine){
   return routine.exercises.reduce((sum, ex) => sum + ex.reps, 0) * routine.sets;
 }
 
 function bodyweightMenuRoutineSub(){
-  return BODYWEIGHT_ROUTINES.map(r => r.nameEn).join(" · ");
+  return bodyweightAllRoutines().map(r => r.nameEn).join(" · ");
 }
 
 function renderBodyweightRoutineList(){
   const el = document.getElementById("bodyweightRoutineCards");
-  el.innerHTML = BODYWEIGHT_ROUTINES.map(r => `
+  el.innerHTML = bodyweightAllRoutines().map(r => `
     <div class="bw-routine-card" data-routine="${r.key}">
       <div class="bw-routine-card-name">${escapeHtml(r.nameEn)}</div>
       <div class="bw-routine-card-desc">${escapeHtml(r.cardDesc)}</div>
@@ -8585,7 +8682,7 @@ function closeBodyweightRoutineList(){
 let bodyweightRoutineActiveKey = null;
 
 function openBodyweightRoutineDetail(key){
-  const routine = BODYWEIGHT_ROUTINES.find(r => r.key === key);
+  const routine = bodyweightAllRoutines().find(r => r.key === key);
   if (!routine) return;
   bodyweightRoutineActiveKey = key;
 
@@ -8617,10 +8714,109 @@ function closeBodyweightRoutineDetail(){
 }
 
 document.getElementById("bodyweightRoutineStartBtn").addEventListener("click", () => {
-  const routine = BODYWEIGHT_ROUTINES.find(r => r.key === bodyweightRoutineActiveKey);
+  const routine = bodyweightAllRoutines().find(r => r.key === bodyweightRoutineActiveKey);
   if (!routine) return;
   saveBodyweightRoutineRecord(routine);
   alert(`${routine.nameEn} 루틴을 기록했습니다! (${routine.sets}세트 · ${bodyweightRoutineTotalReps(routine)}회)`);
+});
+
+// ---- 「02 — 루틴」 새 루틴 만들기 ----
+let bodyweightRoutineCreateExercises = []; // [{name, reps}] — 저장 전까지의 임시 상태
+
+function bodyweightRoutineCreateRenderExList(){
+  const el = document.getElementById("bodyweightRoutineCreateExList");
+  if (!bodyweightRoutineCreateExercises.length) {
+    el.innerHTML = `<div class="bw-routine-create-ex-empty">아직 추가된 종목이 없습니다</div>`;
+    return;
+  }
+  el.innerHTML = bodyweightRoutineCreateExercises.map((ex, i) => `
+    <div class="bw-routine-create-ex-row">
+      <div class="bw-routine-create-ex-name">${escapeHtml(bodyweightDisplayNameEn(ex.name))} · ${escapeHtml(ex.name)}</div>
+      <input type="number" inputmode="numeric" class="bw-routine-create-ex-reps" data-idx="${i}" value="${ex.reps}" placeholder="0">
+      <span class="bw-routine-create-ex-reps-suffix">회</span>
+      <span class="bw-routine-create-ex-remove" data-idx="${i}">✕</span>
+    </div>
+  `).join("");
+
+  el.querySelectorAll(".bw-routine-create-ex-reps").forEach(input => {
+    input.addEventListener("input", () => {
+      const i = Number(input.dataset.idx);
+      bodyweightRoutineCreateExercises[i].reps = parseInt(input.value, 10) || 0;
+    });
+  });
+  el.querySelectorAll(".bw-routine-create-ex-remove").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const i = Number(btn.dataset.idx);
+      bodyweightRoutineCreateExercises.splice(i, 1);
+      bodyweightRoutineCreateRenderExList();
+    });
+  });
+}
+
+document.getElementById("bodyweightRoutineCreateAddExBtn").addEventListener("click", () => {
+  const listEl = document.getElementById("bodyweightRoutineCreateExPickerList");
+  const names = (currentExercises || []).filter(x => typeof x === "string" && x.trim());
+  if (!names.length) {
+    listEl.innerHTML = `<div class="bw-goal-picker-item" style="color:#777; cursor:default;">등록된 운동이 없습니다. 01 기본운동에서 먼저 추가해주세요.</div>`;
+    listEl.style.display = "block";
+    return;
+  }
+  listEl.innerHTML = names.map(n => `<div class="bw-goal-picker-item" data-name="${escapeHtml(n)}">${escapeHtml(bodyweightDisplayNameEn(n))} · ${escapeHtml(n)}</div>`).join("");
+  listEl.querySelectorAll(".bw-goal-picker-item[data-name]").forEach(item => {
+    item.addEventListener("click", () => {
+      bodyweightRoutineCreateExercises.push({ name: item.dataset.name, reps: 10 });
+      bodyweightRoutineCreateRenderExList();
+      listEl.style.display = "none";
+    });
+  });
+  listEl.style.display = listEl.style.display === "none" ? "block" : "none";
+});
+
+function openBodyweightRoutineCreate(){
+  document.getElementById("bodyweightRoutineCreateTitleInput").value = "";
+  document.getElementById("bodyweightRoutineCreateSubtitleInput").value = "";
+  document.getElementById("bodyweightRoutineCreateSetsInput").value = "";
+  document.getElementById("bodyweightRoutineCreateExPickerList").style.display = "none";
+  bodyweightRoutineCreateExercises = [];
+  bodyweightRoutineCreateRenderExList();
+
+  document.getElementById("bodyweightRoutineListScreen").style.display = "none";
+  document.getElementById("bodyweightRoutineCreateScreen").style.display = "flex";
+}
+function closeBodyweightRoutineCreate(){
+  document.getElementById("bodyweightRoutineCreateScreen").style.display = "none";
+  document.getElementById("bodyweightRoutineListScreen").style.display = "flex";
+  renderBodyweightRoutineList();
+}
+document.getElementById("bodyweightRoutineAddBtn").addEventListener("click", openBodyweightRoutineCreate);
+
+document.getElementById("bodyweightRoutineCreateSubmitBtn").addEventListener("click", () => {
+  const title = document.getElementById("bodyweightRoutineCreateTitleInput").value.trim();
+  const subtitle = document.getElementById("bodyweightRoutineCreateSubtitleInput").value.trim();
+  const sets = parseInt(document.getElementById("bodyweightRoutineCreateSetsInput").value, 10);
+
+  if (!title) return alert("제목을 입력하세요.");
+  if (!sets || sets < 1) return alert("세트 수를 입력하세요.");
+  if (!bodyweightRoutineCreateExercises.length) return alert("운동 종목을 하나 이상 추가하세요.");
+  if (bodyweightRoutineCreateExercises.some(ex => !ex.reps || ex.reps < 1)) return alert("각 종목의 횟수를 입력하세요.");
+
+  bodyweightCustomRoutines.push({
+    key: "custom_" + Date.now() + "_" + Math.random(),
+    nameEn: title,
+    nameKr: subtitle || title,
+    cardDesc: subtitle || title,
+    sets,
+    exercises: bodyweightRoutineCreateExercises.map(ex => ({
+      en: bodyweightDisplayNameEn(ex.name),
+      kr: ex.name,
+      reps: ex.reps,
+    })),
+  });
+  saveBodyweightCustomRoutines();
+
+  document.getElementById("bodyweightRoutineCreateScreen").style.display = "none";
+  document.getElementById("bodyweightRoutineListScreen").style.display = "flex";
+  renderBodyweightRoutineList();
 });
 
 // ============================================================
@@ -9616,6 +9812,7 @@ async function openBodyweight(){
   document.getElementById("bodyweightMenuScreen").style.display = "flex"; // 🔥 열 때마다 항상 메뉴(01~04 카드)부터 보여줌
   document.getElementById("bodyweightBasicScreen").style.display = "none";
   document.getElementById("bodyweightRoutineListScreen").style.display = "none";
+  document.getElementById("bodyweightRoutineCreateScreen").style.display = "none";
   document.getElementById("bodyweightRoutineDetailScreen").style.display = "none";
   document.getElementById("bodyweightLogScreen").style.display = "none";
   document.getElementById("bodyweightLogExerciseListScreen").style.display = "none";
@@ -9629,6 +9826,7 @@ async function openBodyweight(){
 
   currentPart = "bodyweight";
   loadBodyweightRoutineRecords();
+  loadBodyweightCustomRoutines();
   loadBodyweightGoals();
   seedDefaultBodyweightGoalsIfNeeded();
   bodyweightSyncGoalStatuses();
@@ -9749,6 +9947,7 @@ function attachBwSwipeBack(screenEl, closeFn){
 [
   ["bodyweightBasicScreen", closeBodyweightBasic],
   ["bodyweightRoutineListScreen", closeBodyweightRoutineList],
+  ["bodyweightRoutineCreateScreen", closeBodyweightRoutineCreate],
   ["bodyweightRoutineDetailScreen", closeBodyweightRoutineDetail],
   ["bodyweightLogScreen", closeBodyweightLog],
   ["bodyweightLogExerciseListScreen", closeBodyweightLogExerciseList],
