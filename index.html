@@ -1751,6 +1751,12 @@ html.light-mode-on .dex-post-card.has-image{
   padding-bottom: 0;
 }
 
+/* 🔥 카드 겉테두리 크기는 유지한 채, 안에서 구분선 위치만 아래로 옮기기 위해
+   카드 자체의 아래쪽 여백만 없앰(위쪽은 유지) */
+.settings-card--flush-bottom {
+  padding-bottom: 0;
+}
+
 .settings-section-label {
   font-size: 13px;
   font-weight: 600;
@@ -1778,8 +1784,8 @@ html.light-mode-on .dex-post-card.has-image{
 
 #settingsGuestBadge {
   margin-top: 2px;
-  margin-bottom: 12px;
-  padding-bottom: 152px;
+  margin-bottom: 0;
+  padding-bottom: 60px;
   border-bottom: 1px solid #222;
 }
 
@@ -1823,7 +1829,7 @@ html.light-mode-on .dex-post-card.has-image{
   -webkit-appearance: none;
   appearance: none;
   width: 100%;
-  min-height: 65px; /* 🔥 로그인 전(1줄)/후(2줄) 텍스트 줄 수가 달라도 세로 폭을 동일하게 고정 */
+  min-height: 51px; /* 🔥 로그인 전(1줄)/후(2줄) 텍스트 줄 수가 달라도 세로 폭을 동일하게 고정 */
   background: transparent;
   border: none;
   color: #eee;
@@ -5148,7 +5154,7 @@ input[type="number"] {
     <div class="settings-body">
 
 <!-- ✅ 카드 1: 프로필/로그인 -->
-<div class="settings-card">
+<div class="settings-card settings-card--flush-bottom">
   <div id="settingsGuestBadge">
     <div class="settings-name" id="settingsHeaderName">게스트</div>
     <div class="settings-email" id="settingsHeaderSub">로그인하지 않음</div>
@@ -6560,7 +6566,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.17";
+const APP_VERSION = "0.5.18";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
