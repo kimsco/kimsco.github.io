@@ -1231,10 +1231,6 @@ cursor: pointer;
   flex-direction: column;
   gap: 12px;
 }
-.bw-menu-row {
-  display: flex;
-  gap: 12px;
-}
 .bw-menu-card {
   position: relative;
   box-sizing: border-box;
@@ -1269,11 +1265,6 @@ cursor: pointer;
   bottom: 14px;
   font-size: 18px;
   color: rgba(255,255,255,0.3);
-}
-.bw-menu-row .bw-menu-card {
-  flex: 1;
-  min-width: 0;
-  padding: 16px 16px 18px;
 }
 
 /* 맨몸운동 「02 — 루틴」 목록 */
@@ -1414,7 +1405,7 @@ cursor: pointer;
   color: #fff;
 }
 
-/* 아직 구현되지 않은 메뉴(스킬/도감/기록/목표) */
+/* 아직 구현되지 않은 메뉴(기록/목표) */
 .bw-placeholder {
   flex: 1;
   min-height: 0;
@@ -5443,7 +5434,7 @@ input[type="number"] {
       <button id="bodyweightRoutineStartBtn" class="bw-finish-btn">운동 시작</button>
     </div>
 
-    <!-- 1b단계: 준비 중 화면 (03 스킬 / 04 도감 / 05 기록 / 06 목표 공용) -->
+    <!-- 1b단계: 준비 중 화면 (03 기록 / 04 목표 공용) -->
     <div id="bodyweightPlaceholderScreen" style="display:none; flex:1; min-height:0; flex-direction:column;">
       <div class="bw-header">
         <button onclick="closeBodyweightPlaceholder()" class="bw-header-back" aria-label="뒤로가기">←</button>
@@ -7078,7 +7069,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.24";
+const APP_VERSION = "0.5.25";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -7998,9 +7989,9 @@ const bodyweightOverlay = document.getElementById("bodyweightOverlay");
 const bodyweightScreen = document.getElementById("bodyweightScreen");
 let bodyweightPrevPart = null; // 🔥 닫을 때 기록탭의 currentPart를 원래대로 복원하기 위함
 
-// 🔥 메뉴(01~06 카드) — "기본운동"/"루틴"만 실제 기능이 있고, 나머지는 눌렀을 때 준비 중 화면
+// 🔥 메뉴(01~04 카드) — "기본운동"/"루틴"만 실제 기능이 있고, 나머지는 눌렀을 때 준비 중 화면
 const BODYWEIGHT_MENU_LABELS = {
-  skill: "스킬", guide: "도감", log: "기록", goal: "목표"
+  log: "기록", goal: "목표"
 };
 
 function bodyweightMenuBasicSub(){
@@ -8128,26 +8119,14 @@ function renderBodyweightMenu(){
       <div class="bw-menu-sub">${bodyweightMenuRoutineSub()}</div>
       <div class="bw-menu-arrow">→</div>
     </div>
-    <div class="bw-menu-card" data-menu="skill">
+    <div class="bw-menu-card" data-menu="log">
       <div class="bw-menu-num">03</div>
-      <div class="bw-menu-title">스킬</div>
-      <div class="bw-menu-sub">머슬업 · L-Sit · 플란체 · 프론트레버</div>
+      <div class="bw-menu-title">기록</div>
+      <div class="bw-menu-sub">내 데이터</div>
       <div class="bw-menu-arrow">→</div>
     </div>
-    <div class="bw-menu-row">
-      <div class="bw-menu-card" data-menu="guide">
-        <div class="bw-menu-num">04</div>
-        <div class="bw-menu-title">도감</div>
-        <div class="bw-menu-sub">운동 탐색</div>
-      </div>
-      <div class="bw-menu-card" data-menu="log">
-        <div class="bw-menu-num">05</div>
-        <div class="bw-menu-title">기록</div>
-        <div class="bw-menu-sub">내 데이터</div>
-      </div>
-    </div>
     <div class="bw-menu-card" data-menu="goal">
-      <div class="bw-menu-num">06</div>
+      <div class="bw-menu-num">04</div>
       <div class="bw-menu-title">목표</div>
       <div class="bw-menu-sub">내가 달성할 것</div>
       <div class="bw-menu-arrow">→</div>
