@@ -1742,6 +1742,15 @@ html.light-mode-on .dex-post-card.has-image{
   margin-bottom: 20px;
 }
 
+/* 🔥 카드 안이 전부 .settings-item(각자 상하 14px 패딩을 가짐)으로만 이루어진 경우,
+   카드 자체의 상하 패딩까지 더해지면 첫/마지막 행만 바깥쪽에 28px(카드14+행14),
+   구분선 쪽엔 14px만 생겨서 시각적으로 안 가운데인 것처럼 보임 — 카드의 상하
+   패딩을 없애고 각 행의 14px 패딩만으로 균등하게 만듦 */
+.settings-card--flush {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
 .settings-section-label {
   font-size: 13px;
   font-weight: 600;
@@ -5165,7 +5174,7 @@ input[type="number"] {
 
 <!-- ✅ 카드 2: 계정 -->
 <div class="settings-section-label">계정</div>
-<div class="settings-card">
+<div class="settings-card settings-card--flush">
   <button id="mySpecMenuBtn" class="settings-item" style="width:100%; text-align:left; background:none; color:#fff; cursor:pointer; border-bottom:none;">
     <img src="icons/setting-profile.png" class="settings-item-icon" alt="">내 정보 수정
   </button>
@@ -5177,7 +5186,7 @@ input[type="number"] {
 
 <!-- ✅ 카드 3: 일반 -->
 <div class="settings-section-label">일반</div>
-<div class="settings-card">
+<div class="settings-card settings-card--flush">
   <div class="settings-item" style="justify-content:space-between; border-bottom:1px solid #222;">
     <span class="settings-item-label"><img src="icons/setting-mode.png" class="settings-item-icon" alt="">화면 모드</span>
     <div id="lightModeToggle" class="toggle-switch"></div>
@@ -6551,7 +6560,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.15";
+const APP_VERSION = "0.5.16";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
