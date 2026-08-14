@@ -1709,11 +1709,6 @@ html.light-mode-on .dex-post-card.has-image{
   touch-action: pan-y;
 
   transform: translateX(100%);
-  animation: slideIn 0.25s ease forwards;
-}
-
-@keyframes slideIn {
-  to { transform: translateX(0); }
 }
 
 /* 헤더: 좌측 상단 "‹ 설정" */
@@ -6546,7 +6541,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.9";
+const APP_VERSION = "0.5.10";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -11407,9 +11402,19 @@ async function deleteAccessoryRecord(recordId) {
 const openSettingsBtn = document.getElementById("openSettingsBtn");
 const closeSettingsBtn = document.getElementById("closeSettingsBtn");
 const settingsOverlay = document.getElementById("settingsOverlay");
+const settingsPanelEl = document.getElementById("settingsPanel");
 
 openSettingsBtn.addEventListener("click", () => {
   settingsOverlay.classList.remove("hidden");
+  // 🔥 CSS 애니메이션에 의존하지 않고 JS로 직접 슬라이드인 처리
+  // (CSS animation은 fill-forwards로 계속 남아있어서, 스와이프 중 인라인 transform을
+  //  덮어써버려 드래그가 화면에 반영 안 되는 버그가 있었음 — navDrawer와 동일한 방식으로 통일)
+  settingsPanelEl.style.animation = "none";
+  settingsPanelEl.style.transition = "none";
+  settingsPanelEl.style.transform = "translateX(100%)";
+  void settingsPanelEl.offsetWidth; // 강제 리플로우
+  settingsPanelEl.style.transition = "transform 0.25s ease";
+  settingsPanelEl.style.transform = "translateX(0)";
 });
 
 closeSettingsBtn.addEventListener("click", () => {
