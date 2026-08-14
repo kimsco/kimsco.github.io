@@ -5159,10 +5159,10 @@ input[type="number"] {
 <!-- ✅ 카드 2: 계정 -->
 <div class="settings-section-label">계정</div>
 <div class="settings-card">
-  <button id="mySpecMenuBtn" class="settings-item" style="width:100%; text-align:left; background:none; color:#fff; cursor:pointer;">
+  <button id="mySpecMenuBtn" class="settings-item" style="width:100%; text-align:left; background:none; color:#fff; cursor:pointer; border-bottom:none;">
     <img src="icons/setting-profile.png" class="settings-item-icon" alt="">내 정보 수정
   </button>
-  <div class="settings-item" style="border-bottom:none; padding-bottom:0;">
+  <div class="settings-item" style="border-top:1px solid #222; border-bottom:none; padding-bottom:0;">
     <img src="icons/setting-inquiry.png" class="settings-item-icon" alt="">문의
   </div>
   <div class="settings-item muted" style="padding-top:2px; border-bottom:none;">김무진한테 문의하세요</div>
@@ -6544,7 +6544,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.13";
+const APP_VERSION = "0.5.14";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
