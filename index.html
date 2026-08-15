@@ -861,18 +861,36 @@ cursor: pointer;
   font-weight: 600;
 
   display: flex;
-  align-items: flex-start;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 4px;
 
   cursor: pointer;
 
- padding-top: 18px;         /* 🔥 이 값으로 위로 올림 */
+ padding-top: 12px;         /* 🔥 아이콘이 추가돼서 텍스트만 있을 때보다 살짝 줄임 */
 }
 
-/* ✅ 활성: 글자만 노란색 */
+/* ✅ 활성: 글자 흰색(아이콘과 동일한 색으로 통일) */
 .bottomTab .tabBtn.active{
-  color: #FFD700;
+  color: #fff;
   background: transparent;  /* 배경 절대 변경 없음 */
+}
+
+/* 🔥 하단 서브탭 아이콘 — 비활성: 회색, 활성: 흰색(글자 노란색과는 별개 색상) */
+.tabBtn-icon{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #7a7a7a;
+}
+.tabBtn-icon svg{
+  width: 22px;
+  height: 22px;
+  display: block;
+}
+.bottomTab .tabBtn.active .tabBtn-icon{
+  color: #fff;
 }
 
 /* ===============================
@@ -5436,11 +5454,50 @@ input[type="number"] {
 
 <!-- ✅ 하단 탭바 (새로 추가/이동) -->
 <div class="bottomTab" id="bottomTab">
-  <button class="tabBtn active" data-target="tab1">1RM</button>
-  <button class="tabBtn" data-target="tab2">3대</button>
-  <button class="tabBtn" data-target="tab4">기록</button>
-  <button class="tabBtn" data-target="tab3">달력</button>
-   <button class="tabBtn" id="dietTabBtn" data-target="tab5">식단</button>
+  <button class="tabBtn active" data-target="tab1">
+    <span class="tabBtn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" width="22" height="22">
+      <rect x="3.5" y="11.2" width="17" height="1.6" rx="0.5" fill="currentColor" stroke="none"/>
+      <rect x="1.5" y="9" width="3.4" height="6" rx="0.8"/>
+      <rect x="19.1" y="9" width="3.4" height="6" rx="0.8"/>
+      <rect x="5.5" y="7.5" width="2.4" height="9" rx="0.6"/>
+      <rect x="16.1" y="7.5" width="2.4" height="9" rx="0.6"/>
+    </svg></span>
+    <span class="tabBtn-label">1RM</span>
+  </button>
+  <button class="tabBtn" data-target="tab2">
+    <span class="tabBtn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" width="22" height="22">
+      <rect x="4" y="11" width="3.2" height="9" rx="1"/>
+      <rect x="10.4" y="6" width="3.2" height="14" rx="1"/>
+      <rect x="16.8" y="9" width="3.2" height="11" rx="1"/>
+    </svg></span>
+    <span class="tabBtn-label">3대</span>
+  </button>
+  <button class="tabBtn" data-target="tab4">
+    <span class="tabBtn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" width="22" height="22">
+      <path d="M3 20V10" opacity="0.35"/>
+      <path d="M3 20 8.5 14l3.5 3.5L21 8"/>
+      <path d="M16 8h5v5"/>
+    </svg></span>
+    <span class="tabBtn-label">기록</span>
+  </button>
+  <button class="tabBtn" data-target="tab3">
+    <span class="tabBtn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" width="22" height="22">
+      <rect x="3.5" y="5" width="17" height="15" rx="2.3"/>
+      <path d="M3.5 9.5h17"/>
+      <path d="M8 3v4M16 3v4"/>
+      <circle cx="8.3" cy="14" r="1" fill="currentColor" stroke="none"/>
+    </svg></span>
+    <span class="tabBtn-label">달력</span>
+  </button>
+   <button class="tabBtn" id="dietTabBtn" data-target="tab5">
+    <span class="tabBtn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" width="22" height="22">
+      <path d="M6 3v7.5a2 2 0 0 0 4 0V3"/>
+      <path d="M8 3v18"/>
+      <path d="M8 10.5V3"/>
+      <path d="M17 3c-1.5 0-2.5 2-2.5 5s1 5 2.5 5v8"/>
+    </svg></span>
+    <span class="tabBtn-label">식단</span>
+  </button>
 </div>
 
 <!-- 🔥 식단 탭 전용: 토스 증권탭처럼, 식단 화면 안에서는 5개짜리 하단탭 대신
@@ -7684,7 +7741,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.38";
+const APP_VERSION = "0.5.39";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -12730,8 +12787,11 @@ window.addEventListener('pageshow', resyncDietOverlayUI);
    (.bottomTab .tabBtn은 상단정렬+padding-top:18px, .dietSubTabBtn은 세로중앙정렬이라
    서로 정렬 방식이 달라서, 버튼 박스 기준으로 재면 글자 위치와 어긋나 버림 → 항상 글자 자체를 잼) */
 function getTextRect(el){
+  // 🔥 bottomTab의 tabBtn은 이제 아이콘+글자(.tabBtn-label)로 나뉘어 있어서,
+  //    버튼 전체를 재면 아이콘까지 포함돼 글자 위치가 어긋남 — 있으면 라벨만 측정
+  const target = el.querySelector('.tabBtn-label') || el;
   const range = document.createRange();
-  range.selectNodeContents(el);
+  range.selectNodeContents(target);
   return range.getBoundingClientRect();
 }
 
