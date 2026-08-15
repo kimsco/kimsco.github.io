@@ -3026,10 +3026,15 @@ html.light-mode-on .dex-post-card.has-image{
   z-index: 150000;
   opacity: 0;
   transition: opacity 180ms ease;
+  /* 🔥 .show가 빠지는 즉시(닫히는 애니메이션 도중에도) 클릭을 통과시켜야
+     함 — 안 그러면 display:none이 붙는 230ms 동안 화면 전체(하단 탭바
+     포함)가 보이지도 않는 이 레이어에 계속 가로막혀 탭이 씹힘 */
+  pointer-events: none;
 }
 
 .sheetOverlay.show{
   opacity: 1;
+  pointer-events: auto;
 }
 
 .sheetOverlay.hidden{
@@ -3070,12 +3075,18 @@ html.light-mode-on .dex-post-card.has-image{
 
   -webkit-overflow-scrolling: touch;
   touch-action: none;
+
+  /* 🔥 오버레이와 마찬가지로, .show가 빠지면(닫히는 애니메이션 도중에도)
+     즉시 클릭을 통과시켜야 함 — 안 그러면 320ms 슬라이드 아웃 동안 하단
+     탭바가 시트 박스 자체에 계속 가로막혀 탭이 씹힘 */
+  pointer-events: none;
 }
 
 /* ✅ 열릴 때 */
 .sheet.show{
   opacity: 1;
   transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
 }
 
 .sheet.hidden{
@@ -7818,7 +7829,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.64";
+const APP_VERSION = "0.5.65";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -12932,6 +12943,11 @@ bottomTabBtns.forEach(btn => {
       openDietOverlay(btn);
       return;
     }
+
+    // 🔥 3대탭 그래프 바텀시트를 열어둔 채로 다른 탭으로 전환하면, 시트가 화면
+    //    위에 그대로 남아있어(body.sheet-open 스크롤 잠금도 안 풀림) 새로 전환된
+    //    탭의 내용이 안 보이는 것처럼 보이는 버그가 있었음 — 탭 전환 시 항상 닫음
+    if (sheetOpen) closeSheet();
 
     bottomTabBtns.forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
