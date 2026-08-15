@@ -7818,7 +7818,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.63";
+const APP_VERSION = "0.5.64";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -13642,6 +13642,16 @@ function renderExercises(opts) {
 
 // 🔥 카드를 왼쪽으로 스와이프하면 오른쪽에 정사각형 삭제(휴지통) 버튼이 드러남
 const EXERCISE_SWIPE_ROWS = new Set();
+
+// 🔥 열려있는 스와이프 카드 바깥을 터치/클릭하면(다른 카드를 다시 열지 않아도) 바로 닫힘
+function closeExerciseSwipeRowsExcept(target){
+  EXERCISE_SWIPE_ROWS.forEach(o => {
+    if (o.isOpened() && !o.contains(target)) o.close();
+  });
+}
+document.addEventListener('touchstart', (e) => closeExerciseSwipeRowsExcept(e.target), { passive: true });
+document.addEventListener('mousedown', (e) => closeExerciseSwipeRowsExcept(e.target));
+
 function attachExerciseSwipeToReveal(card, delBtn){
   const REVEAL = 64;
   let startX = 0, startY = 0, baseX = 0, dragging = false, axisLocked = null, opened = false;
@@ -13654,6 +13664,7 @@ function attachExerciseSwipeToReveal(card, delBtn){
 
   const api = {
     isOpened: () => opened,
+    contains: (target) => card.contains(target) || delBtn.contains(target),
     close: () => {
       card.style.transition = 'transform 0.18s ease';
       card.style.transform = 'translateX(0px)';
