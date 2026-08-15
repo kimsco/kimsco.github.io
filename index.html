@@ -735,14 +735,16 @@ cursor: pointer;
 
 /* 🔥 카드를 왼쪽으로 스와이프하면 드러나는 오른쪽 정사각형 삭제 버튼.
    배경은 행 전체 폭을 채워서(카드 밑에 항상 깔려있음) 카드의 둥근 모서리와
-   버튼 사이에 틈이 보이지 않게 하고, 아이콘만 오른쪽 64px 정사각형 안에 위치시킴 */
+   버튼 사이에 틈이 보이지 않게 하고, 아이콘만 오른쪽 64px 정사각형 안에 위치시킴.
+   배경색은 평소엔 투명 — 실제로 스와이프 중일 때만 JS가 빨갛게 칠함(안 그러면
+   단순히 탭해서 카드가 :active로 살짝 줄어들 때 뒤로 빨간 테두리가 비침) */
 .exercise-delete-btn {
   position: absolute;
   inset: 0;
   margin: 0; /* 🔥 전역 button{margin:10px 0} 때문에 세로 높이가 카드보다 짧아지던 문제 수정 */
   padding: 0 21px 0 0;
   border: none;
-  background: #8b0000;
+  background: transparent;
   color: #fff;
   display: flex;
   align-items: center;
@@ -7814,7 +7816,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.61";
+const APP_VERSION = "0.5.62";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -13615,7 +13617,7 @@ function renderExercises(opts) {
       <div class="exercise-name">${name}</div>
     `;
 
-    const swipe = attachExerciseSwipeToReveal(card);
+    const swipe = attachExerciseSwipeToReveal(card, delBtn);
 
     card.addEventListener('click', () => {
       if (swipe.isOpened()) { swipe.close(); return; }
@@ -13636,15 +13638,22 @@ function renderExercises(opts) {
 
 // 🔥 카드를 왼쪽으로 스와이프하면 오른쪽에 정사각형 삭제(휴지통) 버튼이 드러남
 const EXERCISE_SWIPE_ROWS = new Set();
-function attachExerciseSwipeToReveal(card){
+function attachExerciseSwipeToReveal(card, delBtn){
   const REVEAL = 64;
   let startX = 0, startY = 0, baseX = 0, dragging = false, axisLocked = null, opened = false;
+
+  // 🔥 카드가 실제로 밀려 있을 때만 삭제 배경(빨강)을 보여줌 — 그냥 탭해서
+  //    :active로 살짝 눌릴 때(scale) 뒤로 빨간 테두리가 살짝 비치는 것 방지
+  function syncDelBg(x){
+    delBtn.style.background = (x < -0.5) ? '#8b0000' : 'transparent';
+  }
 
   const api = {
     isOpened: () => opened,
     close: () => {
       card.style.transition = 'transform 0.18s ease';
       card.style.transform = 'translateX(0px)';
+      syncDelBg(0);
       opened = false;
       EXERCISE_SWIPE_ROWS.delete(api);
     }
@@ -13674,6 +13683,7 @@ function attachExerciseSwipeToReveal(card){
     if (axisLocked !== 'x') { dragging = false; return; }
     const next = Math.min(0, Math.max(-REVEAL, baseX + dx));
     card.style.transform = `translateX(${next}px)`;
+    syncDelBg(next);
   }, { passive: true });
 
   function endDrag(){
@@ -13687,10 +13697,12 @@ function attachExerciseSwipeToReveal(card){
     const x = m.m41 || 0;
     if (x < -REVEAL / 2) {
       card.style.transform = `translateX(${-REVEAL}px)`;
+      syncDelBg(-REVEAL);
       opened = true;
       EXERCISE_SWIPE_ROWS.add(api);
     } else {
       card.style.transform = 'translateX(0px)';
+      syncDelBg(0);
       opened = false;
       EXERCISE_SWIPE_ROWS.delete(api);
     }
