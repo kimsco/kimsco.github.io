@@ -6805,7 +6805,12 @@ const save3Btn = document.getElementById('save3Btn');
 const save3Result = document.getElementById('save3Result');
 
 const folderBtns = document.querySelectorAll('.folderBtn');
-const folderContents = document.querySelectorAll('.folderContent');
+// 🔥 문서 전체가 아니라 #tab2로 범위를 좁혀야 함 — 기록탭의 #acc-records도
+//    class="folderContent"를 공유하고 있어서, 범위를 안 좁히면 3대탭에서
+//    종목(스쿼트/벤치/데드/OHP)을 바꿀 때마다 selectLift()가 무관한
+//    #acc-records의 active 클래스까지 벗겨서 display:none으로 만들어버리고
+//    있었음(기록탭에 다시 들어가도 세트 기록이 안 보이던 버그의 원인)
+const folderContents = document.querySelectorAll('#tab2 .folderContent');
 
 const benchBox = document.getElementById('benchBox');
 const squatBox = document.getElementById('squatBox');
@@ -7829,7 +7834,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.65";
+const APP_VERSION = "0.5.66";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
