@@ -7780,7 +7780,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.43";
+const APP_VERSION = "0.5.44";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -14248,15 +14248,16 @@ setInterval(updateYearProgress, 60 * 1000);
  *********************************/
 // 🔥 01 기본운동/기록탭(accRecordsByExercise) + 3대탭(records) + 맨몸운동 루틴 완료(bodyweightRoutineRecords)
 //    — 이 앱에서 "운동 기록"이 쌓이는 저장소 전부를 합쳐 "무언가 운동한 날"의 집합을 만듦
+// 🔥 맨몸운동(part === "bodyweight")과 맨몸운동 루틴 완료 기록은 집계에서 제외 —
+//    01 기본운동/기록탭(가슴·등·어깨·하체·팔)과 3대탭만 "운동한 날"로 인정
 function getAllExercisedDateSet(){
   const set = new Set();
   Object.values(accRecordsByExercise || {}).forEach(list => {
-    (list || []).forEach(r => { if (r && r.date) set.add(r.date); });
+    (list || []).forEach(r => { if (r && r.date && r.part !== "bodyweight") set.add(r.date); });
   });
   Object.values(records || {}).forEach(list => {
     (list || []).forEach(r => { if (r && r.date) set.add(r.date); });
   });
-  (bodyweightRoutineRecords || []).forEach(r => { if (r && r.date) set.add(r.date); });
   return set;
 }
 
@@ -14281,6 +14282,8 @@ function renderMonthlyExerciseRateChart(){
 
   const labels = [];
   const rates = [];
+  const exercisedCounts = [];
+  const denoms = [];
 
   for (let i = MONTH_RATE_MONTHS_TO_SHOW - 1; i >= 0; i--) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
@@ -14298,6 +14301,8 @@ function renderMonthlyExerciseRateChart(){
 
     labels.push(`${m + 1}`);
     rates.push(denom > 0 ? Math.round((exercisedCount / denom) * 100) : 0);
+    exercisedCounts.push(exercisedCount);
+    denoms.push(denom);
   }
 
   const colors = rates.map((_, idx) => idx === rates.length - 1 ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.3)');
@@ -14308,6 +14313,8 @@ function renderMonthlyExerciseRateChart(){
       labels,
       datasets: [{
         data: rates,
+        exercisedCounts,
+        denoms,
         backgroundColor: colors,
         borderRadius: 4,
         maxBarThickness: 22,
@@ -14319,7 +14326,19 @@ function renderMonthlyExerciseRateChart(){
       interaction: { mode: 'index', intersect: false },
       plugins: {
         legend: { display: false },
-        tooltip: { callbacks: { label: (c) => ` ${c.parsed.y}%` } },
+        tooltip: {
+          displayColors: false,
+          titleFont: { size: 18, weight: '700' }, // 🔥 기본 12px의 1.5배
+          bodyFont: { size: 18 },
+          padding: 12,
+          callbacks: {
+            title: (items) => `${items[0].label}월`,
+            label: (c) => {
+              const ds = c.dataset;
+              return [`${ds.exercisedCounts[c.dataIndex]}/${ds.denoms[c.dataIndex]} 일`, `${c.parsed.y}%`];
+            }
+          }
+        },
       },
       scales: {
         x: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.5)', font: { size: 10 } } },
