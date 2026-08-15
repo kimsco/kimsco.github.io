@@ -17,8 +17,6 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<!-- 🔥 3대 그래프 두 손가락 핀치줌(x축 범위 조절)용 -->
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2/dist/chartjs-plugin-zoom.min.js"></script>
 <style>
 /* ===============================
    🔥 전체 레이아웃 (폰 비율 고정)
@@ -3252,7 +3250,7 @@ body.sheet-open .app{
 #liftChart{
   display:block;
   height: 240px;
-  touch-action: none; /* 🔥 핀치줌/팬 제스처를 플러그인이 온전히 처리하도록 */
+  touch-action: none; /* 🔥 브라우저 기본 제스처를 끄고 핀치줌/팬을 JS가 직접 처리 */
 }
 
 /* ✅ 우측 고정 Y축: 칸을 만들지 말고 '겹쳐' 올리기 */
@@ -6702,7 +6700,7 @@ MuscleFlow는 개인의 운동 및 식단 기록을 관리하는 PWA 서비스�
 
 <!-- 힌트 문구 (그대로 유지) -->
 <div class="graphHint" id="graphHint">
-  점을 누르면 값이 뜹니다. 두 손가락으로 오므리거나 벌려서 확대·축소하고, 확대한 상태에서 좌우로 밀면 이동합니다.
+  점을 누르면 값이 뜹니다. 두 손가락을 벌려서 확대하고, 확대한 상태에서 좌우로 밀면 이동합니다.
 </div>
    
 
@@ -7784,7 +7782,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.52";
+const APP_VERSION = "0.5.53";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -14609,7 +14607,7 @@ function setCanvasWidthForPoints(n){
   const H = 240; // ✅ 고정 높이
 
   // 🔥 이제 점 개수만큼 캔버스를 늘려서 가로 스크롤시키는 대신, 컨테이너 폭에 딱
-  //    맞춰 고정하고 핀치줌/팬으로 x축 범위를 조절함(chartjs-plugin-zoom)
+  //    맞춰 고정하고 핀치줌/팬(자체 구현)으로 x축 범위를 조절함
   const w = (graphScroll && graphScroll.clientWidth) || 320;
 
   // ✅ 컨테이너도 높이 고정(로그인 시 늘어나는 것 방지)
@@ -14691,29 +14689,12 @@ function renderGraphForLift(liftKey){
             return ` ${v} kg (est)`;
           }
         }
-      },
-
-      // 🔥 두 손가락 핀치로 x축 범위를 확대/축소, 확대된 상태에서는 좌우로 밀어서(팬) 이동
-      zoom: {
-        limits: {
-          x: { min: "original", max: "original", minRange: 1 }
-        },
-        pan: {
-          enabled: true,
-          mode: "x",
-          onPanComplete: () => renderFixedYAxis()
-        },
-        zoom: {
-          pinch: { enabled: true },
-          wheel: { enabled: false },
-          mode: "x",
-          onZoomComplete: () => renderFixedYAxis()
-        }
       }
     },
 
     scales: {
       x: {
+        // min/max 미지정 = 항상 전체 값이 한눈에 보이는 기본 상태(핀치로 확대만 가능, 그 이상 축소는 안 됨)
         ticks: {
           maxRotation: 0,
           autoSkip: true,
@@ -14769,6 +14750,88 @@ function renderFixedYAxis(){
     yAxisEl.appendChild(tick);
   });
 }
+
+// 🔥 두 손가락 핀치로 x축 범위 확대(줌인)만 가능, 기본은 항상 전체 값이 한눈에 보이는
+//    상태이고 그 이상 축소(전체 범위보다 넓게)는 불가능. 확대된 상태에서는 한 손가락으로
+//    좌우로 밀어서(팬) 이동. CDN 서드파티 줌 플러그인 의존 없이 직접 구현(로드 실패 위험 회피).
+(function attachChartPinchZoom(canvas){
+  if(!canvas) return;
+  let pinchActive = false;
+  let panActive = false;
+  let startDist = 0;
+  let startMin = 0, startMax = 0;
+  let panStartX = 0;
+  let fullMin = 0, fullMax = 0;
+
+  function dist(t0, t1){
+    return Math.hypot(t1.clientX - t0.clientX, t1.clientY - t0.clientY);
+  }
+
+  function currentRange(){
+    const xs = chartInstance.options.scales.x;
+    const min = (typeof xs.min === "number") ? xs.min : fullMin;
+    const max = (typeof xs.max === "number") ? xs.max : fullMax;
+    return { min, max };
+  }
+
+  function applyRange(min, max){
+    if(min < fullMin){ max += (fullMin - min); min = fullMin; }
+    if(max > fullMax){ min -= (max - fullMax); max = fullMax; }
+    min = Math.max(fullMin, min);
+    max = Math.min(fullMax, max);
+    chartInstance.options.scales.x.min = min;
+    chartInstance.options.scales.x.max = max;
+    chartInstance.update("none");
+    renderFixedYAxis();
+  }
+
+  canvas.addEventListener("touchstart", (e)=>{
+    if(!chartInstance) return;
+    fullMin = 0;
+    fullMax = chartInstance.data.labels.length - 1;
+    if(e.touches.length === 2){
+      pinchActive = true; panActive = false;
+      startDist = dist(e.touches[0], e.touches[1]);
+      const r = currentRange();
+      startMin = r.min; startMax = r.max;
+    } else if(e.touches.length === 1){
+      const r = currentRange();
+      if(r.max - r.min < (fullMax - fullMin) - 0.001){ // 확대된 상태일 때만 팬 허용
+        panActive = true; pinchActive = false;
+        panStartX = e.touches[0].clientX;
+        startMin = r.min; startMax = r.max;
+      }
+    }
+  }, { passive: true });
+
+  canvas.addEventListener("touchmove", (e)=>{
+    if(!chartInstance) return;
+    if(pinchActive && e.touches.length === 2 && startDist > 0){
+      const d = dist(e.touches[0], e.touches[1]);
+      const scale = d / startDist;
+      const fullWidth = fullMax - fullMin;
+      const minWidth = Math.min(fullWidth, 2);
+      let newWidth = (startMax - startMin) / scale;
+      newWidth = Math.min(fullWidth, Math.max(minWidth, newWidth));
+      const center = (startMin + startMax) / 2;
+      applyRange(center - newWidth/2, center + newWidth/2);
+    } else if(panActive && e.touches.length === 1){
+      const width = startMax - startMin;
+      if(width > 0){
+        const pxPerUnit = canvas.clientWidth / width;
+        const shift = -(e.touches[0].clientX - panStartX) / pxPerUnit;
+        applyRange(startMin + shift, startMax + shift);
+      }
+    }
+  }, { passive: true });
+
+  const endTouch = (e)=>{
+    if(e.touches.length < 2) pinchActive = false;
+    if(e.touches.length < 1) panActive = false;
+  };
+  canvas.addEventListener("touchend", endTouch, { passive: true });
+  canvas.addEventListener("touchcancel", endTouch, { passive: true });
+})(chartCanvas);
 
 /* ================================================
    🥩 내 정보 수정 / 예정 탭 (단백질·매크로 계산 & 기록)
