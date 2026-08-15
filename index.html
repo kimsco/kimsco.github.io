@@ -17,6 +17,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<!-- 🔥 3대 그래프 두 손가락 핀치줌(x축 범위 조절)용 -->
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2/dist/chartjs-plugin-zoom.min.js"></script>
 <style>
 /* ===============================
    🔥 전체 레이아웃 (폰 비율 고정)
@@ -3235,12 +3237,11 @@ body.sheet-open .app{
   overflow: hidden;
 }
 
-/* 스크롤은 그래프만 담당 */
+/* 🔥 캔버스가 이제 컨테이너 폭에 딱 맞게 고정되고, 대신 핀치줌/팬으로 x축 범위를
+   조절하므로 네이티브 가로 스크롤은 꺼서 제스처가 겹치지 않게 함 */
 .graphScroll{
   width: 100%;
-  overflow-x: auto;
-  overflow-y: hidden;
-  -webkit-overflow-scrolling: touch;
+  overflow: hidden;
   padding: 0;                 /* ✅ padding 제거(정렬 꼬임 방지) */
   background: transparent;
   border: none;
@@ -3251,6 +3252,7 @@ body.sheet-open .app{
 #liftChart{
   display:block;
   height: 240px;
+  touch-action: none; /* 🔥 핀치줌/팬 제스처를 플러그인이 온전히 처리하도록 */
 }
 
 /* ✅ 우측 고정 Y축: 칸을 만들지 말고 '겹쳐' 올리기 */
@@ -6700,7 +6702,7 @@ MuscleFlow는 개인의 운동 및 식단 기록을 관리하는 PWA 서비스�
 
 <!-- 힌트 문구 (그대로 유지) -->
 <div class="graphHint" id="graphHint">
-  점을 누르면 값이 뜹니다. 좌우로 밀면 과거 기록을 볼 수 있습니다.
+  점을 누르면 값이 뜹니다. 두 손가락으로 오므리거나 벌려서 확대·축소하고, 확대한 상태에서 좌우로 밀면 이동합니다.
 </div>
    
 
@@ -7782,7 +7784,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.51";
+const APP_VERSION = "0.5.52";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -14606,10 +14608,9 @@ function buildDailySeries(liftKey, mode){
 function setCanvasWidthForPoints(n){
   const H = 240; // ✅ 고정 높이
 
-  // 점 1개당 44px 정도 + 여백
-  const base = 320;
-  const per = 44;
-  const w = Math.max(base, 40 + n * per);
+  // 🔥 이제 점 개수만큼 캔버스를 늘려서 가로 스크롤시키는 대신, 컨테이너 폭에 딱
+  //    맞춰 고정하고 핀치줌/팬으로 x축 범위를 조절함(chartjs-plugin-zoom)
+  const w = (graphScroll && graphScroll.clientWidth) || 320;
 
   // ✅ 컨테이너도 높이 고정(로그인 시 늘어나는 것 방지)
   if(graphScroll) graphScroll.style.height = H + "px";
@@ -14633,7 +14634,7 @@ function renderGraphForLift(liftKey){
   // UI 메타
   if(graphMetaEl) graphMetaEl.textContent = `${labels.length} pts`;
 
-  // 캔버스 폭 설정(가로 스크롤)
+  // 캔버스 폭 설정(컨테이너에 고정 — x축 범위는 핀치줌으로 조절)
   setCanvasWidthForPoints(labels.length);
 
   // 기존 차트 제거
@@ -14646,8 +14647,6 @@ function renderGraphForLift(liftKey){
   if(!labels.length){
     const ctx = chartCanvas.getContext("2d");
     ctx.clearRect(0,0,chartCanvas.width,chartCanvas.height);
-    // 스크롤도 맨앞
-    if(graphScroll) graphScroll.scrollLeft = 0;
     return;
   }
 
@@ -14682,7 +14681,7 @@ function renderGraphForLift(liftKey){
       legend: { display: false },
 
       // ✅ y축 배경 바(우측 고정 바탕)
-      
+
 
       tooltip: {
         callbacks: {
@@ -14691,6 +14690,24 @@ function renderGraphForLift(liftKey){
             if(mode === "weight") return ` ${v} kg`;
             return ` ${v} kg (est)`;
           }
+        }
+      },
+
+      // 🔥 두 손가락 핀치로 x축 범위를 확대/축소, 확대된 상태에서는 좌우로 밀어서(팬) 이동
+      zoom: {
+        limits: {
+          x: { min: "original", max: "original", minRange: 1 }
+        },
+        pan: {
+          enabled: true,
+          mode: "x",
+          onPanComplete: () => renderFixedYAxis()
+        },
+        zoom: {
+          pinch: { enabled: true },
+          wheel: { enabled: false },
+          mode: "x",
+          onZoomComplete: () => renderFixedYAxis()
         }
       }
     },
@@ -14713,12 +14730,6 @@ function renderGraphForLift(liftKey){
 }
     }
   }
-});
-
-  // ✅ 패널 열릴 때는 “최근(오른쪽)”이 보이게 스크롤 맨끝으로
-  // (원하면 왼쪽부터 보이게 이 줄을 0으로 바꾸면 됨)
-  requestAnimationFrame(()=>{
-  if(graphScroll) graphScroll.scrollLeft = graphScroll.scrollWidth;
 });
 
 // ✅ C단계: 차트 생성 끝난 직후 y축 DOM 렌더
