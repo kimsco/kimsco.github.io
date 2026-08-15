@@ -7780,7 +7780,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.45";
+const APP_VERSION = "0.5.46";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -14300,8 +14300,7 @@ function renderMonthlyExerciseRateChart(){
     const y = d.getFullYear();
     const m = d.getMonth(); // 0-indexed
     const daysInThisMonth = new Date(y, m + 1, 0).getDate();
-    const isCurrentMonth = (i === 0);
-    const denom = isCurrentMonth ? now.getDate() : daysInThisMonth; // 🔥 이번 달은 오늘까지 지난 날짜 기준
+    const denom = daysInThisMonth; // 🔥 이번 달도 오늘까지가 아니라 해당 월 전체 일수 기준
 
     let exercisedCount = 0;
     for (let day = 1; day <= denom; day++) {
