@@ -877,7 +877,7 @@ cursor: pointer;
   background: transparent;  /* 배경 절대 변경 없음 */
 }
 
-/* 🔥 하단 서브탭 아이콘 — 비활성: 회색, 활성: 흰색(글자 노란색과는 별개 색상) */
+/* 🔥 하단 서브탭 아이콘 — 비활성: 회색, 활성: 흰색(1RM만 예외로 노란색 #ffcc33) */
 .tabBtn-icon{
   display: flex;
   align-items: center;
@@ -891,6 +891,9 @@ cursor: pointer;
 }
 .bottomTab .tabBtn.active .tabBtn-icon{
   color: #fff;
+}
+.bottomTab .tabBtn[data-target="tab1"].active .tabBtn-icon{
+  color: #ffcc33;
 }
 
 /* ===============================
@@ -5486,12 +5489,14 @@ input[type="number"] {
 <!-- ✅ 하단 탭바 (새로 추가/이동) -->
 <div class="bottomTab" id="bottomTab">
   <button class="tabBtn active" data-target="tab1">
-    <span class="tabBtn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" width="22" height="22">
-      <rect x="3.5" y="11.2" width="17" height="1.6" rx="0.5" fill="currentColor" stroke="none"/>
-      <rect x="1.5" y="9" width="3.4" height="6" rx="0.8"/>
-      <rect x="19.1" y="9" width="3.4" height="6" rx="0.8"/>
-      <rect x="5.5" y="7.5" width="2.4" height="9" rx="0.6"/>
-      <rect x="16.1" y="7.5" width="2.4" height="9" rx="0.6"/>
+    <span class="tabBtn-icon"><svg viewBox="0 0 48 48" fill="currentColor" width="22" height="22">
+      <rect x="0" y="21.5" width="1.8" height="5" rx="0.9"/>
+      <rect x="2.2" y="14" width="4.6" height="20" rx="1.3"/>
+      <rect x="8.2" y="9" width="4.6" height="30" rx="1.3"/>
+      <rect x="13.6" y="21.5" width="20.8" height="5" rx="1"/>
+      <rect x="35.2" y="9" width="4.6" height="30" rx="1.3"/>
+      <rect x="41.2" y="14" width="4.6" height="20" rx="1.3"/>
+      <rect x="46.2" y="21.5" width="1.8" height="5" rx="0.9"/>
     </svg></span>
     <span class="tabBtn-label">1RM</span>
   </button>
@@ -7780,7 +7785,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.47";
+const APP_VERSION = "0.5.49";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
