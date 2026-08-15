@@ -207,22 +207,7 @@ button {
   min-height: 0;
 }
 
-/* 🔥 달력탭: 달력 부분은 고정, 1년 진행률만 스크롤 */
-#tab3.tabContent.active {
-  display: flex;
-  flex-direction: column;
-  height: calc(100vh - var(--topBarH) - var(--bottomTabH) - env(safe-area-inset-top) - env(safe-area-inset-bottom));
-}
-#tab3 .calendar {
-  flex-shrink: 0;
-}
-#tab3ScrollArea {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
-}
+/* 🔥 달력탭: 고정하지 않고 탑바/바텀바만 고정된 채 달력+1년 진행률이 함께 스크롤됨(초기 상태) */
 
 /* 🔥 3대탭: 위 종목탭바는 고정, 기록 박스가 남는 공간을 꽉 채움 (저장바는 위에 떠있음) */
 #tab2.tabContent.active {
@@ -7699,7 +7684,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.37";
+const APP_VERSION = "0.5.38";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -12808,7 +12793,7 @@ bottomTabBtns.forEach(btn => {
     bottomTabBtns.forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
 
-    const FLEX_LAYOUT_TABS = ['tab2', 'tab3', 'tab4']; // 🔥 고정헤더+꽉채움 레이아웃을 쓰는 탭들
+    const FLEX_LAYOUT_TABS = ['tab2', 'tab4']; // 🔥 고정헤더+꽉채움 레이아웃을 쓰는 탭들
     bottomTabContents.forEach(tc => {
       const on = (tc.id === target);
       tc.classList.toggle('active', on);
