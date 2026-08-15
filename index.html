@@ -14607,7 +14607,7 @@ function setCanvasWidthForPoints(n){
   const H = 240; // ✅ 고정 높이
 
   // 🔥 이제 점 개수만큼 캔버스를 늘려서 가로 스크롤시키는 대신, 컨테이너 폭에 딱
-  //    맞춰 고정하고 핀치줌/팬으로 x축 범위를 조절함(chartjs-plugin-zoom)
+  //    맞춰 고정하고 핀치줌/팬(자체 구현)으로 x축 범위를 조절함
   const w = (graphScroll && graphScroll.clientWidth) || 320;
 
   // ✅ 컨테이너도 높이 고정(로그인 시 늘어나는 것 방지)
