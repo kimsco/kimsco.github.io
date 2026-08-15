@@ -7782,7 +7782,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.56";
+const APP_VERSION = "0.5.57";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -14660,6 +14660,7 @@ function renderGraphForLift(liftKey){
       tension: 0.25,
       pointRadius: 3,
       pointHoverRadius: 5,
+      pointHitRadius: 20, // 🔥 점을 눌렀을 때 값이 뜨는 터치 인식 범위(상하좌우)를 시각적 크기보다 넓게
       borderWidth: 2,
       fill: false
     }]
