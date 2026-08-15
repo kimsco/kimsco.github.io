@@ -7780,7 +7780,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.46";
+const APP_VERSION = "0.5.47";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -14332,22 +14332,9 @@ function renderMonthlyExerciseRateChart(){
     options: {
       responsive: false,
       maintainAspectRatio: false,
-      interaction: { mode: 'index', intersect: false },
       plugins: {
         legend: { display: false },
-        tooltip: {
-          displayColors: false,
-          titleFont: { size: 18, weight: '700' }, // 🔥 기본 12px의 1.5배
-          bodyFont: { size: 18 },
-          padding: 12,
-          callbacks: {
-            title: (items) => `${items[0].label}월`,
-            label: (c) => {
-              const ds = c.dataset;
-              return [`${ds.exercisedCounts[c.dataIndex]}/${ds.denoms[c.dataIndex]} 일`, `${c.parsed.y}%`];
-            }
-          }
-        },
+        tooltip: { enabled: false }, // 🔥 눌러도 라벨/툴팁이 뜨지 않게 함
       },
       scales: {
         x: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.5)', font: { size: 10 } } },
