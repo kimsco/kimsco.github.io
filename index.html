@@ -7782,7 +7782,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.55";
+const APP_VERSION = "0.5.56";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -14669,6 +14669,10 @@ function renderGraphForLift(liftKey){
     responsive: false,
     maintainAspectRatio: false,
     interaction: { mode: "nearest", intersect: true },
+
+    // 🔥 확대(핀치줌)해서 맨 끝 점이 딱 축 경계에 오면 점 마커(반지름)가 잘려 보이므로,
+    //    차트 영역 경계 밖으로 살짝 더 그릴 수 있게 여유를 둠
+    clip: 8,
 
     // ✅ 오른쪽에 y축 배경 바 들어갈 자리 확보
     layout: {
