@@ -6758,16 +6758,31 @@ const NSCA_TABLE = {
 };
 
 let selectedOneRMLift = 'bench';
-document.querySelectorAll('#oneRMExerciseTabs .oneRMLiftBtn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('#oneRMExerciseTabs .oneRMLiftBtn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    selectedOneRMLift = btn.dataset.lift;
-    // 🔥 종목을 바꾸면 이전에 입력/계산해둔 무게·횟수·표를 전부 초기화
-    weightSelect.value = '';
-    repsSelect.selectedIndex = 0;
-    tableArea.innerHTML = '';
+
+// 🔥 1RM탭 종목(data-lift)과 3대탭 종목(data-target 박스)이 서로 연동되도록 매핑
+const LIFT_TO_BOX = { squat: 'squatBox', bench: 'benchBox', dead: 'deadBox', ohp: 'ohpBox' };
+const BOX_TO_LIFT = { squatBox: 'squat', benchBox: 'bench', deadBox: 'dead', ohpBox: 'ohp' };
+
+// 🔥 1RM탭/3대탭 어느 쪽에서 종목을 바꾸든 이 함수 하나로 양쪽 다 같은 종목이 선택되게 맞춤
+function selectLift(key){
+  selectedOneRMLift = key;
+
+  document.querySelectorAll('#oneRMExerciseTabs .oneRMLiftBtn').forEach(b => {
+    b.classList.toggle('active', b.dataset.lift === key);
   });
+  // 🔥 종목을 바꾸면 이전에 입력/계산해둔 무게·횟수·표를 전부 초기화
+  weightSelect.value = '';
+  repsSelect.selectedIndex = 0;
+  tableArea.innerHTML = '';
+
+  const target = LIFT_TO_BOX[key];
+  folderBtns.forEach(b => b.classList.toggle('active', b.dataset.target === target));
+  folderContents.forEach(fc => fc.classList.toggle('active', fc.id === target));
+  renderActiveBox();
+}
+
+document.querySelectorAll('#oneRMExerciseTabs .oneRMLiftBtn').forEach(btn => {
+  btn.addEventListener('click', () => selectLift(btn.dataset.lift));
 });
 
 // 🔥 무게 입력창 키보드가 열려있는 상태에서 횟수 select를 누르면,
@@ -7416,17 +7431,10 @@ save3Btn.addEventListener('click', async ()=>{
 });
 
 
-/* 폴더 버튼 동작 (가로 버튼 → 하나의 박스만 active) */
+/* 폴더 버튼 동작 (가로 버튼 → 하나의 박스만 active) — 1RM탭 종목 선택과 연동 */
 folderBtns.forEach(btn=>{
     btn.addEventListener('click', ()=>{
-        folderBtns.forEach(b=>b.classList.remove('active'));
-        btn.classList.add('active');
-        const target = btn.dataset.target;
-        folderContents.forEach(fc=>{
-            if(fc.id === target) fc.classList.add('active');
-            else fc.classList.remove('active');
-        });
-       renderActiveBox();
+        selectLift(BOX_TO_LIFT[btn.dataset.target]);
     });
 });
 
@@ -7741,7 +7749,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.40";
+const APP_VERSION = "0.5.41";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
