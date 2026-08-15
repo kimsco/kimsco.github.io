@@ -7782,7 +7782,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.53";
+const APP_VERSION = "0.5.54";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -14779,8 +14779,16 @@ function renderFixedYAxis(){
     if(max > fullMax){ min -= (max - fullMax); max = fullMax; }
     min = Math.max(fullMin, min);
     max = Math.min(fullMax, max);
-    chartInstance.options.scales.x.min = min;
-    chartInstance.options.scales.x.max = max;
+
+    // 🔥 축소해서 거의 전체 범위로 돌아오면, 부동소수점 오차가 남은 min/max 대신
+    //    완전히 리셋(min/max 미지정)해야 함 — 안 그러면 오른쪽 끝 점이 살짝 잘림
+    if(min <= fullMin + 0.01 && max >= fullMax - 0.01){
+      chartInstance.options.scales.x.min = undefined;
+      chartInstance.options.scales.x.max = undefined;
+    } else {
+      chartInstance.options.scales.x.min = min;
+      chartInstance.options.scales.x.max = max;
+    }
     chartInstance.update("none");
     renderFixedYAxis();
   }
