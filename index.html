@@ -1273,6 +1273,21 @@ cursor: pointer;
   flex-direction: column;
   gap: 12px;
 }
+.bw-menu-tagline {
+  flex: 1;
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #fff;
+  font-family: 'Nanum Myeongjo', 'AppleMyungjo', 'Batang', serif;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.7;
+  letter-spacing: 0.2px;
+  padding: 20px 10px;
+}
 .bw-menu-card {
   box-sizing: border-box;
   background: #111;
@@ -7684,7 +7699,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.35";
+const APP_VERSION = "0.5.37";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -9667,6 +9682,7 @@ function renderBodyweightMenu(){
         <span class="bw-menu-arrow">→</span>
       </div>
     </div>
+    <div class="bw-menu-tagline">포기하면 편하다.<br>하지만 그 후회는 평생을 따라다닌다.</div>
   `;
 
   el.querySelectorAll(".bw-menu-card").forEach(card => {
