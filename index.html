@@ -234,9 +234,24 @@ button {
   flex-shrink: 0;
   margin-top: 7.6px;
 }
+/* 🔥 기록탭: 위 부위탭(가슴/등/어깨/하체/팔)은 고정, "+" 버튼부터 종목 목록만 스크롤
+   (3대/달력탭과 동일한 고정헤더+꽉채움 레이아웃) */
+#tab4.tabContent.active {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - var(--topBarH) - var(--bottomTabH) - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+}
 /* 🔥 기록 탭(가슴/등/어깨/하체/팔)도 1RM/3대 탭의 종목 탭 행과 같은 세로 위치로 통일 */
 #tab4 .recordFolders4 {
+  flex-shrink: 0;
   margin-top: 7.6px;
+}
+#tab4 #exercise-screen,
+#tab4 #exercise-detail-screen {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 #tab2 .folderContent {
   flex: 1;
@@ -7669,7 +7684,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.34";
+const APP_VERSION = "0.5.35";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -12777,7 +12792,7 @@ bottomTabBtns.forEach(btn => {
     bottomTabBtns.forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
 
-    const FLEX_LAYOUT_TABS = ['tab2', 'tab3']; // 🔥 고정헤더+꽉채움 레이아웃을 쓰는 탭들
+    const FLEX_LAYOUT_TABS = ['tab2', 'tab3', 'tab4']; // 🔥 고정헤더+꽉채움 레이아웃을 쓰는 탭들
     bottomTabContents.forEach(tc => {
       const on = (tc.id === target);
       tc.classList.toggle('active', on);
