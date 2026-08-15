@@ -7782,7 +7782,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.54";
+const APP_VERSION = "0.5.55";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -14774,6 +14774,27 @@ function renderFixedYAxis(){
     return { min, max };
   }
 
+  // 🔥 현재 보이는 x 구간의 값들만 기준으로 y축을 다시 스케일 — 전체 범위 기준으로
+  //    고정돼 있으면 확대해도 점들이 원래 자리(아래쪽)에 눌려 보이는 문제가 생김
+  function rescaleY(xMin, xMax){
+    const values = chartInstance.data.datasets[0].data;
+    if(xMin === undefined || xMax === undefined){
+      chartInstance.options.scales.y.min = undefined;
+      chartInstance.options.scales.y.max = undefined;
+      return;
+    }
+    const lo = Math.max(0, Math.floor(xMin));
+    const hi = Math.min(values.length - 1, Math.ceil(xMax));
+    const visible = values.slice(lo, hi + 1).filter(v => Number.isFinite(v));
+    if(!visible.length) return;
+    let yMin = Math.min(...visible);
+    let yMax = Math.max(...visible);
+    if(yMin === yMax){ yMin -= 1; yMax += 1; }
+    const pad = (yMax - yMin) * 0.15 || 1;
+    chartInstance.options.scales.y.min = yMin - pad;
+    chartInstance.options.scales.y.max = yMax + pad;
+  }
+
   function applyRange(min, max){
     if(min < fullMin){ max += (fullMin - min); min = fullMin; }
     if(max > fullMax){ min -= (max - fullMax); max = fullMax; }
@@ -14785,9 +14806,11 @@ function renderFixedYAxis(){
     if(min <= fullMin + 0.01 && max >= fullMax - 0.01){
       chartInstance.options.scales.x.min = undefined;
       chartInstance.options.scales.x.max = undefined;
+      rescaleY(undefined, undefined);
     } else {
       chartInstance.options.scales.x.min = min;
       chartInstance.options.scales.x.max = max;
+      rescaleY(min, max);
     }
     chartInstance.update("none");
     renderFixedYAxis();
