@@ -972,7 +972,7 @@ cursor: pointer;
   cursor: pointer;
 }
 .dietSubTabBtn.active{
-  color: #FFD700;
+  color: #fff;
 }
 
 
@@ -7741,7 +7741,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.39";
+const APP_VERSION = "0.5.40";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -12886,7 +12886,7 @@ bottomTabBtns.forEach(btn => {
 /* 🔥 식단 새창(오버레이) 열기: "식단" 글자가 원래 자리에서 캡슐 자리로 미끄러지듯 이동하고,
    탑바까지 포함해 화면 전체를 덮는 dietOverlay가 뜸 + 나머지 서브탭 3개가 순서대로 팝업 */
 function openDietOverlay(fromBtn){
-  const DIET_ACTIVE_COLOR = 'rgb(255, 215, 0)'; // .tabBtn.active / .dietSubTabBtn.active 공통 활성 색상
+  const DIET_ACTIVE_COLOR = 'rgb(255, 255, 255)'; // .tabBtn.active / .dietSubTabBtn.active 공통 활성 색상
   const fromRect = getTextRect(fromBtn);
   const { rect: toRect, targetBtn: toBtnEl } = measureDietSubTabRect('today');
 
@@ -12935,7 +12935,7 @@ function openDietOverlay(fromBtn){
 
 // 🔥 원형 뒤로가기 버튼: 식단 화면 밖으로 나가서 원래 있던 메인탭으로 복귀 (반대 방향 FLIP도 동일하게)
 document.getElementById('dietBackCircleBtn').addEventListener('click', () => {
-  const DIET_ACTIVE_COLOR = 'rgb(255, 215, 0)';   // .tabBtn.active / .dietSubTabBtn.active 공통 활성 색상
+  const DIET_ACTIVE_COLOR = 'rgb(255, 255, 255)';   // .tabBtn.active / .dietSubTabBtn.active 공통 활성 색상
   const DIET_INACTIVE_COLOR = 'rgb(136, 136, 136)'; // #888, 미선택 상태 공통 색상
 
   // 🔥 지금 보고 있는 서브탭(기록/통계/설정)이 뭐든 상관없이, 항상 "식단" 탭이 원래 자리로 돌아감
