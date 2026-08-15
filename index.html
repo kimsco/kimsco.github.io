@@ -695,10 +695,18 @@ button {
   background: #222;
   transform: scale(0.96);
 }
+.exercise-row {
+  position: relative;
+  margin-bottom: 10px;
+  border-radius: 14px;
+  overflow: hidden; /* 삭제 버튼은 스와이프해야만 드러남 */
+}
+
 .exercise-card {
 cursor: pointer;
+  position: relative;
+  z-index: 1;
   padding: 14px 16px;
-  margin-bottom: 10px;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -715,6 +723,23 @@ cursor: pointer;
 
 .exercise-card:active {
   transform: scale(0.985);
+}
+
+/* 🔥 카드를 왼쪽으로 스와이프하면 드러나는 오른쪽 정사각형 삭제 버튼 */
+.exercise-delete-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 64px;
+  border: none;
+  background: #8b0000;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 0;
 }
 
 .exercise-name {
@@ -5199,13 +5224,11 @@ input[type="number"] {
     <div style="cursor:pointer;" onclick="closeExerciseDetail()">
       ← <span id="detail-exercise-name"></span>
     </div>
-    <button id="delete-exercise-btn4" class="add-btn" aria-label="삭제">
-      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"
+    <button id="edit-exercise-btn4" class="add-btn" aria-label="종목명 수정">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"
            stroke-linecap="round" stroke-linejoin="round">
-        <line x1="3" y1="4" x2="21" y2="4"></line>
-        <rect x="6" y="6" width="12" height="14" rx="2"></rect>
-        <line x1="10" y1="10" x2="10" y2="18"></line>
-        <line x1="14" y1="10" x2="14" y2="18"></line>
+        <path d="M12 20h9"></path>
+        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
       </svg>
     </button>
   </div>
@@ -7105,9 +7128,9 @@ function closeExerciseDetail() {
   if (appEl) appEl.style.overflowY = 'auto';
 }
 
-document.getElementById('delete-exercise-btn4').addEventListener('click', (e) => {
+document.getElementById('edit-exercise-btn4').addEventListener('click', (e) => {
   e.stopPropagation();
-  if (currentExerciseName) deleteExercise(currentExerciseName);
+  if (currentExerciseName) renameExercise(currentExerciseName);
 });
 
 /* ===============================
@@ -7782,7 +7805,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.57";
+const APP_VERSION = "0.5.58";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -13560,24 +13583,177 @@ function renderExercises(opts) {
   targetEl.innerHTML = '';
 
   currentExercises.forEach(name => {
+    const row = document.createElement('div');
+    row.className = 'exercise-row';
+
+    const delBtn = document.createElement('button');
+    delBtn.type = 'button';
+    delBtn.className = 'exercise-delete-btn';
+    delBtn.setAttribute('aria-label', '삭제');
+    delBtn.innerHTML = `
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <line x1="3" y1="4" x2="21" y2="4"></line>
+        <rect x="6" y="6" width="12" height="14" rx="2"></rect>
+        <line x1="10" y1="10" x2="10" y2="18"></line>
+        <line x1="14" y1="10" x2="14" y2="18"></line>
+      </svg>
+    `;
+
     const card = document.createElement('div');
     card.className = 'exercise-card';
-
     card.innerHTML = `
       <div class="exercise-name">${name}</div>
     `;
 
-    card.addEventListener('click', () => onOpenDetail(name));
+    const swipe = attachExerciseSwipeToReveal(card);
 
-    targetEl.appendChild(card);
+    card.addEventListener('click', () => {
+      if (swipe.isOpened()) { swipe.close(); return; }
+      onOpenDetail(name);
+    });
+
+    delBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      swipe.close();
+      deleteExercise(name);
+    });
+
+    row.appendChild(delBtn);
+    row.appendChild(card);
+    targetEl.appendChild(row);
   });
+}
+
+// 🔥 카드를 왼쪽으로 스와이프하면 오른쪽에 정사각형 삭제(휴지통) 버튼이 드러남
+const EXERCISE_SWIPE_ROWS = new Set();
+function attachExerciseSwipeToReveal(card){
+  const REVEAL = 64;
+  let startX = 0, startY = 0, baseX = 0, dragging = false, axisLocked = null, opened = false;
+
+  const api = {
+    isOpened: () => opened,
+    close: () => {
+      card.style.transition = 'transform 0.18s ease';
+      card.style.transform = 'translateX(0px)';
+      opened = false;
+      EXERCISE_SWIPE_ROWS.delete(api);
+    }
+  };
+
+  card.addEventListener('touchstart', (e) => {
+    if (e.touches.length !== 1) return;
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    baseX = opened ? -REVEAL : 0;
+    dragging = true;
+    axisLocked = null;
+    card.style.transition = 'none';
+  }, { passive: true });
+
+  card.addEventListener('touchmove', (e) => {
+    if (!dragging) return;
+    const dx = e.touches[0].clientX - startX;
+    const dy = e.touches[0].clientY - startY;
+    if (axisLocked === null) {
+      if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
+      axisLocked = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+      if (axisLocked === 'x') {
+        EXERCISE_SWIPE_ROWS.forEach(o => { if (o !== api) o.close(); });
+      }
+    }
+    if (axisLocked !== 'x') { dragging = false; return; }
+    const next = Math.min(0, Math.max(-REVEAL, baseX + dx));
+    card.style.transform = `translateX(${next}px)`;
+  }, { passive: true });
+
+  function endDrag(){
+    if (!dragging) return;
+    dragging = false;
+    // 실제로 가로 드래그가 아니었으면(단순 탭/세로 스크롤) transform을 건드리지 않음
+    // — 인라인 style이 한 번이라도 세팅되면 카드 눌림(:active scale) 효과가 가려지므로
+    if (axisLocked !== 'x') return;
+    card.style.transition = 'transform 0.18s ease';
+    const m = new DOMMatrixReadOnly(getComputedStyle(card).transform);
+    const x = m.m41 || 0;
+    if (x < -REVEAL / 2) {
+      card.style.transform = `translateX(${-REVEAL}px)`;
+      opened = true;
+      EXERCISE_SWIPE_ROWS.add(api);
+    } else {
+      card.style.transform = 'translateX(0px)';
+      opened = false;
+      EXERCISE_SWIPE_ROWS.delete(api);
+    }
+  }
+  card.addEventListener('touchend', endDrag, { passive: true });
+  card.addEventListener('touchcancel', endDrag, { passive: true });
+
+  return api;
 }
 
    
 
 
+async function renameExercise(oldName) {
+  const input = prompt('종목명을 수정하세요', oldName);
+  if (input == null) return; // 취소
+  const newName = input.trim();
+  if (!newName || newName === oldName) return;
+
+  currentExercises = (currentExercises || []).filter(x => typeof x === 'string' && x.trim());
+  if (currentExercises.includes(newName)) {
+    alert('이미 존재하는 종목입니다.');
+    return;
+  }
+
+  const user = auth.currentUser;
+
+  // ✅ 1) 로컬 기록을 새 이름으로 이관 (게스트/로그인 공통)
+  accRecordsByExercise[newName] = accRecordsByExercise[oldName] || [];
+  delete accRecordsByExercise[oldName];
+  saveAccRecordsToLocal();
+
+  // ✅ 2) 현재 파트 목록에서 이름 교체 (게스트/로그인 공통)
+  const idx = currentExercises.indexOf(oldName);
+  if (idx !== -1) currentExercises[idx] = newName;
+  else currentExercises.unshift(newName);
+  if (currentPart) saveAccListToLocal(currentPart, currentExercises);
+
+  // ✅ 3) 로그인 상태면 Firestore 기록들도 새 이름으로 이관
+  if (user) {
+    const snap = await db
+      .collection('users')
+      .doc(user.uid)
+      .collection('accessoryRecords')
+      .where('exercise', '==', oldName)
+      .get();
+
+    const batch = db.batch();
+    snap.forEach(doc => batch.update(doc.ref, { exercise: newName }));
+    await batch.commit();
+
+    if (currentPart) {
+      await db
+        .collection('users')
+        .doc(user.uid)
+        .collection('accessories')
+        .doc(currentPart)
+        .set({ list: currentExercises }, { merge: true });
+    }
+  }
+
+  if (currentExerciseName === oldName) {
+    currentExerciseName = newName;
+    const nameEl = document.getElementById('detail-exercise-name');
+    if (nameEl) nameEl.textContent = newName;
+  }
+
+  renderExercises();
+}
+
 async function deleteExercise(exerciseName) {
-  if (!confirm('이 종목의 모든 기록을 삭제할까요?')) return;
+  if (!confirm('정말로 삭제하시겠습니까? 삭제하면 복구가 불가능합니다.')) return;
 
   const user = auth.currentUser;
 
