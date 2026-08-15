@@ -7780,7 +7780,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.44";
+const APP_VERSION = "0.5.45";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -14257,6 +14257,16 @@ function getAllExercisedDateSet(){
   });
   Object.values(records || {}).forEach(list => {
     (list || []).forEach(r => { if (r && r.date) set.add(r.date); });
+  });
+  // 🔥 달력탭에서 수동으로 근육을 체크해둔 날(calData)도 "운동한 날"로 함께 인정
+  //    (기록이 없어도 체크만 해뒀으면 카운트 — 기록 있는 날과 OR 조건)
+  Object.keys(calData || {}).forEach(key => {
+    const entry = calData[key];
+    if (!entry || !entry.muscles || !entry.muscles.length) return;
+    const parts = key.split('-'); // 🔥 calData 키 형식: "YYYY-M-D" (0패딩 없음)
+    if (parts.length !== 3) return;
+    const [yStr, mStr, dStr] = parts;
+    set.add(`${yStr.slice(-2)}.${mStr.padStart(2, '0')}.${dStr.padStart(2, '0')}`);
   });
   return set;
 }
