@@ -7780,7 +7780,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.42";
+const APP_VERSION = "0.5.43";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -7935,6 +7935,7 @@ auth.onAuthStateChanged(async user => {
     // 🔥 서버 응답을 기다리기 전에 로컬 캐시로 먼저 화면을 그려서 체감 딜레이를 없앰
     //    (아래 Firestore 조회들이 끝나는 대로 최신값으로 자연스럽게 덮어써짐)
     loadAllFromLocal();
+    loadBodyweightRoutineRecords(); // 🔥 맨몸운동 화면을 아직 한 번도 안 열었어도 월간 운동률 집계에 잡히도록 미리 로드
     loadUserSpecFromLocal();
     loadFoodTemplatesFromLocal();
     loadMealsFromLocal();
@@ -8050,6 +8051,7 @@ auth.onAuthStateChanged(async user => {
   } else {
     // ✅ 게스트: 로컬에서 전부 복원
     loadAllFromLocal();
+    loadBodyweightRoutineRecords(); // 🔥 맨몸운동 화면을 아직 한 번도 안 열었어도 월간 운동률 집계에 잡히도록 미리 로드
     loadUserSpecFromLocal();
     loadFoodTemplatesFromLocal();
     loadMealsFromLocal();
@@ -8061,6 +8063,10 @@ auth.onAuthStateChanged(async user => {
     currentPart = 'chest';
     await loadExercises(currentPart);
   }
+
+  // 🔥 로그인/게스트 양쪽 다 데이터 로딩이 끝난 시점에 다시 그려서, 페이지 로드 직후
+  //    아직 기록이 하나도 안 불러와진 상태로 그려졌던 "빈 그래프"가 최신 데이터로 갱신되게 함
+  renderMonthlyExerciseRateChart();
 });
 
 
@@ -14317,11 +14323,7 @@ function renderMonthlyExerciseRateChart(){
       },
       scales: {
         x: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.5)', font: { size: 10 } } },
-        y: {
-          min: 0, max: 100,
-          grid: { color: 'rgba(255,255,255,0.06)' },
-          ticks: { color: 'rgba(255,255,255,0.35)', font: { size: 10 }, stepSize: 20, callback: (v) => `${v}%` }
-        }
+        y: { display: false, min: 0, max: 100 }
       }
     }
   });
