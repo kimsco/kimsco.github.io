@@ -6679,8 +6679,8 @@ MuscleFlow는 개인의 운동 및 식단 기록을 관리하는 PWA 서비스�
       <div class="sheetBody">
   <div class="graphTopRow">
     <div class="seg">
-      <button class="segBtn active" data-mode="weight">WEIGHT</button>
-      <button class="segBtn" data-mode="e1rm">EST 1RM</button>
+      <button class="segBtn active" data-mode="e1rm">EST 1RM</button>
+      <button class="segBtn" data-mode="weight">WEIGHT</button>
     </div>
     <div class="graphMeta" id="graphMeta">0 pts</div>
   </div>
@@ -7782,7 +7782,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.50";
+const APP_VERSION = "0.5.51";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -14523,7 +14523,7 @@ graphOverlay.style.background = "";  // ✅ CSS 기본값으로
  * ✅ Chart.js (Bottom Sheet Graph)
  *********************************/
 let chartInstance = null;
-let graphMode = "weight"; // "weight" | "e1rm"
+let graphMode = "e1rm"; // "weight" | "e1rm"
 
 const chartCanvas = document.getElementById("liftChart");
 const graphMetaEl = document.getElementById("graphMeta");
