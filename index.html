@@ -2957,6 +2957,29 @@ html.light-mode-on .dex-post-card.has-image{
 }
 
 /* ===============================
+   ✅ 월간 운동률 (1년 진행률 아래)
+================================ */
+.month-rate{
+  margin-top: 24px;
+  padding: 16px 12px 14px;
+  background: transparent;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.month-rate-title{
+  text-align: center;
+  font-size: 16px;
+  font-weight: 700;
+  color: #eee;
+  letter-spacing: 0.2px;
+  margin-bottom: 14px;
+}
+.month-rate-chart-wrap{
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+/* ===============================
    ✅ Graph Bottom Sheet (A안)
 ================================ */
 
@@ -5240,6 +5263,14 @@ input[type="number"] {
 
   <div class="year-progress-foot">
     <span id="yearProgressCount">0/365</span>
+  </div>
+</div>
+
+<!-- ✅ 월간 운동률 (1년 진행률 아래) -->
+<div class="month-rate" id="monthRate">
+  <div class="month-rate-title" id="monthRateTitle">2026년 월간 운동률</div>
+  <div class="month-rate-chart-wrap">
+    <canvas id="monthRateChart" width="330" height="160"></canvas>
   </div>
 </div>
     </div>
@@ -7749,7 +7780,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.41";
+const APP_VERSION = "0.5.42";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -12881,6 +12912,10 @@ bottomTabBtns.forEach(btn => {
       // 🔥 로그인 직후 최초 1회 로드가 가끔 늦게 동기화되면서 기록이 비어 보이던
       //    문제 때문에, 기록 탭에 들어올 때마다 다시 불러와서 갱신
       if (auth.currentUser) loadAccessoryRecords();
+    } else if (target === 'tab3') {
+      detailScreen.style.display = 'none';
+      // 🔥 다른 탭에서 방금 새 기록을 남기고 왔을 수 있으니, 달력탭에 들어올 때마다 다시 그림
+      renderMonthlyExerciseRateChart();
     } else {
       detailScreen.style.display = 'none';
     }
@@ -14201,6 +14236,98 @@ updateYearProgress();
 
 // “실시간 수치 반영” 느낌: 1분마다 갱신(배터리도 괜찮음)
 setInterval(updateYearProgress, 60 * 1000);
+
+/*********************************
+ * ✅ 월간 운동률 (1년 진행률 아래)
+ *********************************/
+// 🔥 01 기본운동/기록탭(accRecordsByExercise) + 3대탭(records) + 맨몸운동 루틴 완료(bodyweightRoutineRecords)
+//    — 이 앱에서 "운동 기록"이 쌓이는 저장소 전부를 합쳐 "무언가 운동한 날"의 집합을 만듦
+function getAllExercisedDateSet(){
+  const set = new Set();
+  Object.values(accRecordsByExercise || {}).forEach(list => {
+    (list || []).forEach(r => { if (r && r.date) set.add(r.date); });
+  });
+  Object.values(records || {}).forEach(list => {
+    (list || []).forEach(r => { if (r && r.date) set.add(r.date); });
+  });
+  (bodyweightRoutineRecords || []).forEach(r => { if (r && r.date) set.add(r.date); });
+  return set;
+}
+
+let monthRateChartInstance = null;
+const MONTH_RATE_MONTHS_TO_SHOW = 10;
+
+function renderMonthlyExerciseRateChart(){
+  const canvas = document.getElementById('monthRateChart');
+  if (!canvas || typeof Chart === 'undefined') return;
+  const ctx = canvas.getContext('2d');
+
+  if (monthRateChartInstance) {
+    monthRateChartInstance.destroy();
+    monthRateChartInstance = null;
+  }
+
+  const exercisedDates = getAllExercisedDateSet();
+  const now = new Date();
+
+  const titleEl = document.getElementById('monthRateTitle');
+  if (titleEl) titleEl.textContent = `${now.getFullYear()}년 월간 운동률`;
+
+  const labels = [];
+  const rates = [];
+
+  for (let i = MONTH_RATE_MONTHS_TO_SHOW - 1; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const y = d.getFullYear();
+    const m = d.getMonth(); // 0-indexed
+    const daysInThisMonth = new Date(y, m + 1, 0).getDate();
+    const isCurrentMonth = (i === 0);
+    const denom = isCurrentMonth ? now.getDate() : daysInThisMonth; // 🔥 이번 달은 오늘까지 지난 날짜 기준
+
+    let exercisedCount = 0;
+    for (let day = 1; day <= denom; day++) {
+      const key = `${String(y).slice(2)}.${String(m + 1).padStart(2, '0')}.${String(day).padStart(2, '0')}`;
+      if (exercisedDates.has(key)) exercisedCount++;
+    }
+
+    labels.push(`${m + 1}`);
+    rates.push(denom > 0 ? Math.round((exercisedCount / denom) * 100) : 0);
+  }
+
+  const colors = rates.map((_, idx) => idx === rates.length - 1 ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.3)');
+
+  monthRateChartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        data: rates,
+        backgroundColor: colors,
+        borderRadius: 4,
+        maxBarThickness: 22,
+      }]
+    },
+    options: {
+      responsive: false,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: (c) => ` ${c.parsed.y}%` } },
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.5)', font: { size: 10 } } },
+        y: {
+          min: 0, max: 100,
+          grid: { color: 'rgba(255,255,255,0.06)' },
+          ticks: { color: 'rgba(255,255,255,0.35)', font: { size: 10 }, stepSize: 20, callback: (v) => `${v}%` }
+        }
+      }
+    }
+  });
+}
+
+renderMonthlyExerciseRateChart();
 
    
 
