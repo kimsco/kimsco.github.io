@@ -877,7 +877,7 @@ cursor: pointer;
   background: transparent;  /* 배경 절대 변경 없음 */
 }
 
-/* 🔥 하단 서브탭 아이콘 — 비활성: 회색, 활성: 흰색(1RM만 예외로 노란색 #ffcc33) */
+/* 🔥 하단 서브탭 아이콘 — 비활성: 회색, 활성: 흰색(전 탭 공통) */
 .tabBtn-icon{
   display: flex;
   align-items: center;
@@ -891,9 +891,6 @@ cursor: pointer;
 }
 .bottomTab .tabBtn.active .tabBtn-icon{
   color: #fff;
-}
-.bottomTab .tabBtn[data-target="tab1"].active .tabBtn-icon{
-  color: #ffcc33;
 }
 
 /* ===============================
@@ -7785,7 +7782,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.49";
+const APP_VERSION = "0.5.50";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
