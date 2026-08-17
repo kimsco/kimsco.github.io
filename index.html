@@ -7857,7 +7857,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.68";
+const APP_VERSION = "0.5.69";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -14812,12 +14812,16 @@ function labelMMDD(dateObj){
   return `${mm}.${dd}`;
 }
 
-// Epley 추정 1RM(너 기존 계산식 동일)
-function est1RM(weight, reps){
+// 🔥 1RM 계산기와 동일한 NSCA 종목별 환산표 기준으로 통일(전에는 그래프만
+//    별도로 Epley 공식을 써서 계산기 결과와 값이 달랐음)
+function est1RM(weight, reps, liftKey){
   const w = parseFloat(weight);
   const r = parseInt(reps,10);
   if(!Number.isFinite(w) || !Number.isFinite(r) || r<=0) return NaN;
-  return w * (1 + r * 0.0333);
+  const table = NSCA_TABLE[liftKey];
+  if(!table) return w * (1 + r * 0.0333); // 안전망: 환산표가 없는 종목이면 기존 공식 사용
+  const idx = Math.min(Math.max(r, 1), 12) - 1; // 표는 1~12회까지만 있어 범위를 벗어나면 가장 가까운 값으로
+  return w * table[idx];
 }
 
 // 날짜별 최고값 집계
@@ -14836,7 +14840,7 @@ function buildDailySeries(liftKey, mode){
     if(mode === "weight"){
       v = parseFloat(it.weight);
     }else{
-      v = est1RM(it.weight, it.reps);
+      v = est1RM(it.weight, it.reps, liftKey);
     }
     if(!Number.isFinite(v)) continue;
 
