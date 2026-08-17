@@ -4144,6 +4144,7 @@ input[type="number"] {
   padding: 4px 14px;
   height: 343px; /* 🔥 .meal-log-row(실측 67px) 5개 분량 — 그 이상은 내부 스크롤 */
   overflow-y: auto;
+  overflow-x: hidden; /* 🔥 세로만 스크롤, 가로 스크롤은 항상 막음 */
   -webkit-overflow-scrolling: touch;
   box-sizing: border-box;
 }
@@ -4160,9 +4161,16 @@ input[type="number"] {
   padding: 10px 0;
   border-bottom: 1px solid rgba(255,255,255,0.08);
 }
+.meal-log-name-wrap {
+  min-width: 0; /* 🔥 flex 아이템 기본 min-width:auto 때문에 이름이 길면 줄어들지 않고 밀려나가던 문제 방지 */
+  overflow: hidden;
+}
 .meal-log-name {
   font-size: 14px;
   color: #eee;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap; /* 🔥 긴 음식명은 줄바꿈 대신 말줄임표로 축약 */
 }
 .meal-log-time {
   font-size: 13px;
@@ -4179,6 +4187,7 @@ input[type="number"] {
 .meal-flip-container {
   perspective: 1000px;
   border-bottom: 1px solid rgba(255,255,255,0.08);
+  overflow: hidden; /* 🔥 뒷면(영양성분) 텍스트가 길어도 카드 폭 밖으로 안 새어나가게 */
 }
 .meal-flip-inner {
   position: relative;
@@ -7332,6 +7341,8 @@ function setupRecordInfiniteScroll(containerEl, totalUnits, visibleUnits, hasMor
   observer.observe(sentinel);
 }
 
+// 🔥 3대탭(buildFlatLiftRows)과 동일하게, 같은 날짜 안에서 무게×횟수가 같은 세트가
+//    연속으로 이어지면 하나의 행("60kg × 5회 × 3set")으로 묶음
 function buildFlatAccessoryRows(exerciseName){
   const list = accRecordsByExercise[exerciseName] || [];
   const grouped = {};
@@ -7344,7 +7355,19 @@ function buildFlatAccessoryRows(exerciseName){
   const flat = [];
   dates.forEach(date => {
     const raw = grouped[date].slice().sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
-    raw.forEach(r => flat.push({ date, r }));
+
+    const packed = [];
+    for (const r of raw) {
+      const last = packed[packed.length - 1];
+      if (last && makeKey(last.weight, last.reps) === makeKey(r.weight, r.reps)) {
+        last.sets += 1;
+        last.ids.push(r.id);
+      } else {
+        packed.push({ weight: r.weight, reps: r.reps, sets: 1, ids: [r.id] });
+      }
+    }
+
+    packed.forEach(p => flat.push({ date, packedItem: p }));
   });
   return flat;
 }
@@ -7383,11 +7406,11 @@ function renderAccessoryRecords(exerciseName, opts) {
   const visibleRows = takeRowsThroughDays(flatRows, visibleDays);
 
   el.innerHTML = buildFlatRowsHtml(visibleRows, (row, showDate) => {
-    const r = row.r;
+    const p = row.packedItem;
     return `
       <div style="display:flex; align-items:center; line-height:1.6;">
-        <div class="acc-record-line record-set" data-id="${r.id}" style="flex:1; text-align:left;">
-          ${formatSetLine(r.weight, r.reps, 1)}
+        <div class="acc-record-line record-set" data-id="${p.ids[p.ids.length - 1]}" style="flex:1; text-align:left;">
+          ${formatSetLine(p.weight, p.reps, p.sets)}
         </div>
         <div style="
           width:90px;
@@ -7834,7 +7857,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.67";
+const APP_VERSION = "0.5.68";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -16890,7 +16913,7 @@ function renderTodayMealList(){
     container.innerHTML = `
       <div class="meal-flip-inner${m.id === flippedMealId ? " flipped" : ""}" data-id="${m.id}">
         <div class="meal-flip-front meal-log-row" style="border-bottom:none;">
-          <div>
+          <div class="meal-log-name-wrap">
             <div class="meal-log-name" data-id="${m.id}">${nameLabel}</div>
           </div>
           <div style="display:flex; align-items:center; gap:10px;">
