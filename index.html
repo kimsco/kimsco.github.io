@@ -708,6 +708,7 @@ button {
 cursor: pointer;
   position: relative;
   z-index: 1;
+  margin-bottom: 10px;
   padding: 14px 16px;
   display: flex;
   flex-direction: column;
@@ -7927,7 +7928,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.72";
+const APP_VERSION = "0.5.73";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
