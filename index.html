@@ -6453,7 +6453,7 @@ input[type="number"] {
     <button id="navExerciseDexBtn" class="nav-drawer-item" style="display:none;">운동도감</button>
     <button id="navMyRoutineBtn" class="nav-drawer-item">내 루틴</button>
     <button id="navBodyweightBtn" class="nav-drawer-item">맨몸운동</button>
-    <button id="navMuscleFinderBtn" class="nav-drawer-item">근육부위</button>
+    <button id="navMuscleFinderBtn" class="nav-drawer-item" style="opacity:0.45;">근육부위 🔒</button>
     <!-- 🔥 아직 실험 단계인 테스트용 버튼이라 맨 아래로 -->
     <button id="navTestRoutineRoomBtn" class="nav-drawer-item" style="margin-top:auto;">Test Routine Room</button>
   </div>
@@ -7935,7 +7935,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.70";
+const APP_VERSION = "0.5.71";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -10192,8 +10192,8 @@ let muscleFinderFace = "front"; // 지금 보이는 면
 let muscleFinderFlipping = false; // 회전 애니메이션 도중이면 true(다음 클릭 무시)
 
 document.getElementById("navMuscleFinderBtn").addEventListener("click", () => {
-  closeNavDrawerInstant();
-  openMuscleFinder();
+  // 🔒 준비 중(턴테이블용 각도 사진 모으는 중) — 완성될 때까지 임시로 잠가둠
+  alert("근육부위 기능은 현재 준비 중입니다.");
 });
 
 function openMuscleFinder(){
