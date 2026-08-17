@@ -708,6 +708,7 @@ button {
 #edit-exercise-btn4 {
   width: 44px;
   height: 44px;
+  margin-left: -2px; /* 🔥 아이콘 그림 자체의 좌측 여백만큼 살짝 당겨서 종목명과의 체감 간격 줄임 */
 }
 
 .exercise-card {
@@ -7934,7 +7935,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.77";
+const APP_VERSION = "0.5.78";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
