@@ -703,6 +703,12 @@ button {
   border: none;
   background: transparent;
 }
+/* 🔥 편집 버튼은 아이콘 크기(44px)와 버튼 크기를 맞춰서, 버튼 박스 안 여백 때문에
+   종목명과 아이콘 사이에 빈틈이 남는 것을 없앰(종목명에 최대한 붙어 보이게) */
+#edit-exercise-btn4 {
+  width: 44px;
+  height: 44px;
+}
 
 .exercise-card {
 cursor: pointer;
@@ -7928,7 +7934,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.76";
+const APP_VERSION = "0.5.77";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
