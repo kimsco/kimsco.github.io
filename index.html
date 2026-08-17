@@ -1226,6 +1226,9 @@ cursor: pointer;
 #bodyweightOverlay.hidden {
   display: none;
 }
+#muscleFinderOverlay.hidden {
+  display: none;
+}
 
 /* ===============================
    맨몸운동 「01 — 기본운동」
@@ -1300,6 +1303,55 @@ cursor: pointer;
   opacity: 0.95;
 }
 .bw-menu-header-spacer { width: 56px; flex-shrink: 0; }
+
+/* ===============================
+   🔥 근육부위찾기(실험용 v1) — 정면/후면 3D 회전
+================================ */
+.muscle-finder-cards {
+  flex-shrink: 0;
+  display: flex;
+  gap: 10px;
+  padding: 12px 18px;
+}
+.muscle-finder-card {
+  flex: 1;
+  padding: 12px 0;
+  border-radius: 12px;
+  background: #111;
+  border: 1px solid #222;
+  color: #aaa;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.muscle-finder-card.active {
+  background: #222;
+  border-color: #444;
+  color: #fff;
+}
+.muscle-finder-stage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  perspective: 1200px;
+  padding: 0 24px calc(24px + env(safe-area-inset-bottom));
+}
+.muscle-finder-flip {
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+.muscle-finder-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
 
 /* 맨몸운동 메뉴(01~06 카드) */
 .bw-menu-list {
@@ -6401,8 +6453,34 @@ input[type="number"] {
     <button id="navExerciseDexBtn" class="nav-drawer-item" style="display:none;">운동도감</button>
     <button id="navMyRoutineBtn" class="nav-drawer-item">내 루틴</button>
     <button id="navBodyweightBtn" class="nav-drawer-item">맨몸운동</button>
+    <button id="navMuscleFinderBtn" class="nav-drawer-item">근육부위</button>
     <!-- 🔥 아직 실험 단계인 테스트용 버튼이라 맨 아래로 -->
     <button id="navTestRoutineRoomBtn" class="nav-drawer-item" style="margin-top:auto;">Test Routine Room</button>
+  </div>
+</div>
+
+<!-- 🔥 근육부위찾기(실험용 v1) — 정면/후면 두 장짜리 인체 이미지를 CSS 3D로 회전시켜 전환 -->
+<div id="muscleFinderOverlay" class="hidden" style="
+    position:fixed; inset:0; background:#000; z-index:100000;
+    overflow:hidden;
+  ">
+  <div id="muscleFinderScreen" style="height:100%; display:flex; flex-direction:column;">
+    <div class="bw-menu-header">
+      <button onclick="closeMuscleFinder()" class="bw-menu-header-close" aria-label="닫기">✕</button>
+      <span class="bw-menu-header-title">근육부위</span>
+      <span class="bw-menu-header-spacer"></span>
+    </div>
+
+    <div class="muscle-finder-cards">
+      <button type="button" class="muscle-finder-card active" data-part="chest" data-face="front">가슴</button>
+      <button type="button" class="muscle-finder-card" data-part="back" data-face="back">등</button>
+    </div>
+
+    <div class="muscle-finder-stage">
+      <div class="muscle-finder-flip" id="muscleFinderFlip">
+        <img id="muscleFinderImg" class="muscle-finder-img" src="icons/muscle/front.png" alt="근육 부위 인체 이미지">
+      </div>
+    </div>
   </div>
 </div>
 
@@ -7857,7 +7935,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.69";
+const APP_VERSION = "0.5.70";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -10100,6 +10178,73 @@ document.getElementById("navBodyweightBtn").addEventListener("click", () => {
   //    보이던 예전 문제도 그대로 안 생김(둘 다 같은 프레임에 즉시 전환)
   closeNavDrawerInstant();
   openBodyweight();
+});
+
+/* ===============================
+   🔥 근육부위찾기(실험용 v1)
+================================ */
+const muscleFinderOverlay = document.getElementById("muscleFinderOverlay");
+const muscleFinderFlip = document.getElementById("muscleFinderFlip");
+const muscleFinderImg = document.getElementById("muscleFinderImg");
+const MUSCLE_FRONT_SRC = "icons/muscle/front.png";
+const MUSCLE_BACK_SRC = "icons/muscle/back.png";
+let muscleFinderFace = "front"; // 지금 보이는 면
+let muscleFinderFlipping = false; // 회전 애니메이션 도중이면 true(다음 클릭 무시)
+
+document.getElementById("navMuscleFinderBtn").addEventListener("click", () => {
+  closeNavDrawerInstant();
+  openMuscleFinder();
+});
+
+function openMuscleFinder(){
+  muscleFinderOverlay.classList.remove("hidden");
+}
+function closeMuscleFinder(){
+  muscleFinderOverlay.classList.add("hidden");
+}
+
+// 🔥 0deg -> 90deg(에지 상태에서 이미지 교체) -> (미러링 방지용 순간 이동) -90deg -> 0deg
+//    두 단계로 나눠서 도는 이유: 같은 방향으로 90deg에서 180deg까지 계속 돌리면
+//    새로 바꿔 끼운 이미지가 뒤집혀(미러링) 보임. 90deg 지점에서 반대쪽(-90deg,
+//    시각적으로는 완전히 같은 "옆에서 본 모습")으로 트랜지션 없이 순간 이동시킨 뒤
+//    거기서부터 0deg까지 마저 돌리면, 회전은 계속 같은 방향으로 이어지는 것처럼
+//    보이면서도 새 이미지는 미러링 없이 똑바로 나타남.
+function goToMuscleFace(targetFace, cardEl){
+  // 🔥 회전 중인 클릭은 완전히 무시해야 함 — 카드 활성 표시도 여기서 막아야
+  //    "다른 카드가 눌린 것처럼" 보이고 실제로는 무시되는 상태 불일치가 안 생김
+  if (muscleFinderFlipping) return;
+
+  document.querySelectorAll(".muscle-finder-card").forEach(c => c.classList.toggle("active", c === cardEl));
+  if (targetFace === muscleFinderFace) return;
+  muscleFinderFlipping = true;
+
+  const onHalfway = () => {
+    muscleFinderFlip.removeEventListener("transitionend", onHalfway);
+
+    muscleFinderImg.src = targetFace === "front" ? MUSCLE_FRONT_SRC : MUSCLE_BACK_SRC;
+
+    muscleFinderFlip.style.transition = "none";
+    muscleFinderFlip.style.transform = "rotateY(-90deg)";
+    void muscleFinderFlip.offsetWidth; // 강제 리플로우(트랜지션 없이 순간 이동시키기 위함)
+
+    muscleFinderFlip.style.transition = "transform 0.28s ease-out";
+    muscleFinderFlip.style.transform = "rotateY(0deg)";
+
+    const onDone = () => {
+      muscleFinderFlip.removeEventListener("transitionend", onDone);
+      muscleFinderFace = targetFace;
+      muscleFinderFlipping = false;
+    };
+    muscleFinderFlip.addEventListener("transitionend", onDone);
+  };
+  muscleFinderFlip.addEventListener("transitionend", onHalfway);
+
+  muscleFinderFlip.style.transition = "transform 0.28s ease-in";
+  muscleFinderFlip.style.transform = "rotateY(90deg)";
+}
+
+document.querySelectorAll(".muscle-finder-card").forEach(card => {
+  card.addEventListener("click", () => goToMuscleFace(card.dataset.face, card));
 });
 
 /* 🔥 맨몸운동 첫 화면(메뉴)은 스와이프로 못 나가게(오탈출 방지) — 상단 X 버튼으로만 닫힘.
