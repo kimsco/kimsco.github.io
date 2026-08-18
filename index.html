@@ -3455,10 +3455,10 @@ input[type="number"] {
   pointer-events: auto;
 }
 .sheetCalcExpandedHeader {
-  padding: 10px 14px 10px;
+  padding: 4px 14px 10px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   border-bottom: 1px solid rgba(255,255,255,0.06);
 }
 .sheetCalcExpandedBody {
@@ -6875,12 +6875,14 @@ MuscleFlow는 개인의 운동 및 식단 기록을 관리하는 PWA 서비스�
   </div>
 
   <!-- 🔥 무게 입력창을 탭하면 이 패널이 슬라이드업되며 그래프 시트가 차지하고 있는
-       공간을 그대로 다 채움(별도의 새 풀스크린 오버레이가 아니라 이 시트 안에서 확장) -->
+       공간을 그대로 다 채움(별도의 새 풀스크린 오버레이가 아니라 이 시트 안에서 확장).
+       뒤로가기 버튼 대신 위쪽 손잡이를 아래로 드래그하면 그래프 화면으로 되돌아감 -->
   <div id="sheetCalcExpanded" class="sheetCalcExpanded">
+    <div class="sheetHandle" id="sheetCalcExpandedHandle">
+      <div class="sheetGrab"></div>
+    </div>
     <div class="sheetCalcExpandedHeader">
-      <button id="sheetCalcExpandedBack" class="sheetClose" aria-label="뒤로">←</button>
       <div class="sheetTitle">1RM 계산기</div>
-      <span style="width:28px;"></span>
     </div>
     <div class="sheetCalcExpandedBody" id="sheetCalcExpandedBody"></div>
   </div>
@@ -8029,7 +8031,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.80";
+const APP_VERSION = "0.5.81";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -14875,12 +14877,11 @@ sheetCalcGoBtn.addEventListener('click', () => {
 });
 
 /* 🔥 무게 입력창을 탭하면 계산기 블록을 확장 패널로 옮기고(appendChild — 리스너/상태
-   그대로 유지) 그래프 시트가 차지한 공간 전체를 채우도록 슬라이드업. 뒤로가기를 누르면
-   원래 자리(그래프 아래)로 되돌림 */
+   그대로 유지) 그래프 시트가 차지한 공간 전체를 채우도록 슬라이드업.
+   뒤로가기 버튼은 없고, 위쪽 손잡이를 아래로 드래그하면 젤리처럼 튕기며 그래프 화면으로 복귀 */
 const sheetCalcInline = document.getElementById('sheetCalcInline');
 const sheetCalcExpanded = document.getElementById('sheetCalcExpanded');
 const sheetCalcExpandedBody = document.getElementById('sheetCalcExpandedBody');
-const sheetCalcExpandedBack = document.getElementById('sheetCalcExpandedBack');
 const sheetCalcInlineAnchor = document.getElementById('graphHint');
 
 function openSheetCalcExpanded(){
@@ -14894,13 +14895,54 @@ function openSheetCalcExpanded(){
 function closeSheetCalcExpanded(){
   if (!sheetCalcExpanded.classList.contains('show')) return;
   sheetCalcExpanded.classList.remove('show');
+  sheetCalcExpanded.style.transform = ""; // 드래그 중 남아있을 수 있는 인라인 transform 제거
   sheetCalcInlineAnchor.insertAdjacentElement('afterend', sheetCalcInline);
 }
 sheetCalcWeight.addEventListener('focus', openSheetCalcExpanded);
-sheetCalcExpandedBack.addEventListener('click', () => {
-  sheetCalcWeight.blur();
-  closeSheetCalcExpanded();
-});
+
+/* 🔥 손잡이를 아래로 드래그: 임계값(100px) 넘으면 닫고, 못 넘으면 원위치로
+   튕겨 돌아옴 — .sheetCalcExpanded에 이미 걸려있는 cubic-bezier(.22,1,.36,1)
+   트랜지션이 스냅백 시 탄성(젤리) 느낌을 만듦 */
+(function enableSheetCalcExpandedDragClose(){
+  const handle = document.getElementById('sheetCalcExpandedHandle');
+  if (!handle) return;
+
+  let startY = 0, curY = 0, dragging = false;
+
+  const onStart = (e) => {
+    if (!sheetCalcExpanded.classList.contains('show')) return;
+    dragging = true;
+    startY = (e.touches ? e.touches[0].clientY : e.clientY);
+    curY = 0;
+    sheetCalcExpanded.style.transition = "none";
+  };
+  const onMove = (e) => {
+    if (!dragging) return;
+    const y = (e.touches ? e.touches[0].clientY : e.clientY);
+    curY = Math.max(0, y - startY); // 아래로만
+    sheetCalcExpanded.style.transform = `translateY(${curY}px)`;
+  };
+  const onEnd = () => {
+    if (!dragging) return;
+    dragging = false;
+    sheetCalcExpanded.style.transition = "";
+
+    if (curY > 100) {
+      sheetCalcWeight.blur();
+      closeSheetCalcExpanded();
+    } else {
+      sheetCalcExpanded.style.transform = ""; // 젤리처럼 원위치로 튕겨 돌아옴
+    }
+  };
+
+  handle.addEventListener("mousedown", onStart);
+  document.addEventListener("mousemove", onMove);
+  document.addEventListener("mouseup", onEnd);
+
+  handle.addEventListener("touchstart", onStart, { passive:true });
+  document.addEventListener("touchmove", onMove, { passive:true });
+  document.addEventListener("touchend", onEnd);
+})();
 
 /* ✅ 아래로 드래그해서 닫기 */
 (function enableSheetDragClose(){
