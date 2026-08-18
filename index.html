@@ -339,12 +339,6 @@ button {
 
   border-bottom: 1px solid rgba(255,255,255,0.10);
 }
-/* 🔥 1RM/3대 탭의 종목 탭 행 모두 상단바 바로 밑에 동일한 여백(7.6px)을 줘서
-   두 탭의 종목 탭 위치를 통일 */
-#oneRMExerciseTabs{
-  margin-top: 7.6px;
-}
-
 /* 버튼 기본 */
 .folderBtn, .folderBtn4, .oneRMLiftBtn{
   flex: 1;
@@ -1209,6 +1203,9 @@ cursor: pointer;
   display: none;
 }
 #muscleFinderOverlay.hidden {
+  display: none;
+}
+#oneRMCalcOverlay.hidden {
   display: none;
 }
 
@@ -3374,11 +3371,12 @@ input[type="number"] {
     -moz-appearance: textfield; /* Firefox */
 }
    /* ===============================
-   1RM 입력 폭 2/3
+   1RM 계산기(좌측 메뉴 오버레이) 입력 폭 2/3
 ================================ */
-#tab1 #weight,
-#tab1 #reps,
-#tab1 #goBtn {
+#oneRMCalcOverlay #oneRMLiftSelect,
+#oneRMCalcOverlay #weight,
+#oneRMCalcOverlay #reps,
+#oneRMCalcOverlay #goBtn {
     width: 70%;
     padding: 10px;
     font-size: 16px;
@@ -3391,7 +3389,7 @@ input[type="number"] {
     border: 1px solid #2a2a2a;
 }
 
-#tab1 #weight {
+#oneRMCalcOverlay #oneRMLiftSelect {
     margin-top: 28px; /* 🔥 상단바 바로 밑에 너무 붙지 않도록 여백 확보 */
 }
 
@@ -3402,49 +3400,6 @@ input[type="number"] {
     /* 또는 padding-top: 30px; */
 }
 
-/* ===============================
-   🔥 3대탭 그래프 시트에 내장된 1RM 계산기(1RM탭과 동일한 형식)
-================================ */
-.graphCalcDivider {
-  margin: 24px 0 0;
-  border-top: 1px solid rgba(255,255,255,0.08);
-}
-.graphCalcTitle {
-  margin-top: 16px;
-  font-size: 13px;
-  font-weight: 700;
-  color: rgba(255,255,255,0.6);
-  letter-spacing: 0.3px;
-}
-#sheetCalcWeight,
-#sheetCalcReps,
-#sheetCalcGoBtn {
-  width: 70%;
-  padding: 10px;
-  font-size: 16px;
-  margin: 10px auto;
-  display: block;
-  border-radius: 14px;
-
-  background: #111;
-  color: #eee;
-  border: 1px solid #2a2a2a;
-}
-#sheetCalcTableArea {
-  margin-top: 20px;
-}
-
-/* 🔥 무게 입력창을 탭하면 별도 오버레이 패널이 덮이는 게 아니라, 그래프 시트의
-   기존 스크롤 컨텐츠(#sheetBody) 안에서 계산기 섹션(#sheetCalcInline)으로
-   부드럽게 스크롤 이동함 — 계산기가 시트의 스크롤 가능 높이만큼 min-height를
-   가지므로(JS에서 동적으로 설정) 스크롤이 끝나면 화면을 꽉 채우고, 그래프는
-   위로 스크롤돼 사라진 것처럼 보임 */
-#sheetCalcInline {
-  min-height: 0; /* JS에서 시트 높이에 맞춰 동적으로 채움 */
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
 /* 종목 모드 글씨체 */
 .calendar.muscle-mode .days div {
   font-family:
@@ -5265,19 +5220,11 @@ input[type="number"] {
 
 
 
-<!-- 1RM -->
+<!-- 1RM: 실제 계산기는 좌측 메뉴(1RM 계산기)로 이동됨, 이 탭은 안내 문구만 표시 -->
 <div id="tab1" class="tabContent active">
-  <div class="recordFolders" id="oneRMExerciseTabs">
-    <button class="oneRMLiftBtn" data-lift="squat">스쿼트</button>
-    <button class="oneRMLiftBtn active" data-lift="bench">벤치프레스</button>
-    <button class="oneRMLiftBtn" data-lift="dead">데드리프트</button>
-    <button class="oneRMLiftBtn" data-lift="ohp">OHP</button>
+  <div style="display:flex; align-items:center; justify-content:center; height:60vh; text-align:center; color:#777; font-size:14px; line-height:1.7; padding:0 30px;">
+    1RM 계산기가 좌측 메뉴바로 이동되었습니다.
   </div>
-  <input id="weight" type="number" placeholder="kg">
-    <select id="reps"></select>
-    <button id="goBtn">GO</button>
-    <div id="result"></div>
-    <div id="tableArea"></div>
 </div>
 
 <!-- 3대 -->
@@ -6492,6 +6439,7 @@ input[type="number"] {
     <button id="navExerciseDexBtn" class="nav-drawer-item" style="display:none;">운동도감</button>
     <button id="navMyRoutineBtn" class="nav-drawer-item">내 루틴</button>
     <button id="navBodyweightBtn" class="nav-drawer-item">맨몸운동</button>
+    <button id="navOneRMCalcBtn" class="nav-drawer-item">1RM 계산기</button>
     <button id="navMuscleFinderBtn" class="nav-drawer-item" style="opacity:0.45;">근육부위 🔒</button>
     <!-- 🔥 아직 실험 단계인 테스트용 버튼이라 맨 아래로 -->
     <button id="navTestRoutineRoomBtn" class="nav-drawer-item" style="margin-top:auto;">Test Routine Room</button>
@@ -6519,6 +6467,34 @@ input[type="number"] {
       <div class="muscle-finder-flip" id="muscleFinderFlip">
         <img id="muscleFinderImg" class="muscle-finder-img" src="icons/muscle/front.png" alt="근육 부위 인체 이미지">
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- 🔥 1RM 계산기 — 원래 하단 1RM탭이었던 화면을 좌측 메뉴로 이동 -->
+<div id="oneRMCalcOverlay" class="hidden" style="
+    position:fixed; inset:0; background:#000; z-index:100000;
+    overflow:hidden;
+  ">
+  <div id="oneRMCalcScreen" style="height:100%; display:flex; flex-direction:column;">
+    <div class="bw-menu-header">
+      <button onclick="closeOneRMCalc()" class="bw-menu-header-close" aria-label="닫기">✕</button>
+      <span class="bw-menu-header-title">1RM 계산기</span>
+      <span class="bw-menu-header-spacer"></span>
+    </div>
+
+    <div style="flex:1; overflow-y:auto;">
+      <select id="oneRMLiftSelect">
+        <option value="squat">스쿼트</option>
+        <option value="bench" selected>벤치프레스</option>
+        <option value="dead">데드리프트</option>
+        <option value="ohp">OHP</option>
+      </select>
+      <input id="weight" type="number" placeholder="kg">
+      <select id="reps"></select>
+      <button id="goBtn">GO</button>
+      <div id="result"></div>
+      <div id="tableArea"></div>
     </div>
   </div>
 </div>
@@ -6876,16 +6852,6 @@ MuscleFlow는 개인의 운동 및 식단 기록을 관리하는 PWA 서비스�
   점을 누르면 값이 뜹니다. 두 손가락을 벌려서 확대하고, 확대한 상태에서 좌우로 밀면 이동합니다.
 </div>
 
-<!-- 🔥 그래프 시트 안에 내장된 1RM 계산기(1RM탭 계산기와 동일한 형식, 지금 보고 있는 종목 기준).
-     무게 입력창을 탭하면 이 섹션으로 스르르 스크롤 이동함(그래프는 위로 스크롤돼 사라짐) -->
-<div id="sheetCalcInline">
-  <div class="graphCalcDivider"></div>
-  <div class="graphCalcTitle">1RM 계산기</div>
-  <input id="sheetCalcWeight" type="number" placeholder="kg">
-  <select id="sheetCalcReps"></select>
-  <button id="sheetCalcGoBtn">GO</button>
-  <div id="sheetCalcTableArea"></div>
-</div>
 
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -6985,13 +6951,13 @@ let selectedOneRMLift = 'bench';
 const LIFT_TO_BOX = { squat: 'squatBox', bench: 'benchBox', dead: 'deadBox', ohp: 'ohpBox' };
 const BOX_TO_LIFT = { squatBox: 'squat', benchBox: 'bench', deadBox: 'dead', ohpBox: 'ohp' };
 
-// 🔥 1RM탭/3대탭 어느 쪽에서 종목을 바꾸든 이 함수 하나로 양쪽 다 같은 종목이 선택되게 맞춤
+const oneRMLiftSelect = document.getElementById('oneRMLiftSelect');
+
+// 🔥 1RM계산기/3대탭 어느 쪽에서 종목을 바꾸든 이 함수 하나로 양쪽 다 같은 종목이 선택되게 맞춤
 function selectLift(key){
   selectedOneRMLift = key;
 
-  document.querySelectorAll('#oneRMExerciseTabs .oneRMLiftBtn').forEach(b => {
-    b.classList.toggle('active', b.dataset.lift === key);
-  });
+  if (oneRMLiftSelect) oneRMLiftSelect.value = key;
   // 🔥 종목을 바꾸면 이전에 입력/계산해둔 무게·횟수·표를 전부 초기화
   weightSelect.value = '';
   repsSelect.selectedIndex = 0;
@@ -7003,9 +6969,9 @@ function selectLift(key){
   renderActiveBox();
 }
 
-document.querySelectorAll('#oneRMExerciseTabs .oneRMLiftBtn').forEach(btn => {
-  btn.addEventListener('click', () => selectLift(btn.dataset.lift));
-});
+if (oneRMLiftSelect) {
+  oneRMLiftSelect.addEventListener('change', (e) => selectLift(e.target.value));
+}
 
 // 🔥 무게 입력창 키보드가 열려있는 상태에서 횟수 select를 누르면,
 //    키보드가 채 안 내려간 상태로 select 팝업이 화면 중상단에 뜨는 문제 방지:
@@ -7990,7 +7956,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.85";
+const APP_VERSION = "0.5.86";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -10233,6 +10199,23 @@ document.getElementById("navBodyweightBtn").addEventListener("click", () => {
   //    보이던 예전 문제도 그대로 안 생김(둘 다 같은 프레임에 즉시 전환)
   closeNavDrawerInstant();
   openBodyweight();
+});
+
+/* ===============================
+   🔥 1RM 계산기(좌측 메뉴로 이동)
+================================ */
+const oneRMCalcOverlay = document.getElementById("oneRMCalcOverlay");
+
+function openOneRMCalc(){
+  oneRMCalcOverlay.classList.remove("hidden");
+}
+function closeOneRMCalc(){
+  oneRMCalcOverlay.classList.add("hidden");
+}
+
+document.getElementById("navOneRMCalcBtn").addEventListener("click", () => {
+  closeNavDrawerInstant();
+  openOneRMCalc();
 });
 
 /* ===============================
@@ -14739,9 +14722,6 @@ function openSheet(liftKey){
       ensureFullLiftHistory(liftKey).then(added => {
         if (added && sheetOpen && lastLiftKey === liftKey) renderGraphForLift(liftKey);
       });
-
-      // 🔥 계산기 섹션이 시트 높이만큼 채워지도록(수동 스크롤로 내려도 화면을 꽉 채움)
-      if (typeof sizeSheetCalcInline === "function") sizeSheetCalcInline();
     });
   });
 }
@@ -14752,11 +14732,6 @@ function closeSheet(){
   graphOverlay.classList.remove("show");
   graphSheet.classList.remove("show");
   graphSheet.setAttribute("aria-hidden", "true");
-
-  // 🔥 계산기 섹션까지 스크롤돼 있었다면 다음에 열 때는 그래프부터 보이도록 원복
-  const sheetBodyElToReset = document.querySelector('#graphSheet .sheetBody');
-  if (sheetBodyElToReset) sheetBodyElToReset.scrollTop = 0;
-  document.getElementById('sheetCalcWeight')?.blur();
 
   setTimeout(()=>{
     graphOverlay.classList.add("hidden");
@@ -14791,96 +14766,6 @@ document.querySelectorAll(".folderBtn").forEach(btn=>{
 
 // 초기값 세팅: 현재 active 폴더를 lastLiftKey로 맞춤
 lastLiftKey = getActiveLiftKey();
-
-/* ===============================
-   🔥 그래프 시트에 내장된 1RM 계산기 — 1RM탭 계산기와 동일한 계산 로직을
-   재사용하되, 지금 그래프로 보고 있는 종목(lastLiftKey) 기준으로 동작
-================================ */
-const sheetCalcWeight = document.getElementById('sheetCalcWeight');
-const sheetCalcReps = document.getElementById('sheetCalcReps');
-const sheetCalcGoBtn = document.getElementById('sheetCalcGoBtn');
-const sheetCalcTableArea = document.getElementById('sheetCalcTableArea');
-
-for (let i = 1; i <= 12; i++) {
-  const opt = document.createElement("option");
-  opt.value = i;
-  opt.textContent = `${i}회`;
-  sheetCalcReps.appendChild(opt);
-}
-
-sheetCalcGoBtn.addEventListener('click', () => {
-  const weight = parseFloat(sheetCalcWeight.value);
-  const reps = parseInt(sheetCalcReps.value);
-
-  if (!weight || !reps) {
-    sheetCalcTableArea.innerHTML = `<div style="text-align:center;color:#ff5555;margin-top:10px;">
-                                       무게와 반복수를 입력하세요
-                                     </div>`;
-    return;
-  }
-
-  const liftKey = lastLiftKey || getActiveLiftKey();
-  const liftTable = NSCA_TABLE[liftKey];
-  const oneRM = weight * liftTable[reps - 1];
-
-  let html = '';
-  for (let r = 1; r <= 12; r++) {
-    const rmWeight = oneRM / liftTable[r - 1];
-    html += `<div style="
-                    text-align:center;
-                    color:white;
-                    margin:12px 0;
-                    font-size:16px;
-                    font-weight:600;
-               ">
-                    ${r}RM&nbsp;&nbsp;&nbsp;${rmWeight.toFixed(1)}kg
-             </div>`;
-  }
-
-  sheetCalcTableArea.innerHTML = html;
-});
-
-/* 🔥 무게 입력창을 탭하면 별도 오버레이 패널이 덮이는 게 아니라, 그래프 시트의
-   기존 스크롤 컨텐츠(#sheetBody) 안에서 계산기 섹션(#sheetCalcInline)으로
-   부드럽게 스크롤 이동함. 계산기 섹션은 시트의 스크롤 가능 높이만큼 min-height를
-   동적으로 가지므로, 스크롤이 끝나면 화면을 꽉 채우고 그래프는 위로 스크롤돼
-   사라진 것처럼 보임. 손을 떼고 스크롤이 멈추면 "그래프냐 계산기냐" 더 가까운
-   쪽으로 자동 보정(스냅)돼 어중간한 위치에 걸쳐있지 않고 젤리처럼 딱 붙음 */
-const sheetCalcInline = document.getElementById('sheetCalcInline');
-const sheetBodyEl = document.querySelector('#graphSheet .sheetBody');
-
-function sizeSheetCalcInline(){
-  if (!sheetBodyEl) return;
-  sheetCalcInline.style.minHeight = sheetBodyEl.clientHeight + 'px';
-}
-
-// 🔥 sheetBody가 position:relative가 아니라서 offsetTop은 #graphSheet 기준으로
-//    잡혀버림(중간에 위치 지정 안 된 wrapper들을 건너뜀) — 실제 스크롤 컨테이너
-//    기준 오프셋은 getBoundingClientRect 차이 + 현재 scrollTop으로 직접 계산해야 함
-function calcSectionScrollTop(){
-  const rect = sheetCalcInline.getBoundingClientRect();
-  const bodyRect = sheetBodyEl.getBoundingClientRect();
-  return rect.top - bodyRect.top + sheetBodyEl.scrollTop;
-}
-
-sheetCalcWeight.addEventListener('focus', () => {
-  sizeSheetCalcInline();
-  sheetBodyEl.scrollTo({ top: calcSectionScrollTop(), behavior: 'smooth' });
-});
-
-if (sheetBodyEl) {
-  let sheetBodyScrollSnapTimer = null;
-  sheetBodyEl.addEventListener('scroll', () => {
-    clearTimeout(sheetBodyScrollSnapTimer);
-    sheetBodyScrollSnapTimer = setTimeout(() => {
-      const calcTop = calcSectionScrollTop();
-      const st = sheetBodyEl.scrollTop;
-      if (st <= 0 || st >= calcTop) return; // 이미 그래프 맨위거나, 계산기 섹션 이상(결과표 스크롤 중일 수 있음)이면 손대지 않음
-      const target = (calcTop - st) > 100 ? 0 : calcTop;
-      sheetBodyEl.scrollTo({ top: target, behavior: 'smooth' });
-    }, 120);
-  }, { passive: true });
-}
 
 /* ✅ 아래로 드래그해서 닫기 */
 (function enableSheetDragClose(){
