@@ -3094,25 +3094,26 @@ html.light-mode-on .dex-post-card.has-image{
   color: #777;
 }
 .date-agenda-item{
-  display: flex;
-  align-items: center;
-  gap: 10px;
   padding: 9px 2px;
   border-bottom: 1px solid rgba(255,255,255,0.04);
 }
 .date-agenda-item:last-child{ border-bottom: none; }
 .date-agenda-dot{
+  display: inline-block;
   width: 8px;
   height: 8px;
   border-radius: 50%;
   flex-shrink: 0;
   background: #e0203f;
+  margin-right: 8px;
 }
 .date-agenda-dot-bodyweight,
 .date-agenda-dot-routine{
   background: #888;
 }
 .date-agenda-item-name{
+  display: flex;
+  align-items: center;
   font-size: 14px;
   font-weight: 600;
   color: #eee;
@@ -8013,7 +8014,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.6.9";
+const APP_VERSION = "0.6.10";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -14723,23 +14724,25 @@ function calKeyToRecordDate(key){
 }
 
 // 🔥 3대(records) + 기록탭/맨몸 기본운동(accRecordsByExercise) + 맨몸운동 루틴 완료(bodyweightRoutineRecords)를
-//    한 날짜(calData 키 기준) 기준으로 모두 모아서 "그날 뭘 했는지" 목록으로 반환
+//    한 날짜(calData 키 기준) 기준으로 모두 모아, 같은 종목이면 무게가 달라도 한 그룹으로 묶어서 반환
+//    — 각 그룹: { exercise, accent, lines: [{ weight, reps, sets }, ...] }
 function getExerciseRecordsForDate(calKey){
   const recordDate = calKeyToRecordDate(calKey);
   if (!recordDate) return [];
-  const out = [];
+
+  const groups = new Map(); // exercise명 -> group
+  function addLine(exercise, accent, weight, reps, sets){
+    if (!groups.has(exercise)) {
+      groups.set(exercise, { exercise, accent, lines: [] });
+    }
+    groups.get(exercise).lines.push({ weight, reps, sets });
+  }
 
   // 3대: 레코드 하나가 이미 "무게 x 횟수 x 세트" 단위로 저장되어 있음
   Object.entries(records || {}).forEach(([liftKey, arr]) => {
     (arr || []).forEach(r => {
       if (r && r.date === recordDate) {
-        out.push({
-          exercise: LIFT_DISPLAY_NAME[liftKey] || liftKey,
-          weight: r.weight,
-          reps: r.reps,
-          sets: r.sets || 1,
-          accent: "lift",
-        });
+        addLine(LIFT_DISPLAY_NAME[liftKey] || liftKey, "lift", r.weight, r.reps, r.sets || 1);
       }
     });
   });
@@ -14757,40 +14760,28 @@ function getExerciseRecordsForDate(calKey){
     });
   });
   accGroups.forEach(g => {
-    out.push({
-      exercise: g.exercise,
-      weight: g.weight,
-      reps: g.reps,
-      sets: g.sets,
-      accent: g.part === "bodyweight" ? "bodyweight" : "lift",
-    });
+    addLine(g.exercise, g.part === "bodyweight" ? "bodyweight" : "lift", g.weight, g.reps, g.sets);
   });
 
   // 맨몸운동 루틴 완료 기록: 세트별 무게가 없어서 루틴 단위 요약으로 표시
   (bodyweightRoutineRecords || []).forEach(r => {
     if (r && r.date === recordDate) {
-      out.push({
-        exercise: `${r.routineName || "루틴"} 완료`,
-        weight: null,
-        reps: r.totalReps,
-        sets: r.totalSets,
-        accent: "routine",
-      });
+      addLine(`${r.routineName || "루틴"} 완료`, "routine", null, r.totalReps, r.totalSets);
     }
   });
 
-  return out;
+  return [...groups.values()];
 }
 
-function dateAgendaSetsLabel(it){
-  if (it.accent === "routine") {
-    return `총 ${it.sets || 0}세트 · ${it.reps || 0}회`;
+function dateAgendaLineLabel(group, line){
+  if (group.accent === "routine") {
+    return `총 ${line.sets || 0}세트 · ${line.reps || 0}회`;
   }
-  const w = Number(it.weight);
-  if (it.weight !== null && it.weight !== undefined && it.weight !== "" && w > 0) {
-    return `${it.weight}kg × ${it.reps}회 · ${it.sets}세트`;
+  const w = Number(line.weight);
+  if (line.weight !== null && line.weight !== undefined && line.weight !== "" && w > 0) {
+    return `${line.weight}kg × ${line.reps}회 · ${line.sets}세트`;
   }
-  return `체중 × ${it.reps}회 · ${it.sets}세트`;
+  return `체중 × ${line.reps}회 · ${line.sets}세트`;
 }
 
 function renderDateAgendaPanel(){
@@ -14808,9 +14799,9 @@ function renderDateAgendaPanel(){
   const weekdayLabel = ["일", "월", "화", "수", "목", "금", "토"][dateObj.getDay()];
   const dateLabel = `${m}월 ${d}일 (${weekdayLabel})`;
 
-  const list = getExerciseRecordsForDate(key);
+  const groups = getExerciseRecordsForDate(key);
 
-  if (!list.length) {
+  if (!groups.length) {
     panel.innerHTML = `
       <div class="date-agenda-header">
         <span class="date-agenda-date">${dateLabel}</span>
@@ -14820,20 +14811,19 @@ function renderDateAgendaPanel(){
     return;
   }
 
-  const totalSets = list.reduce((sum, it) => sum + (it.sets || 0), 0);
+  const totalSets = groups.reduce((sum, g) => sum + g.lines.reduce((s, l) => s + (l.sets || 0), 0), 0);
 
   panel.innerHTML = `
     <div class="date-agenda-header">
       <span class="date-agenda-date">${dateLabel}</span>
-      <span class="date-agenda-count">${list.length}개 종목 · ${totalSets}세트</span>
+      <span class="date-agenda-count">${groups.length}개 종목 · ${totalSets}세트</span>
     </div>
     <div class="date-agenda-list">
-      ${list.map(it => `
+      ${groups.map(g => `
         <div class="date-agenda-item">
-          <span class="date-agenda-dot date-agenda-dot-${it.accent}"></span>
           <div class="date-agenda-item-body">
-            <div class="date-agenda-item-name">${escapeHtml(it.exercise)}</div>
-            <div class="date-agenda-item-sets">${dateAgendaSetsLabel(it)}</div>
+            <div class="date-agenda-item-name"><span class="date-agenda-dot date-agenda-dot-${g.accent}"></span>${escapeHtml(g.exercise)}</div>
+            ${g.lines.map(line => `<div class="date-agenda-item-sets">${dateAgendaLineLabel(g, line)}</div>`).join("")}
           </div>
         </div>
       `).join("")}
