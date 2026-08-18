@@ -816,14 +816,14 @@ cursor: pointer;
 
 /* 종목 모드 전용 */
 .calendar.muscle-mode .days div {
-  font-weight: 400;        /* 얇게 */
-  font-size: 14px;         /* 날짜보다 살짝 작게 */
+  font-weight: 700;         /* 🔥 상단 달력 타이틀(예: 2026년 8월)과 동일한 굵기/크기로 */
+  font-size: 16px;
   letter-spacing: 0.2px;
 }
 
 /* 운동한 날 배경은 유지 */
 .calendar.muscle-mode .days div.done {
-  font-weight: 400;
+  font-weight: 700;
 }
 
 /* recordAdd 버튼만 작게 */
@@ -3458,16 +3458,9 @@ input[type="number"] {
     /* 또는 padding-top: 30px; */
 }
 
-/* 종목 모드 글씨체 */
+/* 종목 모드 글씨체 — 🔥 상단 달력 타이틀(예: 2026년 8월)과 동일한 폰트 스택으로 통일 */
 .calendar.muscle-mode .days div {
-  font-family:
-    -apple-system,
-    BlinkMacSystemFont,
-    "SF Pro Text",
-    "Apple SD Gothic Neo",
-    "Noto Sans KR",
-    "Segoe UI",
-    sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
 }
 /* ===============================
    3대 총합 (설정 > 3대 총합 화면)
@@ -8001,7 +7994,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.6.11";
+const APP_VERSION = "0.6.12";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -14765,10 +14758,11 @@ function dateAgendaLineLabel(group, line){
     return `총 ${line.sets || 0}세트 · ${line.reps || 0}회`;
   }
   const w = Number(line.weight);
-  if (line.weight !== null && line.weight !== undefined && line.weight !== "" && w > 0) {
-    return `${line.weight}kg × ${line.reps}회 · ${line.sets}세트`;
-  }
-  return `체중 × ${line.reps}회 · ${line.sets}세트`;
+  const base = (line.weight !== null && line.weight !== undefined && line.weight !== "" && w > 0)
+    ? `${line.weight}kg × ${line.reps}회`
+    : `체중 × ${line.reps}회`;
+  // 🔥 1세트는 굳이 세트 수를 안 붙이고, 2세트 이상일 때만 뒤에 "× N세트"를 붙임
+  return (line.sets && line.sets >= 2) ? `${base} × ${line.sets}세트` : base;
 }
 
 function renderDateAgendaPanel(){
