@@ -819,10 +819,15 @@ cursor: pointer;
   background: #fff;
 }
 
+/* 달력 탭 토글 ON 상태에서 구슬은 기존 회색 배경색 그대로 유지 */
+#calendarToggle.toggle-switch.active::after {
+  background: #3a3a3a;
+}
+
 /* 종목 모드 전용 */
 .calendar.muscle-mode .days div {
   font-weight: 700;         /* 🔥 상단 달력 타이틀(예: 2026년 8월)과 동일한 굵기/크기로 */
-  font-size: 16px;
+  font-size: 13px;
   letter-spacing: 0.2px;
 }
 
@@ -7999,7 +8004,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.6.13";
+const APP_VERSION = "0.6.14";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
