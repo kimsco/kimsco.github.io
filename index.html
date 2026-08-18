@@ -473,11 +473,17 @@ button {
     display: grid;
     grid-template-columns: 48px 1fr 40px;
     align-items: center;
-    margin-bottom: 14px;
+
+    background: #161616;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 16px;
+    padding: 12px 8px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.35);
 }
    .month-title {
     font-size: 16px;
-    font-weight: 600;
+    font-weight: 700;
     color: #eee;
     white-space: nowrap;   /* 🔥 줄바꿈 방지 */
     text-align: center;
@@ -485,22 +491,29 @@ button {
  .month-btn {
     background: transparent;
     border: none;
-    color: #8b0000; /* 어두운 빨강 */
+    color: rgba(255,255,255,0.6);
     font-size: 18px;
     padding: 8px 10px;
     cursor: pointer;
-    opacity: 0.7;
+    opacity: 1;
 }
 
 .month-btn:active {
-    opacity: 1;
+    opacity: 0.6;
     transform: scale(0.95);
-}  
+}
 /* ===== 요일 ===== */
 .weekdays {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    margin-bottom: 8px;
+
+    background: #161616;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-top: none;
+    border-radius: 0 0 16px 16px;
+    margin-top: -16px;
+    padding-top: 8px;
+    margin-bottom: 12px;
 }
 
 .weekdays div {
@@ -548,15 +561,21 @@ button {
 
 /* 오늘 날짜 */
 .days div.today {
-  border: 1px solid #FFD700;
-  color: #FFD700;
+  border: 1px solid #e0203f;
+  color: #e0203f;
 }
 
 /* 운동한 날 */
 .days div.done {
-  background: linear-gradient(135deg, #8b0000, #400000);
-  color: white;
-  font-weight: 600;
+  background: linear-gradient(135deg, #ffffff, #c9c9c9);
+  color: #111;
+  font-weight: 700;
+}
+
+/* 선택된 날짜(클릭해서 하단 운동 목록을 보고 있는 날) */
+.days div.selected {
+  border: 1px solid #e0203f;
+  color: #e0203f;
 }
 
 
@@ -659,7 +678,7 @@ button {
   color: #aaa;
   padding: 0;
 }
-.days div.done:hover { background: linear-gradient(135deg, #8b0000, #400000) !important; transform: translateY(-1px); }
+.days div.done:hover { background: linear-gradient(135deg, #ffffff, #c9c9c9) !important; transform: translateY(-1px); }
 
 /* 🔒 모바일 long press 텍스트 선택 방지 */
 .days div,
@@ -3041,26 +3060,67 @@ html.light-mode-on .dex-post-card.has-image{
 }
 
 /* ===============================
-   ✅ 월간 운동률 (1년 진행률 아래)
+   ✅ 날짜별 운동 목록 (달력 아래, 1년 진행률 위)
 ================================ */
-.month-rate{
-  margin-top: 24px;
-  padding: 16px 12px 14px;
-  background: transparent;
-  border-top: 1px solid rgba(255,255,255,0.06);
+.date-agenda{
+  margin: 18px 4px 0;
+  padding: 14px 14px 6px;
+  background: #141414;
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 14px;
 }
-.month-rate-title{
-  text-align: center;
-  font-size: 16px;
-  font-weight: 700;
-  color: #eee;
-  letter-spacing: 0.2px;
-  margin-bottom: 14px;
-}
-.month-rate-chart-wrap{
+.date-agenda:empty{ display: none; }
+.date-agenda-header{
   display: flex;
-  justify-content: center;
-  width: 100%;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.date-agenda-date{
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+}
+.date-agenda-count{
+  font-size: 12px;
+  color: #888;
+}
+.date-agenda-empty{
+  padding: 14px 2px 16px;
+  text-align: center;
+  font-size: 13px;
+  color: #777;
+}
+.date-agenda-item{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 2px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.date-agenda-item:last-child{ border-bottom: none; }
+.date-agenda-dot{
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: #e0203f;
+}
+.date-agenda-dot-bodyweight,
+.date-agenda-dot-routine{
+  background: #888;
+}
+.date-agenda-item-name{
+  font-size: 14px;
+  font-weight: 600;
+  color: #eee;
+}
+.date-agenda-item-sets{
+  font-size: 12px;
+  color: #999;
+  margin-top: 2px;
 }
 
 /* ===============================
@@ -5356,6 +5416,9 @@ input[type="number"] {
     </div>
 
     <div id="tab3ScrollArea">
+<!-- 🔥 날짜별 운동 목록: 달력에서 날짜를 클릭하면 그날 기록된 운동이 여기 표시됨 -->
+<div class="date-agenda" id="dateAgendaPanel"></div>
+
 <!-- ✅ 1년 진행률 (달력 아래) -->
 <div class="year-progress" id="yearProgress">
   <div class="year-progress-title" id="yearProgressTitle">2026년 진행률</div>
@@ -5365,14 +5428,6 @@ input[type="number"] {
 
   <div class="year-progress-foot">
     <span id="yearProgressCount">0/365</span>
-  </div>
-</div>
-
-<!-- ✅ 월간 운동률 (1년 진행률 아래) -->
-<div class="month-rate" id="monthRate">
-  <div class="month-rate-title" id="monthRateTitle">2026년 월간 운동률</div>
-  <div class="month-rate-chart-wrap">
-    <canvas id="monthRateChart" width="330" height="160"></canvas>
   </div>
 </div>
     </div>
@@ -7958,7 +8013,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.6.7";
+const APP_VERSION = "0.6.8";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -8243,8 +8298,8 @@ auth.onAuthStateChanged(async user => {
   }
 
   // 🔥 로그인/게스트 양쪽 다 데이터 로딩이 끝난 시점에 다시 그려서, 페이지 로드 직후
-  //    아직 기록이 하나도 안 불러와진 상태로 그려졌던 "빈 그래프"가 최신 데이터로 갱신되게 함
-  renderMonthlyExerciseRateChart();
+  //    아직 기록이 하나도 안 불러와진 상태로 그려졌던 빈 목록이 최신 데이터로 갱신되게 함
+  renderDateAgendaPanel();
 });
 
 
@@ -8306,6 +8361,9 @@ let calendarMode = "date";
 
 let calSelectedDate = null;
 let calSelectedMuscles = [];
+
+// 🔥 하단 "날짜별 운동 목록" 패널에 표시 중인 날짜(calData 키 형식과 동일: "YYYY-M-D")
+let dateAgendaSelectedKey = `${new Date().getFullYear()}-${new Date().getMonth() + 1}-${new Date().getDate()}`;
 
 /* 🔥 Firestore 읽기 절약: 달력은 로그인 시 이번 달치만 받아오고, 다른 달로 넘길 때만
    그 달을 온디맨드로 추가 조회한다(식단 달력의 ensureMealsForMonth와 같은 패턴).
@@ -8374,6 +8432,11 @@ function calRender() {
       cell.classList.add("done");
     }
 
+    // 🔥 하단 "날짜별 운동 목록" 패널에 표시 중인 날짜 강조
+    if (key === dateAgendaSelectedKey) {
+      cell.classList.add("selected");
+    }
+
     if (calendarMode === "date") {
       cell.textContent = d;
     } else {
@@ -8395,6 +8458,13 @@ cell.addEventListener("mouseup", () => clearTimeout(timer));
 
 cell.addEventListener("touchend", () => clearTimeout(timer));
 
+    // 🔥 짧게 탭하면(롱프레스 아님) 그날 운동 목록을 하단 패널에 표시
+    cell.addEventListener("click", () => {
+      document.querySelectorAll("#calDays div.selected").forEach(el => el.classList.remove("selected"));
+      cell.classList.add("selected");
+      dateAgendaSelectedKey = key;
+      renderDateAgendaPanel();
+    });
 
     calDaysEl.appendChild(cell);
   }
@@ -13265,7 +13335,7 @@ bottomTabBtns.forEach(btn => {
     } else if (target === 'tab3') {
       detailScreen.style.display = 'none';
       // 🔥 다른 탭에서 방금 새 기록을 남기고 왔을 수 있으니, 달력탭에 들어올 때마다 다시 그림
-      renderMonthlyExerciseRateChart();
+      renderDateAgendaPanel();
     } else {
       detailScreen.style.display = 'none';
     }
@@ -14641,107 +14711,137 @@ updateYearProgress();
 setInterval(updateYearProgress, 60 * 1000);
 
 /*********************************
- * ✅ 월간 운동률 (1년 진행률 아래)
+ * ✅ 날짜별 운동 목록 (달력에서 날짜 클릭 시, 1년 진행률 위)
  *********************************/
-// 🔥 01 기본운동/기록탭(accRecordsByExercise) + 3대탭(records) + 맨몸운동 루틴 완료(bodyweightRoutineRecords)
-//    — 이 앱에서 "운동 기록"이 쌓이는 저장소 전부를 합쳐 "무언가 운동한 날"의 집합을 만듦
-// 🔥 맨몸운동(part === "bodyweight")과 맨몸운동 루틴 완료 기록은 집계에서 제외 —
-//    01 기본운동/기록탭(가슴·등·어깨·하체·팔)과 3대탭만 "운동한 날"로 인정
-function getAllExercisedDateSet(){
-  const set = new Set();
-  Object.values(accRecordsByExercise || {}).forEach(list => {
-    (list || []).forEach(r => { if (r && r.date && r.part !== "bodyweight") set.add(r.date); });
-  });
-  Object.values(records || {}).forEach(list => {
-    (list || []).forEach(r => { if (r && r.date) set.add(r.date); });
-  });
-  // 🔥 달력탭에서 수동으로 근육을 체크해둔 날(calData)도 "운동한 날"로 함께 인정
-  //    (기록이 없어도 체크만 해뒀으면 카운트 — 기록 있는 날과 OR 조건)
-  Object.keys(calData || {}).forEach(key => {
-    const entry = calData[key];
-    if (!entry || !entry.muscles || !entry.muscles.length) return;
-    const parts = key.split('-'); // 🔥 calData 키 형식: "YYYY-M-D" (0패딩 없음)
-    if (parts.length !== 3) return;
-    const [yStr, mStr, dStr] = parts;
-    set.add(`${yStr.slice(-2)}.${mStr.padStart(2, '0')}.${dStr.padStart(2, '0')}`);
-  });
-  return set;
+// 🔥 calData 키("YYYY-M-D", 0패딩 없음)를 기록 저장소들이 쓰는 날짜 문자열("YY.MM.DD")로 변환
+function calKeyToRecordDate(key){
+  if (!key) return null;
+  const parts = String(key).split('-');
+  if (parts.length !== 3) return null;
+  const [yStr, mStr, dStr] = parts;
+  return `${yStr.slice(-2)}.${mStr.padStart(2, '0')}.${dStr.padStart(2, '0')}`;
 }
 
-let monthRateChartInstance = null;
-const MONTH_RATE_MONTHS_TO_SHOW = 10;
+// 🔥 3대(records) + 기록탭/맨몸 기본운동(accRecordsByExercise) + 맨몸운동 루틴 완료(bodyweightRoutineRecords)를
+//    한 날짜(calData 키 기준) 기준으로 모두 모아서 "그날 뭘 했는지" 목록으로 반환
+function getExerciseRecordsForDate(calKey){
+  const recordDate = calKeyToRecordDate(calKey);
+  if (!recordDate) return [];
+  const out = [];
 
-function renderMonthlyExerciseRateChart(){
-  const canvas = document.getElementById('monthRateChart');
-  if (!canvas || typeof Chart === 'undefined') return;
-  const ctx = canvas.getContext('2d');
-
-  if (monthRateChartInstance) {
-    monthRateChartInstance.destroy();
-    monthRateChartInstance = null;
-  }
-
-  const exercisedDates = getAllExercisedDateSet();
-  const now = new Date();
-
-  const titleEl = document.getElementById('monthRateTitle');
-  if (titleEl) titleEl.textContent = `${now.getFullYear()}년 월간 운동률`;
-
-  const labels = [];
-  const rates = [];
-  const exercisedCounts = [];
-  const denoms = [];
-
-  for (let i = MONTH_RATE_MONTHS_TO_SHOW - 1; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const y = d.getFullYear();
-    const m = d.getMonth(); // 0-indexed
-    const daysInThisMonth = new Date(y, m + 1, 0).getDate();
-    const denom = daysInThisMonth; // 🔥 이번 달도 오늘까지가 아니라 해당 월 전체 일수 기준
-
-    let exercisedCount = 0;
-    for (let day = 1; day <= denom; day++) {
-      const key = `${String(y).slice(2)}.${String(m + 1).padStart(2, '0')}.${String(day).padStart(2, '0')}`;
-      if (exercisedDates.has(key)) exercisedCount++;
-    }
-
-    labels.push(`${m + 1}`);
-    rates.push(denom > 0 ? Math.round((exercisedCount / denom) * 100) : 0);
-    exercisedCounts.push(exercisedCount);
-    denoms.push(denom);
-  }
-
-  const colors = rates.map((_, idx) => idx === rates.length - 1 ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.3)');
-
-  monthRateChartInstance = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels,
-      datasets: [{
-        data: rates,
-        exercisedCounts,
-        denoms,
-        backgroundColor: colors,
-        borderRadius: 4,
-        maxBarThickness: 22,
-      }]
-    },
-    options: {
-      responsive: false,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: { enabled: false }, // 🔥 눌러도 라벨/툴팁이 뜨지 않게 함
-      },
-      scales: {
-        x: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.5)', font: { size: 10 } } },
-        y: { display: false, min: 0, max: 100 }
+  // 3대: 레코드 하나가 이미 "무게 x 횟수 x 세트" 단위로 저장되어 있음
+  Object.entries(records || {}).forEach(([liftKey, arr]) => {
+    (arr || []).forEach(r => {
+      if (r && r.date === recordDate) {
+        out.push({
+          exercise: LIFT_DISPLAY_NAME[liftKey] || liftKey,
+          weight: r.weight,
+          reps: r.reps,
+          sets: r.sets || 1,
+          accent: "lift",
+        });
       }
+    });
+  });
+
+  // 기록탭/맨몸 기본운동: 세트 하나당 레코드 하나라서 종목+무게+횟수로 묶어 세트 수를 셈
+  const accGroups = new Map();
+  Object.values(accRecordsByExercise || {}).forEach(arr => {
+    (arr || []).forEach(r => {
+      if (!r || r.date !== recordDate) return;
+      const groupKey = `${r.exercise}__${r.weight}__${r.reps}__${r.part}`;
+      if (!accGroups.has(groupKey)) {
+        accGroups.set(groupKey, { exercise: r.exercise, weight: r.weight, reps: r.reps, sets: 0, part: r.part });
+      }
+      accGroups.get(groupKey).sets += 1;
+    });
+  });
+  accGroups.forEach(g => {
+    out.push({
+      exercise: g.exercise,
+      weight: g.weight,
+      reps: g.reps,
+      sets: g.sets,
+      accent: g.part === "bodyweight" ? "bodyweight" : "lift",
+    });
+  });
+
+  // 맨몸운동 루틴 완료 기록: 세트별 무게가 없어서 루틴 단위 요약으로 표시
+  (bodyweightRoutineRecords || []).forEach(r => {
+    if (r && r.date === recordDate) {
+      out.push({
+        exercise: `${r.routineName || "루틴"} 완료`,
+        weight: null,
+        reps: r.totalReps,
+        sets: r.totalSets,
+        accent: "routine",
+      });
     }
   });
+
+  return out;
 }
 
-renderMonthlyExerciseRateChart();
+function dateAgendaSetsLabel(it){
+  if (it.accent === "routine") {
+    return `총 ${it.sets || 0}세트 · ${it.reps || 0}회`;
+  }
+  const w = Number(it.weight);
+  if (it.weight !== null && it.weight !== undefined && it.weight !== "" && w > 0) {
+    return `${it.weight}kg × ${it.reps}회 · ${it.sets}세트`;
+  }
+  return `체중 × ${it.reps}회 · ${it.sets}세트`;
+}
+
+function renderDateAgendaPanel(){
+  const panel = document.getElementById("dateAgendaPanel");
+  if (!panel) return;
+
+  const key = dateAgendaSelectedKey;
+  const parts = (key || "").split("-").map(Number);
+  if (parts.length !== 3 || parts.some(n => Number.isNaN(n))) {
+    panel.innerHTML = "";
+    return;
+  }
+  const [y, m, d] = parts;
+  const dateObj = new Date(y, m - 1, d);
+  const weekdayLabel = ["일", "월", "화", "수", "목", "금", "토"][dateObj.getDay()];
+  const dateLabel = `${m}월 ${d}일 (${weekdayLabel})`;
+
+  const list = getExerciseRecordsForDate(key);
+
+  if (!list.length) {
+    panel.innerHTML = `
+      <div class="date-agenda-header">
+        <span class="date-agenda-date">${dateLabel}</span>
+      </div>
+      <div class="date-agenda-empty">이 날은 기록된 운동이 없어요</div>
+    `;
+    return;
+  }
+
+  const totalSets = list.reduce((sum, it) => sum + (it.sets || 0), 0);
+
+  panel.innerHTML = `
+    <div class="date-agenda-header">
+      <span class="date-agenda-date">${dateLabel}</span>
+      <span class="date-agenda-count">${list.length}개 종목 · ${totalSets}세트</span>
+    </div>
+    <div class="date-agenda-list">
+      ${list.map(it => `
+        <div class="date-agenda-item">
+          <span class="date-agenda-dot date-agenda-dot-${it.accent}"></span>
+          <div class="date-agenda-item-body">
+            <div class="date-agenda-item-name">${escapeHtml(it.exercise)}</div>
+            <div class="date-agenda-item-sets">${dateAgendaSetsLabel(it)}</div>
+          </div>
+        </div>
+      `).join("")}
+    </div>
+  `;
+}
+
+renderDateAgendaPanel();
 
    
 
