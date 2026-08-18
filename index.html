@@ -3283,13 +3283,6 @@ html.light-mode-on .dex-post-card.has-image{
   height: 240px;      /* ✅ 고정 높이 */
 }
 
-.graphHint{
-  margin-top: 10px;
-  font-size: 12px;
-  color: #666;
-  line-height: 1.4;
-}
-
 /* ✅ 바텀시트 열렸을 때 뒤 스크롤 잠금 */
 body.sheet-open{
   overflow: hidden;
@@ -6847,11 +6840,6 @@ MuscleFlow는 개인의 운동 및 식단 기록을 관리하는 PWA 서비스�
 
 </div>
 
-<!-- 힌트 문구 (그대로 유지) -->
-<div class="graphHint" id="graphHint">
-  점을 누르면 값이 뜹니다. 두 손가락을 벌려서 확대하고, 확대한 상태에서 좌우로 밀면 이동합니다.
-</div>
-
 
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -7956,7 +7944,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.86";
+const APP_VERSION = "0.5.87";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
