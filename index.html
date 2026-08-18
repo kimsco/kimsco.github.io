@@ -2570,7 +2570,7 @@ html.light-mode-on .dex-post-card.has-image{
   max-width: 280px;
   height: 100%;
   background: #000;
-  border-right: 1px solid rgba(255,255,255,0.9);
+  border-right: 1px solid rgba(255,255,255,0.45);
   padding: calc(24px + env(safe-area-inset-top)) 20px 24px;
   box-sizing: border-box;
   display: flex;
@@ -7958,7 +7958,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.6.6";
+const APP_VERSION = "0.6.7";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
