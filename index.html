@@ -150,6 +150,9 @@ button {
 .menu-btn{
   flex: 0 0 auto;
   all: unset;
+  position: relative;
+  left: 4px;
+  top: 3px;
   width: 42px;
   height: 42px;
   border-radius: 50%;
@@ -7955,7 +7958,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.6.4";
+const APP_VERSION = "0.6.5";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
