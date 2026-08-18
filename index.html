@@ -5919,7 +5919,7 @@ input[type="number"] {
       <span class="bw-menu-header-title">3대 총합</span>
       <span class="bw-menu-header-spacer"></span>
     </div>
-    <div id="threeSummaryBody" style="flex:1; min-height:0; overflow-y:auto; padding: 0 20px 40px;">
+    <div id="threeSummaryBody" style="flex:1; min-height:0; overflow-y:auto; padding: 40px 20px; display:flex; flex-direction:column; justify-content:center;">
       <div id="threeDetail">
         <div id="total3">3대: 0 kg</div>
 
@@ -8004,7 +8004,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.6.14";
+const APP_VERSION = "0.6.15";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
