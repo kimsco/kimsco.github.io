@@ -145,16 +145,30 @@ button {
   color: #ddd;
 }
 
+/* 🔥 얇은 헤더에 박힌 아이콘이 아니라, 반투명 유리(Acrylic/Glassmorphism) 재질의
+   원형 버튼이 떠 있는 느낌으로 — backdrop-filter로 뒤가 흐릿하게 비치는 코팅 유리 질감 */
 .menu-btn{
   flex: 0 0 auto;
   all: unset;
-  width: 24px;
-  height: 24px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: #ddd;
+  color: #eee;
+  background: rgba(255,255,255,0.10);
+  -webkit-backdrop-filter: blur(14px) saturate(150%);
+  backdrop-filter: blur(14px) saturate(150%);
+  border: 1px solid rgba(255,255,255,0.14);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+  box-sizing: border-box;
+  transition: transform 0.12s ease, background 0.12s ease;
+}
+.menu-btn:active{
+  transform: scale(0.94);
+  background: rgba(255,255,255,0.16);
 }
 
 
@@ -7939,7 +7953,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.6.0";
+const APP_VERSION = "0.6.1";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
