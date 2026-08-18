@@ -3417,7 +3417,6 @@ input[type="number"] {
   letter-spacing: 0.3px;
 }
 #sheetCalcWeight,
-#sheetCalcReps,
 #sheetCalcGoBtn {
   width: 70%;
   padding: 10px;
@@ -3432,6 +3431,30 @@ input[type="number"] {
 }
 #sheetCalcTableArea {
   margin-top: 20px;
+}
+
+/* 🔥 횟수(1~12회) 선택 — 네이티브 <select>는 시트 안에 끼어있으면 화면 공간이
+   부족해 목록이 다 안 보이고 스크롤이 생겨서, 한 번에 다 보이는 버튼 그리드로 대체 */
+.repsGrid {
+  width: 70%;
+  margin: 10px auto;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.repsGridBtn {
+  padding: 10px 0;
+  font-size: 14px;
+  border-radius: 10px;
+  background: #111;
+  color: #eee;
+  border: 1px solid #2a2a2a;
+  cursor: pointer;
+}
+.repsGridBtn.active {
+  background: #fff;
+  color: #000;
+  border-color: #fff;
 }
 
 /* 🔥 무게 입력창 탭 시 계산기가 그래프 시트가 차지한 공간(390px x 89vh) 전체를
@@ -6923,7 +6946,7 @@ MuscleFlow는 개인의 운동 및 식단 기록을 관리하는 PWA 서비스�
   <div class="graphCalcDivider"></div>
   <div class="graphCalcTitle">1RM 계산기</div>
   <input id="sheetCalcWeight" type="number" placeholder="kg">
-  <select id="sheetCalcReps"></select>
+  <div class="repsGrid" id="sheetCalcRepsGrid"></div>
   <button id="sheetCalcGoBtn">GO</button>
   <div id="sheetCalcTableArea"></div>
 </div>
@@ -8031,7 +8054,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.81";
+const APP_VERSION = "0.5.82";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -14833,20 +14856,30 @@ lastLiftKey = getActiveLiftKey();
    재사용하되, 지금 그래프로 보고 있는 종목(lastLiftKey) 기준으로 동작
 ================================ */
 const sheetCalcWeight = document.getElementById('sheetCalcWeight');
-const sheetCalcReps = document.getElementById('sheetCalcReps');
+const sheetCalcRepsGrid = document.getElementById('sheetCalcRepsGrid');
 const sheetCalcGoBtn = document.getElementById('sheetCalcGoBtn');
 const sheetCalcTableArea = document.getElementById('sheetCalcTableArea');
 
+// 🔥 1~12회를 한 번에 다 보이는 버튼 그리드로 선택(네이티브 select의 스크롤 잘림 방지)
+let sheetCalcSelectedReps = 1;
 for (let i = 1; i <= 12; i++) {
-  const opt = document.createElement("option");
-  opt.value = i;
-  opt.textContent = `${i}회`;
-  sheetCalcReps.appendChild(opt);
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "repsGridBtn" + (i === sheetCalcSelectedReps ? " active" : "");
+  btn.textContent = `${i}회`;
+  btn.dataset.reps = i;
+  btn.addEventListener("click", () => {
+    sheetCalcSelectedReps = i;
+    sheetCalcRepsGrid.querySelectorAll(".repsGridBtn").forEach(b => {
+      b.classList.toggle("active", Number(b.dataset.reps) === i);
+    });
+  });
+  sheetCalcRepsGrid.appendChild(btn);
 }
 
 sheetCalcGoBtn.addEventListener('click', () => {
   const weight = parseFloat(sheetCalcWeight.value);
-  const reps = parseInt(sheetCalcReps.value);
+  const reps = sheetCalcSelectedReps;
 
   if (!weight || !reps) {
     sheetCalcTableArea.innerHTML = `<div style="text-align:center;color:#ff5555;margin-top:10px;">
