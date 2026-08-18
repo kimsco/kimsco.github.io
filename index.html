@@ -3401,6 +3401,38 @@ input[type="number"] {
     margin-top: 30px;   /* 기존에 없으면 추가 */
     /* 또는 padding-top: 30px; */
 }
+
+/* ===============================
+   🔥 3대탭 그래프 시트에 내장된 1RM 계산기(1RM탭과 동일한 형식)
+================================ */
+.graphCalcDivider {
+  margin: 24px 0 0;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+.graphCalcTitle {
+  margin-top: 16px;
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.6);
+  letter-spacing: 0.3px;
+}
+#sheetCalcWeight,
+#sheetCalcReps,
+#sheetCalcGoBtn {
+  width: 70%;
+  padding: 10px;
+  font-size: 16px;
+  margin: 10px auto;
+  display: block;
+  border-radius: 14px;
+
+  background: #111;
+  color: #eee;
+  border: 1px solid #2a2a2a;
+}
+#sheetCalcTableArea {
+  margin-top: 20px;
+}
 /* 종목 모드 글씨체 */
 .calendar.muscle-mode .days div {
   font-family:
@@ -6831,7 +6863,15 @@ MuscleFlow는 개인의 운동 및 식단 기록을 관리하는 PWA 서비스�
 <div class="graphHint" id="graphHint">
   점을 누르면 값이 뜹니다. 두 손가락을 벌려서 확대하고, 확대한 상태에서 좌우로 밀면 이동합니다.
 </div>
-   
+
+<!-- 🔥 그래프 시트 안에 내장된 1RM 계산기(1RM탭 계산기와 동일한 형식, 지금 보고 있는 종목 기준) -->
+<div class="graphCalcDivider"></div>
+<div class="graphCalcTitle">1RM 계산기</div>
+<input id="sheetCalcWeight" type="number" placeholder="kg">
+<select id="sheetCalcReps"></select>
+<button id="sheetCalcGoBtn">GO</button>
+<div id="sheetCalcTableArea"></div>
+
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
@@ -7935,7 +7975,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.78";
+const APP_VERSION = "0.5.79";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -14728,6 +14768,54 @@ document.querySelectorAll(".folderBtn").forEach(btn=>{
 
 // 초기값 세팅: 현재 active 폴더를 lastLiftKey로 맞춤
 lastLiftKey = getActiveLiftKey();
+
+/* ===============================
+   🔥 그래프 시트에 내장된 1RM 계산기 — 1RM탭 계산기와 동일한 계산 로직을
+   재사용하되, 지금 그래프로 보고 있는 종목(lastLiftKey) 기준으로 동작
+================================ */
+const sheetCalcWeight = document.getElementById('sheetCalcWeight');
+const sheetCalcReps = document.getElementById('sheetCalcReps');
+const sheetCalcGoBtn = document.getElementById('sheetCalcGoBtn');
+const sheetCalcTableArea = document.getElementById('sheetCalcTableArea');
+
+for (let i = 1; i <= 12; i++) {
+  const opt = document.createElement("option");
+  opt.value = i;
+  opt.textContent = `${i}회`;
+  sheetCalcReps.appendChild(opt);
+}
+
+sheetCalcGoBtn.addEventListener('click', () => {
+  const weight = parseFloat(sheetCalcWeight.value);
+  const reps = parseInt(sheetCalcReps.value);
+
+  if (!weight || !reps) {
+    sheetCalcTableArea.innerHTML = `<div style="text-align:center;color:#ff5555;margin-top:10px;">
+                                       무게와 반복수를 입력하세요
+                                     </div>`;
+    return;
+  }
+
+  const liftKey = lastLiftKey || getActiveLiftKey();
+  const liftTable = NSCA_TABLE[liftKey];
+  const oneRM = weight * liftTable[reps - 1];
+
+  let html = '';
+  for (let r = 1; r <= 12; r++) {
+    const rmWeight = oneRM / liftTable[r - 1];
+    html += `<div style="
+                    text-align:center;
+                    color:white;
+                    margin:12px 0;
+                    font-size:16px;
+                    font-weight:600;
+               ">
+                    ${r}RM&nbsp;&nbsp;&nbsp;${rmWeight.toFixed(1)}kg
+             </div>`;
+  }
+
+  sheetCalcTableArea.innerHTML = html;
+});
 
 /* ✅ 아래로 드래그해서 닫기 */
 (function enableSheetDragClose(){
