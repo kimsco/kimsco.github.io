@@ -3434,50 +3434,16 @@ input[type="number"] {
   margin-top: 20px;
 }
 
-/* 🔥 무게 입력창 탭 시 계산기가 그래프 시트가 차지한 공간(390px x 89vh) 전체를
-   덮으며 슬라이드업되는 확장 패널 — 새 오버레이가 아니라 #graphSheet의 4번째
-   직계 자식으로 붙어서 그 박스(inset:0) 안에서만 움직임.
-   🔥 transform 대신 top으로 애니메이션함 — 이 패널 안의 <select id="sheetCalcReps">가
-   iOS Safari에서 조상에 transform이 걸려있으면(translateY(0)처럼 값이 사실상 0이어도
-   transform: none이 아니면 새 containing block이 생김) 네이티브 팝업 목록의 가용 높이를
-   좁게 계산해서 12개가 다 안 보이고 스크롤되는 문제가 있어, 이를 피하기 위함 */
-.sheetCalcExpanded {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 100%;
-  height: 100%;
-  background: #0b0b0b;
-  border-top-left-radius: 18px;
-  border-top-right-radius: 18px;
+/* 🔥 무게 입력창을 탭하면 별도 오버레이 패널이 덮이는 게 아니라, 그래프 시트의
+   기존 스크롤 컨텐츠(#sheetBody) 안에서 계산기 섹션(#sheetCalcInline)으로
+   부드럽게 스크롤 이동함 — 계산기가 시트의 스크롤 가능 높이만큼 min-height를
+   가지므로(JS에서 동적으로 설정) 스크롤이 끝나면 화면을 꽉 채우고, 그래프는
+   위로 스크롤돼 사라진 것처럼 보임 */
+#sheetCalcInline {
+  min-height: 0; /* JS에서 시트 높이에 맞춰 동적으로 채움 */
   display: flex;
   flex-direction: column;
-  transition: top 220ms cubic-bezier(.22,1,.36,1);
-  z-index: 5;
-  pointer-events: none;
-}
-.sheetCalcExpanded.show {
-  top: 0;
-  pointer-events: auto;
-}
-.sheetCalcExpandedHeader {
-  padding: 4px 14px 10px;
-  display: flex;
-  align-items: center;
   justify-content: center;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
-}
-.sheetCalcExpandedBody {
-  flex: 1;
-  overflow: auto;
-  padding: 12px 5px 20px;
-  -webkit-overflow-scrolling: touch;
-}
-.sheetCalcExpandedBody #sheetCalcInline {
-  margin-top: 8px;
-}
-.sheetCalcExpandedBody .graphCalcDivider {
-  display: none; /* 확장 화면에선 위에 구분선 필요 없음(이미 자체 헤더가 있음) */
 }
 /* 종목 모드 글씨체 */
 .calendar.muscle-mode .days div {
@@ -6880,19 +6846,6 @@ MuscleFlow는 개인의 운동 및 식단 기록을 관리하는 PWA 서비스�
     <button id="sheetClose" class="sheetClose" aria-label="닫기">✕</button>
   </div>
 
-  <!-- 🔥 무게 입력창을 탭하면 이 패널이 슬라이드업되며 그래프 시트가 차지하고 있는
-       공간을 그대로 다 채움(별도의 새 풀스크린 오버레이가 아니라 이 시트 안에서 확장).
-       뒤로가기 버튼 대신 위쪽 손잡이를 아래로 드래그하면 그래프 화면으로 되돌아감 -->
-  <div id="sheetCalcExpanded" class="sheetCalcExpanded">
-    <div class="sheetHandle" id="sheetCalcExpandedHandle">
-      <div class="sheetGrab"></div>
-    </div>
-    <div class="sheetCalcExpandedHeader">
-      <div class="sheetTitle">1RM 계산기</div>
-    </div>
-    <div class="sheetCalcExpandedBody" id="sheetCalcExpandedBody"></div>
-  </div>
-
   <div class="sheetBody">
     <!-- 여기 아래에 나중에 Chart.js 캔버스/요약/탭(Weight/1RM) 들어감 -->
     <div style="color:#777;font-size:13px;line-height:1.6;">
@@ -6924,7 +6877,7 @@ MuscleFlow는 개인의 운동 및 식단 기록을 관리하는 PWA 서비스�
 </div>
 
 <!-- 🔥 그래프 시트 안에 내장된 1RM 계산기(1RM탭 계산기와 동일한 형식, 지금 보고 있는 종목 기준).
-     무게 입력창을 탭하면 이 블록 전체가 #sheetCalcExpanded 안으로 옮겨지며 확장됨 -->
+     무게 입력창을 탭하면 이 섹션으로 스르르 스크롤 이동함(그래프는 위로 스크롤돼 사라짐) -->
 <div id="sheetCalcInline">
   <div class="graphCalcDivider"></div>
   <div class="graphCalcTitle">1RM 계산기</div>
@@ -8037,7 +7990,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.84";
+const APP_VERSION = "0.5.85";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -14786,6 +14739,9 @@ function openSheet(liftKey){
       ensureFullLiftHistory(liftKey).then(added => {
         if (added && sheetOpen && lastLiftKey === liftKey) renderGraphForLift(liftKey);
       });
+
+      // 🔥 계산기 섹션이 시트 높이만큼 채워지도록(수동 스크롤로 내려도 화면을 꽉 채움)
+      if (typeof sizeSheetCalcInline === "function") sizeSheetCalcInline();
     });
   });
 }
@@ -14797,8 +14753,10 @@ function closeSheet(){
   graphSheet.classList.remove("show");
   graphSheet.setAttribute("aria-hidden", "true");
 
-  // 🔥 계산기가 확장된 채로 있었다면 다음에 열 때는 그래프부터 보이도록 원복
-  if (typeof closeSheetCalcExpanded === "function") closeSheetCalcExpanded();
+  // 🔥 계산기 섹션까지 스크롤돼 있었다면 다음에 열 때는 그래프부터 보이도록 원복
+  const sheetBodyElToReset = document.querySelector('#graphSheet .sheetBody');
+  if (sheetBodyElToReset) sheetBodyElToReset.scrollTop = 0;
+  document.getElementById('sheetCalcWeight')?.blur();
 
   setTimeout(()=>{
     graphOverlay.classList.add("hidden");
@@ -14882,131 +14840,47 @@ sheetCalcGoBtn.addEventListener('click', () => {
   sheetCalcTableArea.innerHTML = html;
 });
 
-/* 🔥 무게 입력창을 탭하면 계산기 블록을 확장 패널로 옮기고(appendChild — 리스너/상태
-   그대로 유지) 그래프 시트가 차지한 공간 전체를 채우도록 슬라이드업.
-   뒤로가기 버튼은 없고, 위쪽 손잡이를 아래로 드래그하면 젤리처럼 튕기며 그래프 화면으로 복귀 */
+/* 🔥 무게 입력창을 탭하면 별도 오버레이 패널이 덮이는 게 아니라, 그래프 시트의
+   기존 스크롤 컨텐츠(#sheetBody) 안에서 계산기 섹션(#sheetCalcInline)으로
+   부드럽게 스크롤 이동함. 계산기 섹션은 시트의 스크롤 가능 높이만큼 min-height를
+   동적으로 가지므로, 스크롤이 끝나면 화면을 꽉 채우고 그래프는 위로 스크롤돼
+   사라진 것처럼 보임. 손을 떼고 스크롤이 멈추면 "그래프냐 계산기냐" 더 가까운
+   쪽으로 자동 보정(스냅)돼 어중간한 위치에 걸쳐있지 않고 젤리처럼 딱 붙음 */
 const sheetCalcInline = document.getElementById('sheetCalcInline');
-const sheetCalcExpanded = document.getElementById('sheetCalcExpanded');
-const sheetCalcExpandedBody = document.getElementById('sheetCalcExpandedBody');
-const sheetCalcInlineAnchor = document.getElementById('graphHint');
+const sheetBodyEl = document.querySelector('#graphSheet .sheetBody');
 
-function openSheetCalcExpanded(){
-  // 🔥 이미 확장된 상태에서 재포커스(예: 다른 필드 눌렀다가 다시 무게칸 누름)될 때마다
-  //    appendChild를 다시 실행하면, 이미 같은 부모 안에 있어도 DOM이 한 번
-  //    제거→재삽입되면서 포커스가 blur→refocus로 끊겨 입력 중이던 값이 날아감
-  if (sheetCalcExpanded.classList.contains('show')) return;
-  sheetCalcExpandedBody.appendChild(sheetCalcInline);
-  sheetCalcExpanded.classList.add('show');
+function sizeSheetCalcInline(){
+  if (!sheetBodyEl) return;
+  sheetCalcInline.style.minHeight = sheetBodyEl.clientHeight + 'px';
 }
-function closeSheetCalcExpanded(){
-  if (!sheetCalcExpanded.classList.contains('show')) return;
-  sheetCalcExpanded.classList.remove('show');
-  sheetCalcExpanded.style.top = ""; // 드래그 중 남아있을 수 있는 인라인 top 제거
-  sheetCalcInlineAnchor.insertAdjacentElement('afterend', sheetCalcInline);
+
+// 🔥 sheetBody가 position:relative가 아니라서 offsetTop은 #graphSheet 기준으로
+//    잡혀버림(중간에 위치 지정 안 된 wrapper들을 건너뜀) — 실제 스크롤 컨테이너
+//    기준 오프셋은 getBoundingClientRect 차이 + 현재 scrollTop으로 직접 계산해야 함
+function calcSectionScrollTop(){
+  const rect = sheetCalcInline.getBoundingClientRect();
+  const bodyRect = sheetBodyEl.getBoundingClientRect();
+  return rect.top - bodyRect.top + sheetBodyEl.scrollTop;
 }
-sheetCalcWeight.addEventListener('focus', openSheetCalcExpanded);
 
-/* 🔥 위쪽 손잡이를 아래로 드래그: 그래프로 돌아가는 게 아니라 시트 전체를 완전히 닫음
-   (임계값 100px, 못 넘으면 젤리처럼 원위치로 튕겨 돌아옴) */
-(function enableSheetCalcExpandedHandleFullClose(){
-  const handle = document.getElementById('sheetCalcExpandedHandle');
-  if (!handle) return;
+sheetCalcWeight.addEventListener('focus', () => {
+  sizeSheetCalcInline();
+  sheetBodyEl.scrollTo({ top: calcSectionScrollTop(), behavior: 'smooth' });
+});
 
-  let startY = 0, curY = 0, dragging = false;
-
-  const onStart = (e) => {
-    if (!sheetCalcExpanded.classList.contains('show')) return;
-    dragging = true;
-    startY = (e.touches ? e.touches[0].clientY : e.clientY);
-    curY = 0;
-    sheetCalcExpanded.style.transition = "none";
-  };
-  const onMove = (e) => {
-    if (!dragging) return;
-    const y = (e.touches ? e.touches[0].clientY : e.clientY);
-    curY = Math.max(0, y - startY); // 아래로만
-    sheetCalcExpanded.style.top = `${curY}px`;
-  };
-  const onEnd = () => {
-    if (!dragging) return;
-    dragging = false;
-    sheetCalcExpanded.style.transition = "";
-
-    if (curY > 100) {
-      sheetCalcWeight.blur();
-      sheetCalcExpanded.style.top = ""; // 계산기 패널 자체는 즉시 원상태로(closeSheet가 시트 전체를 슬라이드다운시킴)
-      closeSheet(); // 🔥 그래프로 돌아가는 게 아니라 시트 전체를 완전히 닫음
-    } else {
-      sheetCalcExpanded.style.top = ""; // 젤리처럼 원위치로 튕겨 돌아옴
-    }
-  };
-
-  handle.addEventListener("mousedown", onStart);
-  document.addEventListener("mousemove", onMove);
-  document.addEventListener("mouseup", onEnd);
-
-  handle.addEventListener("touchstart", onStart, { passive:true });
-  document.addEventListener("touchmove", onMove, { passive:true });
-  document.addEventListener("touchend", onEnd);
-})();
-
-/* 🔥 계산기 화면(본문 영역)을 아래로 드래그: 시트를 닫는 게 아니라 그래프 화면으로
-   돌아감(젤리처럼). 결과표가 스크롤 중일 수 있으므로 스크롤이 맨 위(scrollTop===0)일
-   때만 드래그-복귀를 시작함(안 그러면 결과표 스크롤과 제스처가 충돌) */
-(function enableSheetCalcExpandedBodyDragToGraph(){
-  const body = document.getElementById('sheetCalcExpandedBody');
-  if (!body) return;
-
-  let startX = 0, startY = 0, curY = 0, dragging = false, axisLocked = null;
-
-  const onStart = (e) => {
-    if (!sheetCalcExpanded.classList.contains('show')) return;
-    if (body.scrollTop > 0) return; // 스크롤이 맨 위가 아니면 일반 스크롤을 우선시함
-    dragging = true;
-    axisLocked = null;
-    startX = (e.touches ? e.touches[0].clientX : e.clientX);
-    startY = (e.touches ? e.touches[0].clientY : e.clientY);
-    curY = 0;
-  };
-  const onMove = (e) => {
-    if (!dragging) return;
-    const x = (e.touches ? e.touches[0].clientX : e.clientX);
-    const y = (e.touches ? e.touches[0].clientY : e.clientY);
-    const dx = x - startX;
-    const dy = y - startY;
-    if (axisLocked === null) {
-      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
-      // 아래로 향하는 세로 제스처일 때만 드래그로 인정(위로 스크롤/좌우는 그대로 통과)
-      axisLocked = (Math.abs(dy) > Math.abs(dx) && dy > 0) ? 'y' : 'x';
-      if (axisLocked === 'y') sheetCalcExpanded.style.transition = "none";
-    }
-    if (axisLocked !== 'y') { dragging = false; return; }
-    curY = Math.max(0, dy);
-    sheetCalcExpanded.style.top = `${curY}px`;
-  };
-  const onEnd = () => {
-    if (!dragging) return;
-    dragging = false;
-    if (axisLocked !== 'y') { axisLocked = null; return; }
-    axisLocked = null;
-    sheetCalcExpanded.style.transition = "";
-
-    if (curY > 100) {
-      sheetCalcWeight.blur();
-      closeSheetCalcExpanded(); // 🔥 시트는 그대로 두고 그래프 화면으로 복귀
-    } else {
-      sheetCalcExpanded.style.top = ""; // 젤리처럼 원위치로 튕겨 돌아옴
-    }
-  };
-
-  body.addEventListener("mousedown", onStart);
-  document.addEventListener("mousemove", onMove);
-  document.addEventListener("mouseup", onEnd);
-
-  body.addEventListener("touchstart", onStart, { passive:true });
-  document.addEventListener("touchmove", onMove, { passive:true });
-  document.addEventListener("touchend", onEnd);
-})();
+if (sheetBodyEl) {
+  let sheetBodyScrollSnapTimer = null;
+  sheetBodyEl.addEventListener('scroll', () => {
+    clearTimeout(sheetBodyScrollSnapTimer);
+    sheetBodyScrollSnapTimer = setTimeout(() => {
+      const calcTop = calcSectionScrollTop();
+      const st = sheetBodyEl.scrollTop;
+      if (st <= 0 || st >= calcTop) return; // 이미 그래프 맨위거나, 계산기 섹션 이상(결과표 스크롤 중일 수 있음)이면 손대지 않음
+      const target = (calcTop - st) > 100 ? 0 : calcTop;
+      sheetBodyEl.scrollTo({ top: target, behavior: 'smooth' });
+    }, 120);
+  }, { passive: true });
+}
 
 /* ✅ 아래로 드래그해서 닫기 */
 (function enableSheetDragClose(){
