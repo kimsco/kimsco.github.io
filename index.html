@@ -5571,16 +5571,11 @@ input[type="number"] {
 <!-- ✅ 하단 탭바 (새로 추가/이동) -->
 <div class="bottomTab" id="bottomTab">
   <button class="tabBtn active" data-target="tab1">
-    <span class="tabBtn-icon"><svg viewBox="0 0 48 48" fill="currentColor" width="22" height="22">
-      <rect x="0" y="21.5" width="1.8" height="5" rx="0.9"/>
-      <rect x="2.2" y="14" width="4.6" height="20" rx="1.3"/>
-      <rect x="8.2" y="9" width="4.6" height="30" rx="1.3"/>
-      <rect x="13.6" y="21.5" width="20.8" height="5" rx="1"/>
-      <rect x="35.2" y="9" width="4.6" height="30" rx="1.3"/>
-      <rect x="41.2" y="14" width="4.6" height="20" rx="1.3"/>
-      <rect x="46.2" y="21.5" width="1.8" height="5" rx="0.9"/>
+    <span class="tabBtn-icon"><svg viewBox="0 0 24 24" fill="currentColor" fill-rule="evenodd" width="22" height="22">
+      <path d="M6.3 8.8 L11 4.9 Q12 4 13 4.9 L17.7 8.8 Q19 10 19 11.5 L19 18.5 Q19 20 17.5 20 L6.5 20 Q5 20 5 18.5 L5 11.5 Q5 10 6.3 8.8 Z
+               M11.3 13.5 L12.7 13.5 Q14 13.5 14 14.8 L14 20 L10 20 L10 14.8 Q10 13.5 11.3 13.5 Z"/>
     </svg></span>
-    <span class="tabBtn-label">1RM</span>
+    <span class="tabBtn-label">홈</span>
   </button>
   <button class="tabBtn" data-target="tab2">
     <span class="tabBtn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" width="22" height="22">
@@ -7944,7 +7939,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.87";
+const APP_VERSION = "0.6.0";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
