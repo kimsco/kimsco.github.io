@@ -8037,7 +8037,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.83";
+const APP_VERSION = "0.5.84";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -14906,10 +14906,9 @@ function closeSheetCalcExpanded(){
 }
 sheetCalcWeight.addEventListener('focus', openSheetCalcExpanded);
 
-/* 🔥 손잡이를 아래로 드래그: 임계값(100px) 넘으면 닫고, 못 넘으면 원위치로
-   튕겨 돌아옴 — .sheetCalcExpanded에 이미 걸려있는 cubic-bezier(.22,1,.36,1)
-   트랜지션이 스냅백 시 탄성(젤리) 느낌을 만듦 */
-(function enableSheetCalcExpandedDragClose(){
+/* 🔥 위쪽 손잡이를 아래로 드래그: 그래프로 돌아가는 게 아니라 시트 전체를 완전히 닫음
+   (임계값 100px, 못 넘으면 젤리처럼 원위치로 튕겨 돌아옴) */
+(function enableSheetCalcExpandedHandleFullClose(){
   const handle = document.getElementById('sheetCalcExpandedHandle');
   if (!handle) return;
 
@@ -14935,7 +14934,8 @@ sheetCalcWeight.addEventListener('focus', openSheetCalcExpanded);
 
     if (curY > 100) {
       sheetCalcWeight.blur();
-      closeSheetCalcExpanded();
+      sheetCalcExpanded.style.top = ""; // 계산기 패널 자체는 즉시 원상태로(closeSheet가 시트 전체를 슬라이드다운시킴)
+      closeSheet(); // 🔥 그래프로 돌아가는 게 아니라 시트 전체를 완전히 닫음
     } else {
       sheetCalcExpanded.style.top = ""; // 젤리처럼 원위치로 튕겨 돌아옴
     }
@@ -14946,6 +14946,64 @@ sheetCalcWeight.addEventListener('focus', openSheetCalcExpanded);
   document.addEventListener("mouseup", onEnd);
 
   handle.addEventListener("touchstart", onStart, { passive:true });
+  document.addEventListener("touchmove", onMove, { passive:true });
+  document.addEventListener("touchend", onEnd);
+})();
+
+/* 🔥 계산기 화면(본문 영역)을 아래로 드래그: 시트를 닫는 게 아니라 그래프 화면으로
+   돌아감(젤리처럼). 결과표가 스크롤 중일 수 있으므로 스크롤이 맨 위(scrollTop===0)일
+   때만 드래그-복귀를 시작함(안 그러면 결과표 스크롤과 제스처가 충돌) */
+(function enableSheetCalcExpandedBodyDragToGraph(){
+  const body = document.getElementById('sheetCalcExpandedBody');
+  if (!body) return;
+
+  let startX = 0, startY = 0, curY = 0, dragging = false, axisLocked = null;
+
+  const onStart = (e) => {
+    if (!sheetCalcExpanded.classList.contains('show')) return;
+    if (body.scrollTop > 0) return; // 스크롤이 맨 위가 아니면 일반 스크롤을 우선시함
+    dragging = true;
+    axisLocked = null;
+    startX = (e.touches ? e.touches[0].clientX : e.clientX);
+    startY = (e.touches ? e.touches[0].clientY : e.clientY);
+    curY = 0;
+  };
+  const onMove = (e) => {
+    if (!dragging) return;
+    const x = (e.touches ? e.touches[0].clientX : e.clientX);
+    const y = (e.touches ? e.touches[0].clientY : e.clientY);
+    const dx = x - startX;
+    const dy = y - startY;
+    if (axisLocked === null) {
+      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+      // 아래로 향하는 세로 제스처일 때만 드래그로 인정(위로 스크롤/좌우는 그대로 통과)
+      axisLocked = (Math.abs(dy) > Math.abs(dx) && dy > 0) ? 'y' : 'x';
+      if (axisLocked === 'y') sheetCalcExpanded.style.transition = "none";
+    }
+    if (axisLocked !== 'y') { dragging = false; return; }
+    curY = Math.max(0, dy);
+    sheetCalcExpanded.style.top = `${curY}px`;
+  };
+  const onEnd = () => {
+    if (!dragging) return;
+    dragging = false;
+    if (axisLocked !== 'y') { axisLocked = null; return; }
+    axisLocked = null;
+    sheetCalcExpanded.style.transition = "";
+
+    if (curY > 100) {
+      sheetCalcWeight.blur();
+      closeSheetCalcExpanded(); // 🔥 시트는 그대로 두고 그래프 화면으로 복귀
+    } else {
+      sheetCalcExpanded.style.top = ""; // 젤리처럼 원위치로 튕겨 돌아옴
+    }
+  };
+
+  body.addEventListener("mousedown", onStart);
+  document.addEventListener("mousemove", onMove);
+  document.addEventListener("mouseup", onEnd);
+
+  body.addEventListener("touchstart", onStart, { passive:true });
   document.addEventListener("touchmove", onMove, { passive:true });
   document.addEventListener("touchend", onEnd);
 })();
