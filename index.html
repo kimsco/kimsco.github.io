@@ -3433,6 +3433,46 @@ input[type="number"] {
 #sheetCalcTableArea {
   margin-top: 20px;
 }
+
+/* 🔥 무게 입력창 탭 시 계산기가 그래프 시트가 차지한 공간(390px x 89vh) 전체를
+   덮으며 슬라이드업되는 확장 패널 — 새 오버레이가 아니라 #graphSheet의 4번째
+   직계 자식으로 붙어서 그 박스(inset:0) 안에서만 움직임 */
+.sheetCalcExpanded {
+  position: absolute;
+  inset: 0;
+  background: #0b0b0b;
+  border-top-left-radius: 18px;
+  border-top-right-radius: 18px;
+  display: flex;
+  flex-direction: column;
+  transform: translateY(100%);
+  transition: transform 220ms cubic-bezier(.22,1,.36,1);
+  z-index: 5;
+  pointer-events: none;
+}
+.sheetCalcExpanded.show {
+  transform: translateY(0);
+  pointer-events: auto;
+}
+.sheetCalcExpandedHeader {
+  padding: 10px 14px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.sheetCalcExpandedBody {
+  flex: 1;
+  overflow: auto;
+  padding: 12px 5px 20px;
+  -webkit-overflow-scrolling: touch;
+}
+.sheetCalcExpandedBody #sheetCalcInline {
+  margin-top: 8px;
+}
+.sheetCalcExpandedBody .graphCalcDivider {
+  display: none; /* 확장 화면에선 위에 구분선 필요 없음(이미 자체 헤더가 있음) */
+}
 /* 종목 모드 글씨체 */
 .calendar.muscle-mode .days div {
   font-family:
@@ -6834,6 +6874,17 @@ MuscleFlow는 개인의 운동 및 식단 기록을 관리하는 PWA 서비스�
     <button id="sheetClose" class="sheetClose" aria-label="닫기">✕</button>
   </div>
 
+  <!-- 🔥 무게 입력창을 탭하면 이 패널이 슬라이드업되며 그래프 시트가 차지하고 있는
+       공간을 그대로 다 채움(별도의 새 풀스크린 오버레이가 아니라 이 시트 안에서 확장) -->
+  <div id="sheetCalcExpanded" class="sheetCalcExpanded">
+    <div class="sheetCalcExpandedHeader">
+      <button id="sheetCalcExpandedBack" class="sheetClose" aria-label="뒤로">←</button>
+      <div class="sheetTitle">1RM 계산기</div>
+      <span style="width:28px;"></span>
+    </div>
+    <div class="sheetCalcExpandedBody" id="sheetCalcExpandedBody"></div>
+  </div>
+
   <div class="sheetBody">
     <!-- 여기 아래에 나중에 Chart.js 캔버스/요약/탭(Weight/1RM) 들어감 -->
     <div style="color:#777;font-size:13px;line-height:1.6;">
@@ -6864,13 +6915,16 @@ MuscleFlow는 개인의 운동 및 식단 기록을 관리하는 PWA 서비스�
   점을 누르면 값이 뜹니다. 두 손가락을 벌려서 확대하고, 확대한 상태에서 좌우로 밀면 이동합니다.
 </div>
 
-<!-- 🔥 그래프 시트 안에 내장된 1RM 계산기(1RM탭 계산기와 동일한 형식, 지금 보고 있는 종목 기준) -->
-<div class="graphCalcDivider"></div>
-<div class="graphCalcTitle">1RM 계산기</div>
-<input id="sheetCalcWeight" type="number" placeholder="kg">
-<select id="sheetCalcReps"></select>
-<button id="sheetCalcGoBtn">GO</button>
-<div id="sheetCalcTableArea"></div>
+<!-- 🔥 그래프 시트 안에 내장된 1RM 계산기(1RM탭 계산기와 동일한 형식, 지금 보고 있는 종목 기준).
+     무게 입력창을 탭하면 이 블록 전체가 #sheetCalcExpanded 안으로 옮겨지며 확장됨 -->
+<div id="sheetCalcInline">
+  <div class="graphCalcDivider"></div>
+  <div class="graphCalcTitle">1RM 계산기</div>
+  <input id="sheetCalcWeight" type="number" placeholder="kg">
+  <select id="sheetCalcReps"></select>
+  <button id="sheetCalcGoBtn">GO</button>
+  <div id="sheetCalcTableArea"></div>
+</div>
 
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -7975,7 +8029,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.79";
+const APP_VERSION = "0.5.80";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -14735,6 +14789,9 @@ function closeSheet(){
   graphSheet.classList.remove("show");
   graphSheet.setAttribute("aria-hidden", "true");
 
+  // 🔥 계산기가 확장된 채로 있었다면 다음에 열 때는 그래프부터 보이도록 원복
+  if (typeof closeSheetCalcExpanded === "function") closeSheetCalcExpanded();
+
   setTimeout(()=>{
     graphOverlay.classList.add("hidden");
     graphSheet.classList.add("hidden");
@@ -14815,6 +14872,34 @@ sheetCalcGoBtn.addEventListener('click', () => {
   }
 
   sheetCalcTableArea.innerHTML = html;
+});
+
+/* 🔥 무게 입력창을 탭하면 계산기 블록을 확장 패널로 옮기고(appendChild — 리스너/상태
+   그대로 유지) 그래프 시트가 차지한 공간 전체를 채우도록 슬라이드업. 뒤로가기를 누르면
+   원래 자리(그래프 아래)로 되돌림 */
+const sheetCalcInline = document.getElementById('sheetCalcInline');
+const sheetCalcExpanded = document.getElementById('sheetCalcExpanded');
+const sheetCalcExpandedBody = document.getElementById('sheetCalcExpandedBody');
+const sheetCalcExpandedBack = document.getElementById('sheetCalcExpandedBack');
+const sheetCalcInlineAnchor = document.getElementById('graphHint');
+
+function openSheetCalcExpanded(){
+  // 🔥 이미 확장된 상태에서 재포커스(예: 다른 필드 눌렀다가 다시 무게칸 누름)될 때마다
+  //    appendChild를 다시 실행하면, 이미 같은 부모 안에 있어도 DOM이 한 번
+  //    제거→재삽입되면서 포커스가 blur→refocus로 끊겨 입력 중이던 값이 날아감
+  if (sheetCalcExpanded.classList.contains('show')) return;
+  sheetCalcExpandedBody.appendChild(sheetCalcInline);
+  sheetCalcExpanded.classList.add('show');
+}
+function closeSheetCalcExpanded(){
+  if (!sheetCalcExpanded.classList.contains('show')) return;
+  sheetCalcExpanded.classList.remove('show');
+  sheetCalcInlineAnchor.insertAdjacentElement('afterend', sheetCalcInline);
+}
+sheetCalcWeight.addEventListener('focus', openSheetCalcExpanded);
+sheetCalcExpandedBack.addEventListener('click', () => {
+  sheetCalcWeight.blur();
+  closeSheetCalcExpanded();
 });
 
 /* ✅ 아래로 드래그해서 닫기 */
