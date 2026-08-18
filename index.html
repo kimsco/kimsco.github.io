@@ -3417,6 +3417,7 @@ input[type="number"] {
   letter-spacing: 0.3px;
 }
 #sheetCalcWeight,
+#sheetCalcReps,
 #sheetCalcGoBtn {
   width: 70%;
   padding: 10px;
@@ -3433,48 +3434,30 @@ input[type="number"] {
   margin-top: 20px;
 }
 
-/* 🔥 횟수(1~12회) 선택 — 네이티브 <select>는 시트 안에 끼어있으면 화면 공간이
-   부족해 목록이 다 안 보이고 스크롤이 생겨서, 한 번에 다 보이는 버튼 그리드로 대체 */
-.repsGrid {
-  width: 70%;
-  margin: 10px auto;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-}
-.repsGridBtn {
-  padding: 10px 0;
-  font-size: 14px;
-  border-radius: 10px;
-  background: #111;
-  color: #eee;
-  border: 1px solid #2a2a2a;
-  cursor: pointer;
-}
-.repsGridBtn.active {
-  background: #fff;
-  color: #000;
-  border-color: #fff;
-}
-
 /* 🔥 무게 입력창 탭 시 계산기가 그래프 시트가 차지한 공간(390px x 89vh) 전체를
    덮으며 슬라이드업되는 확장 패널 — 새 오버레이가 아니라 #graphSheet의 4번째
-   직계 자식으로 붙어서 그 박스(inset:0) 안에서만 움직임 */
+   직계 자식으로 붙어서 그 박스(inset:0) 안에서만 움직임.
+   🔥 transform 대신 top으로 애니메이션함 — 이 패널 안의 <select id="sheetCalcReps">가
+   iOS Safari에서 조상에 transform이 걸려있으면(translateY(0)처럼 값이 사실상 0이어도
+   transform: none이 아니면 새 containing block이 생김) 네이티브 팝업 목록의 가용 높이를
+   좁게 계산해서 12개가 다 안 보이고 스크롤되는 문제가 있어, 이를 피하기 위함 */
 .sheetCalcExpanded {
   position: absolute;
-  inset: 0;
+  left: 0;
+  right: 0;
+  top: 100%;
+  height: 100%;
   background: #0b0b0b;
   border-top-left-radius: 18px;
   border-top-right-radius: 18px;
   display: flex;
   flex-direction: column;
-  transform: translateY(100%);
-  transition: transform 220ms cubic-bezier(.22,1,.36,1);
+  transition: top 220ms cubic-bezier(.22,1,.36,1);
   z-index: 5;
   pointer-events: none;
 }
 .sheetCalcExpanded.show {
-  transform: translateY(0);
+  top: 0;
   pointer-events: auto;
 }
 .sheetCalcExpandedHeader {
@@ -6946,7 +6929,7 @@ MuscleFlow는 개인의 운동 및 식단 기록을 관리하는 PWA 서비스�
   <div class="graphCalcDivider"></div>
   <div class="graphCalcTitle">1RM 계산기</div>
   <input id="sheetCalcWeight" type="number" placeholder="kg">
-  <div class="repsGrid" id="sheetCalcRepsGrid"></div>
+  <select id="sheetCalcReps"></select>
   <button id="sheetCalcGoBtn">GO</button>
   <div id="sheetCalcTableArea"></div>
 </div>
@@ -8054,7 +8037,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.5.82";
+const APP_VERSION = "0.5.83";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -14856,30 +14839,20 @@ lastLiftKey = getActiveLiftKey();
    재사용하되, 지금 그래프로 보고 있는 종목(lastLiftKey) 기준으로 동작
 ================================ */
 const sheetCalcWeight = document.getElementById('sheetCalcWeight');
-const sheetCalcRepsGrid = document.getElementById('sheetCalcRepsGrid');
+const sheetCalcReps = document.getElementById('sheetCalcReps');
 const sheetCalcGoBtn = document.getElementById('sheetCalcGoBtn');
 const sheetCalcTableArea = document.getElementById('sheetCalcTableArea');
 
-// 🔥 1~12회를 한 번에 다 보이는 버튼 그리드로 선택(네이티브 select의 스크롤 잘림 방지)
-let sheetCalcSelectedReps = 1;
 for (let i = 1; i <= 12; i++) {
-  const btn = document.createElement("button");
-  btn.type = "button";
-  btn.className = "repsGridBtn" + (i === sheetCalcSelectedReps ? " active" : "");
-  btn.textContent = `${i}회`;
-  btn.dataset.reps = i;
-  btn.addEventListener("click", () => {
-    sheetCalcSelectedReps = i;
-    sheetCalcRepsGrid.querySelectorAll(".repsGridBtn").forEach(b => {
-      b.classList.toggle("active", Number(b.dataset.reps) === i);
-    });
-  });
-  sheetCalcRepsGrid.appendChild(btn);
+  const opt = document.createElement("option");
+  opt.value = i;
+  opt.textContent = `${i}회`;
+  sheetCalcReps.appendChild(opt);
 }
 
 sheetCalcGoBtn.addEventListener('click', () => {
   const weight = parseFloat(sheetCalcWeight.value);
-  const reps = sheetCalcSelectedReps;
+  const reps = parseInt(sheetCalcReps.value);
 
   if (!weight || !reps) {
     sheetCalcTableArea.innerHTML = `<div style="text-align:center;color:#ff5555;margin-top:10px;">
@@ -14928,7 +14901,7 @@ function openSheetCalcExpanded(){
 function closeSheetCalcExpanded(){
   if (!sheetCalcExpanded.classList.contains('show')) return;
   sheetCalcExpanded.classList.remove('show');
-  sheetCalcExpanded.style.transform = ""; // 드래그 중 남아있을 수 있는 인라인 transform 제거
+  sheetCalcExpanded.style.top = ""; // 드래그 중 남아있을 수 있는 인라인 top 제거
   sheetCalcInlineAnchor.insertAdjacentElement('afterend', sheetCalcInline);
 }
 sheetCalcWeight.addEventListener('focus', openSheetCalcExpanded);
@@ -14953,7 +14926,7 @@ sheetCalcWeight.addEventListener('focus', openSheetCalcExpanded);
     if (!dragging) return;
     const y = (e.touches ? e.touches[0].clientY : e.clientY);
     curY = Math.max(0, y - startY); // 아래로만
-    sheetCalcExpanded.style.transform = `translateY(${curY}px)`;
+    sheetCalcExpanded.style.top = `${curY}px`;
   };
   const onEnd = () => {
     if (!dragging) return;
@@ -14964,7 +14937,7 @@ sheetCalcWeight.addEventListener('focus', openSheetCalcExpanded);
       sheetCalcWeight.blur();
       closeSheetCalcExpanded();
     } else {
-      sheetCalcExpanded.style.transform = ""; // 젤리처럼 원위치로 튕겨 돌아옴
+      sheetCalcExpanded.style.top = ""; // 젤리처럼 원위치로 튕겨 돌아옴
     }
   };
 
