@@ -6480,7 +6480,7 @@ input[type="number"] {
   ">
   <div id="oneRMCalcScreen" style="height:100%; display:flex; flex-direction:column;">
     <div class="bw-menu-header">
-      <button onclick="closeOneRMCalc()" class="bw-menu-header-close" aria-label="닫기">✕</button>
+      <button onclick="closeOneRMCalc()" class="bw-menu-header-close" aria-label="닫기">‹</button>
       <span class="bw-menu-header-title">1RM 계산기</span>
       <span class="bw-menu-header-spacer"></span>
     </div>
@@ -7953,7 +7953,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.6.2";
+const APP_VERSION = "0.6.3";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -10205,6 +10205,11 @@ const oneRMCalcOverlay = document.getElementById("oneRMCalcOverlay");
 
 function openOneRMCalc(){
   oneRMCalcOverlay.classList.remove("hidden");
+  const oneRMCalcScreenEl = document.getElementById('oneRMCalcScreen');
+  if (oneRMCalcScreenEl) {
+    oneRMCalcScreenEl.style.transition = 'none';
+    oneRMCalcScreenEl.style.transform = 'translateX(0)';
+  }
 }
 function closeOneRMCalc(){
   oneRMCalcOverlay.classList.add("hidden");
@@ -13032,6 +13037,78 @@ document.getElementById("dexWriteSubmitBtn").addEventListener("click", async () 
   threeSummaryScreen.addEventListener('touchcancel', endDrag, { passive: true });
 })();
 
+/* 🔥 1RM 계산기 화면: 왼쪽 끝에서 오른쪽으로 드래그하면 손가락 따라 끌려가며 닫힘 */
+(function(){
+  const oneRMCalcScreen = document.getElementById('oneRMCalcScreen');
+  const EDGE_ZONE = 30;
+  const COMMIT_MOVE = 8;
+  const CLOSE_RATIO = 0.3;
+  let startX = 0, startY = 0, tracking = false, dragging = false;
+
+  oneRMCalcScreen.addEventListener('touchstart', (e) => {
+    const t = e.touches[0];
+    if (t.clientX <= EDGE_ZONE) {
+      startX = t.clientX;
+      startY = t.clientY;
+      tracking = true;
+      dragging = false;
+      oneRMCalcScreen.style.transition = 'none';
+    } else {
+      tracking = false;
+    }
+  }, { passive: true });
+
+  oneRMCalcScreen.addEventListener('touchmove', (e) => {
+    if (!tracking) return;
+    const t = e.touches[0];
+    const dx = t.clientX - startX;
+    const dy = t.clientY - startY;
+
+    if (!dragging) {
+      if (dx > COMMIT_MOVE && dx > Math.abs(dy) * 0.6) {
+        dragging = true;
+      } else if (Math.abs(dy) > COMMIT_MOVE && Math.abs(dy) > dx) {
+        tracking = false;
+        return;
+      } else {
+        return;
+      }
+    }
+
+    if (dragging) {
+      e.preventDefault();
+      oneRMCalcScreen.style.transform = `translateX(${Math.max(0, dx)}px)`;
+    }
+  }, { passive: false });
+
+  function endDrag(e){
+    if (!tracking) return;
+    const wasDragging = dragging;
+    tracking = false;
+    dragging = false;
+    if (!wasDragging) return;
+
+    const width = oneRMCalcScreen.offsetWidth || window.innerWidth;
+    const t = e.changedTouches[0];
+    const dx = Math.max(0, t.clientX - startX);
+
+    oneRMCalcScreen.style.transition = 'transform 0.22s ease';
+
+    if (dx > width * CLOSE_RATIO) {
+      oneRMCalcScreen.style.transform = `translateX(${width}px)`;
+      setTimeout(() => {
+        closeOneRMCalc();
+        oneRMCalcScreen.style.transition = 'none';
+      }, 220);
+    } else {
+      oneRMCalcScreen.style.transform = 'translateX(0)';
+    }
+  }
+
+  oneRMCalcScreen.addEventListener('touchend', endDrag, { passive: true });
+  oneRMCalcScreen.addEventListener('touchcancel', endDrag, { passive: true });
+})();
+
 
 
    
@@ -13618,7 +13695,7 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
       "mySpecOverlay", "threeSummaryOverlay", "settingsOverlay",
       "myRoutineOverlay", "myRoutinePastListOverlay", "myRoutineDetailOverlay",
       "myRoutineBuilderOverlay", "myRoutineRevealOverlay", "dietOverlay",
-      "bodyweightOverlay"
+      "bodyweightOverlay", "oneRMCalcOverlay", "muscleFinderOverlay"
     ];
     return overlayIds.some(id => {
       const el = document.getElementById(id);
