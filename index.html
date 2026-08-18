@@ -3094,25 +3094,26 @@ html.light-mode-on .dex-post-card.has-image{
   color: #777;
 }
 .date-agenda-item{
-  display: flex;
-  align-items: center;
-  gap: 10px;
   padding: 9px 2px;
   border-bottom: 1px solid rgba(255,255,255,0.04);
 }
 .date-agenda-item:last-child{ border-bottom: none; }
 .date-agenda-dot{
+  display: inline-block;
   width: 8px;
   height: 8px;
   border-radius: 50%;
   flex-shrink: 0;
   background: #e0203f;
+  margin-right: 8px;
 }
 .date-agenda-dot-bodyweight,
 .date-agenda-dot-routine{
   background: #888;
 }
 .date-agenda-item-name{
+  display: flex;
+  align-items: center;
   font-size: 14px;
   font-weight: 600;
   color: #eee;
@@ -14820,9 +14821,8 @@ function renderDateAgendaPanel(){
     <div class="date-agenda-list">
       ${groups.map(g => `
         <div class="date-agenda-item">
-          <span class="date-agenda-dot date-agenda-dot-${g.accent}"></span>
           <div class="date-agenda-item-body">
-            <div class="date-agenda-item-name">${escapeHtml(g.exercise)}</div>
+            <div class="date-agenda-item-name"><span class="date-agenda-dot date-agenda-dot-${g.accent}"></span>${escapeHtml(g.exercise)}</div>
             ${g.lines.map(line => `<div class="date-agenda-item-sets">${dateAgendaLineLabel(g, line)}</div>`).join("")}
           </div>
         </div>
