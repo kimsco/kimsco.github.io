@@ -1347,31 +1347,29 @@ cursor: pointer;
   cursor: pointer;
 }
 
+/* 🔥 영화 필름처럼 모든 화면이 한 줄(세로 스트립)로 이어져 있고,
+   터치할 때마다 스트립 전체가 위로 한 칸씩 밀려 올라감(나가는 화면도 함께 위로 사라짐) */
+#whoForTrack {
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.6s cubic-bezier(.22, 1, .36, 1);
+}
+
 .who-hero,
 .who-chapter,
 .who-cta {
-  position: absolute;
-  inset: 0;
+  flex-shrink: 0;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
   box-sizing: border-box;
-  background: #000; /* 🔥 다음 화면이 덮을 때 이전 화면 글자가 비치지 않도록 불투명 배경 필요 */
+  background: #000;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
   padding: 60px 28px;
-}
-
-/* 🔥 터치할 때마다 다음 화면이 화면 아래에서 스르르 밀려 올라와 이전 화면을 덮음
-   (텍스트 위치는 항상 화면 정중앙으로 고정 — 스크롤 위치에 따라 달라지지 않음) */
-.who-chapter,
-.who-cta {
-  transform: translateY(100%);
-  transition: transform 0.6s cubic-bezier(.22, 1, .36, 1);
-}
-.who-chapter.who-active,
-.who-cta.who-active {
-  transform: translateY(0);
 }
 
 .who-hero-mark {
@@ -6696,6 +6694,7 @@ input[type="number"] {
   <button id="whoForBackBtn" onclick="closeWhoFor()" aria-label="닫기">←</button>
 
   <div id="whoForScreen">
+   <div id="whoForTrack">
     <section class="who-hero">
       <div class="who-hero-mark">TTT</div>
       <h1 class="who-hero-title">WHO IS TTT FOR?</h1>
@@ -6815,6 +6814,7 @@ input[type="number"] {
       <div class="who-cta-sub">이제 올라가십시오.</div>
       <button id="whoForCtaBtn" onclick="closeWhoFor()">TO THE TOP</button>
     </section>
+   </div>
   </div>
 </div>
 
@@ -8270,7 +8270,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.6.18";
+const APP_VERSION = "0.6.19";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -10558,20 +10558,26 @@ document.getElementById("navOneRMCalcBtn").addEventListener("click", () => {
 ================================ */
 const whoForOverlay = document.getElementById("whoForOverlay");
 const whoForScreen = document.getElementById("whoForScreen");
-const whoForPanels = document.querySelectorAll("#whoForScreen .who-chapter, #whoForScreen .who-cta");
+const whoForTrack = document.getElementById("whoForTrack");
+const whoForPanelCount = document.querySelectorAll("#whoForTrack > *").length;
 
-// 🔥 터치할 때마다 다음 화면(챕터)이 아래에서 밀려 올라옴 — 앞으로만 진행, 뒤로가기 없음
+// 🔥 영화 필름처럼 모든 화면이 한 줄로 이어진 스트립을 통째로 위로 밀어 올림
+//    (나가는 화면도 위로 사라지고, 다음 화면이 아래에서 함께 올라옴) — 앞으로만 진행, 뒤로가기 없음
 let whoForStep = 0;
 function whoForAdvance(){
-  if (whoForStep >= whoForPanels.length) return; // 이미 마지막(CTA)까지 다 봄
-  whoForPanels[whoForStep].classList.add("who-active");
+  if (whoForStep >= whoForPanelCount - 1) return; // 이미 마지막(CTA)까지 다 봄
   whoForStep++;
+  // 🔥 %는 트랙 자신의(패널 10개 합) 높이 기준이라 화면 1장만큼 못 옮김 — 뷰포트 단위(dvh) 사용
+  whoForTrack.style.transform = `translateY(-${whoForStep * 100}dvh)`;
 }
 
 function openWhoFor(){
   whoForOverlay.classList.remove("hidden");
-  whoForPanels.forEach(el => el.classList.remove("who-active")); // 🔥 다시 열 때마다 처음부터
+  whoForTrack.style.transition = "none";
+  whoForTrack.style.transform = "translateY(0)"; // 🔥 다시 열 때마다 처음부터
   whoForStep = 0;
+  void whoForTrack.offsetWidth; // 리플로우 강제(다음 트랜지션이 즉시 적용되도록)
+  whoForTrack.style.transition = "";
 }
 function closeWhoFor(){
   whoForOverlay.classList.add("hidden");
