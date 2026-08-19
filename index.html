@@ -1416,7 +1416,7 @@ cursor: pointer;
 .who-cta-fade {
   display: inline-block;
   opacity: 0;
-  transition: opacity 0.8s ease;
+  transition: opacity 1s ease;
 }
 .who-cta-fade.who-cta-fade-in {
   opacity: 1;
@@ -8263,7 +8263,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.6.26";
+const APP_VERSION = "0.6.27";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -10611,10 +10611,10 @@ function whoForPlayCtaIntro(){
       el.style.transform = "translateX(0)";
     });
 
-    // 2) T들이 자리잡고 0.5초 후, 나머지 글자(O·HE·OP·.)가 페이드인으로 등장
+    // 2) T들이 자리잡고 0.3초 후, 나머지 글자(O·HE·OP·.)가 페이드인으로 등장
     setTimeout(() => {
       whoForCtaFadeSpans.forEach(el => el.classList.add("who-cta-fade-in"));
-    }, 1000 + 500);
+    }, 1000 + 300);
   }, 500);
 }
 
