@@ -5524,14 +5524,11 @@ input[type="number"] {
       </svg></span>
       3대 기록
     </button>
-    <button class="home-quick-btn" id="homeQuickCalendar" type="button">
-      <span class="home-quick-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" width="22" height="22">
-        <rect x="3.5" y="5" width="17" height="15" rx="2.3"/>
-        <path d="M3.5 9.5h17"/>
-        <path d="M8 3v4M16 3v4"/>
-        <circle cx="8.3" cy="14" r="1" fill="currentColor" stroke="none"/>
+    <button class="home-quick-btn" id="homeQuickOneRM" type="button">
+      <span class="home-quick-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" width="22" height="22">
+        <path d="M8 7L11.5 3H16V21H11.5V8L8 12Z"></path>
       </svg></span>
-      캘린더
+      1RM 계산기
     </button>
     <button class="home-quick-btn" id="homeQuickRoutine" type="button">
       <span class="home-quick-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" width="22" height="22">
@@ -8394,7 +8391,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.4";
+const APP_VERSION = "0.7.5";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -9081,8 +9078,8 @@ document.getElementById("homeQuickBig3").addEventListener("click", () => {
   // 🔥 좌측 메뉴 드로어의 "3대 총합"과 동일한 화면으로 연결
   openThreeSummary();
 });
-document.getElementById("homeQuickCalendar").addEventListener("click", () => {
-  document.querySelector('.bottomTab .tabBtn[data-target="tab3"]')?.click();
+document.getElementById("homeQuickOneRM").addEventListener("click", () => {
+  openOneRMCalc();
 });
 document.getElementById("homeQuickRoutine").addEventListener("click", () => {
   openMyRoutine();
