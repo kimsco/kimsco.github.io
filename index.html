@@ -1317,6 +1317,139 @@ cursor: pointer;
 .bw-menu-header-spacer { width: 56px; flex-shrink: 0; }
 
 /* ===============================
+   🔥 WHO IS TTT FOR? — 브랜드 철학 페이지
+================================ */
+#whoForOverlay.hidden { display: none; }
+
+#whoForBackBtn {
+  all: unset;
+  position: fixed;
+  top: calc(18px + env(safe-area-inset-top));
+  left: 18px;
+  z-index: 2;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: rgba(255,255,255,0.55);
+  cursor: pointer;
+}
+#whoForBackBtn:active { color: rgba(255,255,255,0.9); }
+
+#whoForScreen {
+  height: 100%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: none;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: #fff;
+}
+
+.who-hero,
+.who-chapter,
+.who-cta {
+  min-height: 100vh;
+  min-height: 100dvh;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 60px 28px;
+}
+
+.who-hero-mark {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  color: rgba(255,255,255,0.4);
+  margin-bottom: 18px;
+}
+.who-hero-title {
+  font-size: 30px;
+  font-weight: 800;
+  line-height: 1.3;
+  margin: 0 0 40px;
+  letter-spacing: 0.3px;
+}
+.who-hero-scroll {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  color: rgba(255,255,255,0.32);
+  line-height: 1.8;
+}
+
+.who-chapter-num {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: rgba(255,255,255,0.35);
+  margin-bottom: 18px;
+}
+.who-chapter-title {
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.4;
+  margin-bottom: 26px;
+}
+.who-chapter-body p {
+  font-size: 16px;
+  line-height: 1.75;
+  color: rgba(255,255,255,0.82);
+  margin: 0 0 22px;
+}
+.who-chapter-body p:last-child { margin-bottom: 0; }
+.who-chapter-body p.who-emphasis {
+  font-weight: 700;
+  color: #fff;
+  font-size: 17px;
+}
+
+/* 🔥 스크롤로 화면에 들어올 때 한 번만 서서히 나타남(재반복 없음) */
+.who-chapter {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.who-chapter.who-in-view {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.who-cta-main {
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  margin-bottom: 16px;
+}
+.who-cta-sub {
+  font-size: 15px;
+  color: rgba(255,255,255,0.6);
+  margin-bottom: 6px;
+}
+.who-cta-sub + button#whoForCtaBtn,
+#whoForCtaBtn {
+  all: unset;
+  margin-top: 34px;
+  padding: 14px 38px;
+  margin-bottom: env(safe-area-inset-bottom);
+  border: 1px solid rgba(255,255,255,0.5);
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: #fff;
+  cursor: pointer;
+}
+#whoForCtaBtn:active {
+  background: rgba(255,255,255,0.1);
+}
+
+/* ===============================
    🔥 근육부위찾기(실험용 v1) — 정면/후면 3D 회전
 ================================ */
 .muscle-finder-cards {
@@ -6494,8 +6627,9 @@ input[type="number"] {
     <button id="navBodyweightBtn" class="nav-drawer-item">맨몸운동</button>
     <button id="navOneRMCalcBtn" class="nav-drawer-item">1RM 계산기</button>
     <button id="navMuscleFinderBtn" class="nav-drawer-item" style="opacity:0.45;">근육부위 🔒</button>
+    <button id="navWhoForBtn" class="nav-drawer-item" style="margin-top:auto;">WHO IS TTT FOR?</button>
     <!-- 🔥 아직 실험 단계인 테스트용 버튼이라 맨 아래로 -->
-    <button id="navTestRoutineRoomBtn" class="nav-drawer-item" style="margin-top:auto;">Test Routine Room</button>
+    <button id="navTestRoutineRoomBtn" class="nav-drawer-item">Test Routine Room</button>
   </div>
 </div>
 
@@ -6549,6 +6683,136 @@ input[type="number"] {
       <div id="result"></div>
       <div id="tableArea"></div>
     </div>
+  </div>
+</div>
+
+<!-- 🔥 WHO IS TTT FOR? — 브랜드 철학 페이지(풀스크린, 세로 스크롤) -->
+<div id="whoForOverlay" class="hidden" style="
+    position:fixed; inset:0; background:#000; z-index:100000;
+    overflow:hidden;
+  ">
+  <button id="whoForBackBtn" onclick="closeWhoFor()" aria-label="닫기">←</button>
+
+  <div id="whoForScreen">
+    <section class="who-hero">
+      <div class="who-hero-mark">TTT</div>
+      <h1 class="who-hero-title">WHO IS TTT FOR?</h1>
+      <div class="who-hero-scroll">SCROLL<br>↓</div>
+    </section>
+
+    <section class="who-chapter">
+      <div class="who-chapter-num">01</div>
+      <div class="who-chapter-body">
+        <p>TTT는 헬스를 시작하고 싶은 사람을 위한 앱이 아닙니다.</p>
+        <p class="who-emphasis">정상을 향해 나아갈 사람을 위한 앱입니다.</p>
+        <p>더 강해지고 싶은 사람.<br>어제의 자신을 넘어가고 싶은 사람.<br>아무도 보지 않는 곳에서도<br>자신을 밀어붙일 수 있는 사람.</p>
+        <p>TTT는 그런 사람들을 위해 존재합니다.</p>
+      </div>
+    </section>
+
+    <section class="who-chapter">
+      <div class="who-chapter-num">02</div>
+      <div class="who-chapter-title">왜 운동합니까?</div>
+      <div class="who-chapter-body">
+        <p>오늘 하루의 성취감을 얻기 위해서입니까?</p>
+        <p>아닙니다.</p>
+        <p>오늘의 운동은<br>미래의 당신을 만들기 위한 것입니다.</p>
+        <p>과거의 자신을 넘어<br>더 강한 자신으로 나아가기 위해.</p>
+        <p>때로는 귀찮고,<br>때로는 힘들고,<br>때로는 모든 것을 놓고 싶어도</p>
+        <p>다시 자신을 밀어붙이기 위해 운동합니다.</p>
+      </div>
+    </section>
+
+    <section class="who-chapter">
+      <div class="who-chapter-num">03</div>
+      <div class="who-chapter-title">기록하십시오.</div>
+      <div class="who-chapter-body">
+        <p>기록은 단순한 숫자가 아닙니다.</p>
+        <p class="who-emphasis">기록은 과거의 나와 싸울 수 있는 유일한 지표입니다.</p>
+        <p>어제 10개를 했다면<br>오늘은 11개를.</p>
+        <p>어제보다 조금 더 무겁게.<br>어제보다 한 세트 더.</p>
+        <p>기록이 있기 때문에<br>당신은 과거의 자신을 넘어설 수 있습니다.</p>
+        <p>기록하지 않는다면<br>무엇과 싸우고 있는지도 알 수 없습니다.</p>
+      </div>
+    </section>
+
+    <section class="who-chapter">
+      <div class="who-chapter-num">04</div>
+      <div class="who-chapter-body">
+        <p class="who-emphasis">TTT는 당신 대신 성장하지 않습니다.</p>
+        <p>운동하는 것도 당신입니다.<br>기록하는 것도 당신입니다.<br>목표를 세우는 것도 당신입니다.</p>
+        <p>그리고 다시 일어나는 것도<br>결국 당신입니다.</p>
+        <p>TTT는 모든 것을 떠먹여주는<br>친절한 앱이 아닙니다.</p>
+        <p>당신이 스스로 움직일 수 있도록<br>필요한 도구를 제공할 뿐입니다.</p>
+        <p>TTT를 어디까지 활용할 것인지.</p>
+        <p class="who-emphasis">그건 당신에게 달려 있습니다.</p>
+      </div>
+    </section>
+
+    <section class="who-chapter">
+      <div class="who-chapter-num">05</div>
+      <div class="who-chapter-title">목표를 두려워하지 마십시오.</div>
+      <div class="who-chapter-body">
+        <p>목표가 있다는 것은<br>아직 올라갈 계단이 남아 있다는 뜻입니다.</p>
+        <p>지금의 당신에게 너무 높은가요?</p>
+        <p>그렇다면<br>앞으로 그 계단을 하나씩 올라가면 됩니다.</p>
+        <p>넘어져도 괜찮습니다.</p>
+        <p>다시 일어나면 됩니다.</p>
+        <p>하지만 그 자리에 누워버린다면<br>언젠가 그때의 자신을 후회하게 될 것입니다.</p>
+        <p>넘어지는 것은 실패가 아닙니다.</p>
+      </div>
+    </section>
+
+    <section class="who-chapter">
+      <div class="who-chapter-num">06</div>
+      <div class="who-chapter-title">실패를 두려워하지 마십시오.</div>
+      <div class="who-chapter-body">
+        <p>실패했다고 해서<br>당신의 성장이 멈추는 것은 아닙니다.</p>
+        <p>오늘의 기록이 기대만큼 나오지 않을 수도 있고,<br>목표에 도달하지 못할 수도 있습니다.</p>
+        <p>그렇다면 다시 시작하면 됩니다.</p>
+        <p class="who-emphasis">실패는 끝이 아니라<br>지금의 자신이 어디에 있는지 알려주는 기록입니다.</p>
+        <p>중요한 것은 넘어지지 않는 것이 아니라<br>넘어진 뒤에도 다시 나아가는 것입니다.</p>
+      </div>
+    </section>
+
+    <section class="who-chapter">
+      <div class="who-chapter-num">07</div>
+      <div class="who-chapter-title">그래서 TTT는 모두를 위한 앱이 아닙니다.</div>
+      <div class="who-chapter-body">
+        <p>기록하는 것이 귀찮은 사람.</p>
+        <p>운동은 대충 하고 싶지만<br>몸은 좋아지고 싶은 사람.</p>
+        <p>그런 사람에게 TTT는 필요하지 않을지도 모릅니다.</p>
+        <p>TTT는</p>
+        <p>성장을 갈망하는 사람.</p>
+        <p>아무도 보지 않는 곳에서도<br>자신의 길을 걷는 사람.</p>
+        <p>어제의 자신과 싸우고<br>오늘의 자신을 넘어서는 사람.</p>
+        <p>정상을 향해 나아가는 사람을 위한 앱입니다.</p>
+      </div>
+    </section>
+
+    <section class="who-chapter">
+      <div class="who-chapter-num">08</div>
+      <div class="who-chapter-body">
+        <p>그리고 이것은 운동에만 해당하지 않습니다.</p>
+        <p>언젠가 당신은<br>운동보다 훨씬 거대한 벽을 만나게 될 것입니다.</p>
+        <p>넘어질 수도 있습니다.</p>
+        <p>두려울 수도 있습니다.</p>
+        <p>앞에 무엇이 있는지<br>보이지 않을 수도 있습니다.</p>
+        <p>그때 필요한 것은<br>두려움이 없는 사람이 되는 것이 아닙니다.</p>
+        <p>두려워도 나아가는 법을 배우는 것입니다.</p>
+        <p>넘어져도 일어나는 법.</p>
+        <p>깊고 거친 바다 앞에서도<br>항해를 멈추지 않는 법.</p>
+        <p>TTT가 당신에게 주고 싶은 것은<br>단순히 강한 몸이 아닙니다.</p>
+        <p class="who-emphasis">끝까지 나아가는 사람으로 살아가는 힘입니다.</p>
+      </div>
+    </section>
+
+    <section class="who-cta">
+      <div class="who-cta-main">TO THE TOP.</div>
+      <div class="who-cta-sub">정상을 향해.</div>
+      <div class="who-cta-sub">이제 올라가십시오.</div>
+      <button id="whoForCtaBtn" onclick="closeWhoFor()">TO THE TOP</button>
+    </section>
   </div>
 </div>
 
@@ -8004,7 +8268,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.6.16";
+const APP_VERSION = "0.6.17";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -10285,6 +10549,40 @@ function closeOneRMCalc(){
 document.getElementById("navOneRMCalcBtn").addEventListener("click", () => {
   closeNavDrawerInstant();
   openOneRMCalc();
+});
+
+/* ===============================
+   🔥 WHO IS TTT FOR? — 브랜드 철학 페이지
+================================ */
+const whoForOverlay = document.getElementById("whoForOverlay");
+const whoForScreen = document.getElementById("whoForScreen");
+
+let whoForObserver = null;
+function whoForEnsureObserver(){
+  if (whoForObserver || typeof IntersectionObserver === "undefined") return;
+  whoForObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add("who-in-view");
+        whoForObserver.unobserve(entry.target); // 🔥 한 번 나타나면 다시 반복하지 않음
+      }
+    });
+  }, { threshold: 0.25 });
+  document.querySelectorAll(".who-chapter").forEach(el => whoForObserver.observe(el));
+}
+
+function openWhoFor(){
+  whoForOverlay.classList.remove("hidden");
+  whoForScreen.scrollTop = 0;
+  whoForEnsureObserver();
+}
+function closeWhoFor(){
+  whoForOverlay.classList.add("hidden");
+}
+
+document.getElementById("navWhoForBtn").addEventListener("click", () => {
+  closeNavDrawerInstant();
+  openWhoFor();
 });
 
 /* ===============================
@@ -13762,7 +14060,7 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
       "mySpecOverlay", "threeSummaryOverlay", "settingsOverlay",
       "myRoutineOverlay", "myRoutinePastListOverlay", "myRoutineDetailOverlay",
       "myRoutineBuilderOverlay", "myRoutineRevealOverlay", "dietOverlay",
-      "bodyweightOverlay", "oneRMCalcOverlay", "muscleFinderOverlay"
+      "bodyweightOverlay", "oneRMCalcOverlay", "muscleFinderOverlay", "whoForOverlay"
     ];
     return overlayIds.some(id => {
       const el = document.getElementById(id);
