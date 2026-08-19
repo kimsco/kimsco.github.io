@@ -5352,10 +5352,11 @@ input[type="number"] {
 #tab1 .home-big3-badge b { color: #fff; font-weight: 800; }
 
 #tab1 .home-weight-pill { box-sizing: border-box; height: 28px; display: flex; align-items: center; gap: 6px; background: #111; border: 1px solid #222; border-radius: 999px; padding: 0 3px 0 14px; }
-#tab1 .home-weight-pill input { width: 60px; margin: 0; background: transparent; border: none; color: #fff; font-size: 12px; font-weight: 700; padding: 0; }
+#tab1 .home-weight-pill input { width: 44px; margin: 0; background: transparent; border: none; color: #fff; font-size: 12px; font-weight: 700; padding: 0; }
 #tab1 .home-weight-pill input::-webkit-outer-spin-button,
 #tab1 .home-weight-pill input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 #tab1 .home-weight-pill input::placeholder { color: rgba(255,255,255,0.35); font-weight: 600; }
+#tab1 .home-weight-pill .home-weight-unit { font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.6); }
 #tab1 .home-weight-pill button { width: 20px; height: 20px; margin: 0; border-radius: 50%; background: #fff; color: #000; border: none; font-size: 13px; font-weight: 700; line-height: 1; display: flex; align-items: center; justify-content: center; flex-shrink: 0; cursor: pointer; }
 
 #tab1 .home-card { background: #111; border: 1px solid #222; border-radius: 16px; margin-bottom: 14px; }
@@ -5475,7 +5476,8 @@ input[type="number"] {
   <div class="home-title-row">
     <div class="home-big3-badge" id="homeBig3Badge">3대 <b id="homeBig3Total">0kg</b></div>
     <div class="home-weight-pill">
-      <input type="number" id="homeWeightInput" placeholder="오늘 체중" inputmode="decimal" step="0.1">
+      <input type="number" id="homeWeightInput" placeholder="체중" inputmode="decimal" step="0.1">
+      <span class="home-weight-unit">kg</span>
       <button id="homeWeightSaveBtn" aria-label="체중 저장">+</button>
     </div>
   </div>
@@ -8390,7 +8392,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.0";
+const APP_VERSION = "0.7.1";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
