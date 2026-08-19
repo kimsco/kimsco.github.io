@@ -8392,7 +8392,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.1";
+const APP_VERSION = "0.7.2";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -9076,7 +9076,8 @@ document.getElementById("homeDietQuickBtn").addEventListener("click", () => {
 });
 
 document.getElementById("homeQuickBig3").addEventListener("click", () => {
-  document.querySelector('.bottomTab .tabBtn[data-target="tab2"]')?.click();
+  // 🔥 좌측 메뉴 드로어의 "3대 총합"과 동일한 화면으로 연결
+  openThreeSummary();
 });
 document.getElementById("homeQuickCalendar").addEventListener("click", () => {
   document.querySelector('.bottomTab .tabBtn[data-target="tab3"]')?.click();
