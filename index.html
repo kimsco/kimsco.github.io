@@ -8275,7 +8275,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.6.22";
+const APP_VERSION = "0.6.23";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -10602,15 +10602,15 @@ function whoForResetCtaIntro(){
 
   const rects = [...whoForCtaTSpans].map(el => el.getBoundingClientRect());
   if (rects.length) {
-    let cursor = rects[0].left + rects[0].width;
+    // 🔥 T1의 원래 자리에 그냥 붙이면 "TO"의 T 위치(화면 왼쪽 쪽)에 뭉쳐서 안 보임 — 뭉친 "TTT" 덩어리 자체를 화면 가운데로
+    const totalWidth = rects.reduce((sum, r) => sum + r.width, 0);
+    const containerCenterX = whoForCtaMain.closest(".who-cta").getBoundingClientRect().left
+      + whoForCtaMain.closest(".who-cta").getBoundingClientRect().width / 2;
+    let cursor = containerCenterX - totalWidth / 2;
     whoForCtaTSpans.forEach((el, i) => {
       el.style.transition = "none";
-      if (i === 0) {
-        el.style.transform = "translateX(0)";
-      } else {
-        el.style.transform = `translateX(${cursor - rects[i].left}px)`;
-        cursor += rects[i].width;
-      }
+      el.style.transform = `translateX(${cursor - rects[i].left}px)`;
+      cursor += rects[i].width;
     });
   }
   void whoForCtaMain.offsetWidth; // 리플로우 강제(즉시 초기 상태로, 이후 트랜지션 다시 활성화)
