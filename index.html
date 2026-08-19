@@ -1321,23 +1321,6 @@ cursor: pointer;
 ================================ */
 #whoForOverlay.hidden { display: none; }
 
-#whoForBackBtn {
-  all: unset;
-  position: fixed;
-  top: calc(18px + env(safe-area-inset-top));
-  left: 18px;
-  z-index: 2;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  color: rgba(255,255,255,0.55);
-  cursor: pointer;
-}
-#whoForBackBtn:active { color: rgba(255,255,255,0.9); }
-
 #whoForScreen {
   height: 100%;
   position: relative;
@@ -6691,8 +6674,6 @@ input[type="number"] {
     position:fixed; inset:0; background:#000; z-index:100000;
     overflow:hidden;
   ">
-  <button id="whoForBackBtn" onclick="closeWhoFor()" aria-label="닫기">←</button>
-
   <div id="whoForScreen">
    <div id="whoForTrack">
     <section class="who-hero">
@@ -8270,7 +8251,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.6.20";
+const APP_VERSION = "0.6.21";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
