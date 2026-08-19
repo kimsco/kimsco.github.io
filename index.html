@@ -1408,12 +1408,35 @@ cursor: pointer;
   font-weight: 800;
   letter-spacing: 0.5px;
   margin-bottom: 16px;
+  white-space: nowrap;
+}
+.who-cta-word { display: inline-block; }
+.who-cta-t { display: inline-block; }
+/* 🔥 O/HE/OP/. — 처음엔 숨겨뒀다가 나중에 부드럽게 떠오르며 등장 */
+.who-cta-fade {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+.who-cta-fade.who-cta-fade-in {
+  opacity: 1;
+  transform: translateY(0);
 }
 .who-cta-sub {
   font-size: 15px;
   color: rgba(255,255,255,0.6);
   margin-bottom: 6px;
 }
+.who-cta-hint {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: rgba(255,255,255,0.4);
+  margin-top: 4px;
+  transition: opacity 0.5s ease;
+}
+.who-cta-hint.who-cta-hint-hide { opacity: 0; }
 .who-cta-sub + button#whoForCtaBtn,
 #whoForCtaBtn {
   all: unset;
@@ -6790,9 +6813,10 @@ input[type="number"] {
     </section>
 
     <section class="who-cta">
-      <div class="who-cta-main">TO THE TOP.</div>
+      <div class="who-cta-main" id="whoForCtaMain"><span class="who-cta-word"><span class="who-cta-t">T</span><span class="who-cta-fade">O</span></span> <span class="who-cta-word"><span class="who-cta-t">T</span><span class="who-cta-fade">H</span><span class="who-cta-fade">E</span></span> <span class="who-cta-word"><span class="who-cta-t">T</span><span class="who-cta-fade">O</span><span class="who-cta-fade">P</span><span class="who-cta-fade">.</span></span></div>
       <div class="who-cta-sub">정상을 향해.</div>
       <div class="who-cta-sub">이제 올라가십시오.</div>
+      <div class="who-cta-hint" id="whoForCtaHint">(To the Top)</div>
       <button id="whoForCtaBtn" onclick="closeWhoFor()">TO THE TOP</button>
     </section>
    </div>
@@ -8251,7 +8275,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.6.21";
+const APP_VERSION = "0.6.22";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -10550,6 +10574,67 @@ function whoForAdvance(){
   whoForStep++;
   // 🔥 %는 트랙 자신의(패널 10개 합) 높이 기준이라 화면 1장만큼 못 옮김 — 뷰포트 단위(dvh) 사용
   whoForTrack.style.transform = `translateY(-${whoForStep * 100}dvh)`;
+  if (whoForStep === whoForPanelCount - 1) {
+    // 스트립이 다 밀려서 CTA 화면이 자리잡는 시점(트랙 트랜지션과 동일한 1s) 이후에 인트로 시작
+    setTimeout(whoForPlayCtaIntro, 1000);
+  }
+}
+
+const whoForCtaMain = document.getElementById("whoForCtaMain");
+const whoForCtaHint = document.getElementById("whoForCtaHint");
+const whoForCtaTSpans = whoForCtaMain.querySelectorAll(".who-cta-t");
+const whoForCtaFadeSpans = whoForCtaMain.querySelectorAll(".who-cta-fade");
+let whoForCtaPlayed = false;
+
+// 🔥 T,T,T를 "TO THE TOP." 문장 속 각자의 자리(자연스러운 최종 위치)에서
+//    서로 붙여 "TTT" 로고처럼 뭉쳐 보이도록 초기 오프셋을 계산해서 적용
+function whoForResetCtaIntro(){
+  whoForCtaPlayed = false;
+  // 🔥 트랜지션이 걸린 채로 클래스만 떼면 살짝 사라지는 애니메이션이 보여버림 — 즉시 초기화
+  whoForCtaFadeSpans.forEach(el => {
+    el.style.transition = "none";
+    el.classList.remove("who-cta-fade-in");
+  });
+  if (whoForCtaHint) {
+    whoForCtaHint.style.transition = "none";
+    whoForCtaHint.classList.remove("who-cta-hint-hide");
+  }
+
+  const rects = [...whoForCtaTSpans].map(el => el.getBoundingClientRect());
+  if (rects.length) {
+    let cursor = rects[0].left + rects[0].width;
+    whoForCtaTSpans.forEach((el, i) => {
+      el.style.transition = "none";
+      if (i === 0) {
+        el.style.transform = "translateX(0)";
+      } else {
+        el.style.transform = `translateX(${cursor - rects[i].left}px)`;
+        cursor += rects[i].width;
+      }
+    });
+  }
+  void whoForCtaMain.offsetWidth; // 리플로우 강제(즉시 초기 상태로, 이후 트랜지션 다시 활성화)
+  whoForCtaFadeSpans.forEach(el => { el.style.transition = ""; });
+  if (whoForCtaHint) whoForCtaHint.style.transition = "";
+}
+
+function whoForPlayCtaIntro(){
+  if (whoForCtaPlayed) return;
+  whoForCtaPlayed = true;
+
+  // 1) "TTT" 상태로 1초 유지 후, T들이 벌어지며 각자의 자리로 이동(0.5초)
+  setTimeout(() => {
+    whoForCtaTSpans.forEach(el => {
+      el.style.transition = "transform 0.5s cubic-bezier(.22,1,.36,1)";
+      el.style.transform = "translateX(0)";
+    });
+    if (whoForCtaHint) whoForCtaHint.classList.add("who-cta-hint-hide");
+
+    // 2) T들이 자리잡고 0.3초 후, 나머지 글자(O·HE·OP·.)가 스르르 떠오르며 등장
+    setTimeout(() => {
+      whoForCtaFadeSpans.forEach(el => el.classList.add("who-cta-fade-in"));
+    }, 500 + 300);
+  }, 1000);
 }
 
 function openWhoFor(){
@@ -10559,6 +10644,7 @@ function openWhoFor(){
   whoForStep = 0;
   void whoForTrack.offsetWidth; // 리플로우 강제(다음 트랜지션이 즉시 적용되도록)
   whoForTrack.style.transition = "";
+  whoForResetCtaIntro();
 }
 function closeWhoFor(){
   whoForOverlay.classList.add("hidden");
