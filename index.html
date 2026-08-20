@@ -5368,10 +5368,10 @@ input[type="number"] {
 #tab1 .home-today-muscle .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #e0203f; margin-right: 8px; vertical-align: middle; }
 #tab1 .home-today-sub { font-size: 9px; color: rgba(255,255,255,0.4); margin-top: 6px; }
 #tab1 .home-today-streak { text-align: right; }
-#tab1 .home-week-mini-label { font-size: 11px; font-weight: 700; letter-spacing: 0.5px; color: rgba(255,255,255,0.4); margin-bottom: 10px; }
+#tab1 .home-week-mini-label { font-size: 12px; font-weight: 700; letter-spacing: 0.5px; color: rgba(255,255,255,0.4); margin-bottom: 10px; }
 #tab1 .home-week-mini-row { display: flex; gap: 6px; }
 #tab1 .home-week-mini-day { display: flex; flex-direction: column; align-items: center; gap: 5px; }
-#tab1 .home-week-mini-day .d { width: 16px; height: 16px; border-radius: 50%; background: #1c1c1c; border: 1px solid #2a2a2a; box-sizing: border-box; }
+#tab1 .home-week-mini-day .d { width: 18px; height: 18px; border-radius: 50%; background: #1c1c1c; border: 1px solid #2a2a2a; box-sizing: border-box; }
 #tab1 .home-week-mini-day .d.filled { background: #e0203f; border-color: #e0203f; }
 #tab1 .home-week-mini-day .d.today { box-shadow: 0 0 0 1.5px #fff; }
 #tab1 .home-week-mini-day .lbl { font-size: 9px; color: rgba(255,255,255,0.4); }
@@ -5395,7 +5395,7 @@ input[type="number"] {
 #tab1 .home-diet-input-row input::placeholder { color: rgba(255,255,255,0.3); }
 #tab1 .home-diet-input-row button { width: 44px; margin: 0; background: #fff; color: #000; border: none; border-radius: 10px; font-size: 18px; font-weight: 700; cursor: pointer; }
 
-#tab1 .home-quick-row { display: flex; gap: 10px; }
+#tab1 .home-quick-row { display: flex; gap: 10px; margin-bottom: 14px; }
 #tab1 .home-quick-btn { flex: 1; width: auto; margin: 0; background: #111; border: 1px solid #222; border-radius: 14px; padding: 14px 10px; text-align: center; font-size: 12px; font-weight: 700; font-family: inherit; color: rgba(255,255,255,0.85); cursor: pointer; }
 #tab1 .home-quick-btn .home-quick-icon { display: flex; align-items: center; justify-content: center; margin-bottom: 6px; color: rgba(255,255,255,0.85); }
 #tab1 .home-quick-btn .home-quick-icon svg { display: block; margin: 0 auto; }
@@ -5496,13 +5496,6 @@ input[type="number"] {
     </div>
   </div>
 
-  <div class="home-card home-quote-card">
-    <div class="home-quote-open">“</div>
-    <div class="home-quote-close">”</div>
-    <div class="home-quote-headline">같은 벽을 보고도 누군가는 멈추고, 누군가는 올라갈 길을 찾는다.</div>
-    <div class="home-quote-body">불가능이라는 말 앞에서 누군가는 포기하고, 누군가는 도전할 이유를 찾는다.<br>결국 당신의 한계를 결정하는 것은 현실이 아니라 그 현실을 마주하는 당신의 태도다.</div>
-  </div>
-
   <div class="home-card home-diet-card">
     <div class="home-diet-head">
       <div class="home-card-label">오늘 식단</div>
@@ -5542,6 +5535,13 @@ input[type="number"] {
       </svg></span>
       루틴
     </button>
+  </div>
+
+  <div class="home-card home-quote-card">
+    <div class="home-quote-open">“</div>
+    <div class="home-quote-close">”</div>
+    <div class="home-quote-headline">같은 벽을 보고도 누군가는 멈추고, 누군가는 올라갈 길을 찾는다.</div>
+    <div class="home-quote-body">불가능이라는 말 앞에서 누군가는 포기하고, 누군가는 도전할 이유를 찾는다.<br>결국 당신의 한계를 결정하는 것은 현실이 아니라 그 현실을 마주하는 당신의 태도다.</div>
   </div>
 </div>
 
@@ -8395,7 +8395,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.7";
+const APP_VERSION = "0.7.8";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
