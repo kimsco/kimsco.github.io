@@ -8391,7 +8391,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.5";
+const APP_VERSION = "0.7.6";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -15334,18 +15334,20 @@ function getExerciseRecordsForDate(calKey){
   if (!recordDate) return [];
 
   const groups = new Map(); // exercise명 -> group
-  function addLine(exercise, accent, weight, reps, sets){
+  function addLine(exercise, accent, weight, reps, sets, ts){
     if (!groups.has(exercise)) {
-      groups.set(exercise, { exercise, accent, lines: [] });
+      groups.set(exercise, { exercise, accent, lines: [], minTs: Infinity });
     }
-    groups.get(exercise).lines.push({ weight, reps, sets });
+    const g = groups.get(exercise);
+    g.lines.push({ weight, reps, sets });
+    if (typeof ts === "number" && ts > 0 && ts < g.minTs) g.minTs = ts;
   }
 
   // 3대: 레코드 하나가 이미 "무게 x 횟수 x 세트" 단위로 저장되어 있음
   Object.entries(records || {}).forEach(([liftKey, arr]) => {
     (arr || []).forEach(r => {
       if (r && r.date === recordDate) {
-        addLine(LIFT_DISPLAY_NAME[liftKey] || liftKey, "lift", r.weight, r.reps, r.sets || 1);
+        addLine(LIFT_DISPLAY_NAME[liftKey] || liftKey, "lift", r.weight, r.reps, r.sets || 1, r.createdAt);
       }
     });
   });
@@ -15355,25 +15357,29 @@ function getExerciseRecordsForDate(calKey){
   Object.values(accRecordsByExercise || {}).forEach(arr => {
     (arr || []).forEach(r => {
       if (!r || r.date !== recordDate) return;
+      const ts = typeof r.createdAt === "number" ? r.createdAt : (r.createdAt?.toMillis?.() ?? r._sortMs ?? 0);
       const groupKey = `${r.exercise}__${r.weight}__${r.reps}__${r.part}`;
       if (!accGroups.has(groupKey)) {
-        accGroups.set(groupKey, { exercise: r.exercise, weight: r.weight, reps: r.reps, sets: 0, part: r.part });
+        accGroups.set(groupKey, { exercise: r.exercise, weight: r.weight, reps: r.reps, sets: 0, part: r.part, minTs: Infinity });
       }
-      accGroups.get(groupKey).sets += 1;
+      const ag = accGroups.get(groupKey);
+      ag.sets += 1;
+      if (ts > 0 && ts < ag.minTs) ag.minTs = ts;
     });
   });
   accGroups.forEach(g => {
-    addLine(g.exercise, g.part === "bodyweight" ? "bodyweight" : "lift", g.weight, g.reps, g.sets);
+    addLine(g.exercise, g.part === "bodyweight" ? "bodyweight" : "lift", g.weight, g.reps, g.sets, g.minTs === Infinity ? undefined : g.minTs);
   });
 
   // 맨몸운동 루틴 완료 기록: 세트별 무게가 없어서 루틴 단위 요약으로 표시
   (bodyweightRoutineRecords || []).forEach(r => {
     if (r && r.date === recordDate) {
-      addLine(`${r.routineName || "루틴"} 완료`, "routine", null, r.totalReps, r.totalSets);
+      addLine(`${r.routineName || "루틴"} 완료`, "routine", null, r.totalReps, r.totalSets, r.completedAt);
     }
   });
 
-  return [...groups.values()];
+  // 🔥 시간순(실제 기록한 순서) 정렬 — 종목별 가장 이른 세트 시각 기준
+  return [...groups.values()].sort((a, b) => a.minTs - b.minTs);
 }
 
 function dateAgendaLineLabel(group, line){
