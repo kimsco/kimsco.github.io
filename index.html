@@ -5368,13 +5368,17 @@ input[type="number"] {
 #tab1 .home-today-muscle .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #e0203f; margin-right: 8px; vertical-align: middle; }
 #tab1 .home-today-sub { font-size: 9px; color: rgba(255,255,255,0.4); margin-top: 6px; }
 #tab1 .home-today-streak { text-align: right; }
-#tab1 .home-week-mini-label { font-size: 12px; font-weight: 700; letter-spacing: 0.5px; color: rgba(255,255,255,0.4); margin-bottom: 10px; }
-#tab1 .home-week-mini-row { display: flex; gap: 6px; }
-#tab1 .home-week-mini-day { display: flex; flex-direction: column; align-items: center; gap: 5px; }
-#tab1 .home-week-mini-day .d { width: 18px; height: 18px; border-radius: 50%; background: #1c1c1c; border: 1px solid #2a2a2a; box-sizing: border-box; }
-#tab1 .home-week-mini-day .d.filled { background: #e0203f; border-color: #e0203f; }
-#tab1 .home-week-mini-day .d.today { box-shadow: 0 0 0 1.5px #fff; }
-#tab1 .home-week-mini-day .lbl { font-size: 9px; color: rgba(255,255,255,0.4); }
+#tab1 .home-tomorrow-label { font-size: 12px; font-weight: 700; letter-spacing: 0.5px; color: rgba(255,255,255,0.4); margin-bottom: 8px; }
+#tab1 .home-tomorrow-muscle { font-size: 18px; font-weight: 800; color: #fff; }
+
+#tab1 .home-week-card { padding: 18px 20px; }
+#tab1 .home-week-card .home-card-label { margin-bottom: 14px; }
+#tab1 .home-week-row { display: flex; justify-content: space-between; }
+#tab1 .home-week-day { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+#tab1 .home-week-day .d { width: 26px; height: 26px; border-radius: 50%; background: #1c1c1c; border: 1px solid #2a2a2a; box-sizing: border-box; }
+#tab1 .home-week-day .d.filled { background: #e0203f; border-color: #e0203f; }
+#tab1 .home-week-day .d.today { box-shadow: 0 0 0 1.5px #fff; }
+#tab1 .home-week-day .lbl { font-size: 10px; color: rgba(255,255,255,0.4); }
 
 #tab1 .home-quote-card { position: relative; padding: 30px 20px 24px; }
 #tab1 .home-quote-open { position: absolute; top: 10px; left: 16px; font-size: 30px; color: rgba(255,255,255,0.2); line-height: 1; }
@@ -5491,9 +5495,14 @@ input[type="number"] {
       <div class="home-today-sub" id="homeTodaySub">캘린더에 자동 기록됨</div>
     </div>
     <div class="home-today-streak">
-      <div class="home-week-mini-label">이번 주 활동</div>
-      <div class="home-week-mini-row" id="homeWeekMiniRow"></div>
+      <div class="home-tomorrow-label">내일 운동</div>
+      <div class="home-tomorrow-muscle" id="homeTomorrowMuscle">미정</div>
     </div>
+  </div>
+
+  <div class="home-card home-week-card">
+    <div class="home-card-label">이번 주 활동</div>
+    <div class="home-week-row" id="homeWeekRow"></div>
   </div>
 
   <div class="home-card home-diet-card">
@@ -8395,7 +8404,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.8";
+const APP_VERSION = "0.7.9";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -9010,11 +9019,19 @@ function renderHomeTab(){
   if (muscleEl) muscleEl.textContent = todayMuscles.length ? todayMuscles.join(", ") : "휴식일";
   if (subEl) subEl.textContent = todayMuscles.length ? "캘린더에 자동 기록됨" : "아직 오늘 기록이 없어요";
 
-  // 이번 주 활동(오늘 부위 카드 우측 미니 위젯)
-  const weekMiniRowEl = document.getElementById("homeWeekMiniRow");
-  if (weekMiniRowEl) {
-    weekMiniRowEl.innerHTML = computeWeekActivity().map(day => `
-      <div class="home-week-mini-day">
+  // 내일 운동(캘린더에 미리 태그해둔 부위, 오늘 부위 카드 우측)
+  const tomorrowDate = new Date();
+  tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+  const tomorrowKey = `${tomorrowDate.getFullYear()}-${tomorrowDate.getMonth() + 1}-${tomorrowDate.getDate()}`;
+  const tomorrowMuscles = calData[tomorrowKey]?.muscles || [];
+  const tomorrowEl = document.getElementById("homeTomorrowMuscle");
+  if (tomorrowEl) tomorrowEl.textContent = tomorrowMuscles.length ? tomorrowMuscles.join(", ") : "미정";
+
+  // 이번 주 활동(별도 카드)
+  const weekRowEl = document.getElementById("homeWeekRow");
+  if (weekRowEl) {
+    weekRowEl.innerHTML = computeWeekActivity().map(day => `
+      <div class="home-week-day">
         <div class="d${day.filled ? " filled" : ""}${day.isToday ? " today" : ""}"></div>
         <div class="lbl">${day.label}</div>
       </div>
@@ -9112,6 +9129,7 @@ document.getElementById("homeQuickRoutine").addEventListener("click", () => {
     // ✅ 게스트/로그인 공통 저장 + 달력 다시그리기
     saveCalendarToLocal();
     calRender();
+    renderHomeTab(); // 🔥 내일 등 다른 날짜를 수동 태그했을 수도 있으니 홈탭도 갱신
   });
 }
 
