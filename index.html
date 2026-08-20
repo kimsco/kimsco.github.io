@@ -3599,6 +3599,26 @@ input[type="number"] {
     /* 또는 padding-top: 30px; */
 }
 
+/* 🔥 1RM 계산기 하단 안내 문구 */
+#oneRMCalcDisclaimer {
+  margin: 30px 20px 24px;
+  padding: 16px;
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 14px;
+}
+#oneRMCalcDisclaimer p {
+  font-size: 12px;
+  line-height: 1.7;
+  color: rgba(255,255,255,0.5);
+  margin: 0 0 10px;
+}
+#oneRMCalcDisclaimer p:last-child { margin-bottom: 0; }
+#oneRMCalcDisclaimer p.emphasis {
+  color: rgba(255,255,255,0.75);
+  font-weight: 700;
+}
+
 /* 종목 모드 글씨체 — 🔥 상단 달력 타이틀(예: 2026년 8월)과 동일한 폰트 스택으로 통일 */
 .calendar.muscle-mode .days div {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
@@ -6817,6 +6837,13 @@ input[type="number"] {
       <button id="goBtn">GO</button>
       <div id="result"></div>
       <div id="tableArea"></div>
+      <div id="oneRMCalcDisclaimer">
+        <p class="emphasis">추정 1RM은 실제 1RM과 차이가 있을 수 있습니다.</p>
+        <p>본 계산기는 수행한 중량과 반복수를 바탕으로 1RM을 추정합니다. 하지만 실제로 무거운 중량을 들어 올리는 능력은 단순한 근력만으로 결정되지 않습니다.</p>
+        <p>무거운 중량에 대한 중량 적응, 높은 중량을 안정적으로 들어 올리기 위한 신경계의 동원 능력, 정확한 자세와 움직임을 위한 운동 기술, 그리고 무거운 중량을 다루는 심리적 적응 역시 실제 1RM 수행에 영향을 줍니다.</p>
+        <p>따라서 가벼운 중량으로 높은 반복수를 수행해 계산된 추정 1RM이 실제로 들어 올릴 수 있는 최대 중량과 반드시 일치하는 것은 아닙니다.</p>
+        <p>추정 1RM은 현재의 근력 수준을 확인하기 위한 참고 지표로 활용해 주세요.</p>
+      </div>
     </div>
   </div>
 </div>
@@ -8404,7 +8431,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.9";
+const APP_VERSION = "0.7.10";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
