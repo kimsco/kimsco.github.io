@@ -5366,19 +5366,21 @@ input[type="number"] {
 #tab1 .home-today-card .home-card-label { margin-bottom: 8px; }
 #tab1 .home-today-muscle { font-size: 24px; font-weight: 800; }
 #tab1 .home-today-muscle .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #e0203f; margin-right: 8px; vertical-align: middle; }
-#tab1 .home-today-sub { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 6px; }
+#tab1 .home-today-sub { font-size: 9px; color: rgba(255,255,255,0.4); margin-top: 6px; }
 #tab1 .home-today-streak { text-align: right; }
-#tab1 .home-streak-num { font-size: 26px; font-weight: 800; color: #e0203f; }
-#tab1 .home-streak-label { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 2px; }
+#tab1 .home-week-mini-label { font-size: 11px; font-weight: 700; letter-spacing: 0.5px; color: rgba(255,255,255,0.4); margin-bottom: 10px; }
+#tab1 .home-week-mini-row { display: flex; gap: 6px; }
+#tab1 .home-week-mini-day { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+#tab1 .home-week-mini-day .d { width: 16px; height: 16px; border-radius: 50%; background: #1c1c1c; border: 1px solid #2a2a2a; box-sizing: border-box; }
+#tab1 .home-week-mini-day .d.filled { background: #e0203f; border-color: #e0203f; }
+#tab1 .home-week-mini-day .d.today { box-shadow: 0 0 0 1.5px #fff; }
+#tab1 .home-week-mini-day .lbl { font-size: 9px; color: rgba(255,255,255,0.4); }
 
-#tab1 .home-week-card { padding: 18px 20px; }
-#tab1 .home-week-card .home-card-label { margin-bottom: 14px; }
-#tab1 .home-week-row { display: flex; justify-content: space-between; }
-#tab1 .home-week-day { display: flex; flex-direction: column; align-items: center; gap: 8px; }
-#tab1 .home-week-day .d { width: 26px; height: 26px; border-radius: 50%; background: #1c1c1c; border: 1px solid #2a2a2a; box-sizing: border-box; }
-#tab1 .home-week-day .d.filled { background: #e0203f; border-color: #e0203f; }
-#tab1 .home-week-day .d.today { border: 1.5px solid #fff; }
-#tab1 .home-week-day .lbl { font-size: 10px; color: rgba(255,255,255,0.4); }
+#tab1 .home-quote-card { position: relative; padding: 30px 20px 24px; }
+#tab1 .home-quote-open { position: absolute; top: 10px; left: 16px; font-size: 30px; color: rgba(255,255,255,0.2); line-height: 1; }
+#tab1 .home-quote-close { position: absolute; bottom: -2px; right: 16px; font-size: 30px; color: rgba(255,255,255,0.2); line-height: 1; }
+#tab1 .home-quote-headline { font-size: 15px; font-weight: 700; line-height: 1.6; color: #fff; margin-bottom: 14px; }
+#tab1 .home-quote-body { font-size: 13px; line-height: 1.75; color: rgba(255,255,255,0.6); }
 
 #tab1 .home-diet-card { padding: 20px; }
 #tab1 .home-diet-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 14px; }
@@ -5489,14 +5491,16 @@ input[type="number"] {
       <div class="home-today-sub" id="homeTodaySub">캘린더에 자동 기록됨</div>
     </div>
     <div class="home-today-streak">
-      <div class="home-streak-num" id="homeStreakNum">0</div>
-      <div class="home-streak-label">일 연속</div>
+      <div class="home-week-mini-label">이번 주 활동</div>
+      <div class="home-week-mini-row" id="homeWeekMiniRow"></div>
     </div>
   </div>
 
-  <div class="home-card home-week-card">
-    <div class="home-card-label">이번 주 활동</div>
-    <div class="home-week-row" id="homeWeekRow"></div>
+  <div class="home-card home-quote-card">
+    <div class="home-quote-open">“</div>
+    <div class="home-quote-close">”</div>
+    <div class="home-quote-headline">같은 벽을 보고도 누군가는 멈추고, 누군가는 올라갈 길을 찾는다.</div>
+    <div class="home-quote-body">불가능이라는 말 앞에서 누군가는 포기하고, 누군가는 도전할 이유를 찾는다.<br>결국 당신의 한계를 결정하는 것은 현실이 아니라 그 현실을 마주하는 당신의 태도다.</div>
   </div>
 
   <div class="home-card home-diet-card">
@@ -8391,7 +8395,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.6";
+const APP_VERSION = "0.7.7";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -8960,18 +8964,6 @@ async function autoMarkCalendarToday(partOrLift){
 /* ===============================
    🔥 홈 화면(tab1) 렌더링
 ================================ */
-function computeWorkoutStreak(){
-  let streak = 0;
-  const d = new Date();
-  while (true) {
-    const key = `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
-    if (!calData[key]?.muscles?.length) break;
-    streak++;
-    d.setDate(d.getDate() - 1);
-  }
-  return streak;
-}
-
 function computeWeekActivity(){
   const today = new Date();
   const sunday = new Date(today);
@@ -9011,20 +9003,18 @@ function renderHomeTab(){
     weightInputEl.value = todayWeight || "";
   }
 
-  // 오늘 부위 + 연속일수
+  // 오늘 부위
   const todayMuscles = calData[getCalendarKeyToday()]?.muscles || [];
   const muscleEl = document.getElementById("homeTodayMuscle");
   const subEl = document.getElementById("homeTodaySub");
   if (muscleEl) muscleEl.textContent = todayMuscles.length ? todayMuscles.join(", ") : "휴식일";
   if (subEl) subEl.textContent = todayMuscles.length ? "캘린더에 자동 기록됨" : "아직 오늘 기록이 없어요";
-  const streakEl = document.getElementById("homeStreakNum");
-  if (streakEl) streakEl.textContent = computeWorkoutStreak();
 
-  // 이번 주 활동
-  const weekRowEl = document.getElementById("homeWeekRow");
-  if (weekRowEl) {
-    weekRowEl.innerHTML = computeWeekActivity().map(day => `
-      <div class="home-week-day">
+  // 이번 주 활동(오늘 부위 카드 우측 미니 위젯)
+  const weekMiniRowEl = document.getElementById("homeWeekMiniRow");
+  if (weekMiniRowEl) {
+    weekMiniRowEl.innerHTML = computeWeekActivity().map(day => `
+      <div class="home-week-mini-day">
         <div class="d${day.filled ? " filled" : ""}${day.isToday ? " today" : ""}"></div>
         <div class="lbl">${day.label}</div>
       </div>
