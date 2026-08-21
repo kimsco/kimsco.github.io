@@ -2577,6 +2577,13 @@ html.light-mode-on .settings-panel {
 html.light-mode-on .settings-card {
   background: #000;
 }
+
+/* 🔥 홈 탭 카드/퀵버튼: 라이트모드에서 기본 반전 결과(#111→약 rgb(238,238,238))보다
+   더 연하게 보이도록 반전 전 값을 더 검게 지정(#020202→반전 후 약 rgb(253,253,253)) */
+html.light-mode-on #tab1 .home-card,
+html.light-mode-on #tab1 .home-quick-btn {
+  background: #020202;
+}
 .dex-post-card-label{
   font-size: 17px;
   font-weight: 700;
@@ -8448,7 +8455,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.16";
+const APP_VERSION = "0.7.17";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
