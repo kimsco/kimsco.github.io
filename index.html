@@ -8724,7 +8724,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.49";
+const APP_VERSION = "0.7.50";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -15497,6 +15497,12 @@ lightModeToggle.addEventListener("click", () => {
     // 진짜 시스템 모달이 뜰 때는 상태바가 다시 그려지는 것도 확인됨. 그래서 리로드 직후
     // 딱 한 번 네이티브 alert()을 띄워서 그 트리거를 강제로 발동시킴(아래 플래그로 표시)
     sessionStorage.setItem("mf_status_bar_kick", "1");
+    // 🔥 리로드하면 원래 홈 탭(#tab1)으로 초기화되고 설정 화면도 닫혀버려서, 토글 누르던
+    // 자리에서 갑자기 홈으로 튕기는 것처럼 느껴짐 — 지금 있던 탭과 "설정 화면이 열려있었다"는
+    // 상태를 저장해뒀다가 리로드 직후 그대로 복원해서 제자리 유지
+    const activeTabBtn = document.querySelector('.bottomTab .tabBtn.active');
+    sessionStorage.setItem("mf_reload_restore_tab", activeTabBtn ? activeTabBtn.dataset.target : "");
+    sessionStorage.setItem("mf_reload_restore_settings", "1");
   } catch(e){}
   location.reload();
 });
@@ -15504,12 +15510,30 @@ lightModeToggle.addEventListener("click", () => {
 try {
   applyLightMode(localStorage.getItem("mf_light_mode") === "1");
 } catch(e){}
-// 🔥 방금 토글해서 새로고침된 직후라면, 네이티브 alert()로 iOS 상태바 재계산을 강제 트리거
+// 🔥 방금 토글해서 새로고침된 직후라면, 있던 탭/설정 화면 상태를 그대로 복원(홈으로 안 튕기게)
+// 하고 나서 네이티브 alert()로 iOS 상태바 재계산을 강제 트리거.
+// (setTimeout으로 한 틱 미룸 — 탭 버튼 클릭 핸들러가 참조하는 sheetOpen 등 아래쪽에서
+//  선언되는 변수들이 아직 초기화 전이라 TDZ 에러가 나는 걸 막기 위함. 복원을 먼저 하고
+//  그 다음 alert를 띄워야 alert 뒤에 보이는 화면이 홈이 아니라 복원된 화면으로 보임)
 try {
-  if (sessionStorage.getItem("mf_status_bar_kick") === "1") {
-    sessionStorage.removeItem("mf_status_bar_kick");
-    const isLightNow = localStorage.getItem("mf_light_mode") === "1";
-    alert(isLightNow ? "라이트모드로 전환됐어요." : "다크모드로 전환됐어요.");
+  const restoreTab = sessionStorage.getItem("mf_reload_restore_tab");
+  const restoreSettings = sessionStorage.getItem("mf_reload_restore_settings") === "1";
+  const needsStatusBarKick = sessionStorage.getItem("mf_status_bar_kick") === "1";
+  sessionStorage.removeItem("mf_reload_restore_tab");
+  sessionStorage.removeItem("mf_reload_restore_settings");
+  sessionStorage.removeItem("mf_status_bar_kick");
+  if (restoreTab || restoreSettings || needsStatusBarKick) {
+    setTimeout(() => {
+      if (restoreTab && restoreTab !== "tab1") {
+        const targetBtn = document.querySelector(`.bottomTab .tabBtn[data-target="${restoreTab}"]`);
+        if (targetBtn) targetBtn.click();
+      }
+      if (restoreSettings) openSettingsBtn.click();
+      if (needsStatusBarKick) {
+        const isLightNow = localStorage.getItem("mf_light_mode") === "1";
+        alert(isLightNow ? "라이트모드로 전환됐어요." : "다크모드로 전환됐어요.");
+      }
+    }, 0);
   }
 } catch(e){}
 
