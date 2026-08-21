@@ -8724,7 +8724,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.51";
+const APP_VERSION = "0.7.52";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -15492,18 +15492,15 @@ lightModeToggle.addEventListener("click", () => {
   const next = !lightModeToggle.classList.contains("active");
   try {
     localStorage.setItem("mf_light_mode", next ? "1" : "0");
-    // 🔥 iOS 독립 앱 모드에서 status-bar-style 메타태그를 갱신해도 화면 리로드만으로는
-    // 상태바가 다시 안 읽혀지는 게 실기기에서 확인됨 — 반면 네이티브 alert()/confirm() 같은
-    // 진짜 시스템 모달이 뜰 때는 상태바가 다시 그려지는 것도 확인됨. 그래서 리로드 직후
-    // 딱 한 번 네이티브 alert()을 띄워서 그 트리거를 강제로 발동시킴(아래 플래그로 표시)
-    sessionStorage.setItem("mf_status_bar_kick", "1");
-    // 🔥 리로드하면 원래 홈 탭(#tab1)으로 초기화돼서, 토글 누르던 자리에서 갑자기 홈으로
-    // 튕기는 것처럼 느껴짐 — 지금 있던 탭을 저장해뒀다가 리로드 직후 그대로 복원.
-    // (설정 화면은 일부러 다시 안 엶: 라이트모드에서 설정 화면이 열려있는 채로 있으면
-    // 상태바가 안 바뀌다가 설정 화면을 나가야 바뀌는 게 실기기에서 확인돼서, 리로드 후에는
-    // 밑에 있던 탭으로 돌아가고 설정 화면은 닫힌 채로 둠)
+    // 🔥 리로드하면 원래 홈 탭(#tab1)으로 초기화되고 설정 화면도 닫혀버려서, 토글 누르던
+    // 자리에서 갑자기 딴 데로 튕기는 것처럼 느껴짐 — 있던 탭과 "설정 화면이 열려있었다"는
+    // 상태를 저장해뒀다가 리로드 직후 그대로 복원해서 제자리(설정 화면) 유지
     const activeTabBtn = document.querySelector('.bottomTab .tabBtn.active');
     sessionStorage.setItem("mf_reload_restore_tab", activeTabBtn ? activeTabBtn.dataset.target : "");
+    sessionStorage.setItem("mf_reload_restore_settings", "1");
+    // 🔥 상태바 스타일(apple-mobile-web-app-status-bar-style)은 앱 로드 시점에만 다시 읽히므로,
+    // 여기서 필터만 토글하지 않고 저장 후 강제로 새로고침해서 <head>의 재적용 스크립트를 다시 태움
+    sessionStorage.setItem("mf_status_bar_kick", "1");
   } catch(e){}
   location.reload();
 });
@@ -15511,25 +15508,38 @@ lightModeToggle.addEventListener("click", () => {
 try {
   applyLightMode(localStorage.getItem("mf_light_mode") === "1");
 } catch(e){}
-// 🔥 방금 토글해서 새로고침된 직후라면, 있던 탭으로 그대로 복원(홈으로 안 튕기게)하고 나서
-// 네이티브 alert()로 iOS 상태바 재계산을 강제 트리거.
+// 🔥 방금 토글해서 새로고침된 직후라면, 있던 탭/설정 화면 상태를 그대로 복원(제자리 유지)하고
+// 나서 iOS 상태바 재계산을 강제 트리거.
+// alert() 같은 사용자 탭이 필요한 네이티브 모달로도 재계산이 되긴 했지만(라이트모드는 그마저도
+// 설정 화면을 나가야 반영됨), 매번 확인 버튼을 누르게 하는 게 거슬린다는 피드백을 받아서
+// 대신 "설정 화면을 아주 짧게 닫았다 다시 여는" 방식으로 같은 트리거(화면 전환)를
+// 사용자가 알아채지 못할 정도로 빠르게(한 프레임) 재현해봄 — 알림창은 완전히 제거.
 // (setTimeout으로 한 틱 미룸 — 탭 버튼 클릭 핸들러가 참조하는 sheetOpen 등 아래쪽에서
-//  선언되는 변수들이 아직 초기화 전이라 TDZ 에러가 나는 걸 막기 위함. 복원을 먼저 하고
-//  그 다음 alert를 띄워야 alert 뒤에 보이는 화면이 홈이 아니라 복원된 화면으로 보임)
+//  선언되는 변수들이 아직 초기화 전이라 TDZ 에러가 나는 걸 막기 위함)
 try {
   const restoreTab = sessionStorage.getItem("mf_reload_restore_tab");
+  const restoreSettings = sessionStorage.getItem("mf_reload_restore_settings") === "1";
   const needsStatusBarKick = sessionStorage.getItem("mf_status_bar_kick") === "1";
   sessionStorage.removeItem("mf_reload_restore_tab");
+  sessionStorage.removeItem("mf_reload_restore_settings");
   sessionStorage.removeItem("mf_status_bar_kick");
-  if (restoreTab || needsStatusBarKick) {
+  if (restoreTab || restoreSettings || needsStatusBarKick) {
     setTimeout(() => {
       if (restoreTab && restoreTab !== "tab1") {
         const targetBtn = document.querySelector(`.bottomTab .tabBtn[data-target="${restoreTab}"]`);
         if (targetBtn) targetBtn.click();
       }
+      if (restoreSettings) openSettingsBtn.click();
       if (needsStatusBarKick) {
-        const isLightNow = localStorage.getItem("mf_light_mode") === "1";
-        alert(isLightNow ? "라이트모드로 전환됐어요." : "다크모드로 전환됐어요.");
+        // 설정 슬라이드인 애니메이션(0.25s)이 다 끝난 뒤, 화면엔 안 보이게 즉시 닫았다가
+        // 한 프레임 뒤 즉시 다시 엶(트랜지션 없이) — "설정 화면을 나갔다 들어오는" 전환
+        // 이벤트만 아주 짧게 흉내내는 것이 목적, 실제로 화면이 비게 만드는 게 목적이 아님
+        setTimeout(() => {
+          settingsOverlay.classList.add("hidden");
+          requestAnimationFrame(() => {
+            settingsOverlay.classList.remove("hidden");
+          });
+        }, 300);
       }
     }, 0);
   }
