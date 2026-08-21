@@ -118,6 +118,15 @@ button {
   z-index: 99999;
 }
 
+/* 🔥 backdrop-filter(뒷배경 블러)는 특히 실기기에서 opacity/transform 애니메이션과
+   동시에 적용되면 매 프레임 뒷배경을 다시 흐리게 리샘플링해야 해서 매우 무거움 —
+   식단 화면 열고/닫을 때(탑바·하단바가 .app 페이드와 같이 움직이는 동안)만 잠깐
+   꺼서 애니메이션을 가볍게 하고, 다 끝나면 다시 켜서 원래 유리질감을 유지함 */
+.topBar.no-blur-anim, .bottomTab.no-blur-anim {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
 
 
 .topText{
@@ -8715,7 +8724,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.27";
+const APP_VERSION = "0.7.28";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -14124,6 +14133,7 @@ function formatAccDate(){
 const bottomTabBtns = document.querySelectorAll('.bottomTab .tabBtn');
 const bottomTabContents = document.querySelectorAll('.tabContent');
 const bottomTabEl = document.getElementById('bottomTab');
+const topBarEl = document.querySelector('.topBar');
 const dietSubTabBar = document.getElementById('dietSubTabBar');
 const dietOverlay = document.getElementById('dietOverlay');
 
@@ -14302,6 +14312,11 @@ function openDietOverlay(fromBtn){
   fromBtn.style.visibility = 'hidden';
   toBtnEl.style.visibility = 'hidden';
 
+  // 🔥 탑바/하단바 블러를 애니메이션 도중만 잠깐 꺼서 실기기에서 무거운 backdrop-filter
+  //    재계산 부담을 줄임 (아래 350ms 타이밍에 appEl0 트랜지션이 끝나는 것과 맞춰 복구)
+  topBarEl.classList.add('no-blur-anim');
+  bottomTabEl.classList.add('no-blur-anim');
+
   bottomTabEl.classList.add('tab-collapsed'); // 🔥 하단바를 위로 슬라이드시켜 숨김 (오버레이 뒤에서도 모션은 살아있어야 함)
 
   // 🔥 본 화면(.app): 메뉴 드로어 열 때 뒷화면 밀리는 것과 같은 방식(inline transform)으로 살짝 밀며 페이드아웃
@@ -14309,6 +14324,10 @@ function openDietOverlay(fromBtn){
   appEl0.style.transition = 'transform 0.34s cubic-bezier(0.22,1,0.36,1), opacity 0.34s ease';
   appEl0.style.transform = 'translateX(-16px)';
   appEl0.style.opacity = '0';
+  setTimeout(() => {
+    topBarEl.classList.remove('no-blur-anim');
+    bottomTabEl.classList.remove('no-blur-anim');
+  }, 350);
 
   dietOverlay.classList.remove('hidden');
   void dietOverlay.offsetHeight; // 강제 리플로우 (트랜지션 재생 보장)
@@ -14391,6 +14410,11 @@ document.getElementById('dietBackCircleBtn').addEventListener('click', () => {
   fromBtnEl.style.visibility = 'hidden';
   targetBtn.style.visibility = 'hidden';
 
+  // 🔥 탑바/하단바 블러도 애니메이션 도중만 잠깐 꺼서(위 openDietOverlay와 동일한 이유)
+  //    실기기에서 backdrop-filter 재계산 부담을 줄임
+  topBarEl.classList.add('no-blur-anim');
+  bottomTabEl.classList.add('no-blur-anim');
+
   // 🔥 하단바가 위에서 슬라이드다운되며 서서히 나타나는 모션 시작
   bottomTabEl.classList.remove('tab-collapsed');
 
@@ -14403,6 +14427,8 @@ document.getElementById('dietBackCircleBtn').addEventListener('click', () => {
   setTimeout(() => {
     appEl1.style.transform = '';
     appEl1.style.transition = '';
+    topBarEl.classList.remove('no-blur-anim');
+    bottomTabEl.classList.remove('no-blur-anim');
   }, 350);
 
   // 🔥 오버레이는 60% 지점이 아니라 화면 끝(100%)까지 슬라이드아웃 (페이드아웃은 유지)
