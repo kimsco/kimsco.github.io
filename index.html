@@ -8715,7 +8715,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.26";
+const APP_VERSION = "0.7.27";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -14355,6 +14355,20 @@ document.getElementById('dietBackCircleBtn').addEventListener('click', () => {
   const prevAppTransition = appEl1.style.transition;
   const prevAppTransform = appEl1.style.transform;
 
+  // 🔥 이 아래 offsetHeight 강제 리플로우는 문서 전체를 다시 레이아웃시키는데,
+  //    지금 이 순간 뒤에 깔린 메인탭(예: 달력탭의 연간 진행률 365칸 도트grid처럼
+  //    DOM이 큰 화면)은 어차피 dietOverlay에 완전히 가려져서 안 보이는 상태이므로,
+  //    측정하는 잠깐 동안만 display:none으로 빼서 리플로우 비용을 줄임
+  //    (실기기에서 뒤로가기 시 탑바/하단바가 잠깐 안 보였다가 늦게 "뿅" 나타나던
+  //    버그 — 뒤에 깔린 큰 화면까지 매번 다시 레이아웃하느라 느려졌던 것)
+  const activeTabContent = Array.from(bottomTabContents).find(tc => tc.classList.contains('active'));
+  const prevActiveTabDisplay = activeTabContent ? activeTabContent.style.display : null;
+  // 🔥 화면에서 유일하게 보이던 콘텐츠를 display:none으로 빼면 .app의 scrollHeight가
+  //    순간적으로 0에 가깝게 줄어들어서, 브라우저가 scrollTop을 강제로 0으로 리셋시켜버림
+  //    — 다시 보이게 해도 스크롤 위치는 안 돌아오므로 직접 저장해뒀다가 복원해야 함
+  const prevAppScrollTop = appEl1.scrollTop;
+  if (activeTabContent) activeTabContent.style.display = 'none';
+
   bottomTabEl.style.transition = 'none';
   appEl1.style.transition = 'none';
   bottomTabEl.classList.remove('tab-collapsed');
@@ -14370,6 +14384,9 @@ document.getElementById('dietBackCircleBtn').addEventListener('click', () => {
   void appEl1.offsetHeight;
   bottomTabEl.style.transition = prevBottomTransition;
   appEl1.style.transition = prevAppTransition;
+
+  if (activeTabContent) activeTabContent.style.display = prevActiveTabDisplay;
+  appEl1.scrollTop = prevAppScrollTop;
 
   fromBtnEl.style.visibility = 'hidden';
   targetBtn.style.visibility = 'hidden';
