@@ -925,12 +925,14 @@ cursor: pointer;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: flex-end;   /* 🔥 위쪽 정렬이면 safe-area-inset-bottom만큼 아래에 빈 공간이
+                                    남아 아이콘이 위로 붕 떠보임 — 아래쪽 정렬로 바꿔서 그 여백
+                                    바로 위에 붙게 함(안전영역 자체는 그대로 유지) */
   gap: 4px;
 
   cursor: pointer;
 
- padding-top: 12px;         /* 🔥 아이콘이 추가돼서 텍스트만 있을 때보다 살짝 줄임 */
+  padding-bottom: 12px;
 }
 
 /* ✅ 활성: 글자 흰색(아이콘과 동일한 색으로 통일) */
@@ -8724,7 +8726,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.31";
+const APP_VERSION = "0.7.32";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
