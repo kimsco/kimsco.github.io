@@ -8724,7 +8724,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.42";
+const APP_VERSION = "0.7.43";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -14367,6 +14367,10 @@ function openDietOverlay(fromBtn){
 
 // 🔥 원형 뒤로가기 버튼: 식단 화면 밖으로 나가서 원래 있던 메인탭으로 복귀 (반대 방향 FLIP도 동일하게)
 document.getElementById('dietBackCircleBtn').addEventListener('click', () => {
+  // 🔥 사용자가 실기기에서 정확히 짚어준 지점: 상태바 색은 식단 화면에서 "나갈 때"
+  //    (진입 시가 아니라) 실제로 다시 그려짐 — 이 시점의 무거운 DOM 리플로우
+  //    (아래 activeTabContent 숨김/복원, 탭바 collapse 토글 등)에 맞춰서 재확인
+  try { if (typeof refreshThemeColorMeta === "function") refreshThemeColorMeta(); } catch(e){}
   const DIET_ACTIVE_COLOR = 'rgb(255, 255, 255)';   // .tabBtn.active / .dietSubTabBtn.active 공통 활성 색상
   const DIET_INACTIVE_COLOR = 'rgb(136, 136, 136)'; // #888, 미선택 상태 공통 색상
 
@@ -15532,6 +15536,15 @@ function refreshThemeColorMeta(){
     fresh.setAttribute('name', 'theme-color');
     fresh.setAttribute('content', on ? '#eeeeee' : '#000000');
     document.head.appendChild(fresh);
+  } catch(e){}
+  // 🔥 사용자가 실기기에서 확인해준 대로, 메타 태그만 바꿔서는 iOS가 상태바를 바로
+  //    다시 안 그리고 "식단 화면 나가기" 같은 큰 화면 전환이 있어야만 반영됐음 —
+  //    탭 전환처럼 부분 영역(tabContent)만 display 토글하는 걸로는 부족했던 것으로
+  //    보여서, 대신 iOS 크롬(상태바 포함) 리페인트를 강제로 트리거하는 표준적인
+  //    방법인 window 스크롤 1px 넛지를 사용
+  try {
+    window.scrollTo(0, 1);
+    requestAnimationFrame(() => window.scrollTo(0, 0));
   } catch(e){}
 }
 function applyLightMode(on){
