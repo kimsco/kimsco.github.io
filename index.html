@@ -2569,6 +2569,21 @@ html.light-mode-on .dex-post-card.has-image{
   filter: invert(1) hue-rotate(180deg);
 }
 
+/* 🔥 빨간 원형 점 표시들(오늘 부위 점/이번 주 활동 채워진 원/날짜별 운동 목록 점):
+   페이지 전체 반전 필터를 통과하면 채도 높은 빨강(#e0203f)은 색공간 밖으로 밀려나서
+   핑크로 보임 — 반전 필터를 통과했을 때 결과적으로 선명한 빨강(rgb 약 207,77,57)이
+   되도록 반전 전 값(#ff7d69)을 역산해서 지정 */
+html.light-mode-on #tab1 .home-today-muscle .dot {
+  background: #ff7d69;
+}
+html.light-mode-on #tab1 .home-week-day .d.filled {
+  background: #ff7d69;
+  border-color: #ff7d69;
+}
+html.light-mode-on .date-agenda-dot:not(.date-agenda-dot-bodyweight):not(.date-agenda-dot-routine) {
+  background: #ff7d69;
+}
+
 /* 🔥 설정 화면: 라이트모드에서 "바깥 배경"과 "상자 배경"의 명암을 서로 맞바꿈
    (반전 전 값을 서로 바꿔서 지정 — 반전 후 바깥은 연회색, 상자는 흰색이 됨) */
 html.light-mode-on .settings-panel {
@@ -8455,7 +8470,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.17";
+const APP_VERSION = "0.7.18";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
