@@ -983,9 +983,9 @@ cursor: pointer;
   opacity: 1;
   pointer-events: auto;
 }
-/* 🔥 뒤로가기로 나갈 때: 아래로 되돌아가지 않고 위로 사라짐 */
+/* 🔥 뒤로가기로 나갈 때: 원래 들어왔던 방향(아래)으로 되돌아가며 사라짐 */
 .dietSubTabBar.closing{
-  transform: translateX(-50%) translateY(-120%);
+  transform: translateX(-50%) translateY(160%);
   opacity: 0;
   pointer-events: none;
 }
@@ -8715,7 +8715,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.25";
+const APP_VERSION = "0.7.26";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
