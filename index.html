@@ -270,7 +270,7 @@ button {
   height: auto;
   padding-bottom: 76px; /* 🔥 아래 떠있는 저장바에 마지막 기록이 가려지지 않도록 여유 확보 */
 }
-#tab2 #recordMessage {
+#recordMessage {
   position: fixed;
   left: 0; right: 0;
   bottom: calc(var(--bottomTabH) + 78px + env(safe-area-inset-bottom));
@@ -2569,26 +2569,80 @@ cursor: pointer;
 }
 
 /* ===============================
-   ✅ 라이트모드: html 전체를 invert()로 반전시키는 방식이라
-   텍스트/UI는 잘 반전되지만 실제 사진(운동도감 이미지)까지 반전되어 색이 이상해짐.
-   → 사진 요소에는 반대 방향으로 한 번 더 invert를 걸어서 원래 색으로 상쇄시킴.
+   ✅ 라이트모드: 예전엔 html 전체에 반전 필터를 걸었지만, 홈 탭(#tab1)만은 "진짜 색"을
+   직접 쓰기 위해 필터 대상에서 완전히 뺐음(위쪽 JS의 applyLightMode 주석 참고).
+   대신 아직 전환 안 한 나머지 화면/오버레이 각각에 개별적으로 동일한 반전 필터를 적용해서
+   기존 동작을 그대로 유지함 — DOM 구조는 전혀 안 건드리고 각 요소에 filter만 직접 부여하는
+   방식이라, position:fixed 요소들의 뷰포트 기준 위치 계산에도 영향 없음(요소 자신의 위치가
+   아니라 "자기 자식들의" fixed 위치 계산 기준만 바뀌는데, 이 요소들은 전부 이미 뷰포트를
+   덮는 자기 자신이 position:fixed라 문제 없음).
 ================================ */
+html.light-mode-on .topBar,
+html.light-mode-on #tab2,
+html.light-mode-on #tab4,
+html.light-mode-on #save3Result,
+html.light-mode-on #tab3,
+html.light-mode-on #bottomTab,
+html.light-mode-on #calPopup,
+html.light-mode-on #exerciseDexOverlay,
+html.light-mode-on #dexPostDetailOverlay,
+html.light-mode-on #dexFolderModal,
+html.light-mode-on #dexRowMenu,
+html.light-mode-on #dexRenameModal,
+html.light-mode-on #dexDeleteConfirmModal,
+html.light-mode-on #dexWriteOverlay,
+html.light-mode-on #threeSummaryOverlay,
+html.light-mode-on #myRoutineOverlay,
+html.light-mode-on #bodyweightOverlay,
+html.light-mode-on #myRoutinePastListOverlay,
+html.light-mode-on #routineSaveModal,
+html.light-mode-on #myRoutineBuilderNameModal,
+html.light-mode-on #myRoutineBuilderOverlay,
+html.light-mode-on #myRoutineDetailOverlay,
+html.light-mode-on #muscleFinderOverlay,
+html.light-mode-on #oneRMCalcOverlay,
+html.light-mode-on #whoForOverlay,
+html.light-mode-on #loginArea,
+html.light-mode-on #consentModal,
+html.light-mode-on #graphOverlay,
+html.light-mode-on #graphSheet,
+html.light-mode-on #deleteAccountModal,
+html.light-mode-on #myRoutineRevealOverlay,
+html.light-mode-on #myRoutineBannerOverlay,
+html.light-mode-on #dietPanel-today,
+html.light-mode-on #dietPanel-settings,
+html.light-mode-on #dietSubTabBar,
+html.light-mode-on #foodTemplateModal,
+html.light-mode-on #quickAddMealModal,
+html.light-mode-on #foodDbSaveConfirmModal,
+html.light-mode-on #weightModal,
+html.light-mode-on #navDrawerOverlay,
+html.light-mode-on #settingsOverlay,
+html.light-mode-on #logoutModal,
+html.light-mode-on #loginSheetOverlay,
+html.light-mode-on #loginSheet,
+html.light-mode-on #mySpecOverlay {
+  filter: invert(1) hue-rotate(180deg);
+}
+
 html.light-mode-on img:not(.settings-item-icon),
 html.light-mode-on .dex-post-card.has-image{
   filter: invert(1) hue-rotate(180deg);
 }
 
-/* 🔥 빨간 원형 점 표시들(오늘 부위 점/이번 주 활동 채워진 원/날짜별 운동 목록 점):
-   페이지 전체 반전 필터를 통과하면 채도 높은 빨강(#e0203f)은 색공간 밖으로 밀려나서
-   핑크로 보임 — 반전 필터를 통과했을 때 결과적으로 선명한 빨강(rgb 약 207,77,57)이
-   되도록 반전 전 값(#ff7d69)을 역산해서 지정 */
+/* 🔥 홈 탭(#tab1)은 이제 필터를 전혀 안 받으므로, 빨간 점들은 근사치가 아니라
+   다크모드와 완전히 동일한 진짜 빨강(#e0203f)을 그대로 사용 가능 */
 html.light-mode-on #tab1 .home-today-muscle .dot {
-  background: #ff7d69;
+  background: #e0203f;
 }
 html.light-mode-on #tab1 .home-week-day .d.filled {
-  background: #ff7d69;
-  border-color: #ff7d69;
+  background: #e0203f;
+  border-color: #e0203f;
 }
+
+/* 🔥 나머지(3대/기록/달력 탭 등, 아직 필터 방식 유지)의 빨간 점 표시들은 기존처럼
+   반전 필터를 통과했을 때 결과적으로 선명한 빨강(rgb 약 207,77,57)이 되도록
+   반전 전 값(#ff7d69)을 역산한 근사치를 그대로 사용 */
 html.light-mode-on .date-agenda-dot:not(.date-agenda-dot-bodyweight):not(.date-agenda-dot-routine) {
   background: #ff7d69;
 }
@@ -2610,20 +2664,129 @@ html.light-mode-on .settings-card {
   background: #000;
 }
 
-/* 🔥 홈 탭 카드/퀵버튼: 라이트모드에서 기본 반전 결과(#111→약 rgb(238,238,238))보다
-   더 연하게 보이도록 반전 전 값을 더 검게 지정(#020202→반전 후 약 rgb(253,253,253)) */
+/* 🔥 홈 탭(#tab1) 라이트모드: 필터를 전혀 안 받는 화면이라, "반전 후 결과"를 역산하는 게
+   아니라 실제로 화면에 보일 색을 직접(literal) 지정함. 카드/상자류는 기존에 확정했던
+   시각적 결과(#fdfdfd, 거의 흰색)를 그대로 유지하고, 텍스트/테두리는 다크모드의
+   흰색 계열(rgba(255,255,255,X))을 대칭적인 검정 계열(rgba(0,0,0,X))로 치환 */
+html.light-mode-on #tab1 {
+  color: #1a1a1a;
+}
 html.light-mode-on #tab1 .home-card,
-html.light-mode-on #tab1 .home-quick-btn {
-  background: #020202;
+html.light-mode-on #tab1 .home-quick-btn,
+html.light-mode-on #tab1 .home-big3-badge,
+html.light-mode-on #tab1 .home-weight-pill,
+html.light-mode-on #tab1 .home-macro-pill,
+html.light-mode-on #tab1 .home-diet-input-row input {
+  background: #fdfdfd;
+  border-color: #ddd;
+}
+html.light-mode-on #tab1 .home-greeting { color: rgba(0,0,0,0.45); }
+html.light-mode-on #tab1 .home-greeting b { color: rgba(0,0,0,0.75); }
+html.light-mode-on #tab1 .home-big3-badge { color: rgba(0,0,0,0.6); }
+html.light-mode-on #tab1 .home-big3-badge b { color: #1a1a1a; }
+html.light-mode-on #tab1 .home-weight-pill input { color: #1a1a1a; }
+html.light-mode-on #tab1 .home-weight-pill input::placeholder { color: rgba(0,0,0,0.35); }
+html.light-mode-on #tab1 .home-weight-pill .home-weight-unit { color: rgba(0,0,0,0.6); }
+html.light-mode-on #tab1 .home-weight-pill button { background: #1a1a1a; color: #fff; }
+html.light-mode-on #tab1 .home-card-label { color: rgba(0,0,0,0.4); }
+html.light-mode-on #tab1 .home-today-sub { color: rgba(0,0,0,0.4); }
+html.light-mode-on #tab1 .home-tomorrow-label { color: rgba(0,0,0,0.4); }
+html.light-mode-on #tab1 .home-tomorrow-muscle { color: #1a1a1a; }
+html.light-mode-on #tab1 .home-week-day .d { background: #f0f0f0; border-color: #ddd; }
+html.light-mode-on #tab1 .home-week-day .lbl { color: rgba(0,0,0,0.4); }
+html.light-mode-on #tab1 .home-quote-open,
+html.light-mode-on #tab1 .home-quote-close { color: rgba(0,0,0,0.15); }
+html.light-mode-on #tab1 .home-quote-headline { color: #1a1a1a; }
+html.light-mode-on #tab1 .home-quote-body { color: rgba(0,0,0,0.6); }
+html.light-mode-on #tab1 .home-diet-kcal span { color: rgba(0,0,0,0.4); }
+html.light-mode-on #tab1 .home-macro-pill .l { color: rgba(0,0,0,0.4); }
+html.light-mode-on #tab1 .home-diet-input-row input { color: #1a1a1a; border-color: #ddd; }
+html.light-mode-on #tab1 .home-diet-input-row input::placeholder { color: rgba(0,0,0,0.3); }
+html.light-mode-on #tab1 .home-diet-input-row button { background: #1a1a1a; color: #fff; }
+html.light-mode-on #tab1 .home-quick-btn { color: rgba(0,0,0,0.75); }
+html.light-mode-on #tab1 .home-quick-btn .home-quick-icon { color: rgba(0,0,0,0.75); }
+
+/* 🔥 식단 > 통계(#dietPanel-stats) 라이트모드: #tab1과 동일하게 필터를 전혀 안 받는 화면.
+   골드(#FFD700)/경고 빨강(#ff5252)은 이미 리터럴 값이라 반전 대상이 아니었으므로
+   그대로 두면 다크모드와 완전히 동일하게 나옴(별도 지정 불필요) — 흰색/회색 계열
+   텍스트·트랙만 검정 계열로 대칭 치환 */
+html.light-mode-on #dietPanel-stats .diet-stats-chart-pct { color: #1a1a1a; }
+html.light-mode-on #dietPanel-stats .diet-stats-chart-label { color: rgba(0,0,0,0.5); }
+html.light-mode-on #dietPanel-stats .diet-stats-chart-sub { color: rgba(0,0,0,0.45); }
+html.light-mode-on #dietPanel-stats .diet-stats-reco-title { color: rgba(0,0,0,0.45); }
+html.light-mode-on #dietPanel-stats .diet-stats-macro-bar-label { color: rgba(0,0,0,0.45); }
+html.light-mode-on #dietPanel-stats .diet-stats-macro-bar-track { background: rgba(0,0,0,0.08); }
+html.light-mode-on #dietPanel-stats .diet-stats-macro-bar-fill { background: #1a1a1a; }
+html.light-mode-on #dietPanel-stats .diet-stats-macro-bar-num { color: rgba(0,0,0,0.55); }
+html.light-mode-on #dietPanel-stats .diet-stats-water-title { color: rgba(0,0,0,0.45); }
+html.light-mode-on #dietPanel-stats .diet-stats-water-count { color: #1a1a1a; }
+html.light-mode-on #dietPanel-stats .diet-stats-water-count .diet-stats-water-goal,
+html.light-mode-on #dietPanel-stats .diet-stats-weight-value .diet-stats-water-goal { color: rgba(0,0,0,0.4); }
+html.light-mode-on #dietPanel-stats .diet-stats-water-track { background: rgba(0,0,0,0.08); }
+html.light-mode-on #dietPanel-stats .diet-stats-water-fill { background: #1a1a1a; }
+html.light-mode-on #dietPanel-stats .diet-stats-weight-value { color: #1a1a1a; }
+html.light-mode-on #dietPanel-stats .diet-stats-weight-track { background: rgba(0,0,0,0.08); }
+
+/* 🔥 식단 > 기록(#dietPanel-history) 라이트모드: 마찬가지로 필터를 전혀 안 받는 화면.
+   골드(#FFD700 계열)는 리터럴 값이라 그대로 두면 다크모드와 동일하게 나오므로 손 안 댐 */
+html.light-mode-on #dietPanel-history .days > div:not(.empty) { color: #1a1a1a; }
+html.light-mode-on #dietPanel-history .days > div:not(.empty):not(.done) { background: #f0f0f0; }
+html.light-mode-on #dietPanel-history .days > div:not(.empty):not(.done):hover { background: #e5e5e5; }
+html.light-mode-on #dietPanel-history .weekdays div { color: rgba(0,0,0,0.45); }
+html.light-mode-on #dietPanel-history .diet-cal-days > div.done:not(.today) { color: #1a1a1a; }
+html.light-mode-on #dietPanel-history .diet-cal-days > div.today { border-color: #FFD700; color: #FFD700; }
+html.light-mode-on #dietPanel-history .diet-cal-days > div.selected { border-color: #FFD700; }
+html.light-mode-on #dietPanel-history .diet-cal-detail-header span:first-child { color: rgba(0,0,0,0.45); }
+html.light-mode-on #dietPanel-history .today-meal-box { background: #fdfdfd; border-color: #ddd; }
+html.light-mode-on #dietPanel-history #dietCalDetailList > div[style] { color: rgba(0,0,0,0.45) !important; }
+html.light-mode-on #dietPanel-history .meal-log-row { border-bottom-color: rgba(0,0,0,0.08); }
+html.light-mode-on #dietPanel-history .meal-log-name { color: #1a1a1a; }
+html.light-mode-on #dietPanel-history .meal-log-time,
+html.light-mode-on #dietPanel-history .meal-log-protein { color: #1a1a1a; }
+
+/* 🔥 3대탭/기록탭의 알약형 저장바(#recordFloatBarTab2, #recordFloatBarAcc): 라이트모드에서
+   #tab2/#tab4에 걸리는 반전 필터가 이 알약바의 position:fixed 기준점까지 자기 자신으로
+   바꿔버려서(필터도 transform처럼 컨테이닝 블록을 만듦) 화면 하단이 아니라 탭 컨테이너 안
+   엉뚱한 위치에 뜨는 버그가 있었음 — body 최상위로 DOM을 옮겨서 해결했고, 그 대가로 더 이상
+   #tab2/#tab4의 필터를 받지 못하므로 실제 라이트모드 색을 직접 지정 */
+html.light-mode-on #recordFloatBarTab2,
+html.light-mode-on #recordFloatBarAcc {
+  background: rgba(255,255,255,0.75);
+  border-color: rgba(0,0,0,0.08);
+}
+html.light-mode-on #recordFloatBarTab2 input[type="number"],
+html.light-mode-on #recordFloatBarAcc input[type="number"] {
+  background: rgba(0,0,0,0.06);
+  color: #1a1a1a;
+}
+html.light-mode-on #recordFloatBarTab2 input[type="number"]::placeholder,
+html.light-mode-on #recordFloatBarAcc input[type="number"]::placeholder {
+  color: rgba(0,0,0,0.35);
+}
+html.light-mode-on #recordFloatBarTab2 button,
+html.light-mode-on #recordFloatBarAcc button {
+  background: #1a1a1a;
+  color: #fff;
 }
 
 /* 🔥 설정 화면과 동일한 구조를 앱 전체(오버레이 포함)로 확장:
    무채색(검정/회색)은 반전 필터를 통과해도 색이 틀어지지 않으므로(빨강/골드와 달리
    색공간 클리핑 문제가 없음) 반전 전 값을 서로 맞바꾸는 방식을 그대로 넓혀서 적용 */
 
-/* 바깥(화면 전체) — 원래 #000이던 큰 배경들 */
+/* 🔥 body/.app은 이제 필터를 전혀 안 받으므로(홈 탭이 자식이라 필터 대상에서 뺐음),
+   반전 전 값을 역산하는 방식이 아니라 최종적으로 보일 색을 직접 지정
+   (기존 스왑 결과였던 rgb(238,238,238)과 동일한 값으로 시각적 연속성 유지) */
 html.light-mode-on body,
-html.light-mode-on .app,
+html.light-mode-on .app {
+  background: #eeeeee;
+}
+/* 🔥 dietOverlay도 통계 서브탭(#dietPanel-stats)이 자식이라 필터 대상에서 뺐으므로,
+   자기 자신의 배경도 실제 값을 직접 지정(인라인 style이라 !important 필요) */
+html.light-mode-on #dietOverlay {
+  background: #eeeeee !important;
+}
+
+/* 바깥(화면 전체) — 원래 #000이던 큰 배경들(자기 자신이 필터 적용 대상이라 스왑 방식 그대로 유지) */
 html.light-mode-on .nav-drawer,
 html.light-mode-on .food-search-panel,
 html.light-mode-on .diet-ai-chat-inputbar,
@@ -2631,7 +2794,6 @@ html.light-mode-on .who-cta {
   background: #111;
 }
 /* 바깥(화면 전체) — 인라인 style로 지정된 풀스크린 오버레이들(우선순위 위해 !important 필요) */
-html.light-mode-on #dietOverlay,
 html.light-mode-on #exerciseDexOverlay,
 html.light-mode-on #dexPostDetailOverlay,
 html.light-mode-on #mySpecOverlay,
@@ -2683,11 +2845,7 @@ html.light-mode-on #weightModal input.weight-field-input,
 html.light-mode-on .diet-food-db-search,
 html.light-mode-on .today-meal-box,
 html.light-mode-on .food-modal-form input,
-html.light-mode-on .modal-box,
-html.light-mode-on #tab1 .home-big3-badge,
-html.light-mode-on #tab1 .home-weight-pill,
-html.light-mode-on #tab1 .home-macro-pill,
-html.light-mode-on #tab1 .home-diet-input-row input {
+html.light-mode-on .modal-box {
   background: #020202;
 }
 /* 상자 — 인라인 style로 지정된 오버레이(다른 오버레이 위에 뜨는 2차 팝업이라 원래도 #111) */
@@ -8566,7 +8724,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.47";
+const APP_VERSION = "0.7.48";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -13987,6 +14145,17 @@ document.body.appendChild(document.getElementById('foodTemplateModal'));
 document.body.appendChild(document.getElementById('quickAddMealModal'));
 document.body.appendChild(document.getElementById('foodDbSaveConfirmModal'));
 document.body.appendChild(document.getElementById('weightModal'));
+// 🔥 라이트모드에서는 #tab2/#tab4에 반전 필터가 직접 걸리는데, 필터도 transform과
+//    마찬가지로 자식 position:fixed 요소의 기준점을 자기 자신으로 바꿔버려서 이
+//    알약형 저장바가 화면 하단이 아니라 탭 컨테이너 안 엉뚱한 위치에 떠버리는 문제가
+//    있었음 — 같은 이유로 body로 이동
+const recordFloatBarTab2El = document.getElementById('recordFloatBarTab2');
+if (recordFloatBarTab2El) {
+  document.body.appendChild(recordFloatBarTab2El);
+  recordFloatBarTab2El.style.display = 'none'; // 기본 활성 탭은 tab1이므로 초기엔 숨김
+}
+document.body.appendChild(document.getElementById('recordFloatBarAcc'));
+document.body.appendChild(document.getElementById('recordMessage')); // 🔥 저장 완료/실패 토스트 메시지도 같은 이유로 이동
 
 /* 🔥 안전장치: 화면이 꺼졌다 켜지거나 앱이 백그라운드에서 돌아올 때,
    식단 새창(dietOverlay)은 열려있는데 캡슐(dietSubTabBar)만 어긋나서 안 보이는
@@ -14115,6 +14284,11 @@ bottomTabBtns.forEach(btn => {
     }
     const accBarElTab = document.getElementById('recordFloatBarAcc');
     if (accBarElTab) accBarElTab.style.display = 'none';
+
+    // 🔥 recordFloatBarTab2는 body로 옮겨져 있어서(#tab2 기준 라이트모드 필터 이슈 회피),
+    //    더 이상 #tab2의 display:none에 딸려서 자동으로 숨겨지지 않음 — 탭 전환 시 직접 토글
+    const recordFloatBarTab2El = document.getElementById('recordFloatBarTab2');
+    if (recordFloatBarTab2El) recordFloatBarTab2El.style.display = (target === 'tab2') ? 'flex' : 'none';
 
     document.querySelector('.app').style.overflowY = 'auto';
   });
@@ -15290,11 +15464,16 @@ closeSettingsBtn.addEventListener("click", closeSettings);
 })();
 
 
-/* ✨ 다크/라이트 모드 토글: 검정↔흰색 자동 반전 + 회색 톤 유지 + 색상(빨강/노랑 등)은 최대한 원래대로
-   (사진 넣게 되면 img 태그에 반대 필터를 걸어서 상쇄시키면 됨) */
+/* ✨ 다크/라이트 모드 토글
+   🔥 예전엔 html 전체에 반전 필터를 걸어 화면 전체를 뒤집는 방식이었는데, 그 방식으로는
+   특정 요소(빨강/골드 같은 채도 높은 색)만 "진짜 원래 색"으로 예외 처리하는 게 절대 불가능함
+   (필터는 자식이 일부만 빼달라고 할 수 있는 속성이 아니라, 조상이 자기 자식 전체를 그림으로
+   찍은 뒤 그 그림에 필터를 거는 방식이라 부분 제외가 안 됨).
+   → 그래서 html 전체에 거는 대신, 아직 "진짜 색" 전환 안 한 화면/오버레이들 각각에 개별적으로
+   반전 필터를 걸어주는 방식으로 변경(아래 html.light-mode-on #xxx 목록). 홈 탭(#tab1)은 그
+   목록에서 빠져있어서 필터를 전혀 안 받고, 진짜 라이트모드 색을 직접 지정해서 사용함. */
 const lightModeToggle = document.getElementById("lightModeToggle");
 function applyLightMode(on){
-  document.documentElement.style.filter = on ? "invert(1) hue-rotate(180deg)" : "";
   document.documentElement.classList.toggle("light-mode-on", on); // 🔥 사진 요소 반전 상쇄용 스코프 클래스
   lightModeToggle.classList.toggle("active", on);
   // 🔥 상태바 아이콘 색: iOS가 theme-color 밝기를 보고 자동으로 흰/검 아이콘을 고름
@@ -15302,6 +15481,10 @@ function applyLightMode(on){
   const themeColorMeta = document.querySelector('meta[name="theme-color"]');
   if (themeColorMeta) themeColorMeta.setAttribute("content", on ? "#eeeeee" : "#000000");
   try { localStorage.setItem("mf_light_mode", on ? "1" : "0"); } catch(e){}
+  // 🔥 식단 통계 탭 차트(캔버스)는 CSS가 아니라 JS에서 직접 색을 정하므로, 테마 전환 시
+  // 다시 그려줘야 즉시 반영됨 — 페이지 로드 시 최초 호출 때는 아직 정의 안 된 전역들이
+  // 있을 수 있어 안전하게 try/catch로 감쌈(이때는 통계 화면이 열려있지도 않음)
+  try { if (typeof renderDietStats === "function") renderDietStats(); } catch(e){}
 }
 lightModeToggle.addEventListener("click", () => {
   // 🔥 상태바 스타일(apple-mobile-web-app-status-bar-style)은 앱 로드 시점에만 다시 읽히므로,
@@ -17071,8 +17254,10 @@ function renderDietStatsChart(consumed, target){
   const remainVal = Math.max(0, target - consumed);
   const isOver = consumed > target && target > 0;
 
+  // 🔥 경고색(#ff5252)은 다크/라이트 공통, 흰색 계열(정상 진행률)만 라이트모드에서 분기
+  const isLightDonut = document.documentElement.classList.contains('light-mode-on');
   const values = isOver ? [consumedVal] : [consumedVal, remainVal || 1];
-  const colors = isOver ? ['#ff5252'] : ['#ffffff', 'rgba(255,255,255,0.08)'];
+  const colors = isOver ? ['#ff5252'] : (isLightDonut ? ['#1a1a1a', 'rgba(0,0,0,0.08)'] : ['#ffffff', 'rgba(255,255,255,0.08)']);
 
   dietStatsChartInstance = new Chart(ctx, {
     type: 'doughnut',
@@ -17376,7 +17561,10 @@ function renderDietTrendChart(){
     kcalValues.push(kcalOfMeals(mealsAll.filter(m => m.date === key)));
   }
 
-  const colors = labels.map((_, idx) => idx === labels.length - 1 ? '#FFD700' : 'rgba(255,255,255,0.35)');
+  // 🔥 #dietPanel-stats는 필터를 안 받는 화면이라, 골드(#FFD700)는 다크/라이트 공통으로
+  // 그대로 두고, 흰색 계열만 라이트모드에서 검정 계열로 직접 분기
+  const isLight = document.documentElement.classList.contains('light-mode-on');
+  const colors = labels.map((_, idx) => idx === labels.length - 1 ? '#FFD700' : (isLight ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.35)'));
 
   dietTrendChartInstance = new Chart(ctx, {
     type: 'bar',
@@ -17401,7 +17589,7 @@ function renderDietTrendChart(){
         tooltip: { callbacks: { label: (ctx) => ` ${ctx.parsed.y} kcal` } },
       },
       scales: {
-        x: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.5)', font: { size: 10 } } },
+        x: { grid: { display: false }, ticks: { color: isLight ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.5)', font: { size: 10 } } },
         y: { display: false, beginAtZero: true }
       }
     }
@@ -17461,6 +17649,9 @@ function renderWeightTrendChart(){
     dietWeightTrendChartInstance = null;
   }
 
+  // 🔥 골드(#FFD700)는 다크/라이트 공통, 흰색 계열(목표선/축 눈금)만 라이트모드에서 분기
+  const isLightWeightChart = document.documentElement.classList.contains('light-mode-on');
+
   const datasets = [{
     data: weightValues,
     borderColor: '#FFD700',
@@ -17477,7 +17668,7 @@ function renderWeightTrendChart(){
   if (userWeight.goal) {
     datasets.push({
       data: keys.map(() => userWeight.goal),
-      borderColor: 'rgba(255,255,255,0.4)',
+      borderColor: isLightWeightChart ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.4)',
       borderDash: [4, 4],
       pointRadius: 0,
       fill: false,
@@ -17502,7 +17693,7 @@ function renderWeightTrendChart(){
         },
       },
       scales: {
-        x: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.5)', font: { size: 10 } } },
+        x: { grid: { display: false }, ticks: { color: isLightWeightChart ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.5)', font: { size: 10 } } },
         y: { display: false, min: yMin, max: yMax }
       }
     }
