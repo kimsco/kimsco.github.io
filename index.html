@@ -8724,7 +8724,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.48";
+const APP_VERSION = "0.7.49";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -15490,12 +15490,27 @@ lightModeToggle.addEventListener("click", () => {
   // 🔥 상태바 스타일(apple-mobile-web-app-status-bar-style)은 앱 로드 시점에만 다시 읽히므로,
   // 여기서 필터만 토글하지 않고 저장 후 강제로 새로고침해서 <head>의 재적용 스크립트를 다시 태움
   const next = !lightModeToggle.classList.contains("active");
-  try { localStorage.setItem("mf_light_mode", next ? "1" : "0"); } catch(e){}
+  try {
+    localStorage.setItem("mf_light_mode", next ? "1" : "0");
+    // 🔥 iOS 독립 앱 모드에서 status-bar-style 메타태그를 갱신해도 화면 리로드만으로는
+    // 상태바가 다시 안 읽혀지는 게 실기기에서 확인됨 — 반면 네이티브 alert()/confirm() 같은
+    // 진짜 시스템 모달이 뜰 때는 상태바가 다시 그려지는 것도 확인됨. 그래서 리로드 직후
+    // 딱 한 번 네이티브 alert()을 띄워서 그 트리거를 강제로 발동시킴(아래 플래그로 표시)
+    sessionStorage.setItem("mf_status_bar_kick", "1");
+  } catch(e){}
   location.reload();
 });
 // 저장된 설정 있으면 페이지 로드 시 바로 반영
 try {
   applyLightMode(localStorage.getItem("mf_light_mode") === "1");
+} catch(e){}
+// 🔥 방금 토글해서 새로고침된 직후라면, 네이티브 alert()로 iOS 상태바 재계산을 강제 트리거
+try {
+  if (sessionStorage.getItem("mf_status_bar_kick") === "1") {
+    sessionStorage.removeItem("mf_status_bar_kick");
+    const isLightNow = localStorage.getItem("mf_light_mode") === "1";
+    alert(isLightNow ? "라이트모드로 전환됐어요." : "다크모드로 전환됐어요.");
+  }
 } catch(e){}
 
 // ✅ 설정 화면용 로그인/로그아웃 요소
