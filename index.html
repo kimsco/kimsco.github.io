@@ -2583,6 +2583,11 @@ html.light-mode-on #tab1 .home-week-day .d.filled {
 html.light-mode-on .date-agenda-dot:not(.date-agenda-dot-bodyweight):not(.date-agenda-dot-routine) {
   background: #ff7d69;
 }
+html.light-mode-on .days div.today,
+html.light-mode-on .days div.selected {
+  border-color: #ff7d69;
+  color: #ff7d69;
+}
 
 /* 🔥 설정 화면: 라이트모드에서 "바깥 배경"과 "상자 배경"의 명암을 서로 맞바꿈
    (반전 전 값을 서로 바꿔서 지정 — 반전 후 바깥은 연회색, 상자는 흰색이 됨) */
@@ -8470,7 +8475,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.18";
+const APP_VERSION = "0.7.19";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
