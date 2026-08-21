@@ -898,13 +898,16 @@ cursor: pointer;
   position: fixed;
   left: 50%;
   transform: translateX(-50%);
-  bottom: 0;
+  /* 🔥 viewport-fit=cover 도입 전에는 iOS가 알아서 홈 인디케이터를 피해 뷰포트를 줄여줘서
+     bottom:0이 곧 "인디케이터 위 자리"였음. 지금은 진짜 화면 끝이 bottom:0이라, 바 높이를
+     안전영역만큼 늘리는 대신(그러면 아이콘까지 위로 밀림) 바 크기는 그대로 두고 안전영역
+     만큼만 위로 띄워서 예전과 똑같은 자리에 오도록 함 */
+  bottom: env(safe-area-inset-bottom);
 
   width: 390px;
   max-width: 100%;
 
   height: var(--bottomTabH);
-  padding-bottom: env(safe-area-inset-bottom);
 
   display: flex;
   background: rgba(0,0,0,0.92);
@@ -939,12 +942,12 @@ cursor: pointer;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;   /* 🔥 viewport-fit=cover로 하단 안전영역만큼 바가 커지면서
-                                 아이콘이 위쪽에 붕 떠 보이던 문제 — 자기 칸(안전영역 제외
-                                 순수 높이) 안에서 세로 중앙 정렬로 바꿔 아래로 내림 */
+  justify-content: flex-start;
   gap: 4px;
 
   cursor: pointer;
+
+ padding-top: 12px;         /* 🔥 아이콘이 추가돼서 텍스트만 있을 때보다 살짝 줄임 */
 }
 
 /* ✅ 활성: 글자 흰색(아이콘과 동일한 색으로 통일) */
@@ -8748,7 +8751,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.63";
+const APP_VERSION = "0.7.64";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
