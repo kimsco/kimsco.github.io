@@ -2560,26 +2560,79 @@ cursor: pointer;
 }
 
 /* ===============================
-   ✅ 라이트모드: html 전체를 invert()로 반전시키는 방식이라
-   텍스트/UI는 잘 반전되지만 실제 사진(운동도감 이미지)까지 반전되어 색이 이상해짐.
-   → 사진 요소에는 반대 방향으로 한 번 더 invert를 걸어서 원래 색으로 상쇄시킴.
+   ✅ 라이트모드: 예전엔 html 전체에 반전 필터를 걸었지만, 홈 탭(#tab1)만은 "진짜 색"을
+   직접 쓰기 위해 필터 대상에서 완전히 뺐음(위쪽 JS의 applyLightMode 주석 참고).
+   대신 아직 전환 안 한 나머지 화면/오버레이 각각에 개별적으로 동일한 반전 필터를 적용해서
+   기존 동작을 그대로 유지함 — DOM 구조는 전혀 안 건드리고 각 요소에 filter만 직접 부여하는
+   방식이라, position:fixed 요소들의 뷰포트 기준 위치 계산에도 영향 없음(요소 자신의 위치가
+   아니라 "자기 자식들의" fixed 위치 계산 기준만 바뀌는데, 이 요소들은 전부 이미 뷰포트를
+   덮는 자기 자신이 position:fixed라 문제 없음).
 ================================ */
+html.light-mode-on .topBar,
+html.light-mode-on #tab2,
+html.light-mode-on #tab4,
+html.light-mode-on #save3Result,
+html.light-mode-on #tab3,
+html.light-mode-on #bottomTab,
+html.light-mode-on #calPopup,
+html.light-mode-on #exerciseDexOverlay,
+html.light-mode-on #dexPostDetailOverlay,
+html.light-mode-on #dexFolderModal,
+html.light-mode-on #dexRowMenu,
+html.light-mode-on #dexRenameModal,
+html.light-mode-on #dexDeleteConfirmModal,
+html.light-mode-on #dexWriteOverlay,
+html.light-mode-on #threeSummaryOverlay,
+html.light-mode-on #myRoutineOverlay,
+html.light-mode-on #bodyweightOverlay,
+html.light-mode-on #myRoutinePastListOverlay,
+html.light-mode-on #routineSaveModal,
+html.light-mode-on #myRoutineBuilderNameModal,
+html.light-mode-on #myRoutineBuilderOverlay,
+html.light-mode-on #myRoutineDetailOverlay,
+html.light-mode-on #muscleFinderOverlay,
+html.light-mode-on #oneRMCalcOverlay,
+html.light-mode-on #whoForOverlay,
+html.light-mode-on #loginArea,
+html.light-mode-on #consentModal,
+html.light-mode-on #graphOverlay,
+html.light-mode-on #graphSheet,
+html.light-mode-on #deleteAccountModal,
+html.light-mode-on #myRoutineRevealOverlay,
+html.light-mode-on #myRoutineBannerOverlay,
+html.light-mode-on #dietOverlay,
+html.light-mode-on #dietSubTabBar,
+html.light-mode-on #foodTemplateModal,
+html.light-mode-on #quickAddMealModal,
+html.light-mode-on #foodDbSaveConfirmModal,
+html.light-mode-on #weightModal,
+html.light-mode-on #navDrawerOverlay,
+html.light-mode-on #settingsOverlay,
+html.light-mode-on #logoutModal,
+html.light-mode-on #loginSheetOverlay,
+html.light-mode-on #loginSheet,
+html.light-mode-on #mySpecOverlay {
+  filter: invert(1) hue-rotate(180deg);
+}
+
 html.light-mode-on img:not(.settings-item-icon),
 html.light-mode-on .dex-post-card.has-image{
   filter: invert(1) hue-rotate(180deg);
 }
 
-/* 🔥 빨간 원형 점 표시들(오늘 부위 점/이번 주 활동 채워진 원/날짜별 운동 목록 점):
-   페이지 전체 반전 필터를 통과하면 채도 높은 빨강(#e0203f)은 색공간 밖으로 밀려나서
-   핑크로 보임 — 반전 필터를 통과했을 때 결과적으로 선명한 빨강(rgb 약 207,77,57)이
-   되도록 반전 전 값(#ff7d69)을 역산해서 지정 */
+/* 🔥 홈 탭(#tab1)은 이제 필터를 전혀 안 받으므로, 빨간 점들은 근사치가 아니라
+   다크모드와 완전히 동일한 진짜 빨강(#e0203f)을 그대로 사용 가능 */
 html.light-mode-on #tab1 .home-today-muscle .dot {
-  background: #ff7d69;
+  background: #e0203f;
 }
 html.light-mode-on #tab1 .home-week-day .d.filled {
-  background: #ff7d69;
-  border-color: #ff7d69;
+  background: #e0203f;
+  border-color: #e0203f;
 }
+
+/* 🔥 나머지(3대/기록/달력 탭 등, 아직 필터 방식 유지)의 빨간 점 표시들은 기존처럼
+   반전 필터를 통과했을 때 결과적으로 선명한 빨강(rgb 약 207,77,57)이 되도록
+   반전 전 값(#ff7d69)을 역산한 근사치를 그대로 사용 */
 html.light-mode-on .date-agenda-dot:not(.date-agenda-dot-bodyweight):not(.date-agenda-dot-routine) {
   background: #ff7d69;
 }
@@ -2601,20 +2654,61 @@ html.light-mode-on .settings-card {
   background: #000;
 }
 
-/* 🔥 홈 탭 카드/퀵버튼: 라이트모드에서 기본 반전 결과(#111→약 rgb(238,238,238))보다
-   더 연하게 보이도록 반전 전 값을 더 검게 지정(#020202→반전 후 약 rgb(253,253,253)) */
-html.light-mode-on #tab1 .home-card,
-html.light-mode-on #tab1 .home-quick-btn {
-  background: #020202;
+/* 🔥 홈 탭(#tab1) 라이트모드: 필터를 전혀 안 받는 화면이라, "반전 후 결과"를 역산하는 게
+   아니라 실제로 화면에 보일 색을 직접(literal) 지정함. 카드/상자류는 기존에 확정했던
+   시각적 결과(#fdfdfd, 거의 흰색)를 그대로 유지하고, 텍스트/테두리는 다크모드의
+   흰색 계열(rgba(255,255,255,X))을 대칭적인 검정 계열(rgba(0,0,0,X))로 치환 */
+html.light-mode-on #tab1 {
+  color: #1a1a1a;
 }
+html.light-mode-on #tab1 .home-card,
+html.light-mode-on #tab1 .home-quick-btn,
+html.light-mode-on #tab1 .home-big3-badge,
+html.light-mode-on #tab1 .home-weight-pill,
+html.light-mode-on #tab1 .home-macro-pill,
+html.light-mode-on #tab1 .home-diet-input-row input {
+  background: #fdfdfd;
+  border-color: #ddd;
+}
+html.light-mode-on #tab1 .home-greeting { color: rgba(0,0,0,0.45); }
+html.light-mode-on #tab1 .home-greeting b { color: rgba(0,0,0,0.75); }
+html.light-mode-on #tab1 .home-big3-badge { color: rgba(0,0,0,0.6); }
+html.light-mode-on #tab1 .home-big3-badge b { color: #1a1a1a; }
+html.light-mode-on #tab1 .home-weight-pill input { color: #1a1a1a; }
+html.light-mode-on #tab1 .home-weight-pill input::placeholder { color: rgba(0,0,0,0.35); }
+html.light-mode-on #tab1 .home-weight-pill .home-weight-unit { color: rgba(0,0,0,0.6); }
+html.light-mode-on #tab1 .home-weight-pill button { background: #1a1a1a; color: #fff; }
+html.light-mode-on #tab1 .home-card-label { color: rgba(0,0,0,0.4); }
+html.light-mode-on #tab1 .home-today-sub { color: rgba(0,0,0,0.4); }
+html.light-mode-on #tab1 .home-tomorrow-label { color: rgba(0,0,0,0.4); }
+html.light-mode-on #tab1 .home-tomorrow-muscle { color: #1a1a1a; }
+html.light-mode-on #tab1 .home-week-day .d { background: #f0f0f0; border-color: #ddd; }
+html.light-mode-on #tab1 .home-week-day .lbl { color: rgba(0,0,0,0.4); }
+html.light-mode-on #tab1 .home-quote-open,
+html.light-mode-on #tab1 .home-quote-close { color: rgba(0,0,0,0.15); }
+html.light-mode-on #tab1 .home-quote-headline { color: #1a1a1a; }
+html.light-mode-on #tab1 .home-quote-body { color: rgba(0,0,0,0.6); }
+html.light-mode-on #tab1 .home-diet-kcal span { color: rgba(0,0,0,0.4); }
+html.light-mode-on #tab1 .home-macro-pill .l { color: rgba(0,0,0,0.4); }
+html.light-mode-on #tab1 .home-diet-input-row input { color: #1a1a1a; border-color: #ddd; }
+html.light-mode-on #tab1 .home-diet-input-row input::placeholder { color: rgba(0,0,0,0.3); }
+html.light-mode-on #tab1 .home-diet-input-row button { background: #1a1a1a; color: #fff; }
+html.light-mode-on #tab1 .home-quick-btn { color: rgba(0,0,0,0.75); }
+html.light-mode-on #tab1 .home-quick-btn .home-quick-icon { color: rgba(0,0,0,0.75); }
 
 /* 🔥 설정 화면과 동일한 구조를 앱 전체(오버레이 포함)로 확장:
    무채색(검정/회색)은 반전 필터를 통과해도 색이 틀어지지 않으므로(빨강/골드와 달리
    색공간 클리핑 문제가 없음) 반전 전 값을 서로 맞바꾸는 방식을 그대로 넓혀서 적용 */
 
-/* 바깥(화면 전체) — 원래 #000이던 큰 배경들 */
+/* 🔥 body/.app은 이제 필터를 전혀 안 받으므로(홈 탭이 자식이라 필터 대상에서 뺐음),
+   반전 전 값을 역산하는 방식이 아니라 최종적으로 보일 색을 직접 지정
+   (기존 스왑 결과였던 rgb(238,238,238)과 동일한 값으로 시각적 연속성 유지) */
 html.light-mode-on body,
-html.light-mode-on .app,
+html.light-mode-on .app {
+  background: #eeeeee;
+}
+
+/* 바깥(화면 전체) — 원래 #000이던 큰 배경들(자기 자신이 필터 적용 대상이라 스왑 방식 그대로 유지) */
 html.light-mode-on .nav-drawer,
 html.light-mode-on .food-search-panel,
 html.light-mode-on .diet-ai-chat-inputbar,
@@ -2674,11 +2768,7 @@ html.light-mode-on #weightModal input.weight-field-input,
 html.light-mode-on .diet-food-db-search,
 html.light-mode-on .today-meal-box,
 html.light-mode-on .food-modal-form input,
-html.light-mode-on .modal-box,
-html.light-mode-on #tab1 .home-big3-badge,
-html.light-mode-on #tab1 .home-weight-pill,
-html.light-mode-on #tab1 .home-macro-pill,
-html.light-mode-on #tab1 .home-diet-input-row input {
+html.light-mode-on .modal-box {
   background: #020202;
 }
 /* 상자 — 인라인 style로 지정된 오버레이(다른 오버레이 위에 뜨는 2차 팝업이라 원래도 #111) */
@@ -8557,7 +8647,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.21";
+const APP_VERSION = "0.7.22";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -15281,11 +15371,16 @@ closeSettingsBtn.addEventListener("click", closeSettings);
 })();
 
 
-/* ✨ 다크/라이트 모드 토글: 검정↔흰색 자동 반전 + 회색 톤 유지 + 색상(빨강/노랑 등)은 최대한 원래대로
-   (사진 넣게 되면 img 태그에 반대 필터를 걸어서 상쇄시키면 됨) */
+/* ✨ 다크/라이트 모드 토글
+   🔥 예전엔 html 전체에 반전 필터를 걸어 화면 전체를 뒤집는 방식이었는데, 그 방식으로는
+   특정 요소(빨강/골드 같은 채도 높은 색)만 "진짜 원래 색"으로 예외 처리하는 게 절대 불가능함
+   (필터는 자식이 일부만 빼달라고 할 수 있는 속성이 아니라, 조상이 자기 자식 전체를 그림으로
+   찍은 뒤 그 그림에 필터를 거는 방식이라 부분 제외가 안 됨).
+   → 그래서 html 전체에 거는 대신, 아직 "진짜 색" 전환 안 한 화면/오버레이들 각각에 개별적으로
+   반전 필터를 걸어주는 방식으로 변경(아래 html.light-mode-on #xxx 목록). 홈 탭(#tab1)은 그
+   목록에서 빠져있어서 필터를 전혀 안 받고, 진짜 라이트모드 색을 직접 지정해서 사용함. */
 const lightModeToggle = document.getElementById("lightModeToggle");
 function applyLightMode(on){
-  document.documentElement.style.filter = on ? "invert(1) hue-rotate(180deg)" : "";
   document.documentElement.classList.toggle("light-mode-on", on); // 🔥 사진 요소 반전 상쇄용 스코프 클래스
   lightModeToggle.classList.toggle("active", on);
   try { localStorage.setItem("mf_light_mode", on ? "1" : "0"); } catch(e){}
