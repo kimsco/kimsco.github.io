@@ -8723,7 +8723,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.35";
+const APP_VERSION = "0.7.36";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -15514,6 +15514,13 @@ function applyLightMode(on){
   document.documentElement.classList.toggle("light-mode-on", on); // 🔥 사진 요소 반전 상쇄용 스코프 클래스
   lightModeToggle.classList.toggle("active", on);
   try { localStorage.setItem("mf_light_mode", on ? "1" : "0"); } catch(e){}
+  // 🔥 iOS PWA 상태바(시계/배터리) 영역 색이 라이트/다크 전환 시 안 바뀌던 문제 —
+  //    viewport-fit=cover는 다른 화면들의 레이아웃을 깨서 롤백했으므로, 대신 theme-color
+  //    메타 태그만 직접 갱신 (레이아웃에는 영향 없는 훨씬 안전한 방식)
+  try {
+    const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+    if (themeColorMeta) themeColorMeta.setAttribute('content', on ? '#eeeeee' : '#000000');
+  } catch(e){}
   // 🔥 식단 통계 탭 차트(캔버스)는 CSS가 아니라 JS에서 직접 색을 정하므로, 테마 전환 시
   // 다시 그려줘야 즉시 반영됨 — 페이지 로드 시 최초 호출 때는 아직 정의 안 된 전역들이
   // 있을 수 있어 안전하게 try/catch로 감쌈(이때는 통계 화면이 열려있지도 않음)
