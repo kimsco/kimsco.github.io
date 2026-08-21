@@ -2569,103 +2569,13 @@ html.light-mode-on .dex-post-card.has-image{
   filter: invert(1) hue-rotate(180deg);
 }
 
-/* 🔥 설정 화면과 동일한 구조를 앱 전체(오버레이 포함)로 확장:
-   라이트모드에서 "바깥 배경(화면 전체)"과 "상자 배경(카드/입력창 등)"의 명암을 서로 맞바꿈
+/* 🔥 설정 화면: 라이트모드에서 "바깥 배경"과 "상자 배경"의 명암을 서로 맞바꿈
    (반전 전 값을 서로 바꿔서 지정 — 반전 후 바깥은 연회색, 상자는 흰색이 됨) */
 html.light-mode-on .settings-panel {
   background: #111;
 }
 html.light-mode-on .settings-card {
   background: #000;
-}
-
-/* 바깥(화면 전체) — 원래 #000이던 큰 배경들 */
-html.light-mode-on body,
-html.light-mode-on .app,
-html.light-mode-on .nav-drawer,
-html.light-mode-on .food-search-panel,
-html.light-mode-on .diet-ai-chat-inputbar,
-html.light-mode-on .who-cta {
-  background: #111;
-}
-/* 바깥(화면 전체) — 인라인 style로 지정된 풀스크린 오버레이들(우선순위 위해 !important 필요) */
-html.light-mode-on #dietOverlay,
-html.light-mode-on #exerciseDexOverlay,
-html.light-mode-on #dexPostDetailOverlay,
-html.light-mode-on #mySpecOverlay,
-html.light-mode-on #threeSummaryOverlay,
-html.light-mode-on #myRoutineOverlay,
-html.light-mode-on #bodyweightOverlay,
-html.light-mode-on #myRoutineRevealOverlay,
-html.light-mode-on #myRoutinePastListOverlay,
-html.light-mode-on #myRoutineDetailOverlay,
-html.light-mode-on #muscleFinderOverlay,
-html.light-mode-on #oneRMCalcOverlay,
-html.light-mode-on #whoForOverlay {
-  background: #111 !important;
-}
-
-/* 상자(카드/입력창/버튼 등) — 원래 #111 또는 #1a1a1a이던 박스들 */
-html.light-mode-on .popup-box,
-html.light-mode-on .loginBtn:active,
-html.light-mode-on .exercise-card,
-html.light-mode-on .diet-ai-chat-msg.ai,
-html.light-mode-on .diet-ai-chat-input,
-html.light-mode-on .diet-water-ml-input,
-html.light-mode-on .muscle-finder-card,
-html.light-mode-on .bw-menu-card,
-html.light-mode-on .bw-routine-card,
-html.light-mode-on .bw-text-input,
-html.light-mode-on .bw-routine-create-ex-row,
-html.light-mode-on .bw-log-stat-card,
-html.light-mode-on .bw-log-record-row,
-html.light-mode-on .bw-log-link-row,
-html.light-mode-on .bw-log-cal,
-html.light-mode-on .bw-log-exercise-card,
-html.light-mode-on .bw-log-stat-tile,
-html.light-mode-on .bw-goal-card,
-html.light-mode-on .bw-goal-picker-btn,
-html.light-mode-on .bw-goal-picker-list,
-html.light-mode-on .bw-goal-picker-item:active,
-html.light-mode-on .bw-goal-target-input-row,
-html.light-mode-on .bw-today-card,
-html.light-mode-on .bw-exercise-card,
-html.light-mode-on .bw-add-btn:active,
-html.light-mode-on .bw-add-set-btn:active,
-html.light-mode-on .dex-modal-input,
-html.light-mode-on .dex-modal-textarea,
-html.light-mode-on #oneRMCalcOverlay #goBtn,
-html.light-mode-on #oneRMCalcDisclaimer,
-html.light-mode-on #weightModal input.weight-field-input,
-html.light-mode-on .diet-food-db-search,
-html.light-mode-on .today-meal-box,
-html.light-mode-on .food-modal-form input,
-html.light-mode-on .modal-box,
-html.light-mode-on #tab1 .home-big3-badge,
-html.light-mode-on #tab1 .home-weight-pill,
-html.light-mode-on #tab1 .home-card,
-html.light-mode-on #tab1 .home-quick-btn,
-html.light-mode-on #tab1 .home-macro-pill,
-html.light-mode-on #tab1 .home-diet-input-row input {
-  background: #000;
-}
-/* 상자 — 인라인 style로 지정된 오버레이(다른 오버레이 위에 뜨는 2차 팝업이라 원래도 #111) */
-html.light-mode-on #dexWriteOverlay,
-html.light-mode-on #myRoutineBuilderOverlay {
-  background: #000 !important;
-}
-
-/* 🔥 토글 스위치 ON 색상(흰 배경 + 회색 구슬)은 반전 필터가 걸린 상태에서 "그렇게 보이도록"
-   설계된 값이라, 라이트모드가 켜지면 페이지 전체 반전에 토글 자신도 같이 뒤집혀서
-   흰색이 검정으로 보여버림 — 반전 전 값을 미리 뒤바꿔서 반전 후 결과가 흰 배경/회색 구슬이
-   되도록 보정 (#3a3a3a를 반전하면 #c5c5c5가 나오는 걸 역산) */
-html.light-mode-on #calendarToggle.toggle-switch.active,
-html.light-mode-on #lightModeToggle.toggle-switch.active {
-  background: #000;
-}
-html.light-mode-on #calendarToggle.toggle-switch.active::after,
-html.light-mode-on #lightModeToggle.toggle-switch.active::after {
-  background: #c5c5c5;
 }
 .dex-post-card-label{
   font-size: 17px;
@@ -8538,7 +8448,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.14";
+const APP_VERSION = "0.7.15";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
