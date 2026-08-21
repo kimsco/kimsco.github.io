@@ -15288,6 +15288,10 @@ function applyLightMode(on){
   document.documentElement.style.filter = on ? "invert(1) hue-rotate(180deg)" : "";
   document.documentElement.classList.toggle("light-mode-on", on); // 🔥 사진 요소 반전 상쇄용 스코프 클래스
   lightModeToggle.classList.toggle("active", on);
+  // 🔥 상태바 아이콘 색: iOS가 theme-color 밝기를 보고 자동으로 흰/검 아이콘을 고름
+  // (반전 필터로 실제 밝아지는 배경값 rgb(238,238,238)=#eeeeee 에 맞춤)
+  const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+  if (themeColorMeta) themeColorMeta.setAttribute("content", on ? "#eeeeee" : "#000000");
   try { localStorage.setItem("mf_light_mode", on ? "1" : "0"); } catch(e){}
 }
 lightModeToggle.addEventListener("click", () => {
