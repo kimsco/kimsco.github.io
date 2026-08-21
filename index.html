@@ -8724,7 +8724,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.41";
+const APP_VERSION = "0.7.42";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -14177,7 +14177,11 @@ function resyncDietOverlayUI(){
   }
 }
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible') resyncDietOverlayUI();
+  if (document.visibilityState === 'visible') {
+    resyncDietOverlayUI();
+    // 🔥 상태바 색도 화면이 다시 보일 때마다 강제로 재확인(같은 이유 — iOS가 놓치는 경우 방지)
+    try { if (typeof refreshThemeColorMeta === "function") refreshThemeColorMeta(); } catch(e){}
+  }
 });
 window.addEventListener('pageshow', resyncDietOverlayUI);
 
@@ -14302,6 +14306,9 @@ bottomTabBtns.forEach(btn => {
 /* 🔥 식단 새창(오버레이) 열기: "식단" 글자가 원래 자리에서 캡슐 자리로 미끄러지듯 이동하고,
    탑바까지 포함해 화면 전체를 덮는 dietOverlay가 뜸 + 나머지 서브탭 3개가 순서대로 팝업 */
 function openDietOverlay(fromBtn){
+  // 🔥 식단 화면(풀스크린 전환) 진입 시 상태바 색도 같이 다시 강제 확인 —
+  //    실기기에서 유독 이 시점에 상태바가 놓치는 경우가 있었음
+  try { if (typeof refreshThemeColorMeta === "function") refreshThemeColorMeta(); } catch(e){}
   const DIET_ACTIVE_COLOR = 'rgb(255, 255, 255)'; // .tabBtn.active / .dietSubTabBtn.active 공통 활성 색상
   const fromRect = getTextRect(fromBtn);
   const { rect: toRect, targetBtn: toBtnEl } = measureDietSubTabRect('today');
@@ -15511,17 +15518,27 @@ closeSettingsBtn.addEventListener("click", closeSettings);
    반전 필터를 걸어주는 방식으로 변경(아래 html.light-mode-on #xxx 목록). 홈 탭(#tab1)은 그
    목록에서 빠져있어서 필터를 전혀 안 받고, 진짜 라이트모드 색을 직접 지정해서 사용함. */
 const lightModeToggle = document.getElementById("lightModeToggle");
+// 🔥 iOS PWA 상태바(시계/배터리) 영역 색 — theme-color의 content 속성만 바꾸면
+//    iOS가 상태바를 즉시 다시 칠하지 않고 다음 화면 전환 때까지 미루는 경우가 있음(간헐적).
+//    content만 바꾸는 대신 태그 자체를 지웠다가 새로 넣어서 iOS가 확실히 새로 인식하게 함 —
+//    사용자가 실기기에서 재현 패턴을 정확히 짚어줘서(라이트모드 진입은 되는데 토글/화면전환
+//    시 안 따라옴 → 그러다 다른 풀스크린 화면 열면 그제서야 맞게 돌아옴) 찾아낸 원인
+function refreshThemeColorMeta(){
+  try {
+    const on = document.documentElement.classList.contains("light-mode-on");
+    const old = document.querySelector('meta[name="theme-color"]');
+    if (old) old.remove();
+    const fresh = document.createElement('meta');
+    fresh.setAttribute('name', 'theme-color');
+    fresh.setAttribute('content', on ? '#eeeeee' : '#000000');
+    document.head.appendChild(fresh);
+  } catch(e){}
+}
 function applyLightMode(on){
   document.documentElement.classList.toggle("light-mode-on", on); // 🔥 사진 요소 반전 상쇄용 스코프 클래스
   lightModeToggle.classList.toggle("active", on);
   try { localStorage.setItem("mf_light_mode", on ? "1" : "0"); } catch(e){}
-  // 🔥 iOS PWA 상태바(시계/배터리) 영역 색이 라이트/다크 전환 시 안 바뀌던 문제 —
-  //    viewport-fit=cover는 다른 화면들의 레이아웃을 깨서 롤백했으므로, 대신 theme-color
-  //    메타 태그만 직접 갱신 (레이아웃에는 영향 없는 훨씬 안전한 방식)
-  try {
-    const themeColorMeta = document.querySelector('meta[name="theme-color"]');
-    if (themeColorMeta) themeColorMeta.setAttribute('content', on ? '#eeeeee' : '#000000');
-  } catch(e){}
+  refreshThemeColorMeta();
   // 🔥 식단 통계 탭 차트(캔버스)는 CSS가 아니라 JS에서 직접 색을 정하므로, 테마 전환 시
   // 다시 그려줘야 즉시 반영됨 — 페이지 로드 시 최초 호출 때는 아직 정의 안 된 전역들이
   // 있을 수 있어 안전하게 try/catch로 감쌈(이때는 통계 화면이 열려있지도 않음)
