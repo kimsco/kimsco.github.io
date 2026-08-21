@@ -2601,7 +2601,6 @@ html.light-mode-on #deleteAccountModal,
 html.light-mode-on #myRoutineRevealOverlay,
 html.light-mode-on #myRoutineBannerOverlay,
 html.light-mode-on #dietPanel-today,
-html.light-mode-on #dietPanel-history,
 html.light-mode-on #dietPanel-settings,
 html.light-mode-on #dietSubTabBar,
 html.light-mode-on #foodTemplateModal,
@@ -2718,6 +2717,23 @@ html.light-mode-on #dietPanel-stats .diet-stats-water-track { background: rgba(0
 html.light-mode-on #dietPanel-stats .diet-stats-water-fill { background: #1a1a1a; }
 html.light-mode-on #dietPanel-stats .diet-stats-weight-value { color: #1a1a1a; }
 html.light-mode-on #dietPanel-stats .diet-stats-weight-track { background: rgba(0,0,0,0.08); }
+
+/* 🔥 식단 > 기록(#dietPanel-history) 라이트모드: 마찬가지로 필터를 전혀 안 받는 화면.
+   골드(#FFD700 계열)는 리터럴 값이라 그대로 두면 다크모드와 동일하게 나오므로 손 안 댐 */
+html.light-mode-on #dietPanel-history .days > div:not(.empty) { color: #1a1a1a; }
+html.light-mode-on #dietPanel-history .days > div:not(.empty):not(.done) { background: #f0f0f0; }
+html.light-mode-on #dietPanel-history .days > div:not(.empty):not(.done):hover { background: #e5e5e5; }
+html.light-mode-on #dietPanel-history .weekdays div { color: rgba(0,0,0,0.45); }
+html.light-mode-on #dietPanel-history .diet-cal-days > div.done:not(.today) { color: #1a1a1a; }
+html.light-mode-on #dietPanel-history .diet-cal-days > div.today { border-color: #FFD700; color: #FFD700; }
+html.light-mode-on #dietPanel-history .diet-cal-days > div.selected { border-color: #FFD700; }
+html.light-mode-on #dietPanel-history .diet-cal-detail-header span:first-child { color: rgba(0,0,0,0.45); }
+html.light-mode-on #dietPanel-history .today-meal-box { background: #fdfdfd; border-color: #ddd; }
+html.light-mode-on #dietPanel-history #dietCalDetailList > div[style] { color: rgba(0,0,0,0.45) !important; }
+html.light-mode-on #dietPanel-history .meal-log-row { border-bottom-color: rgba(0,0,0,0.08); }
+html.light-mode-on #dietPanel-history .meal-log-name { color: #1a1a1a; }
+html.light-mode-on #dietPanel-history .meal-log-time,
+html.light-mode-on #dietPanel-history .meal-log-protein { color: #1a1a1a; }
 
 /* 🔥 설정 화면과 동일한 구조를 앱 전체(오버레이 포함)로 확장:
    무채색(검정/회색)은 반전 필터를 통과해도 색이 틀어지지 않으므로(빨강/골드와 달리
@@ -8674,7 +8690,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.23";
+const APP_VERSION = "0.7.24";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
