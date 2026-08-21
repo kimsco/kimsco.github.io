@@ -2564,7 +2564,7 @@ cursor: pointer;
    텍스트/UI는 잘 반전되지만 실제 사진(운동도감 이미지)까지 반전되어 색이 이상해짐.
    → 사진 요소에는 반대 방향으로 한 번 더 invert를 걸어서 원래 색으로 상쇄시킴.
 ================================ */
-html.light-mode-on img,
+html.light-mode-on img:not(.settings-item-icon),
 html.light-mode-on .dex-post-card.has-image{
   filter: invert(1) hue-rotate(180deg);
 }
@@ -8448,7 +8448,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.15";
+const APP_VERSION = "0.7.16";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
