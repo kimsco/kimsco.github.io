@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-title" content="ttt">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
 <title>ttt</title>
 <!-- 🔥 맨몸운동 페이지 제목용 명조체(나눔명조) — 시스템 폰트로는 기기마다 없을 수 있어 웹폰트로 확실히 로드 -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -102,9 +102,9 @@ button {
   width: 390px;
   max-width: 100%;
 
-  height: calc(var(--topBarH) + env(safe-area-inset-top));
+  height: var(--topBarH);
   box-sizing: border-box;          /* ✅ padding 포함해서 height 유지 */
-  padding: calc(12px + env(safe-area-inset-top)) 10px 12px;
+  padding: 12px 10px;
 
   display: flex;
   align-items: center;
@@ -8723,7 +8723,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.33";
+const APP_VERSION = "0.7.34";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
