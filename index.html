@@ -261,7 +261,7 @@ button {
   height: auto;
   padding-bottom: 76px; /* 🔥 아래 떠있는 저장바에 마지막 기록이 가려지지 않도록 여유 확보 */
 }
-#tab2 #recordMessage {
+#recordMessage {
   position: fixed;
   left: 0; right: 0;
   bottom: calc(var(--bottomTabH) + 78px + env(safe-area-inset-bottom));
@@ -2734,6 +2734,31 @@ html.light-mode-on #dietPanel-history .meal-log-row { border-bottom-color: rgba(
 html.light-mode-on #dietPanel-history .meal-log-name { color: #1a1a1a; }
 html.light-mode-on #dietPanel-history .meal-log-time,
 html.light-mode-on #dietPanel-history .meal-log-protein { color: #1a1a1a; }
+
+/* 🔥 3대탭/기록탭의 알약형 저장바(#recordFloatBarTab2, #recordFloatBarAcc): 라이트모드에서
+   #tab2/#tab4에 걸리는 반전 필터가 이 알약바의 position:fixed 기준점까지 자기 자신으로
+   바꿔버려서(필터도 transform처럼 컨테이닝 블록을 만듦) 화면 하단이 아니라 탭 컨테이너 안
+   엉뚱한 위치에 뜨는 버그가 있었음 — body 최상위로 DOM을 옮겨서 해결했고, 그 대가로 더 이상
+   #tab2/#tab4의 필터를 받지 못하므로 실제 라이트모드 색을 직접 지정 */
+html.light-mode-on #recordFloatBarTab2,
+html.light-mode-on #recordFloatBarAcc {
+  background: rgba(255,255,255,0.75);
+  border-color: rgba(0,0,0,0.08);
+}
+html.light-mode-on #recordFloatBarTab2 input[type="number"],
+html.light-mode-on #recordFloatBarAcc input[type="number"] {
+  background: rgba(0,0,0,0.06);
+  color: #1a1a1a;
+}
+html.light-mode-on #recordFloatBarTab2 input[type="number"]::placeholder,
+html.light-mode-on #recordFloatBarAcc input[type="number"]::placeholder {
+  color: rgba(0,0,0,0.35);
+}
+html.light-mode-on #recordFloatBarTab2 button,
+html.light-mode-on #recordFloatBarAcc button {
+  background: #1a1a1a;
+  color: #fff;
+}
 
 /* 🔥 설정 화면과 동일한 구조를 앱 전체(오버레이 포함)로 확장:
    무채색(검정/회색)은 반전 필터를 통과해도 색이 틀어지지 않으므로(빨강/골드와 달리
@@ -8690,7 +8715,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.24";
+const APP_VERSION = "0.7.25";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -14111,6 +14136,17 @@ document.body.appendChild(document.getElementById('foodTemplateModal'));
 document.body.appendChild(document.getElementById('quickAddMealModal'));
 document.body.appendChild(document.getElementById('foodDbSaveConfirmModal'));
 document.body.appendChild(document.getElementById('weightModal'));
+// 🔥 라이트모드에서는 #tab2/#tab4에 반전 필터가 직접 걸리는데, 필터도 transform과
+//    마찬가지로 자식 position:fixed 요소의 기준점을 자기 자신으로 바꿔버려서 이
+//    알약형 저장바가 화면 하단이 아니라 탭 컨테이너 안 엉뚱한 위치에 떠버리는 문제가
+//    있었음 — 같은 이유로 body로 이동
+const recordFloatBarTab2El = document.getElementById('recordFloatBarTab2');
+if (recordFloatBarTab2El) {
+  document.body.appendChild(recordFloatBarTab2El);
+  recordFloatBarTab2El.style.display = 'none'; // 기본 활성 탭은 tab1이므로 초기엔 숨김
+}
+document.body.appendChild(document.getElementById('recordFloatBarAcc'));
+document.body.appendChild(document.getElementById('recordMessage')); // 🔥 저장 완료/실패 토스트 메시지도 같은 이유로 이동
 
 /* 🔥 안전장치: 화면이 꺼졌다 켜지거나 앱이 백그라운드에서 돌아올 때,
    식단 새창(dietOverlay)은 열려있는데 캡슐(dietSubTabBar)만 어긋나서 안 보이는
@@ -14239,6 +14275,11 @@ bottomTabBtns.forEach(btn => {
     }
     const accBarElTab = document.getElementById('recordFloatBarAcc');
     if (accBarElTab) accBarElTab.style.display = 'none';
+
+    // 🔥 recordFloatBarTab2는 body로 옮겨져 있어서(#tab2 기준 라이트모드 필터 이슈 회피),
+    //    더 이상 #tab2의 display:none에 딸려서 자동으로 숨겨지지 않음 — 탭 전환 시 직접 토글
+    const recordFloatBarTab2El = document.getElementById('recordFloatBarTab2');
+    if (recordFloatBarTab2El) recordFloatBarTab2El.style.display = (target === 'tab2') ? 'flex' : 'none';
 
     document.querySelector('.app').style.overflowY = 'auto';
   });
