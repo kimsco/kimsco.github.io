@@ -2600,7 +2600,9 @@ html.light-mode-on #graphSheet,
 html.light-mode-on #deleteAccountModal,
 html.light-mode-on #myRoutineRevealOverlay,
 html.light-mode-on #myRoutineBannerOverlay,
-html.light-mode-on #dietOverlay,
+html.light-mode-on #dietPanel-today,
+html.light-mode-on #dietPanel-history,
+html.light-mode-on #dietPanel-settings,
 html.light-mode-on #dietSubTabBar,
 html.light-mode-on #foodTemplateModal,
 html.light-mode-on #quickAddMealModal,
@@ -2696,6 +2698,27 @@ html.light-mode-on #tab1 .home-diet-input-row button { background: #1a1a1a; colo
 html.light-mode-on #tab1 .home-quick-btn { color: rgba(0,0,0,0.75); }
 html.light-mode-on #tab1 .home-quick-btn .home-quick-icon { color: rgba(0,0,0,0.75); }
 
+/* 🔥 식단 > 통계(#dietPanel-stats) 라이트모드: #tab1과 동일하게 필터를 전혀 안 받는 화면.
+   골드(#FFD700)/경고 빨강(#ff5252)은 이미 리터럴 값이라 반전 대상이 아니었으므로
+   그대로 두면 다크모드와 완전히 동일하게 나옴(별도 지정 불필요) — 흰색/회색 계열
+   텍스트·트랙만 검정 계열로 대칭 치환 */
+html.light-mode-on #dietPanel-stats .diet-stats-chart-pct { color: #1a1a1a; }
+html.light-mode-on #dietPanel-stats .diet-stats-chart-label { color: rgba(0,0,0,0.5); }
+html.light-mode-on #dietPanel-stats .diet-stats-chart-sub { color: rgba(0,0,0,0.45); }
+html.light-mode-on #dietPanel-stats .diet-stats-reco-title { color: rgba(0,0,0,0.45); }
+html.light-mode-on #dietPanel-stats .diet-stats-macro-bar-label { color: rgba(0,0,0,0.45); }
+html.light-mode-on #dietPanel-stats .diet-stats-macro-bar-track { background: rgba(0,0,0,0.08); }
+html.light-mode-on #dietPanel-stats .diet-stats-macro-bar-fill { background: #1a1a1a; }
+html.light-mode-on #dietPanel-stats .diet-stats-macro-bar-num { color: rgba(0,0,0,0.55); }
+html.light-mode-on #dietPanel-stats .diet-stats-water-title { color: rgba(0,0,0,0.45); }
+html.light-mode-on #dietPanel-stats .diet-stats-water-count { color: #1a1a1a; }
+html.light-mode-on #dietPanel-stats .diet-stats-water-count .diet-stats-water-goal,
+html.light-mode-on #dietPanel-stats .diet-stats-weight-value .diet-stats-water-goal { color: rgba(0,0,0,0.4); }
+html.light-mode-on #dietPanel-stats .diet-stats-water-track { background: rgba(0,0,0,0.08); }
+html.light-mode-on #dietPanel-stats .diet-stats-water-fill { background: #1a1a1a; }
+html.light-mode-on #dietPanel-stats .diet-stats-weight-value { color: #1a1a1a; }
+html.light-mode-on #dietPanel-stats .diet-stats-weight-track { background: rgba(0,0,0,0.08); }
+
 /* 🔥 설정 화면과 동일한 구조를 앱 전체(오버레이 포함)로 확장:
    무채색(검정/회색)은 반전 필터를 통과해도 색이 틀어지지 않으므로(빨강/골드와 달리
    색공간 클리핑 문제가 없음) 반전 전 값을 서로 맞바꾸는 방식을 그대로 넓혀서 적용 */
@@ -2707,6 +2730,11 @@ html.light-mode-on body,
 html.light-mode-on .app {
   background: #eeeeee;
 }
+/* 🔥 dietOverlay도 통계 서브탭(#dietPanel-stats)이 자식이라 필터 대상에서 뺐으므로,
+   자기 자신의 배경도 실제 값을 직접 지정(인라인 style이라 !important 필요) */
+html.light-mode-on #dietOverlay {
+  background: #eeeeee !important;
+}
 
 /* 바깥(화면 전체) — 원래 #000이던 큰 배경들(자기 자신이 필터 적용 대상이라 스왑 방식 그대로 유지) */
 html.light-mode-on .nav-drawer,
@@ -2716,7 +2744,6 @@ html.light-mode-on .who-cta {
   background: #111;
 }
 /* 바깥(화면 전체) — 인라인 style로 지정된 풀스크린 오버레이들(우선순위 위해 !important 필요) */
-html.light-mode-on #dietOverlay,
 html.light-mode-on #exerciseDexOverlay,
 html.light-mode-on #dexPostDetailOverlay,
 html.light-mode-on #mySpecOverlay,
@@ -8647,7 +8674,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.22";
+const APP_VERSION = "0.7.23";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -15384,6 +15411,10 @@ function applyLightMode(on){
   document.documentElement.classList.toggle("light-mode-on", on); // 🔥 사진 요소 반전 상쇄용 스코프 클래스
   lightModeToggle.classList.toggle("active", on);
   try { localStorage.setItem("mf_light_mode", on ? "1" : "0"); } catch(e){}
+  // 🔥 식단 통계 탭 차트(캔버스)는 CSS가 아니라 JS에서 직접 색을 정하므로, 테마 전환 시
+  // 다시 그려줘야 즉시 반영됨 — 페이지 로드 시 최초 호출 때는 아직 정의 안 된 전역들이
+  // 있을 수 있어 안전하게 try/catch로 감쌈(이때는 통계 화면이 열려있지도 않음)
+  try { if (typeof renderDietStats === "function") renderDietStats(); } catch(e){}
 }
 lightModeToggle.addEventListener("click", () => {
   applyLightMode(!lightModeToggle.classList.contains("active"));
@@ -17149,8 +17180,10 @@ function renderDietStatsChart(consumed, target){
   const remainVal = Math.max(0, target - consumed);
   const isOver = consumed > target && target > 0;
 
+  // 🔥 경고색(#ff5252)은 다크/라이트 공통, 흰색 계열(정상 진행률)만 라이트모드에서 분기
+  const isLightDonut = document.documentElement.classList.contains('light-mode-on');
   const values = isOver ? [consumedVal] : [consumedVal, remainVal || 1];
-  const colors = isOver ? ['#ff5252'] : ['#ffffff', 'rgba(255,255,255,0.08)'];
+  const colors = isOver ? ['#ff5252'] : (isLightDonut ? ['#1a1a1a', 'rgba(0,0,0,0.08)'] : ['#ffffff', 'rgba(255,255,255,0.08)']);
 
   dietStatsChartInstance = new Chart(ctx, {
     type: 'doughnut',
@@ -17454,7 +17487,10 @@ function renderDietTrendChart(){
     kcalValues.push(kcalOfMeals(mealsAll.filter(m => m.date === key)));
   }
 
-  const colors = labels.map((_, idx) => idx === labels.length - 1 ? '#FFD700' : 'rgba(255,255,255,0.35)');
+  // 🔥 #dietPanel-stats는 필터를 안 받는 화면이라, 골드(#FFD700)는 다크/라이트 공통으로
+  // 그대로 두고, 흰색 계열만 라이트모드에서 검정 계열로 직접 분기
+  const isLight = document.documentElement.classList.contains('light-mode-on');
+  const colors = labels.map((_, idx) => idx === labels.length - 1 ? '#FFD700' : (isLight ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.35)'));
 
   dietTrendChartInstance = new Chart(ctx, {
     type: 'bar',
@@ -17479,7 +17515,7 @@ function renderDietTrendChart(){
         tooltip: { callbacks: { label: (ctx) => ` ${ctx.parsed.y} kcal` } },
       },
       scales: {
-        x: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.5)', font: { size: 10 } } },
+        x: { grid: { display: false }, ticks: { color: isLight ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.5)', font: { size: 10 } } },
         y: { display: false, beginAtZero: true }
       }
     }
@@ -17539,6 +17575,9 @@ function renderWeightTrendChart(){
     dietWeightTrendChartInstance = null;
   }
 
+  // 🔥 골드(#FFD700)는 다크/라이트 공통, 흰색 계열(목표선/축 눈금)만 라이트모드에서 분기
+  const isLightWeightChart = document.documentElement.classList.contains('light-mode-on');
+
   const datasets = [{
     data: weightValues,
     borderColor: '#FFD700',
@@ -17555,7 +17594,7 @@ function renderWeightTrendChart(){
   if (userWeight.goal) {
     datasets.push({
       data: keys.map(() => userWeight.goal),
-      borderColor: 'rgba(255,255,255,0.4)',
+      borderColor: isLightWeightChart ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.4)',
       borderDash: [4, 4],
       pointRadius: 0,
       fill: false,
@@ -17580,7 +17619,7 @@ function renderWeightTrendChart(){
         },
       },
       scales: {
-        x: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.5)', font: { size: 10 } } },
+        x: { grid: { display: false }, ticks: { color: isLightWeightChart ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.5)', font: { size: 10 } } },
         y: { display: false, min: yMin, max: yMax }
       }
     }
