@@ -2654,19 +2654,6 @@ html.light-mode-on #dexWriteOverlay,
 html.light-mode-on #myRoutineBuilderOverlay {
   background: #000 !important;
 }
-
-/* 🔥 토글 스위치 ON 색상(흰 배경 + 회색 구슬)은 반전 필터가 걸린 상태에서 "그렇게 보이도록"
-   설계된 값이라, 라이트모드가 켜지면 페이지 전체 반전에 토글 자신도 같이 뒤집혀서
-   흰색이 검정으로 보여버림 — 반전 전 값을 미리 뒤바꿔서 반전 후 결과가 흰 배경/회색 구슬이
-   되도록 보정 (#3a3a3a를 반전하면 #c5c5c5가 나오는 걸 역산) */
-html.light-mode-on #calendarToggle.toggle-switch.active,
-html.light-mode-on #lightModeToggle.toggle-switch.active {
-  background: #000;
-}
-html.light-mode-on #calendarToggle.toggle-switch.active::after,
-html.light-mode-on #lightModeToggle.toggle-switch.active::after {
-  background: #c5c5c5;
-}
 .dex-post-card-label{
   font-size: 17px;
   font-weight: 700;
@@ -8538,7 +8525,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.14";
+const APP_VERSION = "0.7.15";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
