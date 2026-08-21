@@ -7289,7 +7289,7 @@ input[type="number"] {
 <div class="settings-card settings-card--flush-bottom">
   <div id="settingsGuestBadge">
     <div class="settings-name" id="settingsHeaderName">게스트</div>
-    <div class="settings-email" id="settingsHeaderSub">로그인하지 않음</div>
+    <div class="settings-email" id="settingsHeaderSub" style="display:none;">로그인하지 않음</div>
   </div>
 
   <!-- 게스트일 때만 보일 "로그인 하기" -->
@@ -8727,7 +8727,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.58";
+const APP_VERSION = "0.7.59";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
