@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-title" content="ttt">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
 <title>ttt</title>
 <!-- 🔥 맨몸운동 페이지 제목용 명조체(나눔명조) — 시스템 폰트로는 기기마다 없을 수 있어 웹폰트로 확실히 로드 -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -46,7 +46,7 @@ body {
   padding:
     calc(var(--topBarH) + env(safe-area-inset-top))
     7px
-    var(--bottomTabH);
+    calc(var(--bottomTabH) + env(safe-area-inset-bottom));
   box-sizing: border-box;
   overflow-y: auto;
   overflow-x: hidden;
@@ -102,9 +102,9 @@ button {
   width: 390px;
   max-width: 100%;
 
-  height: var(--topBarH);
+  height: calc(var(--topBarH) + env(safe-area-inset-top));
   box-sizing: border-box;          /* ✅ padding 포함해서 height 유지 */
-  padding: 12px 10px;
+  padding: calc(12px + env(safe-area-inset-top)) 10px 12px;
 
   display: flex;
   align-items: center;
@@ -889,7 +889,12 @@ cursor: pointer;
   width: 390px;
   max-width: 100%;
 
-  height: var(--bottomTabH);
+  /* 🔥 안전영역(홈 인디케이터) 높이를 border-box로 포함시켜서, 안쪽 탭 버튼은
+     항상 명시적 고정값(--bottomTabH)만 쓰게 하고 안전영역은 순수 여백으로만 남김
+     — 퍼센트 높이(100%)가 이 안전영역까지 침범하는지 애매했던 문제를 원천 차단 */
+  height: calc(var(--bottomTabH) + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+  padding-bottom: env(safe-area-inset-bottom);
 
   display: flex;
   background: rgba(0,0,0,0.92);
@@ -911,7 +916,8 @@ cursor: pointer;
 /* ✅ “칸 4개” 느낌 */
 .bottomTab .tabBtn{
   flex: 1;
-  height: 100%;
+  height: var(--bottomTabH);   /* 🔥 100%(부모 전체 높이) 대신 명시값 — 부모가
+                                    안전영역만큼 늘어나도 버튼 자체는 원래 높이 그대로 유지 */
   margin: 0;
 
   border: none;
@@ -8723,7 +8729,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.36";
+const APP_VERSION = "0.7.37";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
