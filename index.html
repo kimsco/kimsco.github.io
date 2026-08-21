@@ -8724,7 +8724,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.55";
+const APP_VERSION = "0.7.56";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -8872,14 +8872,6 @@ auth.onAuthStateChanged(async user => {
 
     if (settingsLogoutText) settingsLogoutText.style.display = "none";
     if (settingsDeleteAccountText) settingsDeleteAccountText.style.display = "none";
-  }
-  // 🔥 모드 토글 후 리로드되면서 설정 화면을 제자리에 복원할 때, 로그인 상태(위 UI 갱신)가
-  // 아직 확정 안 된 채로 화면을 보여주면 "게스트"가 잠깐 보였다가 실제 로그인 정보로
-  // 바뀌는 깜빡임이 생김 — 로그인 상태가 여기서 확정된 시점에 그 복원을 마저 실행
-  if (window.__mfSettingsRevealPending) {
-    window.__mfSettingsRevealPending = false;
-    const settingsOverlayEl = document.getElementById('settingsOverlay');
-    if (settingsOverlayEl) settingsOverlayEl.classList.remove('hidden');
   }
   // ✅ 여기부터는 네 기존 로직 그대로
   if (user) {
@@ -15506,6 +15498,9 @@ lightModeToggle.addEventListener("click", () => {
     const activeTabBtn = document.querySelector('.bottomTab .tabBtn.active');
     sessionStorage.setItem("mf_reload_restore_tab", activeTabBtn ? activeTabBtn.dataset.target : "");
     sessionStorage.setItem("mf_reload_restore_settings", "1");
+    // 🔥 상태바 스타일(apple-mobile-web-app-status-bar-style)은 앱 로드 시점에만 다시 읽히므로,
+    // 여기서 필터만 토글하지 않고 저장 후 강제로 새로고침해서 <head>의 재적용 스크립트를 다시 태움
+    sessionStorage.setItem("mf_status_bar_kick", "1");
   } catch(e){}
   location.reload();
 });
@@ -15513,19 +15508,22 @@ lightModeToggle.addEventListener("click", () => {
 try {
   applyLightMode(localStorage.getItem("mf_light_mode") === "1");
 } catch(e){}
-// 🔥 방금 토글해서 새로고침된 직후라면, 있던 탭/설정 화면 상태를 그대로 복원(제자리 유지).
-// iOS 상태바가 설정 화면 안에서도 즉시 갱신되게 하려는 시도(alert 강제 트리거, 설정 오버레이
-// 깜빡임, .app transform 리셋)를 여러 번 해봤지만 전부 실기기에서 효과가 없었고, 확실히
-// 되는 유일한 방법(진짜 화면전환 애니메이션)은 UX상 어색해서 안 쓰기로 함 — 그래서 설정
-// 화면을 나가야 상태바가 반영되는 건 현재 상태로 받아들이고 더 이상 시도하지 않음.
+// 🔥 방금 토글해서 새로고침된 직후라면, 있던 탭/설정 화면 상태를 그대로 복원(제자리 유지)하고
+// 나서 iOS 상태바 재계산을 강제 트리거.
+// alert() 같은 사용자 탭이 필요한 네이티브 모달로도 재계산이 되긴 했지만(라이트모드는 그마저도
+// 설정 화면을 나가야 반영됨), 매번 확인 버튼을 누르게 하는 게 거슬린다는 피드백을 받아서
+// 대신 "설정 화면을 아주 짧게 닫았다 다시 여는" 방식으로 같은 트리거(화면 전환)를
+// 사용자가 알아채지 못할 정도로 빠르게(한 프레임) 재현해봄 — 알림창은 완전히 제거.
 // (setTimeout으로 한 틱 미룸 — 탭 버튼 클릭 핸들러가 참조하는 sheetOpen 등 아래쪽에서
 //  선언되는 변수들이 아직 초기화 전이라 TDZ 에러가 나는 걸 막기 위함)
 try {
   const restoreTab = sessionStorage.getItem("mf_reload_restore_tab");
   const restoreSettings = sessionStorage.getItem("mf_reload_restore_settings") === "1";
+  const needsStatusBarKick = sessionStorage.getItem("mf_status_bar_kick") === "1";
   sessionStorage.removeItem("mf_reload_restore_tab");
   sessionStorage.removeItem("mf_reload_restore_settings");
-  if (restoreTab || restoreSettings) {
+  sessionStorage.removeItem("mf_status_bar_kick");
+  if (restoreTab || restoreSettings || needsStatusBarKick) {
     setTimeout(() => {
       if (restoreTab && restoreTab !== "tab1") {
         const targetBtn = document.querySelector(`.bottomTab .tabBtn[data-target="${restoreTab}"]`);
@@ -15535,25 +15533,32 @@ try {
         // 🔥 openSettingsBtn.click()을 그대로 재사용하면 원래 열 때 쓰는 오른쪽에서
         // 슬라이드인되는 애니메이션이 매번 재생돼서, 이미 있던 자리인데 설정 화면이
         // 새로 열리는 것처럼 보이는 게 어색함 — 애니메이션 없이 원래부터 열려있었던
-        // 것처럼 복원(위치/트랜지션만 먼저 잡아둠)
+        // 것처럼 즉시 복원
+        settingsOverlay.classList.remove("hidden");
         settingsPanelEl.style.transition = "none";
         settingsPanelEl.style.animation = "none";
         settingsPanelEl.style.transform = "translateX(0)";
         const appElRestore = document.querySelector('.app');
         if (appElRestore) appElRestore.style.transition = "none";
         setSettingsAppPush(0);
-        // 🔥 로그인 여부(auth.onAuthStateChanged)는 비동기라서, 여기서 바로 hidden을
-        // 떼면 실제 로그인 정보가 반영되기 전 기본값("게스트")이 잠깐 보였다가 실제
-        // 정보로 바뀌는 깜빡임이 생김 — auth 상태가 확정되는 시점(아래쪽 auth 핸들러)에
-        // 화면을 보여주도록 미룸. 혹시 그 콜백이 안 불리는 경우를 대비한 안전장치로
-        // 1.5초 뒤엔 무조건 보여줌
-        window.__mfSettingsRevealPending = true;
+      }
+      if (needsStatusBarKick) {
+        // 🔥 이전 시도(설정 오버레이의 hidden 클래스를 한 프레임 토글)는 효과가 없었음 —
+        // 실기기 확인 결과, 설정 화면을 진짜로 닫을 때 상태바가 갱신되는 건 오버레이
+        // 자체가 아니라 .app(전체 화면을 덮는 요소)에 걸려있던 transform이 사라지면서
+        // 그 큰 컴포지팅 레이어가 재구성되는 게 원인으로 보임. 설정 화면이 열려있는 동안
+        // .app은 opacity:0으로 완전히 안 보이는 상태라서, 그 transform 값을 지웠다가
+        // 다시 걸어도(리플로우 강제) 사용자 눈엔 아무 변화 없이 같은 종류의 리컴포짓만
+        // 재현할 수 있음 — 지난번보다 원인에 더 가까운 트리거 시도
         setTimeout(() => {
-          if (window.__mfSettingsRevealPending) {
-            window.__mfSettingsRevealPending = false;
-            settingsOverlay.classList.remove("hidden");
+          const appElKick = document.querySelector('.app');
+          if (appElKick) {
+            appElKick.style.transition = 'none';
+            appElKick.style.transform = '';
+            void appElKick.offsetWidth; // 강제 리플로우
+            appElKick.style.transform = 'translateX(-16px)';
           }
-        }, 1500);
+        }, 300);
       }
     }, 0);
   }
