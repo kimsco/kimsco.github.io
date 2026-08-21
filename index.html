@@ -884,17 +884,16 @@ cursor: pointer;
   position: fixed;
   left: 50%;
   transform: translateX(-50%);
-  bottom: 0;
+  /* 🔥 bottom:0 + height를 안전영역만큼 늘리는 방식(border-box)이 실기기에서
+     예상보다 훨씬 크게 계산돼 막대가 위로 붕 뜨는 버그가 있었음 — 대신 막대
+     높이는 항상 고정(--bottomTabH)으로 두고, 안전영역만큼만 위로 띄워서
+     안전영역 위에 딱 붙게 함(그 아래는 body 배경이 자연스럽게 이어짐) */
+  bottom: env(safe-area-inset-bottom);
 
   width: 390px;
   max-width: 100%;
 
-  /* 🔥 안전영역(홈 인디케이터) 높이를 border-box로 포함시켜서, 안쪽 탭 버튼은
-     항상 명시적 고정값(--bottomTabH)만 쓰게 하고 안전영역은 순수 여백으로만 남김
-     — 퍼센트 높이(100%)가 이 안전영역까지 침범하는지 애매했던 문제를 원천 차단 */
-  height: calc(var(--bottomTabH) + env(safe-area-inset-bottom));
-  box-sizing: border-box;
-  padding-bottom: env(safe-area-inset-bottom);
+  height: var(--bottomTabH);
 
   display: flex;
   background: rgba(0,0,0,0.92);
@@ -8729,7 +8728,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.37";
+const APP_VERSION = "0.7.38";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
