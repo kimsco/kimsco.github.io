@@ -7,6 +7,15 @@
 <meta name="mobile-web-app-capable" content="yes">
 
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script>
+// 🔥 저장된 라이트/다크 설정에 맞춰 상태바 스타일을 렌더링 전에 미리 교체.
+// (iOS는 이 메타태그를 앱이 새로 로드될 때만 다시 읽으므로, 토글 시 location.reload()와 세트로 동작)
+try {
+  if (localStorage.getItem("mf_light_mode") === "1") {
+    document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]').setAttribute("content", "default");
+  }
+} catch(e){}
+</script>
 <meta name="apple-mobile-web-app-title" content="ttt">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <meta charset="UTF-8" />
@@ -8557,7 +8566,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.45";
+const APP_VERSION = "0.7.46";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -15295,7 +15304,11 @@ function applyLightMode(on){
   try { localStorage.setItem("mf_light_mode", on ? "1" : "0"); } catch(e){}
 }
 lightModeToggle.addEventListener("click", () => {
-  applyLightMode(!lightModeToggle.classList.contains("active"));
+  // 🔥 상태바 스타일(apple-mobile-web-app-status-bar-style)은 앱 로드 시점에만 다시 읽히므로,
+  // 여기서 필터만 토글하지 않고 저장 후 강제로 새로고침해서 <head>의 재적용 스크립트를 다시 태움
+  const next = !lightModeToggle.classList.contains("active");
+  try { localStorage.setItem("mf_light_mode", next ? "1" : "0"); } catch(e){}
+  location.reload();
 });
 // 저장된 설정 있으면 페이지 로드 시 바로 반영
 try {
