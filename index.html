@@ -59,7 +59,8 @@ body {
 
 .app{
   width: 390px;
-  height: 100vh;
+  height: 100dvh; /* 🔥 viewport-fit=cover에서 100vh가 실제 화면 높이보다 살짝 작게 계산되면서
+                     .app 바닥에 body 배경(#000/#eeeeee)이 살짝 비치는 틈이 생기는 문제 대응 */
   margin: 0 auto;
   background: black;
   padding:
@@ -8747,7 +8748,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.61";
+const APP_VERSION = "0.7.62";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
