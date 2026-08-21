@@ -8724,7 +8724,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.52";
+const APP_VERSION = "0.7.53";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -15529,11 +15529,24 @@ try {
         const targetBtn = document.querySelector(`.bottomTab .tabBtn[data-target="${restoreTab}"]`);
         if (targetBtn) targetBtn.click();
       }
-      if (restoreSettings) openSettingsBtn.click();
+      if (restoreSettings) {
+        // 🔥 openSettingsBtn.click()을 그대로 재사용하면 원래 열 때 쓰는 오른쪽에서
+        // 슬라이드인되는 애니메이션이 매번 재생돼서, 이미 있던 자리인데 설정 화면이
+        // 새로 열리는 것처럼 보이는 게 어색함 — 애니메이션 없이 원래부터 열려있었던
+        // 것처럼 즉시 복원
+        settingsOverlay.classList.remove("hidden");
+        settingsPanelEl.style.transition = "none";
+        settingsPanelEl.style.animation = "none";
+        settingsPanelEl.style.transform = "translateX(0)";
+        const appElRestore = document.querySelector('.app');
+        if (appElRestore) appElRestore.style.transition = "none";
+        setSettingsAppPush(0);
+      }
       if (needsStatusBarKick) {
-        // 설정 슬라이드인 애니메이션(0.25s)이 다 끝난 뒤, 화면엔 안 보이게 즉시 닫았다가
-        // 한 프레임 뒤 즉시 다시 엶(트랜지션 없이) — "설정 화면을 나갔다 들어오는" 전환
-        // 이벤트만 아주 짧게 흉내내는 것이 목적, 실제로 화면이 비게 만드는 게 목적이 아님
+        // 화면엔 안 보이게 즉시 닫았다가 한 프레임 뒤 즉시 다시 엶(트랜지션 없이) —
+        // "설정 화면을 나갔다 들어오는" 전환 이벤트만 아주 짧게 흉내내는 것이 목적,
+        // 실제로 화면이 비게 만드는 게 목적이 아님(약간의 지연 후 실행해 리로드 직후
+        // 다른 복원 작업과 안 겹치게 함)
         setTimeout(() => {
           settingsOverlay.classList.add("hidden");
           requestAnimationFrame(() => {
