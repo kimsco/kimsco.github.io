@@ -8724,7 +8724,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.28";
+const APP_VERSION = "0.7.29";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -14139,6 +14139,13 @@ const dietOverlay = document.getElementById('dietOverlay');
 
 // 🔥 .app 안에 중첩되어 있으면 .app의 transform(드로어 열고닫을 때 생김) 때문에
 //    position:fixed 자식의 기준점이 뷰포트가 아니라 .app으로 바뀌어버림 → body 바로 밑으로 이동
+//    🔥 탑바/하단바도 지금까지 계속 .app 안에 있었던 게 진짜 원인이었음 — 식단/설정/
+//    메뉴드로우 등 뭐든 열려서 .app에 transform이 걸리는 그 순간, 이 둘도 똑같이
+//    기준점이 .app으로 바뀌면서 "스크롤한 만큼 위로 밀려 보이는" 버그가 있었음
+//    (실측: .app이 135px 스크롤된 상태에서 transform이 걸리면 탑바/하단바도 정확히
+//    135px 위로 밀려서 나타남 — 사용자가 스크롤량과 상관관계를 직접 찾아냄)
+document.body.appendChild(topBarEl);
+document.body.appendChild(bottomTabEl);
 document.body.appendChild(dietOverlay);
 document.body.appendChild(dietSubTabBar);
 // 🔥 식단 안에서 쓰는 팝업 2개도 같은 이유로 body로 이동 (안 그러면 .app 트랜스폼에 갇혀서 안 보임)
