@@ -15,6 +15,16 @@ try {
     document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]').setAttribute("content", "default");
   }
 } catch(e){}
+// 🔥 모드 토글 → location.reload() 직후, 본문 쪽 JS(파일 한참 아래에 있음)가 실행되기
+// 전에 브라우저가 이미 기본 HTML(설정 화면 닫힘 = 밑에 있던 홈 화면 노출) 상태로 첫
+// 페인트를 해버려서, 그 사이 홈 화면이 잠깐 비치는 깜빡임이 있었음. 본문 스크립트가
+// 실행되기 전인 여기(head, 파싱 맨 위)에서 클래스만 미리 걸어두고, 그 클래스에 반응하는
+// CSS(.settings-overlay 근처)가 첫 페인트부터 바로 설정 화면을 덮도록 함
+try {
+  if (sessionStorage.getItem("mf_reload_restore_settings") === "1") {
+    document.documentElement.classList.add("mf-restore-settings");
+  }
+} catch(e){}
 </script>
 <meta name="apple-mobile-web-app-title" content="ttt">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
@@ -1223,6 +1233,16 @@ cursor: pointer;
 
 .settings-overlay.hidden {
   display: none;
+}
+
+/* 🔥 모드 토글→리로드 직후 홈 화면이 잠깐 비치던 깜빡임 방지: head에서 아주 일찍
+   걸어두는 클래스(mf-restore-settings)에 반응해서, 본문 JS가 실행되기 전인 첫
+   페인트부터 바로 설정 화면이 덮은 상태로 보이게 함(.hidden 클래스보다 우선) */
+html.mf-restore-settings .settings-overlay.hidden {
+  display: block !important;
+}
+html.mf-restore-settings .settings-panel {
+  transform: translateX(0) !important;
 }
 
 #threeSummaryOverlay.hidden {
@@ -8727,7 +8747,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.60";
+const APP_VERSION = "0.7.61";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -15538,6 +15558,10 @@ try {
     const appElRestore = document.querySelector('.app');
     if (appElRestore) appElRestore.style.transition = "none";
     setSettingsAppPush(0);
+    // 🔥 head에서 첫 페인트 깜빡임 방지용으로 걸어둔 임시 클래스는 이제 JS가 실제
+    // 상태를 그대로 이어받았으니 제거 — 안 지우면 이후 사용자가 직접 설정을 닫아도
+    // CSS가 !important로 계속 열린 것처럼 강제해버림
+    document.documentElement.classList.remove("mf-restore-settings");
   }
   if (restoreTab || needsStatusBarKick) {
     // (setTimeout으로 한 틱 미룸 — 탭 버튼 클릭 핸들러가 참조하는 sheetOpen 등 아래쪽에서
