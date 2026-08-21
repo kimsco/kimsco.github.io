@@ -8727,7 +8727,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.59";
+const APP_VERSION = "0.7.60";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -15517,8 +15517,6 @@ try {
 // 설정 화면을 나가야 반영됨), 매번 확인 버튼을 누르게 하는 게 거슬린다는 피드백을 받아서
 // 대신 "설정 화면을 아주 짧게 닫았다 다시 여는" 방식으로 같은 트리거(화면 전환)를
 // 사용자가 알아채지 못할 정도로 빠르게(한 프레임) 재현해봄 — 알림창은 완전히 제거.
-// (setTimeout으로 한 틱 미룸 — 탭 버튼 클릭 핸들러가 참조하는 sheetOpen 등 아래쪽에서
-//  선언되는 변수들이 아직 초기화 전이라 TDZ 에러가 나는 걸 막기 위함)
 try {
   const restoreTab = sessionStorage.getItem("mf_reload_restore_tab");
   const restoreSettings = sessionStorage.getItem("mf_reload_restore_settings") === "1";
@@ -15526,24 +15524,29 @@ try {
   sessionStorage.removeItem("mf_reload_restore_tab");
   sessionStorage.removeItem("mf_reload_restore_settings");
   sessionStorage.removeItem("mf_status_bar_kick");
-  if (restoreTab || restoreSettings || needsStatusBarKick) {
+  if (restoreSettings) {
+    // 🔥 설정 화면 복원은 (탭 복원과 달리) 아래쪽 변수를 참조하지 않아 TDZ 문제가 없으므로
+    // setTimeout으로 미루지 않고 첫 페인트 전에 바로 실행 — 미뤘더니 그 사이 설정 화면이
+    // 잠깐 닫힌 채로 밑에 있던 홈 화면이 노출되는 깜빡임이 보인다는 피드백을 받아서 수정.
+    // openSettingsBtn.click()을 그대로 재사용하면 원래 열 때 쓰는 오른쪽에서 슬라이드인되는
+    // 애니메이션이 매번 재생돼서, 이미 있던 자리인데 설정 화면이 새로 열리는 것처럼 보이는
+    // 게 어색함 — 애니메이션 없이 원래부터 열려있었던 것처럼 즉시 복원
+    settingsOverlay.classList.remove("hidden");
+    settingsPanelEl.style.transition = "none";
+    settingsPanelEl.style.animation = "none";
+    settingsPanelEl.style.transform = "translateX(0)";
+    const appElRestore = document.querySelector('.app');
+    if (appElRestore) appElRestore.style.transition = "none";
+    setSettingsAppPush(0);
+  }
+  if (restoreTab || needsStatusBarKick) {
+    // (setTimeout으로 한 틱 미룸 — 탭 버튼 클릭 핸들러가 참조하는 sheetOpen 등 아래쪽에서
+    //  선언되는 변수들이 아직 초기화 전이라 TDZ 에러가 나는 걸 막기 위함. 설정 화면이 이미
+    //  위에서 동기적으로 덮은 뒤라 이 지연은 화면에 안 보임)
     setTimeout(() => {
       if (restoreTab && restoreTab !== "tab1") {
         const targetBtn = document.querySelector(`.bottomTab .tabBtn[data-target="${restoreTab}"]`);
         if (targetBtn) targetBtn.click();
-      }
-      if (restoreSettings) {
-        // 🔥 openSettingsBtn.click()을 그대로 재사용하면 원래 열 때 쓰는 오른쪽에서
-        // 슬라이드인되는 애니메이션이 매번 재생돼서, 이미 있던 자리인데 설정 화면이
-        // 새로 열리는 것처럼 보이는 게 어색함 — 애니메이션 없이 원래부터 열려있었던
-        // 것처럼 즉시 복원
-        settingsOverlay.classList.remove("hidden");
-        settingsPanelEl.style.transition = "none";
-        settingsPanelEl.style.animation = "none";
-        settingsPanelEl.style.transform = "translateX(0)";
-        const appElRestore = document.querySelector('.app');
-        if (appElRestore) appElRestore.style.transition = "none";
-        setSettingsAppPush(0);
       }
       if (needsStatusBarKick) {
         // 🔥 이전 시도(설정 오버레이의 hidden 클래스를 한 프레임 토글)는 효과가 없었음 —
