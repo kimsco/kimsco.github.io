@@ -47,10 +47,11 @@ html, body {
     width: 100%;
 
 
-    /* 🔥 [임시 실험] GoRIP 실제 CSS엔 html/body에 height/overflow 락이 아예 없음 —
-       body가 자연스럽게 스크롤 가능한 상태를 그대로 따라해봄(원래는 height:100%;
-       overflow:hidden으로 완전히 잠가놨었음) */
+    /* 🔥 body를 스크롤 잠금(overflow:hidden) 안 하는 게 iOS 웹뷰가 상태바/홈인디케이터
+       뒤까지 정확히 꽉 차게 그려지는 데 필요했음(#362) — 대신 스크롤 "가능"하되 실제로
+       당겨서 튕기는 고무줄(바운스) 효과는 overscroll-behavior로 막아둠 */
     overflow-x: hidden;
+    overscroll-behavior: none;
 }
 
 body {
@@ -277,6 +278,7 @@ button {
   min-height: 0;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior: none;         /* 🔥 스프링(고무줄) 바운스가 위쪽 부위탭까지 안 번지게 막음 */
 }
 #tab2 .folderContent {
   flex: 1;
@@ -8752,7 +8754,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.85";
+const APP_VERSION = "0.7.86";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
