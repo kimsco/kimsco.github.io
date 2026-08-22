@@ -8754,7 +8754,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.88";
+const APP_VERSION = "0.7.89";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -14191,6 +14191,20 @@ document.body.appendChild(document.getElementById('recordMessage')); // 🔥 저
 // "고정"이 풀리고 스크롤에 따라 같이 움직이던 버그가 있었음 — 같은 이유로 body로 이동
 document.body.appendChild(document.querySelector('.topBar'));
 document.body.appendChild(bottomTabEl);
+// 🔥 topBar/bottomTab을 body로 옮기고 나니, 여태 .app 안에 같이 중첩돼 있던
+// 전체화면 오버레이들(메뉴 드로어에서 들어가는 화면들 등)이 .app에 transform이
+// 걸린 순간엔 그 안에 갇혀서(스태킹 컨텍스트) z-index가 아무리 높아도 body
+// 바로 밑으로 옮겨진 topBar/bottomTab보다 아래에 깔려버리는 문제가 새로 드러남
+// — 같은 이유로 이 오버레이들도 전부 body로 이동
+[
+  'oneRMCalcOverlay', 'threeSummaryOverlay', 'bodyweightOverlay', 'muscleFinderOverlay',
+  'whoForOverlay', 'myRoutineOverlay', 'myRoutinePastListOverlay', 'myRoutineBuilderOverlay',
+  'myRoutineDetailOverlay', 'exerciseDexOverlay', 'dexWriteOverlay', 'dexPostDetailOverlay',
+  'graphOverlay'
+].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) document.body.appendChild(el);
+});
 
 /* 🔥 안전장치: 화면이 꺼졌다 켜지거나 앱이 백그라운드에서 돌아올 때,
    식단 새창(dietOverlay)은 열려있는데 캡슐(dietSubTabBar)만 어긋나서 안 보이는
