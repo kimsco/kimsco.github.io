@@ -68,10 +68,7 @@ body {
   padding:
     calc(var(--topBarH) + env(safe-area-inset-top))
     7px
-    /* 🔥 [임시 실험] 하단탭이 이제 화면 끝에 안 붙고 16px 띄운 pill이라 그만큼 여유
-       추가 + 마지막 콘텐츠가 pill에 살짝 가려지는 걸 실기기에서 확인해서 여유를
-       더 둠(16px→32px) */
-    calc(var(--bottomTabH) + 32px + env(safe-area-inset-bottom));
+    calc(var(--bottomTabH) + env(safe-area-inset-bottom));
   box-sizing: border-box;
   overflow-y: auto;
   overflow-x: hidden;
@@ -290,8 +287,7 @@ button {
 #recordMessage {
   position: fixed;
   left: 0; right: 0;
-  /* 🔥 [임시 실험] .bottomTab이 화면 끝에서 16px 띄워진 pill로 바뀌어서 그만큼 추가 */
-  bottom: calc(var(--bottomTabH) + 16px + 78px + env(safe-area-inset-bottom));
+  bottom: calc(var(--bottomTabH) + 78px + env(safe-area-inset-bottom));
   text-align: center;
   z-index: 500;
 }
@@ -301,8 +297,7 @@ button {
   position: fixed;
   left: 20px;
   right: 20px;
-  /* 🔥 [임시 실험] .bottomTab이 화면 끝에서 16px 띄워진 pill로 바뀌어서 그만큼 추가 */
-  bottom: calc(var(--bottomTabH) + 16px + 7px + env(safe-area-inset-bottom));
+  bottom: calc(var(--bottomTabH) + 7px + env(safe-area-inset-bottom));
   z-index: 500;   /* 🔥 설정/메뉴 등 오버레이(100000+)보다 낮게 — 오버레이 열리면 가려지도록 */
 
   display: flex;
@@ -898,29 +893,30 @@ cursor: pointer;
 
 
 
-/* ✅ 진짜 하단 고정 */
-/* 🔥 [임시 실험] GoRIP처럼 화면 끝에 딱 붙는 바가 아니라, 바닥에서 살짝 띄운 둥근
-   pill 형태로 변경 — 정확한 뷰포트 높이(screen.height)에 안 기대게 만들어서, 그
-   값이 실기기에서 살짝 틀어져도(그 47px 문제) 티가 안 나게 하려는 목적 */
+/* ✅ 진짜 하단 고정 — 원래 디자인(화면 끝에 딱 붙는 풀와이드 바)으로 되돌림.
+   pill로 띄웠던 건 47px 버그를 눈에 안 띄게 하려는 안전장치였는데, 진짜 원인
+   (body 스크롤락)이 고쳐진 게 실기기로 확인돼서 원래 디자인으로 복귀 */
 .bottomTab{
   position: fixed;
   left: 50%;
   transform: translateX(-50%);
-  bottom: calc(16px + env(safe-area-inset-bottom));
+  bottom: 0;
 
-  width: calc(390px - 14px);
-  max-width: calc(100% - 14px);
+  width: 390px;
+  max-width: 100%;
 
-  height: var(--bottomTabH);
-  border-radius: 20px;
-  overflow: hidden;         /* 🔥 둥근 모서리 밖으로 탭 배경이 안 삐져나오게 */
+  /* 🔥 viewport-fit=cover로 상태바 뒤까지 배경이 확장되니 홈 인디케이터 안전영역만큼
+     보정(box-sizing:border-box라서 늘어난 만큼은 순수 여백으로만 들어가고
+     .tabBtn(height:100%) 콘텐츠 자리는 그대로 유지) */
+  height: calc(var(--bottomTabH) + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+  padding-bottom: env(safe-area-inset-bottom);
 
   display: flex;
-  background: rgba(20,20,20,0.92);
+  background: rgba(0,0,0,0.92);
   backdrop-filter: blur(10px);
 
-  border: 1px solid rgba(255,255,255,0.12);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+  border-top: 1px solid rgba(255,255,255,0.08);
   z-index: 99999;
 
   transition: transform 0.32s cubic-bezier(0.22,1,0.36,1), opacity 0.22s ease;
@@ -8758,7 +8754,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.80";
+const APP_VERSION = "0.7.81";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
