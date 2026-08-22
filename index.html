@@ -253,7 +253,7 @@ button {
 #tab2.tabContent.active {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - var(--topBarH) - var(--bottomTabH) - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  height: calc(100vh - var(--topBarH) - var(--bottomTabH) - env(safe-area-inset-top));
 }
 #tab2 .recordFolders {
   flex-shrink: 0;
@@ -264,7 +264,7 @@ button {
 #tab4.tabContent.active {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - var(--topBarH) - var(--bottomTabH) - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  height: calc(100vh - var(--topBarH) - var(--bottomTabH) - env(safe-area-inset-top));
 }
 /* 🔥 기록 탭(가슴/등/어깨/하체/팔)도 1RM/3대 탭의 종목 탭 행과 같은 세로 위치로 통일 */
 #tab4 .recordFolders4 {
@@ -8752,7 +8752,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.83";
+const APP_VERSION = "0.7.84";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
