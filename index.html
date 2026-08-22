@@ -912,7 +912,8 @@ cursor: pointer;
   box-sizing: border-box;
   padding-bottom: env(safe-area-inset-bottom);
 
-  display: flex;
+  display: none;   /* 🔥 안전영역 대응 튜닝을 잠시 보류하고 하단바 자체를 임시로 숨김
+                       (다른 탭 이동 수단은 나중에 별도로 마련 예정) */
   background: rgba(0,0,0,0.92);
   backdrop-filter: blur(10px);
 
@@ -8754,7 +8755,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.65";
+const APP_VERSION = "0.7.66";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
