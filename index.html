@@ -1,7 +1,13 @@
 <!DOCTYPE html>
 <html lang="ko"> 
 <head>
-<link rel="manifest" href="/manifest.json">
+<!-- 🔥 매니페스트 링크 제거: iOS 16.4+는 매니페스트가 있으면 홈화면 설치 시 매니페스트를
+     우선하는데, 이 경로로 설치되면 apple-mobile-web-app-status-bar-style(black-translucent)이
+     무시되고 웹뷰가 상태바 높이(47px)만큼 줄어든 채 배치돼 화면 최하단에 시스템 띠가 남음
+     (재설치 후에도 재현, 실측으로 확인). 매니페스트 없는 친구 앱(GoRIP)은 같은 기기에서
+     메타태그 경로로 설치돼 풀스크린 정상 동작 — 우리도 iOS에 필요한 설정(아이콘/제목/풀스크린)
+     은 apple-* 메타태그로 이미 다 갖췄으므로 매니페스트 링크만 뺌(manifest.json 파일 자체는
+     나중을 위해 저장소에 유지) -->
 <meta name="theme-color" content="#000000">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -8757,7 +8763,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.69";
+const APP_VERSION = "0.7.70";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
