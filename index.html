@@ -982,7 +982,7 @@ cursor: pointer;
 .dietSubTabBar{
   position: fixed;
   left: 50%;
-  bottom: calc(var(--bottomTabH) * 1.15 - 60px + env(safe-area-inset-bottom)); /* 🔥 캡슐 윗선이 (하단바높이×1.15) 지점에 오도록: bottom값 = 목표 윗선 - 캡슐높이(60px) */
+  bottom: calc(var(--bottomTabH) * 1.15 - 60px); /* 🔥 캡슐 윗선이 (하단바높이×1.15) 지점에 오도록: bottom값 = 목표 윗선 - 캡슐높이(60px) */
   transform: translateX(-50%) translateY(160%);
   opacity: 0;
   pointer-events: none;
@@ -8754,7 +8754,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.86";
+const APP_VERSION = "0.7.87";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
