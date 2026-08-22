@@ -948,6 +948,7 @@ cursor: pointer;
   cursor: pointer;
 
  padding-top: 12px;         /* 🔥 아이콘이 추가돼서 텍스트만 있을 때보다 살짝 줄임 */
+ -webkit-tap-highlight-color: transparent;  /* 🔥 탭할 때 남는 기본 회색 잔상 제거 */
 }
 
 /* ✅ 활성: 글자 흰색(아이콘과 동일한 색으로 통일) */
@@ -8751,7 +8752,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.82";
+const APP_VERSION = "0.7.83";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
