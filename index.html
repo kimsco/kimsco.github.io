@@ -8763,11 +8763,57 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.70";
+const APP_VERSION = "0.7.71";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
 }
+
+// 🔥 [임시 진단 2차 — 원인 확인되면 제거]
+// 매니페스트 제거(0.7.70) 후에도 하단 띠가 남는다는 확인을 받아 재계측.
+// 이번엔 결정적 판별 장치 추가: 뷰포트 최하단(bottom:0)에 빨간 선, 최상단(top:0)에
+// 파란 선을 그림 — 빨간 선이 띠 "위"에 보이면 띠는 뷰포트 바깥(iOS가 칠하는 영역),
+// 화면 진짜 끝에 붙어 보이면 띠는 우리 콘텐츠라는 뜻
+setTimeout(() => {
+  try {
+    const w = window.innerWidth, h = window.innerHeight;
+    const probe = document.createElement('div');
+    probe.style.cssText = 'position:fixed;visibility:hidden;top:0;left:0;height:100dvh;width:1px;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);box-sizing:content-box;';
+    document.body.appendChild(probe);
+    const pc = getComputedStyle(probe);
+    const dvhPx = probe.getBoundingClientRect().height;
+    const saTop = pc.paddingTop, saBot = pc.paddingBottom;
+    probe.remove();
+    const pts = [h - 2, h - 20, h - 40];
+    const lines = pts.map(y => {
+      const el = document.elementFromPoint(w / 2, y);
+      if (!el) return `${(h - y)}px위: (없음)`;
+      const cs = getComputedStyle(el);
+      const cls = (el.className && typeof el.className === 'string') ? '.' + el.className.split(' ')[0] : '';
+      return `${(h - y)}px위: ${el.tagName}${el.id ? '#' + el.id : ''}${cls} bg=${cs.backgroundColor}`;
+    });
+    const vv = window.visualViewport;
+    // 빨간 선(뷰포트 최하단) / 파란 선(뷰포트 최상단)
+    const redLine = document.createElement('div');
+    redLine.style.cssText = 'position:fixed;left:0;right:0;bottom:0;height:4px;background:red;z-index:2147483647;pointer-events:none;';
+    const blueLine = document.createElement('div');
+    blueLine.style.cssText = 'position:fixed;left:0;right:0;top:0;height:4px;background:blue;z-index:2147483647;pointer-events:none;';
+    document.body.appendChild(redLine);
+    document.body.appendChild(blueLine);
+    const box = document.createElement('div');
+    box.style.cssText = 'position:fixed;left:8px;right:8px;top:15%;z-index:2147483647;background:#062b46;color:#9fe3ff;font:11px/1.6 monospace;padding:10px 12px;border-radius:10px;white-space:pre-wrap;word-break:break-all;';
+    box.textContent =
+      '[진단2 - 탭하면 닫힘]\n' +
+      '빨간선=뷰포트 최하단 / 파란선=뷰포트 최상단\n' +
+      'innerH:' + h + '  screenH:' + screen.height + '  dvh:' + Math.round(dvhPx) + '\n' +
+      'visualVp.h:' + (vv ? Math.round(vv.height) : '-') + '  vv.offsetTop:' + (vv ? Math.round(vv.offsetTop) : '-') + '\n' +
+      'safeTop:' + saTop + '  safeBottom:' + saBot + '\n' +
+      'standalone:' + (navigator.standalone === true) + '\n' +
+      lines.join('\n');
+    box.addEventListener('click', () => { box.remove(); redLine.remove(); blueLine.remove(); });
+    document.body.appendChild(box);
+  } catch (e) {}
+}, 1200);
 
 // 🔥 이미지 파일 내용이 바뀌어도 URL이 같으면 브라우저가 옛 캐시를 계속 쓸 수 있어서,
 // APP_VERSION을 쿼리스트링으로 붙여 버전이 올라갈 때마다 자동으로 캐시를 무효화시킴
