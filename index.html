@@ -287,7 +287,7 @@ button {
 #recordMessage {
   position: fixed;
   left: 0; right: 0;
-  bottom: calc(var(--bottomTabH) + 78px + env(safe-area-inset-bottom));
+  bottom: calc(var(--bottomTabH) + 78px);
   text-align: center;
   z-index: 500;
 }
@@ -297,7 +297,7 @@ button {
   position: fixed;
   left: 20px;
   right: 20px;
-  bottom: calc(var(--bottomTabH) + 7px + env(safe-area-inset-bottom));
+  bottom: calc(var(--bottomTabH) + 7px);
   z-index: 500;   /* 🔥 설정/메뉴 등 오버레이(100000+)보다 낮게 — 오버레이 열리면 가려지도록 */
 
   display: flex;
@@ -8752,7 +8752,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.84";
+const APP_VERSION = "0.7.85";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
