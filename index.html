@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html lang="ko"> 
 <head>
-<!-- 🔥 [임시 실험 — 결과 확인되면 무조건 제거] 이전까지 안 건드려본 변수: 매니페스트의
-     display를 "standalone"이 아니라 "fullscreen"으로 바꿔봄(그동안 시도한 조합들은
-     전부 "standalone"이었음). viewport-fit=cover + status-bar-style black-translucent
-     상시 고정과 함께 적용 — fullscreen 모드가 iOS에서 실제로 안전영역까지 웹뷰를
-     확장시켜주는지 실기기로 확인용 -->
+<!-- 🔥 viewport-fit=cover 재도입(#340~#355)을 다시 롤백함: GoRIP 방식을 그대로 따라해서
+     head 구조/메타/매니페스트까지 전부 맞춰봤지만 실기기에서 하단 47px 시스템 띠(다크모드
+     에서도 육안으로 확인됨)가 계속 재현됐고, 애초 목표였던 상태바 자동 색상도 결국
+     못 얻었음 — 이 조합 재도입 전(#339 이전)에는 이 문제 자체가 없었다는 사용자 확인을
+     받아 원래(라이트/다크에 따라 status-bar-style을 default/black-translucent로 동적
+     전환하는 방식, viewport-fit=cover 없음, 매니페스트 링크 유지)로 되돌림 -->
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#000000">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -13,8 +14,13 @@
 
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <script>
-// 🔥 [임시 실험] fullscreen 실험 중엔 라이트/다크 상관없이 black-translucent 고정
-// (원래 있던 라이트모드→default 전환 로직은 실험 끝나면 그대로 복원 예정)
+// 🔥 저장된 라이트/다크 설정에 맞춰 상태바 스타일을 렌더링 전에 미리 교체.
+// (iOS는 이 메타태그를 앱이 새로 로드될 때만 다시 읽으므로, 토글 시 location.reload()와 세트로 동작)
+try {
+  if (localStorage.getItem("mf_light_mode") === "1") {
+    document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]').setAttribute("content", "default");
+  }
+} catch(e){}
 // 🔥 모드 토글 → location.reload() 직후, 본문 쪽 JS(파일 한참 아래에 있음)가 실행되기
 // 전에 브라우저가 이미 기본 HTML(설정 화면 닫힘 = 밑에 있던 홈 화면 노출) 상태로 첫
 // 페인트를 해버려서, 그 사이 홈 화면이 잠깐 비치는 깜빡임이 있었음. 본문 스크립트가
@@ -29,7 +35,7 @@ try {
 <meta name="apple-mobile-web-app-title" content="ttt">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
 <title>ttt</title>
 <!-- 🔥 맨몸운동 페이지 제목용 명조체(나눔명조) — 시스템 폰트로는 기기마다 없을 수 있어 웹폰트로 확실히 로드 -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -121,12 +127,9 @@ button {
   width: 390px;
   max-width: 100%;
 
-  /* 🔥 [임시 실험] viewport-fit=cover로 상태바 뒤까지 배경이 확장되니, 아이콘이
-     상태바랑 안 겹치게 안전영역만큼 높이/패딩 보정(box-sizing:border-box라서
-     늘어난 만큼은 순수 여백으로만 들어가고 콘텐츠 자리는 그대로 유지) */
-  height: calc(var(--topBarH) + env(safe-area-inset-top));
+  height: var(--topBarH);
   box-sizing: border-box;          /* ✅ padding 포함해서 height 유지 */
-  padding: calc(12px + env(safe-area-inset-top)) 10px 12px 10px;
+  padding: 12px 10px;
 
   display: flex;
   align-items: center;
@@ -902,9 +905,7 @@ cursor: pointer;
   width: 390px;
   max-width: 100%;
 
-  /* 🔥 [임시 실험] .topBar와 동일한 이유로 안전영역만큼 늘림 */
-  height: calc(var(--bottomTabH) + env(safe-area-inset-bottom));
-  box-sizing: border-box;
+  height: var(--bottomTabH);
   padding-bottom: env(safe-area-inset-bottom);
 
   display: flex;
@@ -8749,7 +8750,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.77";
+const APP_VERSION = "0.7.78";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -18408,28 +18409,6 @@ if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("/sw.js");
   });
 }
-</script>
-
-<script>
-// 🔥 [임시 실험 — 결과 확인되면 무조건 제거] manifest display:fullscreen 실측용
-// 진단 패널(탭하면 닫힘). innerHeight/screen.height 일치 여부 + 실제 display-mode 확인
-setTimeout(() => {
-  try {
-    const h = window.innerHeight, sh = screen.height;
-    const dm = ['fullscreen', 'standalone', 'minimal-ui', 'browser']
-      .find(m => window.matchMedia(`(display-mode: ${m})`).matches) || '(알수없음)';
-    const box = document.createElement('div');
-    box.style.cssText = 'position:fixed;left:8px;right:8px;top:15%;z-index:2147483647;background:#062b46;color:#9fe3ff;font:12px/1.7 monospace;padding:12px 14px;border-radius:10px;white-space:pre-wrap;word-break:break-all;';
-    box.textContent =
-      '[fullscreen 실험 - 탭하면 닫힘]\n' +
-      'innerH:' + h + '  screenH:' + sh + '\n' +
-      '일치(웹뷰 꽉 참):' + (h === sh ? 'YES ✅' : 'NO ❌ (' + (sh - h) + 'px 부족)') + '\n' +
-      'display-mode:' + dm + '\n' +
-      'standalone:' + (navigator.standalone === true);
-    box.addEventListener('click', () => box.remove());
-    document.body.appendChild(box);
-  } catch (e) {}
-}, 1200);
 </script>
 </body>
 </html>
