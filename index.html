@@ -8754,7 +8754,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.89";
+const APP_VERSION = "0.7.90";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -11220,7 +11220,7 @@ function whoForPlayCtaIntro(){
   if (whoForCtaPlayed) return;
   whoForCtaPlayed = true;
 
-  // 1) "TTT" 상태로 0.5초 유지 후, T들이 벌어지며 각자의 자리로 이동(1초)
+  // 1) "TTT" 상태로 0.3초 유지 후, T들이 벌어지며 각자의 자리로 이동(1초)
   setTimeout(() => {
     whoForCtaTSpans.forEach(el => {
       el.style.transition = "transform 1s cubic-bezier(.22,1,.36,1)";
@@ -11231,7 +11231,7 @@ function whoForPlayCtaIntro(){
     setTimeout(() => {
       whoForCtaFadeSpans.forEach(el => el.classList.add("who-cta-fade-in"));
     }, 1000 + 300);
-  }, 500);
+  }, 300);
 }
 
 function openWhoFor(){
