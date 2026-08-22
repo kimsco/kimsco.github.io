@@ -8756,11 +8756,53 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.67";
+const APP_VERSION = "0.7.68";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
 }
+
+// 🔥 [임시 진단용 — 원인 확인되면 바로 제거 예정]
+// 실기기 화면 최하단에 남아있는 "발판" 모양 띠의 정체를 알아내기 위한 오버레이.
+// (a) 우리 DOM 요소가 그려져 있는 건지, (b) 뷰포트 자체가 화면 끝까지 안 내려와서
+// 웹뷰 바깥(iOS가 칠하는) 영역이 보이는 건지 구분하는 게 목적 — 로드 1.2초 뒤
+// 화면 중간에 진단 수치가 뜨고, 탭하면 닫힘
+setTimeout(() => {
+  try {
+    const w = window.innerWidth, h = window.innerHeight;
+    // env()/dvh 실측용 프로브
+    const probe = document.createElement('div');
+    probe.style.cssText = 'position:fixed;visibility:hidden;top:0;left:0;height:100dvh;width:1px;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);box-sizing:content-box;';
+    document.body.appendChild(probe);
+    const pc = getComputedStyle(probe);
+    const dvhPx = probe.getBoundingClientRect().height;
+    const saTop = pc.paddingTop, saBot = pc.paddingBottom;
+    probe.remove();
+    // 진단창을 띄우기 "전에" 하단 지점들의 실제 요소를 샘플링
+    const pts = [h - 2, h - 25, h - 60, h - 100];
+    const lines = pts.map(y => {
+      const el = document.elementFromPoint(w / 2, y);
+      if (!el) return `${(h - y)}px위: (없음)`;
+      const cs = getComputedStyle(el);
+      const cls = (el.className && typeof el.className === 'string') ? '.' + el.className.split(' ')[0] : '';
+      return `${(h - y)}px위: ${el.tagName}${el.id ? '#' + el.id : ''}${cls} bg=${cs.backgroundColor}`;
+    });
+    const appEl = document.querySelector('.app');
+    const bt = document.querySelector('.bottomTab');
+    const box = document.createElement('div');
+    box.style.cssText = 'position:fixed;left:8px;right:8px;top:15%;z-index:2147483647;background:#062b46;color:#9fe3ff;font:11px/1.6 monospace;padding:10px 12px;border-radius:10px;white-space:pre-wrap;word-break:break-all;';
+    box.textContent =
+      '[임시 진단 - 탭하면 닫힘]\n' +
+      'innerH:' + h + '  screenH:' + screen.height + '  dvh:' + Math.round(dvhPx) + '\n' +
+      'safeTop:' + saTop + '  safeBottom:' + saBot + '\n' +
+      'app.bottom:' + (appEl ? Math.round(appEl.getBoundingClientRect().bottom) : '-') +
+      '  bodyBg:' + getComputedStyle(document.body).backgroundColor + '\n' +
+      'bottomTab display:' + (bt ? getComputedStyle(bt).display : '-') + '\n' +
+      lines.join('\n');
+    box.addEventListener('click', () => box.remove());
+    document.body.appendChild(box);
+  } catch (e) {}
+}, 1200);
 
 // 🔥 이미지 파일 내용이 바뀌어도 URL이 같으면 브라우저가 옛 캐시를 계속 쓸 수 있어서,
 // APP_VERSION을 쿼리스트링으로 붙여 버전이 올라갈 때마다 자동으로 캐시를 무효화시킴
