@@ -7370,6 +7370,33 @@ input[type="number"] {
   회원탈퇴
 </div>
 
+<script>
+// 🔥 로그인 상태였다는 캐시가 있으면, Firebase auth가 비동기로 확정되기 전에
+// 미리 로그인 화면으로 그려서 "게스트 → 로그인" 깜빡임을 없앰(특히 다크/라이트
+// 모드 토글로 reload된 직후, 설정 화면이 바로 다시 열리는 상황에서 눈에 띄었음)
+// — 실제 값은 잠시 후 auth.onAuthStateChanged가 확정하면서 다시 덮어씀
+try {
+  if (localStorage.getItem("mf_was_logged_in") === "1") {
+    const cachedName = localStorage.getItem("mf_cached_name") || "사용자명";
+    const cachedEmail = localStorage.getItem("mf_cached_email") || "";
+    const headerName = document.getElementById("settingsHeaderName");
+    const nameBig = document.getElementById("settingsNameBig");
+    const loginRow = document.getElementById("settingsLoginRow");
+    const accountRow = document.getElementById("settingsAccountRow");
+    const emailSub = document.getElementById("settingsEmailSub");
+    const logoutText = document.getElementById("settingsLogoutText");
+    const deleteText = document.getElementById("settingsDeleteAccountText");
+    if (headerName) headerName.textContent = `${cachedName}님`;
+    if (nameBig) nameBig.style.display = "none";
+    if (loginRow) loginRow.style.display = "none";
+    if (accountRow) accountRow.style.display = "flex";
+    if (emailSub) emailSub.textContent = cachedEmail;
+    if (logoutText) logoutText.style.display = "block";
+    if (deleteText) deleteText.style.display = "block";
+  }
+} catch(e){}
+</script>
+
     </div>
   </div>
 </div>
@@ -8754,7 +8781,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.93";
+const APP_VERSION = "0.7.94";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -8896,12 +8923,27 @@ auth.onAuthStateChanged(async user => {
 
     if (settingsLogoutText) settingsLogoutText.style.display = "block";
     if (settingsDeleteAccountText) settingsDeleteAccountText.style.display = "block";
+
+    // 🔥 로그인 확정 상태를 캐시 — 다음 로드(특히 모드 토글→reload 직후) 때
+    // Firebase auth가 비동기로 확정되기 전까지 게스트 화면이 잠깐 보였다가
+    // 로그인 화면으로 바뀌는 깜빡임을 막기 위해, 이 캐시를 보고 미리 로그인
+    // 상태로 그려둠(아래 mf-early-login-render 참고)
+    try {
+      localStorage.setItem("mf_was_logged_in", "1");
+      localStorage.setItem("mf_cached_email", user.email || "");
+    } catch(e){}
   } else {
     if (settingsLoginRow) settingsLoginRow.style.display = "flex";
     if (settingsAccountRow) settingsAccountRow.style.display = "none";
 
     if (settingsLogoutText) settingsLogoutText.style.display = "none";
     if (settingsDeleteAccountText) settingsDeleteAccountText.style.display = "none";
+
+    try {
+      localStorage.removeItem("mf_was_logged_in");
+      localStorage.removeItem("mf_cached_email");
+      localStorage.removeItem("mf_cached_name");
+    } catch(e){}
   }
   // ✅ 여기부터는 네 기존 로직 그대로
   if (user) {
@@ -16871,6 +16913,7 @@ function renderSettingsIdentity(isLoggedIn){
     const displayName = (userSpec.name && userSpec.name.trim()) || "사용자명";
     if (settingsHeaderName) settingsHeaderName.textContent = `${displayName}님`;
     if (settingsNameBig) settingsNameBig.style.display = "none"; // 계정 행엔 이메일만 남김
+    try { localStorage.setItem("mf_cached_name", displayName); } catch(e){}
   } else {
     if (settingsHeaderName) settingsHeaderName.textContent = "게스트";
     if (settingsNameBig) settingsNameBig.style.display = "";
