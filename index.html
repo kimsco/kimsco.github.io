@@ -6,15 +6,16 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 
+<!-- 🔥 상태바 스타일은 라이트/다크 상관없이 항상 black-translucent 고정.
+     예전엔 라이트모드일 때 head 스크립트로 default(불투명)로 바꿨는데, iOS 독립 앱에서
+     default + viewport-fit=cover 조합이면 웹뷰가 상태바 높이만큼 줄어든 채 위쪽에 붙어서
+     화면 최하단에 딱 상태바 높이(47px)짜리 시스템 띠가 남는 버그성 동작이 있었음
+     (진단 오버레이로 실측 확인: screenH 844 vs innerH 797 = 정확히 47px 차이, 띠 시작
+     위치도 정확히 y=797). black-translucent면 웹뷰가 항상 풀스크린이고, 라이트모드에서
+     상태바 아이콘은 iOS가 밑에 깔린 페이지 배경 밝기를 보고 알아서 검정으로 골라줌
+     (같은 기기에서 친구 앱 GoRIP으로 검증된 동작) -->
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <script>
-// 🔥 저장된 라이트/다크 설정에 맞춰 상태바 스타일을 렌더링 전에 미리 교체.
-// (iOS는 이 메타태그를 앱이 새로 로드될 때만 다시 읽으므로, 토글 시 location.reload()와 세트로 동작)
-try {
-  if (localStorage.getItem("mf_light_mode") === "1") {
-    document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]').setAttribute("content", "default");
-  }
-} catch(e){}
 // 🔥 모드 토글 → location.reload() 직후, 본문 쪽 JS(파일 한참 아래에 있음)가 실행되기
 // 전에 브라우저가 이미 기본 HTML(설정 화면 닫힘 = 밑에 있던 홈 화면 노출) 상태로 첫
 // 페인트를 해버려서, 그 사이 홈 화면이 잠깐 비치는 깜빡임이 있었음. 본문 스크립트가
@@ -8756,53 +8757,11 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.68";
+const APP_VERSION = "0.7.69";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
 }
-
-// 🔥 [임시 진단용 — 원인 확인되면 바로 제거 예정]
-// 실기기 화면 최하단에 남아있는 "발판" 모양 띠의 정체를 알아내기 위한 오버레이.
-// (a) 우리 DOM 요소가 그려져 있는 건지, (b) 뷰포트 자체가 화면 끝까지 안 내려와서
-// 웹뷰 바깥(iOS가 칠하는) 영역이 보이는 건지 구분하는 게 목적 — 로드 1.2초 뒤
-// 화면 중간에 진단 수치가 뜨고, 탭하면 닫힘
-setTimeout(() => {
-  try {
-    const w = window.innerWidth, h = window.innerHeight;
-    // env()/dvh 실측용 프로브
-    const probe = document.createElement('div');
-    probe.style.cssText = 'position:fixed;visibility:hidden;top:0;left:0;height:100dvh;width:1px;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);box-sizing:content-box;';
-    document.body.appendChild(probe);
-    const pc = getComputedStyle(probe);
-    const dvhPx = probe.getBoundingClientRect().height;
-    const saTop = pc.paddingTop, saBot = pc.paddingBottom;
-    probe.remove();
-    // 진단창을 띄우기 "전에" 하단 지점들의 실제 요소를 샘플링
-    const pts = [h - 2, h - 25, h - 60, h - 100];
-    const lines = pts.map(y => {
-      const el = document.elementFromPoint(w / 2, y);
-      if (!el) return `${(h - y)}px위: (없음)`;
-      const cs = getComputedStyle(el);
-      const cls = (el.className && typeof el.className === 'string') ? '.' + el.className.split(' ')[0] : '';
-      return `${(h - y)}px위: ${el.tagName}${el.id ? '#' + el.id : ''}${cls} bg=${cs.backgroundColor}`;
-    });
-    const appEl = document.querySelector('.app');
-    const bt = document.querySelector('.bottomTab');
-    const box = document.createElement('div');
-    box.style.cssText = 'position:fixed;left:8px;right:8px;top:15%;z-index:2147483647;background:#062b46;color:#9fe3ff;font:11px/1.6 monospace;padding:10px 12px;border-radius:10px;white-space:pre-wrap;word-break:break-all;';
-    box.textContent =
-      '[임시 진단 - 탭하면 닫힘]\n' +
-      'innerH:' + h + '  screenH:' + screen.height + '  dvh:' + Math.round(dvhPx) + '\n' +
-      'safeTop:' + saTop + '  safeBottom:' + saBot + '\n' +
-      'app.bottom:' + (appEl ? Math.round(appEl.getBoundingClientRect().bottom) : '-') +
-      '  bodyBg:' + getComputedStyle(document.body).backgroundColor + '\n' +
-      'bottomTab display:' + (bt ? getComputedStyle(bt).display : '-') + '\n' +
-      lines.join('\n');
-    box.addEventListener('click', () => box.remove());
-    document.body.appendChild(box);
-  } catch (e) {}
-}, 1200);
 
 // 🔥 이미지 파일 내용이 바뀌어도 URL이 같으면 브라우저가 옛 캐시를 계속 쓸 수 있어서,
 // APP_VERSION을 쿼리스트링으로 붙여 버전이 올라갈 때마다 자동으로 캐시를 무효화시킴
