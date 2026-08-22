@@ -898,16 +898,19 @@ cursor: pointer;
   position: fixed;
   left: 50%;
   transform: translateX(-50%);
-  /* 🔥 viewport-fit=cover 도입 전에는 iOS가 알아서 홈 인디케이터를 피해 뷰포트를 줄여줘서
-     bottom:0이 곧 "인디케이터 위 자리"였음. 지금은 진짜 화면 끝이 bottom:0이라, 바 높이를
-     안전영역만큼 늘리는 대신(그러면 아이콘까지 위로 밀림) 바 크기는 그대로 두고 안전영역
-     만큼만 위로 띄워서 예전과 똑같은 자리에 오도록 함 */
-  bottom: env(safe-area-inset-bottom);
+  bottom: 0;
 
   width: 390px;
   max-width: 100%;
 
-  height: var(--bottomTabH);
+  /* 🔥 .topBar와 완전히 대칭되는 구조: 바 박스는 화면 최하단(bottom:0)에 딱 붙이고
+     안전영역만큼 키우되, box-sizing:border-box라서 그 안전영역이 순수 여백으로만
+     들어가고 콘텐츠(.tabBtn) 자리는 안 밀림 — .tabBtn의 height:100%는 컨텐츠박스
+     기준(패딩 제외)이라 원래(var(--bottomTabH)) 크기 그대로 유지되면서, 바 배경 자체는
+     끝까지 안전영역을 덮어서 그 밑으로 콘텐츠가 비쳐 보이는 문제도 없음 */
+  height: calc(var(--bottomTabH) + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+  padding-bottom: env(safe-area-inset-bottom);
 
   display: flex;
   background: rgba(0,0,0,0.92);
@@ -8751,7 +8754,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.64";
+const APP_VERSION = "0.7.65";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
