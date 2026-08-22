@@ -1,26 +1,26 @@
 <!DOCTYPE html>
 <html lang="ko"> 
 <head>
-<!-- 🔥 매니페스트 링크 제거: iOS 16.4+는 매니페스트가 있으면 홈화면 설치 시 매니페스트를
-     우선하는데, 이 경로로 설치되면 apple-mobile-web-app-status-bar-style(black-translucent)이
-     무시되고 웹뷰가 상태바 높이(47px)만큼 줄어든 채 배치돼 화면 최하단에 시스템 띠가 남음
-     (재설치 후에도 재현, 실측으로 확인). 매니페스트 없는 친구 앱(GoRIP)은 같은 기기에서
-     메타태그 경로로 설치돼 풀스크린 정상 동작 — 우리도 iOS에 필요한 설정(아이콘/제목/풀스크린)
-     은 apple-* 메타태그로 이미 다 갖췄으므로 매니페스트 링크만 뺌(manifest.json 파일 자체는
-     나중을 위해 저장소에 유지) -->
-<meta name="theme-color" content="#000000">
+<!-- 🔥 head 앞부분을 같은 기기에서 풀스크린이 정상 동작하는 것으로 검증된 친구 앱(GoRIP)과
+     동일한 구조/순서로 맞춤: charset → viewport → title → 아이콘 → apple-* 메타 순.
+     이전에는 charset/viewport가 매니페스트 주석·메타·스크립트 뒤(31~32번째 줄)에 있었는데,
+     iOS가 홈화면 설치 시점에 문서 앞부분을 읽어 웹클립 설정(viewport-fit=cover 포함)을
+     굽는 과정에서 이를 놓쳐 웹뷰가 상태바 높이만큼 줄어든 채(y=0~797) 배치되고, 화면
+     최하단 47px이 웹뷰 바깥(iOS가 칠하는 띠)으로 남는 문제의 원인일 가능성이 있음
+     (진단 2차 실측: innerH 797 vs screenH 844, 빨간선=뷰포트 하단이 띠 위에 위치 확인).
+     GoRIP에 없는 mobile-web-app-capable(비-apple 계열) 메타도 제거 — iOS를 다른 설치
+     경로로 보낼 가능성 차단. 매니페스트 링크는 #353에서 이미 제거됨(파일은 저장소에 유지) -->
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
+<title>ttt</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
-
 <!-- 🔥 상태바 스타일은 라이트/다크 상관없이 항상 black-translucent 고정.
-     예전엔 라이트모드일 때 head 스크립트로 default(불투명)로 바꿨는데, iOS 독립 앱에서
-     default + viewport-fit=cover 조합이면 웹뷰가 상태바 높이만큼 줄어든 채 위쪽에 붙어서
-     화면 최하단에 딱 상태바 높이(47px)짜리 시스템 띠가 남는 버그성 동작이 있었음
-     (진단 오버레이로 실측 확인: screenH 844 vs innerH 797 = 정확히 47px 차이, 띠 시작
-     위치도 정확히 y=797). black-translucent면 웹뷰가 항상 풀스크린이고, 라이트모드에서
-     상태바 아이콘은 iOS가 밑에 깔린 페이지 배경 밝기를 보고 알아서 검정으로 골라줌
-     (같은 기기에서 친구 앱 GoRIP으로 검증된 동작) -->
+     (라이트모드에서 default로 바꾸던 head 스크립트는 #352에서 제거 — 웹뷰가 풀스크린이면
+     상태바 아이콘은 iOS가 페이지 배경 밝기를 보고 알아서 검/흰을 골라줌, GoRIP으로 검증) -->
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ttt">
+<meta name="theme-color" content="#000000">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <script>
 // 🔥 모드 토글 → location.reload() 직후, 본문 쪽 JS(파일 한참 아래에 있음)가 실행되기
 // 전에 브라우저가 이미 기본 HTML(설정 화면 닫힘 = 밑에 있던 홈 화면 노출) 상태로 첫
@@ -33,11 +33,6 @@ try {
   }
 } catch(e){}
 </script>
-<meta name="apple-mobile-web-app-title" content="ttt">
-<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
-<title>ttt</title>
 <!-- 🔥 맨몸운동 페이지 제목용 명조체(나눔명조) — 시스템 폰트로는 기기마다 없을 수 있어 웹폰트로 확실히 로드 -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -8763,7 +8758,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.71";
+const APP_VERSION = "0.7.72";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
