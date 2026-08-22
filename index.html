@@ -66,7 +66,8 @@ body {
   padding:
     calc(var(--topBarH) + env(safe-area-inset-top))
     7px
-    calc(var(--bottomTabH) + env(safe-area-inset-bottom));
+    calc(12px + env(safe-area-inset-bottom)); /* 🔥 하단바를 숨겨서 그 자리를 위해
+      예약해두던 큰 여백(var(--bottomTabH))이 더 이상 필요 없어짐 — 안전영역만 유지 */
   box-sizing: border-box;
   overflow-y: auto;
   overflow-x: hidden;
@@ -8755,7 +8756,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.66";
+const APP_VERSION = "0.7.67";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
