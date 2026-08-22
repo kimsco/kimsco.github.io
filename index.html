@@ -1,27 +1,26 @@
 <!DOCTYPE html>
 <html lang="ko"> 
 <head>
-<!-- 🔥 head 앞부분을 같은 기기에서 풀스크린이 정상 동작하는 것으로 검증된 친구 앱(GoRIP)과
-     동일한 구조/순서로 맞춤: charset → viewport → title → 아이콘 → apple-* 메타 순.
-     이전에는 charset/viewport가 매니페스트 주석·메타·스크립트 뒤(31~32번째 줄)에 있었는데,
-     iOS가 홈화면 설치 시점에 문서 앞부분을 읽어 웹클립 설정(viewport-fit=cover 포함)을
-     굽는 과정에서 이를 놓쳐 웹뷰가 상태바 높이만큼 줄어든 채(y=0~797) 배치되고, 화면
-     최하단 47px이 웹뷰 바깥(iOS가 칠하는 띠)으로 남는 문제의 원인일 가능성이 있음
-     (진단 2차 실측: innerH 797 vs screenH 844, 빨간선=뷰포트 하단이 띠 위에 위치 확인).
-     GoRIP에 없는 mobile-web-app-capable(비-apple 계열) 메타도 제거 — iOS를 다른 설치
-     경로로 보낼 가능성 차단. 매니페스트 링크는 #353에서 이미 제거됨(파일은 저장소에 유지) -->
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
-<title>ttt</title>
-<meta name="apple-mobile-web-app-capable" content="yes">
-<!-- 🔥 상태바 스타일은 라이트/다크 상관없이 항상 black-translucent 고정.
-     (라이트모드에서 default로 바꾸던 head 스크립트는 #352에서 제거 — 웹뷰가 풀스크린이면
-     상태바 아이콘은 iOS가 페이지 배경 밝기를 보고 알아서 검/흰을 골라줌, GoRIP으로 검증) -->
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="ttt">
+<!-- 🔥 viewport-fit=cover 재도입(#340~#355)을 다시 롤백함: GoRIP 방식을 그대로 따라해서
+     head 구조/메타/매니페스트까지 전부 맞춰봤지만 실기기에서 하단 47px 시스템 띠(다크모드
+     에서도 육안으로 확인됨)가 계속 재현됐고, 애초 목표였던 상태바 자동 색상도 결국
+     못 얻었음 — 이 조합 재도입 전(#339 이전)에는 이 문제 자체가 없었다는 사용자 확인을
+     받아 원래(라이트/다크에 따라 status-bar-style을 default/black-translucent로 동적
+     전환하는 방식, viewport-fit=cover 없음, 매니페스트 링크 유지)로 되돌림 -->
+<link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#000000">
-<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <script>
+// 🔥 저장된 라이트/다크 설정에 맞춰 상태바 스타일을 렌더링 전에 미리 교체.
+// (iOS는 이 메타태그를 앱이 새로 로드될 때만 다시 읽으므로, 토글 시 location.reload()와 세트로 동작)
+try {
+  if (localStorage.getItem("mf_light_mode") === "1") {
+    document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]').setAttribute("content", "default");
+  }
+} catch(e){}
 // 🔥 모드 토글 → location.reload() 직후, 본문 쪽 JS(파일 한참 아래에 있음)가 실행되기
 // 전에 브라우저가 이미 기본 HTML(설정 화면 닫힘 = 밑에 있던 홈 화면 노출) 상태로 첫
 // 페인트를 해버려서, 그 사이 홈 화면이 잠깐 비치는 깜빡임이 있었음. 본문 스크립트가
@@ -33,6 +32,11 @@ try {
   }
 } catch(e){}
 </script>
+<meta name="apple-mobile-web-app-title" content="ttt">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>ttt</title>
 <!-- 🔥 맨몸운동 페이지 제목용 명조체(나눔명조) — 시스템 폰트로는 기기마다 없을 수 있어 웹폰트로 확실히 로드 -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -61,15 +65,13 @@ body {
 
 .app{
   width: 390px;
-  height: 100dvh; /* 🔥 viewport-fit=cover에서 100vh가 실제 화면 높이보다 살짝 작게 계산되면서
-                     .app 바닥에 body 배경(#000/#eeeeee)이 살짝 비치는 틈이 생기는 문제 대응 */
+  height: 100vh;
   margin: 0 auto;
   background: black;
   padding:
     calc(var(--topBarH) + env(safe-area-inset-top))
     7px
-    calc(12px + env(safe-area-inset-bottom)); /* 🔥 하단바를 숨겨서 그 자리를 위해
-      예약해두던 큰 여백(var(--bottomTabH))이 더 이상 필요 없어짐 — 안전영역만 유지 */
+    calc(var(--bottomTabH) + env(safe-area-inset-bottom));
   box-sizing: border-box;
   overflow-y: auto;
   overflow-x: hidden;
@@ -125,12 +127,9 @@ button {
   width: 390px;
   max-width: 100%;
 
-  /* 🔥 viewport-fit=cover 재도입: 노치/상태바 영역까지 배경이 뚫고 올라가되(iOS가 이
-     배경 밝기를 보고 상태바 아이콘 색을 자동으로 골라주기 위함), 실제 글자/아이콘은
-     안전영역만큼 아래로 내려서 노치에 안 가리게 함 */
-  height: calc(var(--topBarH) + env(safe-area-inset-top));
+  height: var(--topBarH);
   box-sizing: border-box;          /* ✅ padding 포함해서 height 유지 */
-  padding: calc(12px + env(safe-area-inset-top)) 10px 12px 10px;
+  padding: 12px 10px;
 
   display: flex;
   align-items: center;
@@ -906,17 +905,10 @@ cursor: pointer;
   width: 390px;
   max-width: 100%;
 
-  /* 🔥 .topBar와 완전히 대칭되는 구조: 바 박스는 화면 최하단(bottom:0)에 딱 붙이고
-     안전영역만큼 키우되, box-sizing:border-box라서 그 안전영역이 순수 여백으로만
-     들어가고 콘텐츠(.tabBtn) 자리는 안 밀림 — .tabBtn의 height:100%는 컨텐츠박스
-     기준(패딩 제외)이라 원래(var(--bottomTabH)) 크기 그대로 유지되면서, 바 배경 자체는
-     끝까지 안전영역을 덮어서 그 밑으로 콘텐츠가 비쳐 보이는 문제도 없음 */
-  height: calc(var(--bottomTabH) + env(safe-area-inset-bottom));
-  box-sizing: border-box;
+  height: var(--bottomTabH);
   padding-bottom: env(safe-area-inset-bottom);
 
-  display: none;   /* 🔥 안전영역 대응 튜닝을 잠시 보류하고 하단바 자체를 임시로 숨김
-                       (다른 탭 이동 수단은 나중에 별도로 마련 예정) */
+  display: flex;
   background: rgba(0,0,0,0.92);
   backdrop-filter: blur(10px);
 
@@ -8758,57 +8750,11 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.72";
+const APP_VERSION = "0.7.73";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
 }
-
-// 🔥 [임시 진단 2차 — 원인 확인되면 제거]
-// 매니페스트 제거(0.7.70) 후에도 하단 띠가 남는다는 확인을 받아 재계측.
-// 이번엔 결정적 판별 장치 추가: 뷰포트 최하단(bottom:0)에 빨간 선, 최상단(top:0)에
-// 파란 선을 그림 — 빨간 선이 띠 "위"에 보이면 띠는 뷰포트 바깥(iOS가 칠하는 영역),
-// 화면 진짜 끝에 붙어 보이면 띠는 우리 콘텐츠라는 뜻
-setTimeout(() => {
-  try {
-    const w = window.innerWidth, h = window.innerHeight;
-    const probe = document.createElement('div');
-    probe.style.cssText = 'position:fixed;visibility:hidden;top:0;left:0;height:100dvh;width:1px;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);box-sizing:content-box;';
-    document.body.appendChild(probe);
-    const pc = getComputedStyle(probe);
-    const dvhPx = probe.getBoundingClientRect().height;
-    const saTop = pc.paddingTop, saBot = pc.paddingBottom;
-    probe.remove();
-    const pts = [h - 2, h - 20, h - 40];
-    const lines = pts.map(y => {
-      const el = document.elementFromPoint(w / 2, y);
-      if (!el) return `${(h - y)}px위: (없음)`;
-      const cs = getComputedStyle(el);
-      const cls = (el.className && typeof el.className === 'string') ? '.' + el.className.split(' ')[0] : '';
-      return `${(h - y)}px위: ${el.tagName}${el.id ? '#' + el.id : ''}${cls} bg=${cs.backgroundColor}`;
-    });
-    const vv = window.visualViewport;
-    // 빨간 선(뷰포트 최하단) / 파란 선(뷰포트 최상단)
-    const redLine = document.createElement('div');
-    redLine.style.cssText = 'position:fixed;left:0;right:0;bottom:0;height:4px;background:red;z-index:2147483647;pointer-events:none;';
-    const blueLine = document.createElement('div');
-    blueLine.style.cssText = 'position:fixed;left:0;right:0;top:0;height:4px;background:blue;z-index:2147483647;pointer-events:none;';
-    document.body.appendChild(redLine);
-    document.body.appendChild(blueLine);
-    const box = document.createElement('div');
-    box.style.cssText = 'position:fixed;left:8px;right:8px;top:15%;z-index:2147483647;background:#062b46;color:#9fe3ff;font:11px/1.6 monospace;padding:10px 12px;border-radius:10px;white-space:pre-wrap;word-break:break-all;';
-    box.textContent =
-      '[진단2 - 탭하면 닫힘]\n' +
-      '빨간선=뷰포트 최하단 / 파란선=뷰포트 최상단\n' +
-      'innerH:' + h + '  screenH:' + screen.height + '  dvh:' + Math.round(dvhPx) + '\n' +
-      'visualVp.h:' + (vv ? Math.round(vv.height) : '-') + '  vv.offsetTop:' + (vv ? Math.round(vv.offsetTop) : '-') + '\n' +
-      'safeTop:' + saTop + '  safeBottom:' + saBot + '\n' +
-      'standalone:' + (navigator.standalone === true) + '\n' +
-      lines.join('\n');
-    box.addEventListener('click', () => { box.remove(); redLine.remove(); blueLine.remove(); });
-    document.body.appendChild(box);
-  } catch (e) {}
-}, 1200);
 
 // 🔥 이미지 파일 내용이 바뀌어도 URL이 같으면 브라우저가 옛 캐시를 계속 쓸 수 있어서,
 // APP_VERSION을 쿼리스트링으로 붙여 버전이 올라갈 때마다 자동으로 캐시를 무효화시킴
