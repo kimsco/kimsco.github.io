@@ -8754,7 +8754,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.92";
+const APP_VERSION = "0.7.93";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -18434,24 +18434,5 @@ if ("serviceWorker" in navigator) {
 }
 </script>
 
-<script>
-// 🔥 [임시 실험 — 결과 확인되면 무조건 제거] GoRIP 구조(스크롤락 해제 + 하단바 pill화)
-// 실측용 진단 패널(탭하면 닫힘)
-setTimeout(() => {
-  try {
-    const h = window.innerHeight, sh = screen.height;
-    const box = document.createElement('div');
-    box.style.cssText = 'position:fixed;left:8px;right:8px;top:15%;z-index:2147483647;background:#062b46;color:#9fe3ff;font:12px/1.7 monospace;padding:12px 14px;border-radius:10px;white-space:pre-wrap;word-break:break-all;';
-    box.textContent =
-      '[풀스크린 구조 실험 - 탭하면 닫힘]\n' +
-      'innerH:' + h + '  screenH:' + sh + '\n' +
-      '일치(웹뷰 꽉 참):' + (h === sh ? 'YES ✅' : 'NO ❌ (' + (sh - h) + 'px 부족)') + '\n' +
-      'standalone:' + (navigator.standalone === true) + '\n' +
-      '(하단 pill 디자인이라 위 값이 안 맞아도 눈으로는 안 티나야 정상)';
-    box.addEventListener('click', () => box.remove());
-    document.body.appendChild(box);
-  } catch (e) {}
-}, 1200);
-</script>
 </body>
 </html>
