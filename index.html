@@ -8754,7 +8754,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.87";
+const APP_VERSION = "0.7.88";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -14186,6 +14186,11 @@ if (recordFloatBarTab2El) {
 }
 document.body.appendChild(document.getElementById('recordFloatBarAcc'));
 document.body.appendChild(document.getElementById('recordMessage')); // 🔥 저장 완료/실패 토스트 메시지도 같은 이유로 이동
+// 🔥 .topBar/.bottomTab도 여태 .app 안에 중첩된 채로 있어서, 드로어를 열 때 .app에
+// transform이 걸리는 순간 이 둘의 기준점도 뷰포트가 아니라 .app으로 바뀌어버려
+// "고정"이 풀리고 스크롤에 따라 같이 움직이던 버그가 있었음 — 같은 이유로 body로 이동
+document.body.appendChild(document.querySelector('.topBar'));
+document.body.appendChild(bottomTabEl);
 
 /* 🔥 안전장치: 화면이 꺼졌다 켜지거나 앱이 백그라운드에서 돌아올 때,
    식단 새창(dietOverlay)은 열려있는데 캡슐(dietSubTabBar)만 어긋나서 안 보이는
