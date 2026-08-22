@@ -68,8 +68,10 @@ body {
   padding:
     calc(var(--topBarH) + env(safe-area-inset-top))
     7px
-    /* 🔥 [임시 실험] 하단탭이 이제 화면 끝에 안 붙고 16px 띄운 pill이라, 그만큼 여유 추가 */
-    calc(var(--bottomTabH) + 16px + env(safe-area-inset-bottom));
+    /* 🔥 [임시 실험] 하단탭이 이제 화면 끝에 안 붙고 16px 띄운 pill이라 그만큼 여유
+       추가 + 마지막 콘텐츠가 pill에 살짝 가려지는 걸 실기기에서 확인해서 여유를
+       더 둠(16px→32px) */
+    calc(var(--bottomTabH) + 32px + env(safe-area-inset-bottom));
   box-sizing: border-box;
   overflow-y: auto;
   overflow-x: hidden;
@@ -8756,7 +8758,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.79";
+const APP_VERSION = "0.7.80";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -18426,7 +18428,7 @@ setTimeout(() => {
     const box = document.createElement('div');
     box.style.cssText = 'position:fixed;left:8px;right:8px;top:15%;z-index:2147483647;background:#062b46;color:#9fe3ff;font:12px/1.7 monospace;padding:12px 14px;border-radius:10px;white-space:pre-wrap;word-break:break-all;';
     box.textContent =
-      '[GoRIP 구조 실험 - 탭하면 닫힘]\n' +
+      '[풀스크린 구조 실험 - 탭하면 닫힘]\n' +
       'innerH:' + h + '  screenH:' + sh + '\n' +
       '일치(웹뷰 꽉 참):' + (h === sh ? 'YES ✅' : 'NO ❌ (' + (sh - h) + 'px 부족)') + '\n' +
       'standalone:' + (navigator.standalone === true) + '\n' +
