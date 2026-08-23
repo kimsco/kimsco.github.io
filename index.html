@@ -965,11 +965,12 @@ cursor: pointer;
   transition: transform 0.32s cubic-bezier(0.22,1,0.36,1), opacity 0.22s ease;
 }
 
-/* 🔥 식단 탭 안에 있을 때: 5칸짜리 하단탭을 위로 슬라이드시켜 감춤. 자기 높이(100%)만큼이
-   아니라, 식단 알약바(#dietSubTabBar)의 윗선 높이(하단탭높이×1.15, 알약바 CSS의 bottom
-   공식과 동일 기준)까지만 올라가게 함 */
+/* 🔥 식단 탭 안에 있을 때: 5칸짜리 하단탭을 위로 슬라이드시켜 감춤. 자기 높이(100%)만큼
+   이동하는 게 아니라, 하단탭의 "윗선"이 딱 식단 알약바(#dietSubTabBar)의 윗선 높이
+   (하단탭높이×1.15, 알약바 CSS의 bottom 공식과 동일 기준)에 닿는 만큼만 살짝 올라가게 함
+   — 이동거리 = 알약바 윗선(높이×1.15) − 하단탭 원래 윗선(높이×1) = 높이×0.15 */
 .bottomTab.tab-collapsed{
-  transform: translateX(-50%) translateY(calc(-1 * var(--bottomTabH) * 1.15));
+  transform: translateX(-50%) translateY(calc(-1 * var(--bottomTabH) * 0.15));
   opacity: 0;
   pointer-events: none;
 }
@@ -9618,7 +9619,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.8.13";
+const APP_VERSION = "0.8.14";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
