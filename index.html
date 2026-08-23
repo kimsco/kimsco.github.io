@@ -1022,6 +1022,22 @@ cursor: pointer;
   color: #fff;
 }
 
+/* 🔥 설정탭이 완전히 열린 동안(리로드 복원 포함), 밀린 위치에 바텀탭 글씨/아이콘이
+   잔상처럼 잠깐 보이는 걸 막기 위해 배경색과 똑같은 색으로 맞춰 사실상 안 보이게 함.
+   설정 나가는 순간(뒤로가기/스와이프) 바로 원래 색으로 복귀 */
+.bottomTab.hide-tab-labels .tabBtn,
+.bottomTab.hide-tab-labels .tabBtn.active,
+.bottomTab.hide-tab-labels .tabBtn-icon,
+.bottomTab.hide-tab-labels .tabBtn.active .tabBtn-icon {
+  color: #000 !important;
+}
+html.light-mode-on .bottomTab.hide-tab-labels .tabBtn,
+html.light-mode-on .bottomTab.hide-tab-labels .tabBtn.active,
+html.light-mode-on .bottomTab.hide-tab-labels .tabBtn-icon,
+html.light-mode-on .bottomTab.hide-tab-labels .tabBtn.active .tabBtn-icon {
+  color: #eeeeee !important;
+}
+
 /* ===============================
    ✅ 식단 탭 전용 서브탭바 — 토스 "증권" 탭처럼
    원형 뒤로가기 + 탭 4개가 전부 하나의 둥근 캡슐 안에 떠있는 형태
@@ -9681,7 +9697,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.8.24";
+const APP_VERSION = "0.8.25";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -16445,6 +16461,7 @@ function setSettingsAppPush(progress){ // progress: 0(설정 완전히 덮음) ~
 
 openSettingsBtn.addEventListener("click", () => {
   settingsOverlay.classList.remove("hidden");
+  if (bottomTabEl) bottomTabEl.classList.add("hide-tab-labels"); // 🔥 설정 열리는 동안 바텀탭 글씨/아이콘 잔상 방지
   // 🔥 CSS 애니메이션에 의존하지 않고 JS로 직접 슬라이드인 처리
   // (CSS animation은 fill-forwards로 계속 남아있어서, 스와이프 중 인라인 transform을
   //  덮어써버려 드래그가 화면에 반영 안 되는 버그가 있었음 — navDrawer와 동일한 방식으로 통일)
@@ -16472,6 +16489,7 @@ function closeSettings(){
   const appEl = document.querySelector('.app');
   if (appEl) { appEl.style.transition = ""; appEl.style.transform = ""; appEl.style.opacity = ""; }
   resetChromePush();
+  if (bottomTabEl) bottomTabEl.classList.remove("hide-tab-labels"); // 🔥 원래 글자색으로 즉시 복귀
 }
 
 closeSettingsBtn.addEventListener("click", closeSettings);
@@ -16491,6 +16509,7 @@ closeSettingsBtn.addEventListener("click", closeSettings);
     const appEl = document.querySelector('.app');
     if (appEl) appEl.style.transition = 'none';
     setChromePushTransition('none');
+    if (bottomTabEl) bottomTabEl.classList.remove("hide-tab-labels"); // 🔥 스와이프로 뒤로가기 시작하면 바로 원래 글자색으로
   }, { passive: true });
 
   settingsPanel.addEventListener('touchmove', (e) => {
@@ -16538,6 +16557,7 @@ closeSettingsBtn.addEventListener("click", closeSettings);
     } else {
       settingsPanel.style.transform = 'translateX(0)';
       setSettingsAppPush(0);
+      if (bottomTabEl) bottomTabEl.classList.add("hide-tab-labels"); // 🔥 닫기 취소되고 다시 열린 상태로 스냅백되면 다시 잔상 방지
     }
   }
   settingsPanel.addEventListener('touchend', endDrag, { passive: true });
@@ -16616,6 +16636,7 @@ try {
     const appElRestore = document.querySelector('.app');
     if (appElRestore) appElRestore.style.transition = "none";
     setSettingsAppPush(0);
+    if (bottomTabEl) bottomTabEl.classList.add("hide-tab-labels"); // 🔥 리로드 복원 직후에도 바텀탭 글씨/아이콘 잔상 방지
     // 🔥 head에서 첫 페인트 깜빡임 방지용으로 걸어둔 임시 클래스는 이제 JS가 실제
     // 상태를 그대로 이어받았으니 제거 — 안 지우면 이후 사용자가 직접 설정을 닫아도
     // CSS가 !important로 계속 열린 것처럼 강제해버림
