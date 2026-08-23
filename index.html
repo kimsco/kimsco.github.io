@@ -2638,12 +2638,10 @@ html.mf-restore-settings .settings-panel {
    아니라 "자기 자식들의" fixed 위치 계산 기준만 바뀌는데, 이 요소들은 전부 이미 뷰포트를
    덮는 자기 자신이 position:fixed라 문제 없음).
 ================================ */
-html.light-mode-on .topBar,
 html.light-mode-on #tab2,
 html.light-mode-on #tab4,
 html.light-mode-on #save3Result,
 html.light-mode-on #tab3,
-html.light-mode-on #bottomTab,
 html.light-mode-on #calPopup,
 html.light-mode-on #exerciseDexOverlay,
 html.light-mode-on #dexPostDetailOverlay,
@@ -2723,6 +2721,41 @@ html.light-mode-on .settings-panel {
 }
 html.light-mode-on .settings-card {
   background: #000;
+}
+
+/* 🔥 [2단계] 상단바(.topBar)/하단탭(#bottomTab) 라이트모드: 이 둘은 모든 화면에
+   항상 떠있는 전역 UI라 필터 목록에서 완전히 뺐고, 실제로 보일 색을 직접 지정.
+   CSS 변수 팔레트(1단계에서 정의) 사용 시작 */
+html.light-mode-on .topBar {
+  background: rgba(255,255,255,0.92);
+  border-bottom-color: rgba(0,0,0,0.06);
+}
+html.light-mode-on .topText {
+  color: var(--c-text-primary);
+}
+html.light-mode-on .settings-btn {
+  color: #666;
+}
+html.light-mode-on .menu-btn {
+  color: #333;
+  background: rgba(0,0,0,0.06);
+  border-color: rgba(0,0,0,0.1);
+}
+html.light-mode-on #bottomTab {
+  background: rgba(255,255,255,0.92);
+  border-top-color: rgba(0,0,0,0.08);
+}
+html.light-mode-on .bottomTab .tabBtn {
+  color: var(--c-text-secondary);
+}
+html.light-mode-on .bottomTab .tabBtn.active {
+  color: var(--c-text-primary);
+}
+html.light-mode-on .tabBtn-icon {
+  color: #9a9a9a;
+}
+html.light-mode-on .bottomTab .tabBtn.active .tabBtn-icon {
+  color: var(--c-text-primary);
 }
 
 /* 🔥 홈 탭(#tab1) 라이트모드: 필터를 전혀 안 받는 화면이라, "반전 후 결과"를 역산하는 게
@@ -8812,7 +8845,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.95";
+const APP_VERSION = "0.7.96";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
