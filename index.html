@@ -9705,7 +9705,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.8.30";
+const APP_VERSION = "0.8.31";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -15950,6 +15950,7 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
         appEl = document.querySelector('.app');
         dietOverlay.style.transition = 'none';
         appEl.style.transition = 'none';
+        setBarsPushTransition('none'); // 🔥 topBar/bottomTab도 손가락 따라 실시간으로 같이 밀림
       }
       else if (Math.abs(dy) > COMMIT_MOVE && Math.abs(dy) > dx) { tracking = false; }
       else return;
@@ -15967,6 +15968,9 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
       // 뒤에 깔린 본 화면(.app)이 손가락을 따라 다시 드러나며 페이드인
       appEl.style.transform = `translateX(${-16 * (1 - progress)}px)`;
       appEl.style.opacity = String(progress);
+      // 🔥 topBar/bottomTab도 같은 비율로 같이 밀려서 복귀(안 그러면 본 화면만 손가락을
+      //    따라오고 topBar는 가만히 있다가 손 뗄 때 한번에 튀는 것처럼 보임)
+      setBarsPush(-16 * (1 - progress));
     }
   }, { passive: false });
 
@@ -15999,6 +16003,8 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
         appEl.style.transform = 'translateX(-16px)';
         appEl.style.opacity = '0';
       }
+      setBarsPushTransition('none');
+      setBarsPush(-16); // 🔥 topBar/bottomTab도 "완전히 열린" 밀린 상태로 동기화해두고 넘김
       document.getElementById('dietBackCircleBtn').click();
     } else {
       // 🔥 기준 미달: 원래 열린 위치로 스냅백
@@ -16010,6 +16016,8 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
         appEl.style.transform = 'translateX(-16px)';
         appEl.style.opacity = '0';
       }
+      setBarsPushTransition('transform 0.22s ease, opacity 0.22s ease');
+      setBarsPush(-16);
     }
   }
   document.addEventListener('touchend', endDietSwipe, { passive: true });
