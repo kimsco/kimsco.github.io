@@ -1042,12 +1042,15 @@ cursor: pointer;
   background: rgba(24,24,24,0.92);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  border: 1px solid rgba(255,255,255,0.14);
+  border: 1px solid rgba(var(--c-ink-rgb),0.14);
   border-radius: 999px;
   box-shadow: 0 8px 24px rgba(0,0,0,0.4);
 
   z-index: 100001; /* 🔥 dietOverlay(100000)보다 위에 떠있어야 함 */
   transition: transform 0.32s cubic-bezier(0.22,1,0.36,1), opacity 0.24s ease;
+}
+html.light-mode-on .dietSubTabBar {
+  background: rgba(231,231,231,0.92);
 }
 .dietSubTabBar.show{
   transform: translateX(-50%) translateY(0);
@@ -1067,7 +1070,7 @@ cursor: pointer;
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  border: 1px solid rgba(255,255,255,0.3);
+  border: 1px solid rgba(var(--c-ink-rgb),0.3);
   background: transparent;
   color: #eee;
   display: flex;
@@ -1077,8 +1080,11 @@ cursor: pointer;
   margin: 0;
   padding: 0;
 }
+html.light-mode-on .dietBackCircleBtn {
+  color: rgb(17,17,17);
+}
 .dietBackCircleBtn:active{
-  background: rgba(255,255,255,0.08);
+  background: rgba(var(--c-ink-rgb),0.08);
   transform: scale(0.94);
 }
 .dietSubTabBtn{
@@ -1095,8 +1101,14 @@ cursor: pointer;
   justify-content: center;
   cursor: pointer;
 }
+html.light-mode-on .dietSubTabBtn {
+  color: rgb(119,119,119);
+}
+html.light-mode-on .dietSubTabBtn.active {
+  color: var(--c-text-primary);
+}
 .dietSubTabBtn.active{
-  color: #fff;
+  color: var(--c-text-primary);
 }
 
 
@@ -1130,7 +1142,7 @@ cursor: pointer;
   justify-content: center;
 }
 .dietPanelPlaceholderText{
-  color: rgba(255,255,255,0.35);
+  color: rgba(var(--c-ink-rgb),0.35);
   font-size: 14px;
   text-align: center;
   padding: 0 30px;
@@ -1157,7 +1169,7 @@ cursor: pointer;
   padding-bottom: 8px;
 }
 .diet-ai-chat-empty{
-  color: rgba(255,255,255,0.35);
+  color: rgba(var(--c-ink-rgb),0.35);
   font-size: 14px;
   text-align: center;
   padding: 40px 20px;
@@ -1173,8 +1185,8 @@ cursor: pointer;
 }
 .diet-ai-chat-msg.user{
   align-self: flex-end;
-  background: #fff;
-  color: #000;
+  background: rgb(var(--c-ink-rgb));
+  color: rgb(var(--c-anti-ink-rgb));
   border-bottom-right-radius: 4px;
 }
 .diet-ai-chat-msg.ai{
@@ -1184,9 +1196,18 @@ cursor: pointer;
   color: #eee;
   border-bottom-left-radius: 4px;
 }
+html.light-mode-on .diet-ai-chat-msg.ai {
+  background: #fdfdfd;
+  border-color: rgb(221,221,221);
+  color: var(--c-text-primary);
+}
 .diet-ai-chat-msg.ai.error{
   border-color: #5a2323;
   color: #ff9b9b;
+}
+html.light-mode-on .diet-ai-chat-msg.ai.error {
+  border-color: rgb(252,196,196);
+  color: rgb(157,57,57);
 }
 .diet-ai-chat-msg.loading{
   align-self: flex-start;
@@ -1198,7 +1219,7 @@ cursor: pointer;
   align-items: center;
   gap: 8px;
   padding: 10px 0 4px;
-  background: #000;
+  background: rgb(var(--c-anti-ink-rgb));
 }
 .diet-ai-chat-input{
   flex: 1;
@@ -1208,11 +1229,15 @@ cursor: pointer;
   background: #111;
   border: 1px solid #2a2a2a;
   border-radius: 22px;
-  color: #fff;
+  color: var(--c-text-primary);
   padding: 0 16px;
   font-size: 14px;
   box-sizing: border-box;
   margin: 0;
+}
+html.light-mode-on .diet-ai-chat-input {
+  background: #fdfdfd;
+  border-color: rgb(213,213,213);
 }
 .diet-ai-chat-send{
   -webkit-appearance: none;
@@ -1222,8 +1247,8 @@ cursor: pointer;
   flex-shrink: 0;
   border-radius: 50%;
   border: none;
-  background: #fff;
-  color: #000;
+  background: rgb(var(--c-ink-rgb));
+  color: rgb(var(--c-anti-ink-rgb));
   font-size: 18px;
   font-weight: 700;
   line-height: 1;
@@ -2650,13 +2675,6 @@ html.mf-restore-settings .settings-panel {
    덮는 자기 자신이 position:fixed라 문제 없음).
 ================================ */
 html.light-mode-on #bodyweightOverlay,
-html.light-mode-on #dietPanel-today,
-html.light-mode-on #dietPanel-settings,
-html.light-mode-on #dietSubTabBar,
-html.light-mode-on #foodTemplateModal,
-html.light-mode-on #quickAddMealModal,
-html.light-mode-on #foodDbSaveConfirmModal,
-html.light-mode-on #weightModal,
 html.light-mode-on #navDrawerOverlay,
 html.light-mode-on #settingsOverlay,
 html.light-mode-on #mySpecOverlay {
@@ -3387,6 +3405,62 @@ html.light-mode-on #graphSheet .sheetGrab {
   background: rgba(0,0,0,0.22);
 }
 
+/* 🔥 [11단계] 식단(#dietPanel-today/#dietPanel-settings/#dietSubTabBar/
+   #foodTemplateModal/#quickAddMealModal/#foodDbSaveConfirmModal/#weightModal)
+   라이트모드: 필터 목록에서 빼고 실제 색상 직접 지정. #dietOverlay는 이미 배경이
+   #eeeeee로 마이그레이션돼 있어서(dietPanel-history/stats), #dietPanel-today/
+   -settings 자체는 배경 추가 작업 없이 부모를 그대로 물려받음(색만 var 추가).
+   .today-meal-box/.meal-log-*는 #dietPanel-history가 이미 확립해 둔 값(#fdfdfd,
+   #1a1a1a)을 #dietPanel-today에도 그대로 재사용해서 두 패널이 똑같아 보이게 함 */
+html.light-mode-on .diet-today-section-label {
+  color: rgb(85,85,85) !important;
+}
+html.light-mode-on #dietPanel-today .today-meal-box {
+  background: #fdfdfd;
+  border-color: #ddd;
+}
+html.light-mode-on #dietPanel-today .meal-log-row {
+  border-bottom-color: rgba(0,0,0,0.08);
+}
+html.light-mode-on #dietPanel-today .meal-log-name {
+  color: #1a1a1a;
+}
+html.light-mode-on #dietPanel-today .meal-log-time,
+html.light-mode-on #dietPanel-today .meal-log-protein {
+  color: #1a1a1a;
+}
+html.light-mode-on #foodTemplateModal .modal-box,
+html.light-mode-on #quickAddMealModal .modal-box,
+html.light-mode-on #foodDbSaveConfirmModal .modal-box,
+html.light-mode-on #weightModal .modal-box {
+  background: #fdfdfd;
+  border-color: rgba(0,0,0,0.08);
+}
+html.light-mode-on #foodTemplateModal .modal-title,
+html.light-mode-on #quickAddMealModal .modal-title,
+html.light-mode-on #foodDbSaveConfirmModal .modal-title,
+html.light-mode-on #weightModal .modal-title {
+  color: var(--c-text-primary);
+}
+html.light-mode-on #foodTemplateModal .modal-actions,
+html.light-mode-on #quickAddMealModal .modal-actions,
+html.light-mode-on #foodDbSaveConfirmModal .modal-actions,
+html.light-mode-on #weightModal .modal-actions {
+  border-top-color: rgba(0,0,0,0.08);
+}
+html.light-mode-on #foodTemplateModal .modal-btn,
+html.light-mode-on #quickAddMealModal .modal-btn,
+html.light-mode-on #foodDbSaveConfirmModal .modal-btn,
+html.light-mode-on #weightModal .modal-btn {
+  color: rgb(28,78,144);
+}
+html.light-mode-on #foodTemplateModal .food-modal-form input,
+html.light-mode-on #quickAddMealModal .food-modal-form input {
+  background: #fdfdfd;
+  border-color: rgb(213,213,213);
+  color: var(--c-text-primary);
+}
+
 /* 🔥 홈 탭(#tab1) 라이트모드: 필터를 전혀 안 받는 화면이라, "반전 후 결과"를 역산하는 게
    아니라 실제로 화면에 보일 색을 직접(literal) 지정함. 카드/상자류는 기존에 확정했던
    시각적 결과(#fdfdfd, 거의 흰색)를 그대로 유지하고, 텍스트/테두리는 다크모드의
@@ -3507,12 +3581,11 @@ html.light-mode-on .app {
    자기 자신의 배경도 실제 값을 직접 지정(인라인 style이라 !important 필요) */
 html.light-mode-on #dietOverlay {
   background: #eeeeee !important;
+  color: var(--c-text-primary);
 }
 
 /* 바깥(화면 전체) — 원래 #000이던 큰 배경들(자기 자신이 필터 적용 대상이라 스왑 방식 그대로 유지) */
-html.light-mode-on .nav-drawer,
-html.light-mode-on .food-search-panel,
-html.light-mode-on .diet-ai-chat-inputbar {
+html.light-mode-on .nav-drawer {
   background: #111;
 }
 /* 바깥(화면 전체) — 인라인 style로 지정된 풀스크린 오버레이들(우선순위 위해 !important 필요) */
@@ -3526,8 +3599,6 @@ html.light-mode-on #bodyweightOverlay {
 html.light-mode-on .popup-box,
 html.light-mode-on .loginBtn:active,
 html.light-mode-on .exercise-card,
-html.light-mode-on .diet-ai-chat-msg.ai,
-html.light-mode-on .diet-ai-chat-input,
 html.light-mode-on .diet-water-ml-input,
 html.light-mode-on .bw-menu-card,
 html.light-mode-on .bw-routine-card,
@@ -4888,7 +4959,7 @@ input[type="number"] {
 .diet-water-log-divider {
   width: 1px;
   align-self: stretch;
-  background: rgba(255,255,255,0.14);
+  background: rgba(var(--c-ink-rgb),0.14);
   flex-shrink: 0;
 }
 .diet-water-log-label {
@@ -4896,6 +4967,9 @@ input[type="number"] {
   color: #aaa;
   font-weight: 600;
   white-space: nowrap;
+}
+html.light-mode-on .diet-water-log-label {
+  color: rgb(85,85,85);
 }
 .diet-water-log-half:first-child .diet-water-log-label {
   transform: translateX(-38px); /* 🔥 "물 섭취"만 살짝 왼쪽으로 (오늘의 몸무게는 그대로 중앙) */
@@ -4912,7 +4986,7 @@ input[type="number"] {
   flex-wrap: nowrap;
   gap: 6px;
   font-size: 15px;
-  color: #fff;
+  color: var(--c-text-primary);
   font-weight: 600;
 }
 .diet-water-count-wrap {
@@ -4934,7 +5008,7 @@ input[type="number"] {
   background: #111;
   border: 1px solid #2a2a2a;
   border-radius: 6px;
-  color: #fff;
+  color: var(--c-text-primary);
   font-size: 14px;
   font-weight: 600;
   text-align: center;
@@ -4942,11 +5016,18 @@ input[type="number"] {
   padding: 0 2px;
   flex-shrink: 0;
 }
+html.light-mode-on .diet-water-ml-input {
+  background: #fdfdfd;
+  border-color: rgb(213,213,213);
+}
 .diet-water-ml-unit {
   font-size: 12px;
   color: #777;
   font-weight: 500;
   white-space: nowrap;
+}
+html.light-mode-on .diet-water-ml-unit {
+  color: rgb(136,136,136);
 }
 .diet-water-log-controls button {
   -webkit-appearance: none;
@@ -4954,9 +5035,9 @@ input[type="number"] {
   width: 28px;
   height: 28px;
   border-radius: 8px;
-  border: 1px solid rgba(255,255,255,0.25);
+  border: 1px solid rgba(var(--c-ink-rgb),0.25);
   background: transparent;
-  color: #fff;
+  color: var(--c-text-primary);
   font-size: 16px;
   line-height: 1;
   cursor: pointer;
@@ -4969,7 +5050,7 @@ input[type="number"] {
   margin: 0;
 }
 .diet-water-log-controls button:active {
-  background: rgba(255,255,255,0.08);
+  background: rgba(var(--c-ink-rgb),0.08);
 }
 .diet-weight-open-btn {
   -webkit-appearance: none;
@@ -4979,9 +5060,9 @@ input[type="number"] {
   margin: 0; /* 🔥 전역 button{margin:10px 0} 리셋 무력화 */
   padding: 0 12px;
   border-radius: 8px;
-  border: 1px solid rgba(255,255,255,0.25);
+  border: 1px solid rgba(var(--c-ink-rgb),0.25);
   background: transparent;
-  color: #fff;
+  color: var(--c-text-primary);
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
@@ -4991,7 +5072,7 @@ input[type="number"] {
   justify-content: center;
 }
 .diet-weight-open-btn:active {
-  background: rgba(255,255,255,0.08);
+  background: rgba(var(--c-ink-rgb),0.08);
 }
 .weight-weeks-left {
   font-size: 13px;
@@ -5000,12 +5081,18 @@ input[type="number"] {
   padding: 8px 16px 2px;
   min-height: 16px;
 }
+html.light-mode-on .weight-weeks-left {
+  color: rgb(94,54,0);
+}
 .weight-weeks-left-detail {
   font-size: 11.5px;
   color: #888;
   text-align: center;
   padding: 0 16px 8px;
   min-height: 14px;
+}
+html.light-mode-on .weight-weeks-left-detail {
+  color: rgb(119,119,119);
 }
 
 /* 🔥 몸무게 팝업: 가로/세로 확대 + 필드 레이아웃(라벨 위, 입력칸 큼직하게) */
@@ -5032,6 +5119,9 @@ input[type="number"] {
   font-weight: 700;
   margin-bottom: 10px;
 }
+html.light-mode-on .weight-field-label {
+  color: rgb(51,51,51);
+}
 /* 🔥 .food-modal-form input(공용, height:42px)보다 확실히 더 구체적인 셀렉터로
    지정해야 이 규칙이 실제로 이김 (class 단독 셀렉터는 밀림) */
 #weightModal input.weight-field-input {
@@ -5040,7 +5130,7 @@ input[type="number"] {
   background: #111;
   border: 1px solid #2a2a2a;
   border-radius: 12px;
-  color: #fff;
+  color: var(--c-text-primary);
   font-size: 26px;
   font-weight: 700;
   text-align: center; /* 🔥 글자 가운데 정렬 */
@@ -5048,9 +5138,16 @@ input[type="number"] {
   padding: 0 10px;
   margin: 0;
 }
+html.light-mode-on #weightModal input.weight-field-input {
+  background: #fdfdfd;
+  border-color: rgb(213,213,213);
+}
 #weightModal input.weight-field-input:focus {
   outline: none;
   border-color: #fff;
+}
+html.light-mode-on #weightModal input.weight-field-input:focus {
+  border-color: var(--c-text-primary);
 }
 .weight-stepper-row {
   display: flex;
@@ -5069,9 +5166,9 @@ input[type="number"] {
   height: 84px;      /* 🔥 현재 몸무게 입력칸과 세로 폭 완전히 동일하게 */
   margin: 0;         /* 🔥 브라우저 기본 button 여백 제거(안 하면 입력칸과 위치가 어긋남) */
   border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.25);
+  border: 1px solid rgba(var(--c-ink-rgb),0.25);
   background: transparent;
-  color: #fff;
+  color: var(--c-text-primary);
   font-size: 30px;   /* 커진 버튼 크기에 맞춰 글자도 키움 */
   cursor: pointer;
   display: flex;
@@ -5079,13 +5176,16 @@ input[type="number"] {
   justify-content: center;
 }
 .weight-stepper-btn:active {
-  background: rgba(255,255,255,0.08);
+  background: rgba(var(--c-ink-rgb),0.08);
 }
 .macro-cal-label {
   font-size: 16px; /* 🔥 "물 섭취"/"오늘의 몸무게" 라벨과 글씨 스타일 통일 */
   color: #aaa;
   font-weight: 600;
   margin-bottom: 4px;
+}
+html.light-mode-on .macro-cal-label {
+  color: rgb(85,85,85);
 }
 .cal-target-row {
   display: grid;
@@ -5096,7 +5196,7 @@ input[type="number"] {
 .cal-target-num {
   font-size: 24px;
   font-weight: 700;
-  color: #fff;
+  color: var(--c-text-primary);
   letter-spacing: 0.3px;
 }
 #calCurrentText {
@@ -5105,7 +5205,7 @@ input[type="number"] {
 .cal-target-slash {
   font-size: 24px;
   font-weight: 700;
-  color: #fff;
+  color: var(--c-text-primary);
   text-align: center;
 }
 .cal-target-rest {
@@ -5114,19 +5214,19 @@ input[type="number"] {
 .cal-target-unit {
   font-size: 12px;
   font-weight: 500;
-  color: rgba(255,255,255,0.4);
+  color: rgba(var(--c-ink-rgb),0.4);
 }
 .cal-progress-track {
   position: relative;
   height: 8px; /* 🔥 탄단지 막대와 두께 통일 (기존 3px) */
   border-radius: 999px;
-  background: rgba(255,255,255,0.18);
+  background: rgba(var(--c-ink-rgb),0.18);
   margin: 12px 0 18px;
   overflow: hidden;
 }
 .cal-progress-fill {
   height: 100%;
-  background: rgba(255,255,255,0.85);
+  background: rgba(var(--c-ink-rgb),0.85);
   transition: width 0.25s ease;
 }
 .bar-highlight {
@@ -5136,6 +5236,9 @@ input[type="number"] {
   opacity: 0.85;
   display: none;
   transition: left 0.25s ease, width 0.25s ease;
+}
+html.light-mode-on .bar-highlight {
+  background: rgb(255,99,99);
 }
 
 /* 🔥 탄/단/지 좌(그래프) : 우(수치) = 3 : 2 비율, 가운데 세로 구분선 */
@@ -5153,7 +5256,7 @@ input[type="number"] {
 }
 .macro-split-divider {
   width: 1px;
-  background: rgba(255,255,255,0.14);
+  background: rgba(var(--c-ink-rgb),0.14);
   flex-shrink: 0;
 }
 .macro-split-right {
@@ -5175,19 +5278,19 @@ input[type="number"] {
   font-size: 12px;
   font-weight: 600;
   line-height: 1;
-  color: rgba(255,255,255,0.5);
+  color: rgba(var(--c-ink-rgb),0.5);
 }
 .macro-bar-track {
   position: relative;
   flex: 1;
   height: 8px; /* 🔥 통계 탭 탄단지 막대(8px)와 두께 통일 (기존 3px) */
   border-radius: 999px;
-  background: rgba(255,255,255,0.14);
+  background: rgba(var(--c-ink-rgb),0.14);
   overflow: hidden;
 }
 .macro-bar-fill {
   height: 100%;
-  background: rgba(255,255,255,0.75);
+  background: rgba(var(--c-ink-rgb),0.75);
   transition: width 0.25s ease;
 }
 .macro-num-row {
@@ -5195,7 +5298,7 @@ input[type="number"] {
   align-items: center;
   justify-content: flex-end;
   font-size: 12px;
-  color: rgba(255,255,255,0.6);
+  color: rgba(var(--c-ink-rgb),0.6);
   white-space: nowrap;
   line-height: 1;
   text-align: right;
@@ -5269,16 +5372,20 @@ input[type="number"] {
   background: #111;
   border: 1px solid #2a2a2a;
   border-radius: 10px;
-  color: #fff;
+  color: var(--c-text-primary);
   padding: 0 12px;
   font-size: 14px;
   box-sizing: border-box;
   margin: 0 0 8px;
 }
+html.light-mode-on .diet-food-db-search {
+  background: #fdfdfd;
+  border-color: rgb(213,213,213);
+}
 .diet-food-db-card {
   position: relative;
   padding: 12px 4px;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
+  border-bottom: 1px solid rgba(var(--c-ink-rgb),0.1);
   cursor: pointer;
 }
 
@@ -5294,15 +5401,15 @@ input[type="number"] {
   margin: 0 0 4px;
   background: transparent;
   border: none;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
-  color: rgba(255,255,255,0.85);
+  border-bottom: 1px solid rgba(var(--c-ink-rgb),0.1);
+  color: rgba(var(--c-ink-rgb),0.85);
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
   text-align: left;
 }
 .food-search-open-btn:active {
-  color: #fff;
+  color: var(--c-text-primary);
 }
 
 /* 🔥 "찾기" 버튼으로 여는 음식 DB 검색 패널 — 전체 화면이 아니라 "내 식단" 템플릿
@@ -5330,8 +5437,8 @@ input[type="number"] {
   right: 0;
   bottom: 0;
   width: 60%;
-  background: #000;
-  border-left: 1px solid rgba(255,255,255,0.14);
+  background: rgb(var(--c-anti-ink-rgb));
+  border-left: 1px solid rgba(var(--c-ink-rgb),0.14);
   padding: 8px 4px 4px;
   box-sizing: border-box;
   display: flex;
@@ -5361,7 +5468,7 @@ input[type="number"] {
   width: auto; /* 🔥 전역 button{width:100%} 리셋 무력화 */
   background: transparent;
   border: none;
-  color: rgba(255,255,255,0.6);
+  color: rgba(var(--c-ink-rgb),0.6);
   font-size: 18px;
   line-height: 1;
   padding: 4px 6px;
@@ -5383,15 +5490,15 @@ input[type="number"] {
   margin: 4px 0 0;
   padding: 0;
   border-radius: 10px;
-  border: 1px solid rgba(255,255,255,0.25);
+  border: 1px solid rgba(var(--c-ink-rgb),0.25);
   background: transparent;
-  color: rgba(255,255,255,0.85);
+  color: rgba(var(--c-ink-rgb),0.85);
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
 }
 .quick-add-meal-btn:active {
-  background: rgba(255,255,255,0.06);
+  background: rgba(var(--c-ink-rgb),0.06);
 }
 
 .today-meal-box {
@@ -5747,12 +5854,15 @@ input[type="number"] {
   display: block;
   margin: 6px 0 14px 2px;
 }
+html.light-mode-on #weightModal .food-modal-form label {
+  color: rgb(119,119,119);
+}
 /* 🔥 품명/탄수화물/단백질/지방 입력 팝업(foodTemplateModal, quickAddMealModal):
    라벨 글씨가 작고 흐려 잘 안 보이던 것 -> 크게, 흰색으로 */
 #foodTemplateModal .food-modal-form label,
 #quickAddMealModal .food-modal-form label {
   font-size: 15px;
-  color: #fff;
+  color: var(--c-text-primary);
   margin: 0 0 6px 2px; /* 🔥 라벨이 입력창 바로 위로 올라오므로 간격 재조정 */
 }
 #foodTemplateModal .food-modal-form input,
@@ -6795,14 +6905,14 @@ input[type="number"] {
 
     <div id="tab5ScrollArea">
 
-      <div style="font-size:14px; color:#aaa; font-weight:600; margin:7px 0 10px;">오늘 먹은 것</div>
+      <div class="diet-today-section-label" style="font-size:14px; color:#aaa; font-weight:600; margin:7px 0 10px;">오늘 먹은 것</div>
 
       <div id="todayMealList" class="today-meal-box"></div>
 
       <button id="quickAddMealBtn" type="button" class="quick-add-meal-btn">추가</button>
 
       <div style="display:flex; justify-content:space-between; align-items:center; margin:22px 0 10px;">
-        <div style="font-size:14px; color:#aaa; font-weight:600;">내 식단</div>
+        <div class="diet-today-section-label" style="font-size:14px; color:#aaa; font-weight:600;">내 식단</div>
         <button id="addFoodTemplateBtn" class="add-btn">+</button>
       </div>
 
@@ -9470,7 +9580,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.8.4";
+const APP_VERSION = "0.8.5";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
