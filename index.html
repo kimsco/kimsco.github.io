@@ -2650,11 +2650,8 @@ html.mf-restore-settings .settings-panel {
    덮는 자기 자신이 position:fixed라 문제 없음).
 ================================ */
 html.light-mode-on #bodyweightOverlay,
-html.light-mode-on #loginArea,
-html.light-mode-on #consentModal,
 html.light-mode-on #graphOverlay,
 html.light-mode-on #graphSheet,
-html.light-mode-on #deleteAccountModal,
 html.light-mode-on #dietPanel-today,
 html.light-mode-on #dietPanel-settings,
 html.light-mode-on #dietSubTabBar,
@@ -2664,9 +2661,6 @@ html.light-mode-on #foodDbSaveConfirmModal,
 html.light-mode-on #weightModal,
 html.light-mode-on #navDrawerOverlay,
 html.light-mode-on #settingsOverlay,
-html.light-mode-on #logoutModal,
-html.light-mode-on #loginSheetOverlay,
-html.light-mode-on #loginSheet,
 html.light-mode-on #mySpecOverlay {
   filter: invert(1) hue-rotate(180deg);
 }
@@ -3275,6 +3269,106 @@ html.light-mode-on #whoForCtaBtn {
 html.light-mode-on .who-cta-sub + button#whoForCtaBtn:active,
 html.light-mode-on #whoForCtaBtn:active {
   background: rgba(0,0,0,0.1);
+}
+
+/* 🔥 [9단계] 로그인/계정(#loginSheetOverlay/#loginSheet/#consentModal/
+   #deleteAccountModal/#logoutModal) 라이트모드: 필터 목록에서 빼고 실제 색상
+   직접 지정. .sheet/.sheetOverlay/.sheetGrab은 아직 필터 방식인 그래프
+   바텀시트(#graphOverlay/#graphSheet)와 클래스를 공유해서 #loginSheet(Overlay)로
+   범위를 좁힘. #consentModal/#deleteAccountModal/#logoutModal은 .modal/.modal-box
+   등 다른 아직 필터 방식인 모달들과 공유해서 ID로 범위를 좁힘 */
+html.light-mode-on #loginSheetOverlay {
+  background: rgba(255,255,255,0.35);
+}
+html.light-mode-on #loginSheet {
+  background: rgb(244,244,244);
+  border-top-color: rgba(0,0,0,0.08);
+}
+html.light-mode-on #loginSheet .sheetGrab {
+  background: rgba(0,0,0,0.22);
+}
+html.light-mode-on .login-sheet-title {
+  color: var(--c-text-primary);
+}
+html.light-mode-on .login-sheet-sub {
+  color: rgb(119,119,119);
+}
+html.light-mode-on .settings-login-consent-notice {
+  color: rgb(136,136,136);
+}
+html.light-mode-on .consent-notice-link {
+  color: rgb(102,102,102);
+}
+html.light-mode-on #consentModal .modal-box {
+  background: #fdfdfd;
+  border-color: rgba(0,0,0,0.08);
+}
+html.light-mode-on #consentModal .modal-title {
+  color: var(--c-text-primary);
+}
+html.light-mode-on #consentModal .modal-actions {
+  border-top-color: rgba(0,0,0,0.08);
+}
+html.light-mode-on #consentModal .modal-btn {
+  color: rgb(28,78,144);
+}
+html.light-mode-on .consent-section h3 {
+  color: var(--c-text-primary);
+}
+html.light-mode-on .consent-text {
+  color: rgb(102,102,102);
+}
+html.light-mode-on .consent-scrollable {
+  background: rgb(245,245,245);
+  border-color: rgb(213,213,213);
+}
+html.light-mode-on #deleteAccountModal .modal-box {
+  background: #fdfdfd;
+  border-color: rgba(0,0,0,0.08);
+}
+html.light-mode-on #deleteAccountModal .modal-title {
+  color: var(--c-text-primary);
+}
+html.light-mode-on #deleteAccountModal .modal-content {
+  color: var(--c-text-primary);
+}
+html.light-mode-on #deleteAccountModal .delete-account-warn-1 {
+  color: rgb(231,84,84) !important;
+}
+html.light-mode-on #deleteAccountModal .delete-account-warn-2 {
+  color: rgb(255,146,146) !important;
+}
+html.light-mode-on #deleteAccountModal .modal-actions {
+  border-top-color: rgba(0,0,0,0.08);
+}
+html.light-mode-on #deleteAccountModal .modal-btn {
+  color: rgb(28,78,144);
+}
+html.light-mode-on #deleteAccountConfirm {
+  background: rgb(255,128,144) !important;
+  color: #000 !important;
+}
+html.light-mode-on #logoutModal .modal-box {
+  background: #fdfdfd;
+  border-color: rgba(0,0,0,0.08);
+}
+html.light-mode-on #logoutModal .modal-title {
+  color: var(--c-text-primary);
+}
+html.light-mode-on #logoutModal .modal-desc {
+  color: rgb(48,48,48);
+}
+html.light-mode-on #logoutModal .modal-actions {
+  border-top-color: rgba(0,0,0,0.08);
+}
+html.light-mode-on #logoutModal .modal-btn {
+  color: rgb(28,78,144);
+}
+html.light-mode-on #logoutModal .modal-btn + .modal-btn {
+  border-left-color: rgba(0,0,0,0.08);
+}
+html.light-mode-on #logoutModal .modal-btn.danger {
+  color: rgb(231,84,84);
 }
 
 /* 🔥 홈 탭(#tab1) 라이트모드: 필터를 전혀 안 받는 화면이라, "반전 후 결과"를 역산하는 게
@@ -8076,12 +8170,12 @@ MuscleFlow는 개인의 운동 및 식단 기록을 관리하는 PWA 서비스�
   <div class="modal-box">
     <div class="modal-title">회원 탈퇴</div>
     <div class="modal-content" style="padding:16px; line-height:1.6;">
-      <strong style="color:#ff6b6b;">⚠️ 주의!</strong><br><br>
+      <strong class="delete-account-warn-1" style="color:#ff6b6b;">⚠️ 주의!</strong><br><br>
       회원을 탈퇴하시면 다음 데이터가 <strong>영구 삭제</strong>됩니다.<br><br>
       • 기록된 모든 운동 데이터<br>
       • 기록된 모든 식단 데이터<br>
       • 프로필 정보<br><br>
-      <strong style="color:#ff0000;">❌ 삭제된 데이터는 복구할 수 없습니다!</strong><br><br>
+      <strong class="delete-account-warn-2" style="color:#ff0000;">❌ 삭제된 데이터는 복구할 수 없습니다!</strong><br><br>
       정말 탈퇴하시겠습니까?
     </div>
     <div class="modal-actions">
@@ -9345,7 +9439,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.8.2";
+const APP_VERSION = "0.8.3";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
