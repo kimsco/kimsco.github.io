@@ -9624,7 +9624,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.8.18";
+const APP_VERSION = "0.8.19";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -12073,11 +12073,15 @@ const whoForCtaMain = document.getElementById("whoForCtaMain");
 const whoForCtaTSpans = whoForCtaMain.querySelectorAll(".who-cta-t");
 const whoForCtaFadeSpans = whoForCtaMain.querySelectorAll(".who-cta-fade");
 let whoForCtaPlayed = false;
+// 🔥 "TO THE TOP." 글자가 다 나오기 전에 CTA 버튼을 눌러 화면을 닫아버리면(=밑에 하단탭이
+//    바로 눌리는 상태로 돌아감) 연출이 끊겨 보임 — 글자 페이드인까지 완전히 끝나야 true
+let whoForCtaReady = false;
 
 // 🔥 T,T,T를 "TO THE TOP." 문장 속 각자의 자리(자연스러운 최종 위치)에서
 //    서로 붙여 "TTT" 로고처럼 뭉쳐 보이도록 초기 오프셋을 계산해서 적용
 function whoForResetCtaIntro(){
   whoForCtaPlayed = false;
+  whoForCtaReady = false;
   // 🔥 트랜지션이 걸린 채로 클래스만 떼면 살짝 사라지는 애니메이션이 보여버림 — 즉시 초기화
   whoForCtaFadeSpans.forEach(el => {
     el.style.transition = "none";
@@ -12115,6 +12119,9 @@ function whoForPlayCtaIntro(){
     // 2) T들이 자리잡고 0.1초 후, 나머지 글자(O·HE·OP·.)가 페이드인으로 등장
     setTimeout(() => {
       whoForCtaFadeSpans.forEach(el => el.classList.add("who-cta-fade-in"));
+      // 🔥 페이드인 트랜지션(1.5s, CSS의 .who-cta-fade transition 값과 동일)까지 다 끝난 뒤에야
+      //    CTA 버튼이 눌리게 함
+      setTimeout(() => { whoForCtaReady = true; }, 1500);
     }, 1000 + 100);
   }, 300);
 }
@@ -12129,6 +12136,7 @@ function openWhoFor(){
   whoForResetCtaIntro();
 }
 function closeWhoFor(){
+  if (!whoForCtaReady) return; // 🔥 "TO THE TOP." 연출이 다 끝나기 전엔 닫기(=하단탭 노출) 무시
   whoForOverlay.classList.add("hidden");
 }
 
