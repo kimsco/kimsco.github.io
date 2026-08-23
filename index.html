@@ -1323,6 +1323,11 @@ html.mf-restore-settings .settings-overlay.hidden {
 html.mf-restore-settings .settings-panel {
   transform: translateX(0) !important;
 }
+/* 🔥 같은 이유로, 이 복원 구간 동안엔 하단탭도 아예 안 보이게 함 — 설정 화면이 완전히
+   덮기 전 잠깐 하단탭이 비치던 깜빡임 방지 */
+html.mf-restore-settings .bottomTab {
+  display: none !important;
+}
 
 #threeSummaryOverlay.hidden {
   display: none;
@@ -9619,7 +9624,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.8.15";
+const APP_VERSION = "0.8.16";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
