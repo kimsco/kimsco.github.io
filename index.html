@@ -9702,7 +9702,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.8.27";
+const APP_VERSION = "0.8.28";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -15451,6 +15451,7 @@ document.getElementById('dietBackCircleBtn').addEventListener('click', () => {
   setBarsPush(0);
   void bottomTabEl.offsetHeight;
   void appEl1.offsetHeight;
+  void topBarEl.offsetHeight;
 
   const toRect = getTextRect(targetBtn);
 
@@ -15460,6 +15461,8 @@ document.getElementById('dietBackCircleBtn').addEventListener('click', () => {
   bottomTabEl.style.translate = prevBottomTabTranslate;
   void bottomTabEl.offsetHeight;
   void appEl1.offsetHeight;
+  void topBarEl.offsetHeight; // 🔥 이것도 강제 리플로우 안 해주면(bottomTab/app만 하고 topBar는 빠져있었음)
+                               //    사파리에서 곧이어 걸리는 진짜 트랜지션이 씹혀서 순간이동하는 문제가 있었음
   bottomTabEl.style.transition = prevBottomTransition;
   appEl1.style.transition = prevAppTransition;
   topBarEl.style.transition = prevTopBarTransition;
