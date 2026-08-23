@@ -3639,21 +3639,6 @@ html.light-mode-on #mySpecOverlay {
   color: var(--c-text-primary);
 }
 
-/* 상자(카드/입력창/버튼 등) — 원래 #111 또는 #1a1a1a이던 박스들
-   (홈 탭 카드와 동일하게 #020202→반전 후 약 rgb(253,253,253)로 통일) */
-html.light-mode-on .popup-box,
-html.light-mode-on .loginBtn:active,
-html.light-mode-on .exercise-card,
-html.light-mode-on .diet-water-ml-input,
-html.light-mode-on .dex-modal-input,
-html.light-mode-on .dex-modal-textarea,
-html.light-mode-on #weightModal input.weight-field-input,
-html.light-mode-on .diet-food-db-search,
-html.light-mode-on .today-meal-box,
-html.light-mode-on .food-modal-form input,
-html.light-mode-on .modal-box {
-  background: #020202;
-}
 .dex-post-card-label{
   font-size: 17px;
   font-weight: 700;
@@ -9631,7 +9616,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.8.8";
+const APP_VERSION = "0.8.9";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
