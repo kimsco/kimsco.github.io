@@ -9705,7 +9705,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.8.31";
+const APP_VERSION = "0.8.32";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -15866,6 +15866,10 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
           const activeTarget = document.querySelector('.bottomTab .tabBtn.active')?.dataset.target;
           item.classList.toggle("active", item.dataset.target === activeTarget);
         });
+        navDrawer.style.animation = 'none'; // 🔥 안전장치: 앱 첫 실행 후 첫 스와이프 때, .nav-drawer의
+          // 기본 CSS 애니메이션(slideInLeft, 0.25s)이 아직 한 번도 꺼진 적 없어서 이 드래그와
+          // 별개로 자기 혼자 재생돼버려(그래서 조금만 끌어도 드로어가 바로 완전히 열린 것처럼
+          // 보임) — 인라인으로 한 번 꺼두면 이후엔 계속 꺼진 채로 남아 재발 안 함
         navDrawer.style.transition = 'none';
         navDrawer.style.transform = 'translateX(-100%)';
         navDrawerDim.style.transition = 'none';
