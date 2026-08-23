@@ -9702,7 +9702,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.8.26";
+const APP_VERSION = "0.8.27";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -15130,10 +15130,14 @@ function hideSwipeTouchGuard(){ if (swipeTouchGuardEl) swipeTouchGuardEl.style.p
 // 🔥 메뉴 드로어/설정/식단을 열고닫을 때 뒷화면(.app)이 옆으로 살짝 밀리는데, topBar/bottomTab과
 //    3대탭/기록탭의 알약형 저장바(#recordFloatBarTab2/#recordFloatBarAcc)·토스트 메시지
 //    (#recordMessage)는 body 바로 밑으로 옮겨져 있어서(아래 이동 처리 참고) 그동안 제자리에
-//    고정돼 있었음 — 이것들도 같은 폭만큼 같이 밀어주는 공용 헬퍼. transform이 아니라 translate를
-//    쓰는 이유: topBar/bottomTab/알약바는 이미 자기 transform으로 가운데 정렬·collapse·축소
-//    등을 하고 있어서, 그걸 안 건드리고 "얹어서" 합성되는 별도 속성인 translate로 밀어야 서로
-//    안 부딪힘.
+//    고정돼 있었음 — 이것들도 같은 폭만큼 같이 밀어주는 공용 헬퍼. bottomTab/알약바는 transform이
+//    아니라 translate 속성을 쓰는데(이미 자기 transform으로 가운데 정렬·collapse·축소 등을
+//    하고 있어서, 그걸 안 건드리고 "얹어서" 합성되는 별도 속성인 translate로 밀어야 서로 안
+//    부딪힘), topBar는 collapse처럼 또 다른 transform을 쓰는 경우가 없어서 그냥 transform에
+//    직접 합성함 — 사파리에서 translate 속성 자체의 트랜지션(애니메이션)이 씹혀서(트랜지션 없이
+//    순간 이동) 뒤로가기 시 본 화면(.app)은 서서히 돌아오는데 topBar만 안 움직이다 툭 하고
+//    제자리로 순간이동하는 문제가 있었음 — bottomTab은 어차피 collapse class의 transform
+//    트랜지션(정상 작동)이 주된 움직임이라 이 문제가 거의 안 보여서 그대로 둠
 const BOTTOMTAB_BASE_TRANSITION = 'transform 0.32s cubic-bezier(0.22,1,0.36,1), opacity 0.22s ease';
 const RECORDFLOATBAR_BASE_TRANSITION = 'transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.28s cubic-bezier(0.22, 1, 0.36, 1)';
 // 🔥 topBar/bottomTab(z-index 99999)과 알약바/토스트(z-index 500, 오버레이한테 덮이라고
@@ -15143,13 +15147,13 @@ const RECORDFLOATBAR_BASE_TRANSITION = 'transform 0.28s cubic-bezier(0.22, 1, 0.
 //    (즉시 같이 복귀시키면 오버레이가 가리고 있는 동안 이미 다 끝나버려서 복귀 액션 자체가
 //    안 보이는 문제가 있었음)
 function setBarsPush(px){
+  if (topBarEl) topBarEl.style.transform = px ? `translateX(-50%) translateX(${px}px)` : '';
   const t = px ? `${px}px` : '';
-  if (topBarEl) topBarEl.style.translate = t;
   if (bottomTabEl) bottomTabEl.style.translate = t;
 }
 function setBarsPushTransition(transformCss){
   const translateCss = (!transformCss || transformCss === 'none') ? null : transformCss.replace(/\btransform\b/g, 'translate');
-  if (topBarEl) topBarEl.style.transition = translateCss || 'none';
+  if (topBarEl) topBarEl.style.transition = transformCss || 'none';
   if (bottomTabEl) bottomTabEl.style.transition = translateCss ? `${BOTTOMTAB_BASE_TRANSITION}, ${translateCss}` : BOTTOMTAB_BASE_TRANSITION;
 }
 function setFloatBarPush(px){
@@ -15178,7 +15182,7 @@ function setChromePushTransition(transformCss){
 }
 // 🔥 완전히 닫힌 뒤 인라인 translate/transition을 깨끗이 비워서 다음에 열 때 잔상 없이 시작하게 함
 function resetChromePush(){
-  if (topBarEl) { topBarEl.style.transition = ''; topBarEl.style.translate = ''; }
+  if (topBarEl) { topBarEl.style.transition = ''; topBarEl.style.transform = ''; }
   if (bottomTabEl) { bottomTabEl.style.transition = ''; bottomTabEl.style.translate = ''; }
   document.querySelectorAll('.recordFloatBar').forEach(el => { el.style.transition = ''; el.style.translate = ''; });
   const recordMessageEl = document.getElementById('recordMessage');
@@ -15436,7 +15440,8 @@ document.getElementById('dietBackCircleBtn').addEventListener('click', () => {
   const prevAppTransition = appEl1.style.transition;
   const prevAppTransform = appEl1.style.transform;
   const prevTopBarTransition = topBarEl.style.transition;
-  const prevBarsTranslate = topBarEl.style.translate; // topBar/bottomTab는 항상 같은 값으로 같이 밀리므로 하나만 스냅샷해도 충분
+  const prevTopBarTransform = topBarEl.style.transform; // 🔥 topBar는 transform 자체에 push를 합성해서 씀
+  const prevBottomTabTranslate = bottomTabEl.style.translate;
 
   bottomTabEl.style.transition = 'none';
   appEl1.style.transition = 'none';
@@ -15451,8 +15456,8 @@ document.getElementById('dietBackCircleBtn').addEventListener('click', () => {
 
   bottomTabEl.classList.add('tab-collapsed');
   appEl1.style.transform = prevAppTransform;
-  topBarEl.style.translate = prevBarsTranslate;
-  bottomTabEl.style.translate = prevBarsTranslate;
+  topBarEl.style.transform = prevTopBarTransform;
+  bottomTabEl.style.translate = prevBottomTabTranslate;
   void bottomTabEl.offsetHeight;
   void appEl1.offsetHeight;
   bottomTabEl.style.transition = prevBottomTransition;
@@ -15478,7 +15483,7 @@ document.getElementById('dietBackCircleBtn').addEventListener('click', () => {
   setTimeout(() => {
     appEl1.style.transform = '';
     appEl1.style.transition = '';
-    if (topBarEl) { topBarEl.style.transition = ''; topBarEl.style.translate = ''; }
+    if (topBarEl) { topBarEl.style.transition = ''; topBarEl.style.transform = ''; }
     if (bottomTabEl) { bottomTabEl.style.transition = ''; bottomTabEl.style.translate = ''; }
   }, 350);
 
