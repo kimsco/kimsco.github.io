@@ -60,6 +60,7 @@ try {
   --c-border: #222;
   --c-accent-gold: #FFD700;
   --c-accent-red: #e0203f;
+  --c-login-link: #4aa3ff;
   /* 🔥 인라인 style에 하드코딩된 rgba(255,255,255,X) 반투명 흰색들을 var()로
      한 번에 바꿔치기하기 위한 RGB 3채널 값(콤마 리스트). 예: rgba(var(--c-ink-rgb), 0.35).
      흰색(255,255,255)을 invert()하면 정확히 검정(0,0,0)이 되므로(회색조라 hue-rotate는
@@ -81,6 +82,7 @@ html.light-mode-on {
   --c-accent-red: #d81b3f;
   --c-ink-rgb: 0,0,0;
   --c-anti-ink-rgb: 255,255,255;
+  --c-login-link: rgb(28,116,208);
 }
 
 html, body {
@@ -2675,8 +2677,6 @@ html.mf-restore-settings .settings-panel {
    덮는 자기 자신이 position:fixed라 문제 없음).
 ================================ */
 html.light-mode-on #bodyweightOverlay,
-html.light-mode-on #navDrawerOverlay,
-html.light-mode-on #settingsOverlay,
 html.light-mode-on #mySpecOverlay {
   filter: invert(1) hue-rotate(180deg);
 }
@@ -2709,15 +2709,6 @@ html.light-mode-on .days div.selected {
 }
 html.light-mode-on #recordMessage {
   color: #ff7d69 !important;
-}
-
-/* 🔥 설정 화면: 라이트모드에서 "바깥 배경"과 "상자 배경"의 명암을 서로 맞바꿈
-   (반전 전 값을 서로 바꿔서 지정 — 반전 후 바깥은 연회색, 상자는 흰색이 됨) */
-html.light-mode-on .settings-panel {
-  background: #111;
-}
-html.light-mode-on .settings-card {
-  background: #000;
 }
 
 /* 🔥 [2단계] 상단바(.topBar)/하단탭(#bottomTab) 라이트모드: 이 둘은 모든 화면에
@@ -3461,6 +3452,28 @@ html.light-mode-on #quickAddMealModal .food-modal-form input {
   color: var(--c-text-primary);
 }
 
+/* 🔥 [12단계] 네비게이션 드로어(#navDrawerOverlay)/설정(#settingsOverlay) 라이트모드:
+   필터 목록에서 빼고 실제 색상 직접 지정. 설정 아이콘(.settings-item-icon)은
+   :not(.settings-item-icon)으로 이중 반전 보정에서 원래 제외돼 있던 대상이라
+   (사진이 아니라 단순 아이콘이라 조상 필터를 그대로 받아 반전되는 게 의도),
+   조상 필터가 사라진 지금은 자기 자신에게 직접 필터를 걸어 같은 결과를 재현함.
+   토글 스위치는 5단계(#tab3 #calendarToggle)와 완전히 동일한 값 재사용 */
+html.light-mode-on .settings-item-icon {
+  filter: invert(1) hue-rotate(180deg);
+}
+html.light-mode-on #settingsOverlay .toggle-switch {
+  background: rgb(197,197,197);
+}
+html.light-mode-on #settingsOverlay .toggle-switch::after {
+  background: rgb(33,33,33);
+}
+html.light-mode-on #lightModeToggle.toggle-switch.active {
+  background: rgb(0,0,0);
+}
+html.light-mode-on #lightModeToggle.toggle-switch.active::after {
+  background: rgb(197,197,197);
+}
+
 /* 🔥 홈 탭(#tab1) 라이트모드: 필터를 전혀 안 받는 화면이라, "반전 후 결과"를 역산하는 게
    아니라 실제로 화면에 보일 색을 직접(literal) 지정함. 카드/상자류는 기존에 확정했던
    시각적 결과(#fdfdfd, 거의 흰색)를 그대로 유지하고, 텍스트/테두리는 다크모드의
@@ -3584,10 +3597,6 @@ html.light-mode-on #dietOverlay {
   color: var(--c-text-primary);
 }
 
-/* 바깥(화면 전체) — 원래 #000이던 큰 배경들(자기 자신이 필터 적용 대상이라 스왑 방식 그대로 유지) */
-html.light-mode-on .nav-drawer {
-  background: #111;
-}
 /* 바깥(화면 전체) — 인라인 style로 지정된 풀스크린 오버레이들(우선순위 위해 !important 필요) */
 html.light-mode-on #mySpecOverlay,
 html.light-mode-on #bodyweightOverlay {
@@ -3775,7 +3784,7 @@ html.light-mode-on .modal-box {
 .nav-drawer-dim {
   position: absolute;
   inset: 0;
-  background: rgba(0,0,0,0.5);
+  background: rgba(var(--c-anti-ink-rgb),0.5);
   z-index: 0;
 }
 .nav-drawer {
@@ -3785,7 +3794,7 @@ html.light-mode-on .modal-box {
   max-width: 280px;
   height: 100%;
   background: #000;
-  border-right: 1px solid rgba(255,255,255,0.45);
+  border-right: 1px solid rgba(var(--c-ink-rgb),0.45);
   padding: calc(24px + env(safe-area-inset-top)) 20px 24px;
   box-sizing: border-box;
   display: flex;
@@ -3794,13 +3803,16 @@ html.light-mode-on .modal-box {
   transform: translateX(-100%);
   animation: slideInLeft 0.25s ease forwards;
 }
+html.light-mode-on .nav-drawer {
+  background: #eeeeee;
+}
 
 @keyframes slideInLeft {
   to { transform: translateX(0); }
 }
 .nav-drawer-title {
   font-size: 12px;
-  color: rgba(255,255,255,0.4);
+  color: rgba(var(--c-ink-rgb),0.4);
   letter-spacing: 0.5px;
   margin-bottom: 18px;
 }
@@ -3809,8 +3821,8 @@ html.light-mode-on .modal-box {
   appearance: none;
   background: transparent;
   border: none;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
-  color: rgba(255,255,255,0.7);
+  border-bottom: 1px solid rgba(var(--c-ink-rgb),0.1);
+  color: rgba(var(--c-ink-rgb),0.7);
   text-align: left;
   font-size: 16px;
   font-weight: 500;
@@ -3818,7 +3830,7 @@ html.light-mode-on .modal-box {
   cursor: pointer;
 }
 .nav-drawer-item.active {
-  color: #fff;
+  color: var(--c-text-primary);
   font-weight: 700;
 }
 
@@ -3833,6 +3845,10 @@ html.light-mode-on .modal-box {
 
   transform: translateX(100%);
 }
+html.light-mode-on .settings-panel {
+  background: #eeeeee;
+  color: var(--c-text-primary);
+}
 
 /* 헤더: 좌측 상단 "‹ 설정" */
 .settings-header-bar {
@@ -3846,7 +3862,7 @@ html.light-mode-on .modal-box {
 .settings-header-title {
   font-size: 17px;
   font-weight: 700;
-  color: #fff;
+  color: var(--c-text-primary);
 }
 
 .settings-body {
@@ -3859,8 +3875,8 @@ html.light-mode-on .modal-box {
 }
 
 .settings-card {
-  background: #111;
-  border: 1px solid #222;
+  background: var(--c-bg-elevated);
+  border: 1px solid var(--c-border);
   border-radius: 14px;
   padding: 14px 16px;
   margin-bottom: 20px;
@@ -3884,7 +3900,7 @@ html.light-mode-on .modal-box {
 .settings-section-label {
   font-size: 13px;
   font-weight: 600;
-  color: #777;
+  color: var(--c-text-secondary);
   margin: 0 4px 8px;
 }
 
@@ -3910,7 +3926,7 @@ html.light-mode-on .modal-box {
   margin-top: 19px;
   margin-bottom: 0;
   padding-bottom: 29px;
-  border-bottom: 1px solid #222;
+  border-bottom: 1px solid var(--c-border);
 }
 
 .settings-name {
@@ -3925,19 +3941,19 @@ html.light-mode-on .modal-box {
 
 .settings-email {
   font-size: 12px;
-  color: #777;
+  color: var(--c-text-secondary);
 }
 
 .settings-item {
   display: flex;
   align-items: center;
   padding: 14px 0;
-  border-bottom: 1px solid #222;
+  border-bottom: 1px solid var(--c-border);
   font-size: 14px;
 }
 
 .settings-item.muted {
-  color: #777;
+  color: var(--c-text-secondary);
 }
 
 
@@ -3945,8 +3961,8 @@ html.light-mode-on .modal-box {
 /* ===== 설정 화면 리스트 느낌 ===== */
 .settings-section{
   margin-top: 6px;
-  border-top: 1px solid #222;
-  border-bottom: 1px solid #222;
+  border-top: 1px solid var(--c-border);
+  border-bottom: 1px solid var(--c-border);
 }
 
 .settings-row{
@@ -3956,7 +3972,7 @@ html.light-mode-on .modal-box {
   min-height: 65px; /* 🔥 로그인 전(1줄)/후(2줄) 텍스트 줄 수가 달라도 세로 폭을 동일하게 고정 */
   background: transparent;
   border: none;
-  color: #eee;
+  color: var(--c-text-primary);
   padding: 14px 0; /* 🔥 .settings-item과 좌우 정렬 맞춤 */
   margin: 0;
   font: inherit;
@@ -3970,6 +3986,9 @@ html.light-mode-on .modal-box {
 
 .settings-row + .settings-row{
   border-top: 1px solid #1f1f1f;
+}
+html.light-mode-on .settings-row + .settings-row {
+  border-top-color: rgb(224,224,224);
 }
 
 .settings-row.static{
@@ -3990,7 +4009,7 @@ html.light-mode-on .modal-box {
 
 .row-sub{
   font-size: 12px;
-  color: #777;
+  color: var(--c-text-secondary);
   /* 🔥 긴 이메일이 두 줄로 줄바꿈되면서 로그인 전/후 세로 폭이 달라지는 걸 방지:
      항상 한 줄로 고정하고 넘치면 말줄임표 처리 */
   white-space: nowrap;
@@ -4005,7 +4024,7 @@ html.light-mode-on .modal-box {
 }
 
 .row-right{
-  color: #777;
+  color: var(--c-text-secondary);
   font-size: 22px;
   line-height: 1;
 }
@@ -4151,10 +4170,13 @@ html.light-mode-on .modal-box {
   cursor: pointer;
   border-radius: 8px;
 }
+html.light-mode-on #closeSettingsBtn {
+  color: var(--c-text-primary);
+}
 
 #closeSettingsBtn:active{
   transform: scale(0.92);
-  background: rgba(255,255,255,0.06);
+  background: rgba(var(--c-ink-rgb),0.06);
 }
 
 /* 설정 화면 맨 밑 로그아웃 (텍스트형) */
@@ -4169,18 +4191,30 @@ html.light-mode-on .modal-box {
 
   cursor: pointer;
 }
+html.light-mode-on .settings-logout-text {
+  color: var(--c-text-secondary);
+}
 
 .settings-logout-text:active{
   color: #ff6b6b;            /* 눌렀을 때만 살짝 빨강 */
+}
+html.light-mode-on .settings-logout-text:active {
+  color: rgb(231,84,84);
 }
 
 .settings-delete-account-text{
   margin-top: 8px;           /* 로그아웃과 살짝 이격 */
   color: #a04040;            /* 항상 은은한 빨강 톤으로 구분 */
 }
+html.light-mode-on .settings-delete-account-text {
+  color: rgb(246,150,150);
+}
 
 .settings-delete-account-text:active{
   color: #ff3b3b;
+}
+html.light-mode-on .settings-delete-account-text:active {
+  color: rgb(255,112,112);
 }
 
 .settings-btn svg {
@@ -8121,7 +8155,7 @@ html.light-mode-on #weightModal .food-modal-form label {
   <!-- 게스트일 때만 보일 "로그인 하기" -->
   <button id="settingsLoginRow" class="settings-row">
     <div class="row-left">
-      <div class="row-title" style="color:#4aa3ff;">로그인 하기</div>
+      <div class="row-title" style="color:var(--c-login-link);">로그인 하기</div>
     </div>
     <div class="row-right">›</div>
   </button>
@@ -8139,10 +8173,10 @@ html.light-mode-on #weightModal .food-modal-form label {
 <!-- ✅ 카드 2: 계정 -->
 <div class="settings-section-label">계정</div>
 <div class="settings-card settings-card--flush">
-  <button id="mySpecMenuBtn" class="settings-item" style="width:100%; text-align:left; background:none; color:#fff; cursor:pointer; border-bottom:none;">
+  <button id="mySpecMenuBtn" class="settings-item" style="width:100%; text-align:left; background:none; color:var(--c-text-primary); cursor:pointer; border-bottom:none;">
     <img src="icons/setting-profile.png" class="settings-item-icon" alt="">내 정보 수정
   </button>
-  <div class="settings-item" style="border-top:1px solid #222; border-bottom:none; padding-bottom:0;">
+  <div class="settings-item" style="border-top:1px solid var(--c-border); border-bottom:none; padding-bottom:0;">
     <img src="icons/setting-inquiry.png" class="settings-item-icon" alt="">문의
   </div>
   <div class="settings-item muted" style="padding-top:2px; border-bottom:none;">김무진한테 문의하세요</div>
@@ -8151,13 +8185,13 @@ html.light-mode-on #weightModal .food-modal-form label {
 <!-- ✅ 카드 3: 일반 -->
 <div class="settings-section-label">일반</div>
 <div class="settings-card settings-card--flush">
-  <div class="settings-item" style="justify-content:space-between; border-bottom:1px solid #222;">
+  <div class="settings-item" style="justify-content:space-between; border-bottom:1px solid var(--c-border);">
     <span class="settings-item-label"><img src="icons/setting-mode.png" class="settings-item-icon" alt="">화면 모드</span>
     <div id="lightModeToggle" class="toggle-switch"></div>
   </div>
   <div class="settings-item" style="justify-content:space-between; border-bottom:none;">
     <span class="settings-item-label"><img src="icons/setting-version.png" class="settings-item-icon" alt="">앱 버전</span>
-    <span style="color:#888; font-size:14px;" id="appVersionDisplay">0.1.0</span>
+    <span style="color:var(--c-text-tertiary); font-size:14px;" id="appVersionDisplay">0.1.0</span>
   </div>
 </div>
 
@@ -9580,7 +9614,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.8.5";
+const APP_VERSION = "0.8.6";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
