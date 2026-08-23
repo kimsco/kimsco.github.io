@@ -2640,8 +2640,6 @@ html.mf-restore-settings .settings-panel {
    아니라 "자기 자식들의" fixed 위치 계산 기준만 바뀌는데, 이 요소들은 전부 이미 뷰포트를
    덮는 자기 자신이 position:fixed라 문제 없음).
 ================================ */
-html.light-mode-on #tab3,
-html.light-mode-on #calPopup,
 html.light-mode-on #exerciseDexOverlay,
 html.light-mode-on #dexPostDetailOverlay,
 html.light-mode-on #dexFolderModal,
@@ -2830,6 +2828,127 @@ html.light-mode-on #edit-exercise-btn4 svg {
 }
 html.light-mode-on #delete-exercise-btn4 svg {
   stroke: var(--c-text-primary);
+}
+
+/* 🔥 [5단계] 달력 탭(#tab3)/날짜 팝업(#calPopup) 라이트모드: 필터 목록에서 빼고
+   실제 색상 직접 지정. 아래 색상들은 감으로 새로 정한 게 아니라, 캔버스 2D
+   컨텍스트에 실제로 filter:'invert(1) hue-rotate(180deg)'를 걸어서 각 원래
+   색상이 필터를 통과했을 때 브라우저가 실제로 계산해내는 결과값을 그대로
+   추출한 것 — 즉 지금 사용자가 실기기에서 이미 보고 있는 색과 100% 동일하게
+   맞춘 것이라 시각적 변화가 전혀 없음(반전 전용 스왑값(#020202 등)을 쓰던
+   .popup-box는 #tab4와 같은 이유로 #calPopup 범위로 좁혀 우선순위를 높임) */
+html.light-mode-on #tab3 {
+  color: var(--c-text-primary);
+}
+html.light-mode-on #tab3 .month-title {
+  color: var(--c-text-primary);
+}
+html.light-mode-on #tab3 .month-btn {
+  color: rgba(0,0,0,0.6);
+}
+html.light-mode-on #tab3 .weekdays div {
+  color: #555;
+}
+html.light-mode-on #tab3 .weekdays div:first-child {
+  color: rgb(255,196,196);
+}
+html.light-mode-on #tab3 .days div {
+  background: var(--c-bg-elevated-2);
+  color: var(--c-text-primary);
+}
+html.light-mode-on #tab3 .days div.today,
+html.light-mode-on #tab3 .days div.selected {
+  border-color: rgb(208,78,57);
+  color: rgb(208,78,57);
+}
+html.light-mode-on #tab3 .days div.done {
+  background: linear-gradient(135deg, rgb(0,0,0), rgb(54,54,54));
+  color: #eee;
+}
+html.light-mode-on #tab3 .toggle-switch {
+  background: rgb(197,197,197);
+}
+html.light-mode-on #tab3 .toggle-switch::after {
+  background: rgb(33,33,33);
+}
+html.light-mode-on #tab3 #calendarToggle.toggle-switch.active {
+  background: rgb(0,0,0);
+}
+html.light-mode-on #tab3 #calendarToggle.toggle-switch.active::after {
+  background: rgb(197,197,197);
+}
+html.light-mode-on #tab3 .date-agenda {
+  background: rgb(235,235,235);
+  border-color: rgba(0,0,0,0.07);
+}
+html.light-mode-on #tab3 .date-agenda-header {
+  border-bottom-color: rgba(0,0,0,0.08);
+}
+html.light-mode-on #tab3 .date-agenda-date {
+  color: var(--c-text-primary);
+}
+html.light-mode-on #tab3 .date-agenda-count {
+  color: rgb(119,119,119);
+}
+html.light-mode-on #tab3 .date-agenda-empty {
+  color: rgb(136,136,136);
+}
+html.light-mode-on #tab3 .date-agenda-item {
+  border-bottom-color: rgba(0,0,0,0.04);
+}
+html.light-mode-on #tab3 .date-agenda-dot:not(.date-agenda-dot-bodyweight):not(.date-agenda-dot-routine) {
+  background: rgb(208,78,57);
+}
+html.light-mode-on #tab3 .date-agenda-dot-bodyweight,
+html.light-mode-on #tab3 .date-agenda-dot-routine {
+  background: rgb(119,119,119);
+}
+html.light-mode-on #tab3 .date-agenda-item-name {
+  color: var(--c-text-primary);
+}
+html.light-mode-on #tab3 .date-agenda-item-sets {
+  color: var(--c-text-secondary);
+}
+html.light-mode-on #tab3 .year-progress {
+  border-top-color: rgba(0,0,0,0.06);
+}
+html.light-mode-on #tab3 .year-progress-title {
+  color: var(--c-text-primary);
+}
+html.light-mode-on #tab3 .year-progress-sub {
+  color: rgb(119,119,119);
+}
+html.light-mode-on #tab3 .year-progress-foot {
+  color: rgb(153,153,153);
+}
+html.light-mode-on #tab3 .year-dot {
+  background: rgba(0,0,0,0.10);
+  border-color: rgba(0,0,0,0.03);
+}
+html.light-mode-on #tab3 .year-dot.on {
+  background: rgba(0,0,0,0.85);
+  border-color: rgba(0,0,0,0.10);
+}
+html.light-mode-on #tab3 .year-dot.today {
+  outline-color: rgba(94,54,0,0.8);
+}
+html.light-mode-on #calPopup {
+  color: var(--c-text-primary);
+  background: rgba(255,255,255,0.7);
+}
+html.light-mode-on #calPopup .popup-box {
+  background: #fdfdfd;
+}
+html.light-mode-on #calPopupDate {
+  color: var(--c-text-primary);
+}
+html.light-mode-on #calPopup .muscles button {
+  background: #000;
+  color: #fff;
+}
+html.light-mode-on #calPopup .muscles button.active {
+  background: rgb(255,196,196);
+  color: rgb(0,0,0);
 }
 
 /* 🔥 홈 탭(#tab1) 라이트모드: 필터를 전혀 안 받는 화면이라, "반전 후 결과"를 역산하는 게
@@ -8919,7 +9038,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.98";
+const APP_VERSION = "0.7.99";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
