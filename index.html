@@ -24,14 +24,6 @@
 try {
   if (sessionStorage.getItem("mf_reload_restore_settings") === "1") {
     document.documentElement.classList.add("mf-restore-settings");
-    // 🔥 설정 화면(#settingsOverlay)이 DOM 파싱 순서상 홈 화면(#tab1)보다 한참 뒤에 있어서,
-    //    브라우저가 body를 위에서부터 순서대로 그리는 동안 #settingsOverlay를 아직 못 만난
-    //    찰나에 #tab1(특히 맨 아래 문구 카드)이 잠깐 비치는 문제가 있었음 — body 맨 앞에
-    //    다른 무엇보다도 먼저 그려지는 전체화면 커버를 하나 두고, 라이트/다크 색만 미리
-    //    맞춰서(mf-early-light) 뭐가 됐든 그 뒤에 있는 내용은 전혀 안 보이게 막음
-    if (localStorage.getItem("mf_light_mode") === "1") {
-      document.documentElement.classList.add("mf-early-light");
-    }
   }
 } catch(e){}
 </script>
@@ -1335,24 +1327,6 @@ html.mf-restore-settings .settings-panel {
    덮기 전 잠깐 하단탭이 비치던 깜빡임 방지 */
 html.mf-restore-settings .bottomTab {
   display: none !important;
-}
-/* 🔥 야매 커버: #settingsOverlay가 DOM 순서상 #tab1보다 한참 뒤에 있어서, body를 위에서부터
-   그리는 도중 #tab1(특히 맨 아래 문구 카드)이 아주 잠깐 비치는 걸 위 두 규칙만으론 못 막았음
-   — body 맨 앞의 전체화면 div를 이 구간 동안만 최상단에 덮어서 그 뒤로는 뭐가 있든 안 보이게
-   막고, 설정/드로어 등 어떤 경로로든 mf-restore-settings가 풀리는 순간 같이 사라짐 */
-#reloadCoverScreen {
-  display: none;
-}
-html.mf-restore-settings #reloadCoverScreen {
-  display: block;
-  position: fixed;
-  inset: 0;
-  z-index: 999999;
-  background: #000;
-  pointer-events: none;
-}
-html.mf-restore-settings.mf-early-light #reloadCoverScreen {
-  background: #eeeeee;
 }
 
 #threeSummaryOverlay.hidden {
@@ -6621,7 +6595,6 @@ html.light-mode-on #weightModal .food-modal-form label {
 
 <body>
 
-<div id="reloadCoverScreen"></div>
 
 <div class="app">
    
@@ -9651,7 +9624,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.8.17";
+const APP_VERSION = "0.8.18";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -16600,7 +16573,6 @@ try {
     // 상태를 그대로 이어받았으니 제거 — 안 지우면 이후 사용자가 직접 설정을 닫아도
     // CSS가 !important로 계속 열린 것처럼 강제해버림
     document.documentElement.classList.remove("mf-restore-settings");
-    document.documentElement.classList.remove("mf-early-light");
   }
   if (restoreTab || needsStatusBarKick) {
     // (setTimeout으로 한 틱 미룸 — 탭 버튼 클릭 핸들러가 참조하는 sheetOpen 등 아래쪽에서
