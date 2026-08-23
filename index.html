@@ -60,6 +60,13 @@ try {
   --c-border: #222;
   --c-accent-gold: #FFD700;
   --c-accent-red: #e0203f;
+  /* 🔥 인라인 style에 하드코딩된 rgba(255,255,255,X) 반투명 흰색들을 var()로
+     한 번에 바꿔치기하기 위한 RGB 3채널 값(콤마 리스트). 예: rgba(var(--c-ink-rgb), 0.35).
+     흰색(255,255,255)을 invert()하면 정확히 검정(0,0,0)이 되므로(회색조라 hue-rotate는
+     영향 없음) 라이트모드 값도 수학적으로 정확함 */
+  --c-ink-rgb: 255,255,255;
+  /* 🔥 위와 반대 방향(반투명 검정 → 반투명 흰색)이 필요한 인라인 UI 요소용 */
+  --c-anti-ink-rgb: 0,0,0;
 }
 html.light-mode-on {
   --c-bg: #f5f5f5;
@@ -72,6 +79,8 @@ html.light-mode-on {
   --c-border: #ddd;
   --c-accent-gold: #b8860b;
   --c-accent-red: #d81b3f;
+  --c-ink-rgb: 0,0,0;
+  --c-anti-ink-rgb: 255,255,255;
 }
 
 html, body {
@@ -2640,13 +2649,6 @@ html.mf-restore-settings .settings-panel {
    아니라 "자기 자식들의" fixed 위치 계산 기준만 바뀌는데, 이 요소들은 전부 이미 뷰포트를
    덮는 자기 자신이 position:fixed라 문제 없음).
 ================================ */
-html.light-mode-on #exerciseDexOverlay,
-html.light-mode-on #dexPostDetailOverlay,
-html.light-mode-on #dexFolderModal,
-html.light-mode-on #dexRowMenu,
-html.light-mode-on #dexRenameModal,
-html.light-mode-on #dexDeleteConfirmModal,
-html.light-mode-on #dexWriteOverlay,
 html.light-mode-on #threeSummaryOverlay,
 html.light-mode-on #myRoutineOverlay,
 html.light-mode-on #bodyweightOverlay,
@@ -2951,6 +2953,140 @@ html.light-mode-on #calPopup .muscles button.active {
   color: rgb(0,0,0);
 }
 
+/* 🔥 [6단계] 운동도감(#exerciseDexOverlay/#dexPostDetailOverlay/#dexFolderModal/
+   #dexRowMenu/#dexRenameModal/#dexDeleteConfirmModal/#dexWriteOverlay) 라이트모드:
+   필터 목록에서 빼고 실제 색상 직접 지정.
+   - 대부분의 인라인 style은 위쪽 :root에 새로 추가한 --c-ink-rgb(반투명 흰색↔검정
+     자동 전환)/--c-anti-ink-rgb(반대 방향)로 직접 교체했음(HTML 인라인 값 자체가
+     var()로 바뀌어서 여기 CSS는 배경/공유 클래스만 다룸).
+   - 사진(.dex-post-card.has-image, <img>)은 "조상 필터로 반전된 걸 자기 자신에게
+     한 번 더 필터를 걸어서 상쇄"하는 트릭을 쓰고 있었는데, 조상(#exerciseDexOverlay 등)
+     필터가 이제 사라졌으니 이 보정용 필터를 꺼줘야 사진이 반전 없이 정상적으로 보임 */
+html.light-mode-on #exerciseDexOverlay,
+html.light-mode-on #dexPostDetailOverlay {
+  background: #eeeeee !important;
+  color: var(--c-text-primary);
+}
+html.light-mode-on #dexWriteOverlay {
+  background: #fdfdfd !important;
+  color: var(--c-text-primary);
+}
+html.light-mode-on #exerciseDexOverlay img,
+html.light-mode-on #exerciseDexOverlay .dex-post-card.has-image,
+html.light-mode-on #dexPostDetailOverlay img,
+html.light-mode-on #dexWriteOverlay img {
+  filter: none;
+}
+html.light-mode-on .dex-fab {
+  background: var(--c-bg-elevated);
+  border-color: rgba(0,0,0,0.5);
+  color: var(--c-text-primary);
+}
+html.light-mode-on .dex-fab::after {
+  background: rgba(0,0,0,0);
+}
+html.light-mode-on .dex-fab.pressed::after {
+  background: rgba(0,0,0,0.15);
+}
+html.light-mode-on .dex-fab-menu {
+  background: var(--c-bg-elevated);
+  border-color: rgba(0,0,0,0.5);
+}
+html.light-mode-on .dex-fab-menu-item {
+  border-bottom-color: rgba(0,0,0,0.1);
+  color: rgba(0,0,0,0.75);
+}
+html.light-mode-on .dex-row {
+  border-bottom-color: rgba(0,0,0,0.1);
+}
+html.light-mode-on .dex-row::after {
+  background: rgba(0,0,0,0);
+}
+html.light-mode-on .dex-row.pressed::after {
+  background: rgba(0,0,0,0.1);
+}
+html.light-mode-on .dex-row-icon {
+  color: rgba(0,0,0,0.55);
+}
+html.light-mode-on .dex-row-label {
+  color: var(--c-text-primary);
+}
+html.light-mode-on .dex-row-chevron {
+  color: rgba(0,0,0,0.25);
+}
+html.light-mode-on .dex-row-dots {
+  border-color: rgba(0,0,0,0.35);
+  color: rgba(0,0,0,0.7);
+}
+html.light-mode-on .dex-row-handle {
+  color: rgba(0,0,0,0.35);
+}
+html.light-mode-on .dex-row.dragging {
+  background: rgb(242,242,242);
+}
+html.light-mode-on .dex-post-card {
+  background-color: rgb(245,245,245);
+}
+html.light-mode-on .dex-post-card.pressed {
+  background-color: rgb(233,233,233);
+}
+html.light-mode-on .dex-post-card:not(.has-image) .dex-post-card-label {
+  color: var(--c-text-primary);
+}
+html.light-mode-on .dex-modal-box {
+  background: rgb(242,242,242);
+  border-color: rgba(0,0,0,0.16);
+}
+html.light-mode-on .dex-modal-title {
+  color: var(--c-text-primary);
+}
+html.light-mode-on .dex-modal-input,
+html.light-mode-on .dex-modal-textarea {
+  color: var(--c-text-primary);
+  border-color: rgba(0,0,0,0.16);
+}
+html.light-mode-on .dex-modal-input:focus,
+html.light-mode-on .dex-modal-textarea:focus {
+  border-color: rgba(0,0,0,0.45);
+}
+html.light-mode-on .dex-modal-input::placeholder,
+html.light-mode-on .dex-modal-textarea::placeholder {
+  color: rgba(0,0,0,0.3);
+}
+html.light-mode-on .dex-modal-btn {
+  border-color: rgba(0,0,0,0.25);
+  color: rgba(0,0,0,0.8);
+}
+html.light-mode-on .dex-modal-btn:last-child {
+  color: var(--c-text-primary);
+  border-color: rgba(0,0,0,0.5);
+}
+html.light-mode-on #dexDeleteConfirmModal {
+  background: rgba(255,255,255,0.7);
+}
+html.light-mode-on #dexDeleteConfirmModal .modal-box {
+  background: #fdfdfd;
+  border-color: rgba(0,0,0,0.08);
+}
+html.light-mode-on #dexDeleteConfirmModal .modal-title {
+  color: var(--c-text-primary);
+}
+html.light-mode-on #dexDeleteConfirmModal .modal-desc {
+  color: rgb(48,48,48);
+}
+html.light-mode-on #dexDeleteConfirmModal .modal-actions {
+  border-top-color: rgba(0,0,0,0.08);
+}
+html.light-mode-on #dexDeleteConfirmModal .modal-btn {
+  color: rgb(28,78,144);
+}
+html.light-mode-on #dexDeleteConfirmModal .modal-btn + .modal-btn {
+  border-left-color: rgba(0,0,0,0.08);
+}
+html.light-mode-on #dexDeleteConfirmModal .modal-btn.danger {
+  color: rgb(231,84,84);
+}
+
 /* 🔥 홈 탭(#tab1) 라이트모드: 필터를 전혀 안 받는 화면이라, "반전 후 결과"를 역산하는 게
    아니라 실제로 화면에 보일 색을 직접(literal) 지정함. 카드/상자류는 기존에 확정했던
    시각적 결과(#fdfdfd, 거의 흰색)를 그대로 유지하고, 텍스트/테두리는 다크모드의
@@ -3081,8 +3217,6 @@ html.light-mode-on .who-cta {
   background: #111;
 }
 /* 바깥(화면 전체) — 인라인 style로 지정된 풀스크린 오버레이들(우선순위 위해 !important 필요) */
-html.light-mode-on #exerciseDexOverlay,
-html.light-mode-on #dexPostDetailOverlay,
 html.light-mode-on #mySpecOverlay,
 html.light-mode-on #threeSummaryOverlay,
 html.light-mode-on #myRoutineOverlay,
@@ -3136,7 +3270,6 @@ html.light-mode-on .modal-box {
   background: #020202;
 }
 /* 상자 — 인라인 style로 지정된 오버레이(다른 오버레이 위에 뜨는 2차 팝업이라 원래도 #111) */
-html.light-mode-on #dexWriteOverlay,
 html.light-mode-on #myRoutineBuilderOverlay {
   background: #020202 !important;
 }
@@ -6577,13 +6710,13 @@ input[type="number"] {
   ">
   <div id="exerciseDexScreen" style="height:100%; display:flex; flex-direction:column; position:relative;">
     <div id="dexBackRow" style="flex-shrink:0; padding: calc(28px + env(safe-area-inset-top)) 18px 16px; display:flex; align-items:center; cursor:pointer;">
-      ← <span id="dexTitle" style="margin-left:6px; font-size:15px; font-weight:600; color:#fff;">운동도감</span>
+      ← <span id="dexTitle" style="margin-left:6px; font-size:15px; font-weight:600; color:var(--c-text-primary);">운동도감</span>
     </div>
 
     <div id="dexBody" style="flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; padding: 0 18px calc(24px + env(safe-area-inset-bottom));">
-      <div id="exerciseDexEmpty" style="color:rgba(255,255,255,0.35); font-size:13px; text-align:center; margin-top:100px;">
-        <div style="color:rgba(255,255,255,0.55);">아직 등록된 내용이 없습니다.</div>
-        <div style="margin-top:6px; color:rgba(255,255,255,0.3);">우측 하단의 + 버튼을 눌러 추가해보세요.</div>
+      <div id="exerciseDexEmpty" style="color:rgba(var(--c-ink-rgb),0.35); font-size:13px; text-align:center; margin-top:100px;">
+        <div style="color:rgba(var(--c-ink-rgb),0.55);">아직 등록된 내용이 없습니다.</div>
+        <div style="margin-top:6px; color:rgba(var(--c-ink-rgb),0.3);">우측 하단의 + 버튼을 눌러 추가해보세요.</div>
       </div>
 
       <div id="dexListArea"></div>
@@ -6607,13 +6740,13 @@ input[type="number"] {
   <div id="dexPostDetailScreen" style="height:100%; overflow-y:auto; padding: calc(16px + env(safe-area-inset-top)) 18px 24px;">
     <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:22px; width:100%; box-sizing:border-box;">
       <div id="dexPostBackRow" style="display:flex; align-items:center; cursor:pointer; flex-shrink:0; white-space:nowrap;" onclick="closeDexPostDetail()">
-        ← <span style="margin-left:6px; font-size:14px; color:rgba(255,255,255,0.5); white-space:nowrap;">뒤로</span>
+        ← <span style="margin-left:6px; font-size:14px; color:rgba(var(--c-ink-rgb),0.5); white-space:nowrap;">뒤로</span>
       </div>
-      <button id="dexPostMoreBtn" style="-webkit-appearance:none; appearance:none; flex-shrink:0; max-width:90px; background:transparent; border:1px solid rgba(255,255,255,0.3); color:rgba(255,255,255,0.6); font-size:12px; padding:6px 12px; border-radius:8px; cursor:pointer; white-space:nowrap;">더보기</button>
+      <button id="dexPostMoreBtn" style="-webkit-appearance:none; appearance:none; flex-shrink:0; max-width:90px; background:transparent; border:1px solid rgba(var(--c-ink-rgb),0.3); color:rgba(var(--c-ink-rgb),0.6); font-size:12px; padding:6px 12px; border-radius:8px; cursor:pointer; white-space:nowrap;">더보기</button>
     </div>
-    <div id="dexPostDetailTitle" style="font-size:20px; font-weight:700; color:#fff; margin-bottom:16px; line-height:1.4;"></div>
+    <div id="dexPostDetailTitle" style="font-size:20px; font-weight:700; color:var(--c-text-primary); margin-bottom:16px; line-height:1.4;"></div>
     <img id="dexPostDetailImage" src="" style="display:none; width:100%; border-radius:12px; margin-bottom:16px;">
-    <div id="dexPostDetailContent" style="font-size:17px; font-weight:400; color:rgba(255,255,255,0.7); line-height:1.9; white-space:pre-wrap;"></div>
+    <div id="dexPostDetailContent" style="font-size:17px; font-weight:400; color:rgba(var(--c-ink-rgb),0.7); line-height:1.9; white-space:pre-wrap;"></div>
   </div>
 </div>
 
@@ -6667,22 +6800,22 @@ input[type="number"] {
   <div id="dexWriteScreen" style="height:100%; display:flex; flex-direction:column; overflow-y:auto; padding: calc(16px + env(safe-area-inset-top)) 0 calc(24px + env(safe-area-inset-bottom));">
 
     <div style="display:flex; align-items:center; justify-content:space-between; padding:0 18px 14px; flex-shrink:0;">
-      <div id="dexWriteBackRow" style="cursor:pointer; flex-shrink:0; white-space:nowrap; font-size:15px; color:rgba(255,255,255,0.7);">취소</div>
-      <button id="dexWriteSubmitBtn" style="-webkit-appearance:none !important; appearance:none !important; flex-shrink:0; width:auto; background:transparent; border:none; color:#fff; font-size:15px; font-weight:700; padding:4px 2px; cursor:pointer;">등록</button>
+      <div id="dexWriteBackRow" style="cursor:pointer; flex-shrink:0; white-space:nowrap; font-size:15px; color:rgba(var(--c-ink-rgb),0.7);">취소</div>
+      <button id="dexWriteSubmitBtn" style="-webkit-appearance:none !important; appearance:none !important; flex-shrink:0; width:auto; background:transparent; border:none; color:var(--c-text-primary); font-size:15px; font-weight:700; padding:4px 2px; cursor:pointer;">등록</button>
     </div>
 
-    <div style="border-bottom:1px solid rgba(255,255,255,0.35); flex-shrink:0;"></div>
+    <div style="border-bottom:1px solid rgba(var(--c-ink-rgb),0.35); flex-shrink:0;"></div>
 
     <div style="padding:0 18px; display:flex; flex-direction:column; flex:1; min-height:0;">
 
       <input id="dexPostTitleInput" type="text" placeholder="제목" maxlength="200" style="
         -webkit-appearance:none; appearance:none;
         width:100%; background:transparent; border:none;
-        color:#fff; font-size:20px; font-weight:700; padding:14px 2px 8px; box-sizing:border-box;
+        color:var(--c-text-primary); font-size:20px; font-weight:700; padding:14px 2px 8px; box-sizing:border-box;
         flex-shrink:0;
       ">
 
-      <div style="border-bottom:1px solid rgba(255,255,255,0.12); margin:8px 0 16px; flex-shrink:0;"></div>
+      <div style="border-bottom:1px solid rgba(var(--c-ink-rgb),0.12); margin:8px 0 16px; flex-shrink:0;"></div>
 
       <input id="dexPostImageInput" type="file" accept="image/*" style="display:none;">
       <div id="dexPostImagePreviewWrap" style="display:none; position:relative; margin-bottom:16px; flex-shrink:0;">
@@ -6690,13 +6823,13 @@ input[type="number"] {
         <button id="dexPostImageRemoveBtn" type="button" style="
           -webkit-appearance:none; appearance:none; position:absolute; top:8px; right:8px;
           width:28px; height:28px; border-radius:50%; border:none;
-          background:rgba(0,0,0,0.6); color:#fff; font-size:15px; line-height:1; cursor:pointer;
+          background:rgba(var(--c-anti-ink-rgb),0.6); color:var(--c-text-primary); font-size:15px; line-height:1; cursor:pointer;
         ">✕</button>
       </div>
       <button id="dexPostImageAddBtn" type="button" style="
         -webkit-appearance:none; appearance:none; width:auto; align-self:flex-start;
-        background:transparent; border:1px solid rgba(255,255,255,0.3); border-radius:8px;
-        color:rgba(255,255,255,0.75); font-size:13px; padding:8px 14px; margin:0 0 16px; cursor:pointer;
+        background:transparent; border:1px solid rgba(var(--c-ink-rgb),0.3); border-radius:8px;
+        color:rgba(var(--c-ink-rgb),0.75); font-size:13px; padding:8px 14px; margin:0 0 16px; cursor:pointer;
         display:flex; align-items:center; gap:6px; flex-shrink:0;
       ">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><path d="M21 15l-5-5L5 21"></path></svg>
@@ -6706,7 +6839,7 @@ input[type="number"] {
       <textarea id="dexPostContentInput" placeholder="내용을 입력하세요" maxlength="5000" style="
         -webkit-appearance:none; appearance:none;
         flex:1; width:100%; min-height:200px; background:transparent; border:none;
-        color:rgba(255,255,255,0.85); font-size:15px; line-height:1.9; padding:2px;
+        color:rgba(var(--c-ink-rgb),0.85); font-size:15px; line-height:1.9; padding:2px;
         box-sizing:border-box; resize:none; font-family:inherit;
       "></textarea>
 
@@ -9038,7 +9171,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.99";
+const APP_VERSION = "0.8.0";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
