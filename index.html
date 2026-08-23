@@ -2649,11 +2649,7 @@ html.mf-restore-settings .settings-panel {
    아니라 "자기 자식들의" fixed 위치 계산 기준만 바뀌는데, 이 요소들은 전부 이미 뷰포트를
    덮는 자기 자신이 position:fixed라 문제 없음).
 ================================ */
-html.light-mode-on #threeSummaryOverlay,
 html.light-mode-on #bodyweightOverlay,
-html.light-mode-on #muscleFinderOverlay,
-html.light-mode-on #oneRMCalcOverlay,
-html.light-mode-on #whoForOverlay,
 html.light-mode-on #loginArea,
 html.light-mode-on #consentModal,
 html.light-mode-on #graphOverlay,
@@ -3032,8 +3028,9 @@ html.light-mode-on .dex-modal-box {
 html.light-mode-on .dex-modal-title {
   color: var(--c-text-primary);
 }
-html.light-mode-on .dex-modal-input,
-html.light-mode-on .dex-modal-textarea {
+html.light-mode-on .dex-modal-overlay .dex-modal-input,
+html.light-mode-on .dex-modal-overlay .dex-modal-textarea {
+  background: #fdfdfd;
   color: var(--c-text-primary);
   border-color: rgba(0,0,0,0.16);
 }
@@ -3099,14 +3096,23 @@ html.light-mode-on #myRoutineBuilderOverlay {
   background: #fdfdfd !important;
   color: var(--c-text-primary);
 }
-html.light-mode-on #myRoutineOverlay .bw-menu-header {
+html.light-mode-on #myRoutineOverlay .bw-menu-header,
+html.light-mode-on #threeSummaryOverlay .bw-menu-header,
+html.light-mode-on #muscleFinderOverlay .bw-menu-header,
+html.light-mode-on #oneRMCalcOverlay .bw-menu-header {
   background: rgba(var(--c-anti-ink-rgb),0.92);
   border-bottom-color: rgba(0,0,0,0.04);
 }
-html.light-mode-on #myRoutineOverlay .bw-menu-header-close {
+html.light-mode-on #myRoutineOverlay .bw-menu-header-close,
+html.light-mode-on #threeSummaryOverlay .bw-menu-header-close,
+html.light-mode-on #muscleFinderOverlay .bw-menu-header-close,
+html.light-mode-on #oneRMCalcOverlay .bw-menu-header-close {
   color: #555;
 }
-html.light-mode-on #myRoutineOverlay .bw-menu-header-title {
+html.light-mode-on #myRoutineOverlay .bw-menu-header-title,
+html.light-mode-on #threeSummaryOverlay .bw-menu-header-title,
+html.light-mode-on #muscleFinderOverlay .bw-menu-header-title,
+html.light-mode-on #oneRMCalcOverlay .bw-menu-header-title {
   color: var(--c-text-primary);
 }
 html.light-mode-on #myRoutineRevealInputBar {
@@ -3169,6 +3175,106 @@ html.light-mode-on #myRoutineBuilderNameModal .food-modal-form input {
   background: #fdfdfd;
   border-color: rgb(213,213,213);
   color: var(--c-text-primary);
+}
+
+/* 🔥 [8단계] 운동 계산기/도구(#threeSummaryOverlay/#muscleFinderOverlay/
+   #oneRMCalcOverlay/#whoForOverlay) 라이트모드: 필터 목록에서 빼고 실제 색상 직접 지정.
+   .muscle-finder-card는 다른 화면들과 공유하던 반전 전용 스왑값(#020202)을,
+   #oneRMCalcOverlay #goBtn/#oneRMCalcDisclaimer는 마찬가지 이유로 기존 스왑 규칙을
+   제거하고 이 블록에서 최종값으로 다시 정의함 */
+html.light-mode-on #threeSummaryOverlay,
+html.light-mode-on #muscleFinderOverlay,
+html.light-mode-on #oneRMCalcOverlay,
+html.light-mode-on #whoForOverlay {
+  background: #eeeeee !important;
+  color: var(--c-text-primary);
+}
+html.light-mode-on #total3 {
+  color: var(--c-text-primary);
+}
+html.light-mode-on .rm-grid3 > div label {
+  color: rgba(0,0,0,0.4);
+}
+html.light-mode-on .rmInput {
+  border-bottom-color: rgba(0,0,0,0.18);
+  color: var(--c-text-primary);
+}
+html.light-mode-on .rmInput:focus {
+  border-bottom-color: var(--c-text-primary);
+}
+html.light-mode-on #save3Btn {
+  border-color: var(--c-text-primary);
+  color: var(--c-text-primary);
+}
+html.light-mode-on .muscle-finder-card {
+  background: #fdfdfd;
+  border-color: rgb(221,221,221);
+  color: rgb(85,85,85);
+}
+html.light-mode-on .muscle-finder-card.active {
+  background: rgb(221,221,221);
+  border-color: rgb(187,187,187);
+  color: var(--c-text-primary);
+}
+html.light-mode-on #muscleFinderOverlay img {
+  filter: none;
+}
+html.light-mode-on #oneRMCalcOverlay #oneRMLiftSelect,
+html.light-mode-on #oneRMCalcOverlay #weight,
+html.light-mode-on #oneRMCalcOverlay #reps,
+html.light-mode-on #oneRMCalcOverlay #goBtn {
+  background: rgb(229,229,229);
+  color: var(--c-text-primary);
+  border-color: rgb(213,213,213);
+}
+html.light-mode-on #result {
+  color: var(--c-text-primary);
+}
+html.light-mode-on #oneRMCalcDisclaimer {
+  background: #fdfdfd;
+  border-color: rgb(221,221,221);
+}
+html.light-mode-on #oneRMCalcDisclaimer p {
+  color: rgba(0,0,0,0.5);
+}
+html.light-mode-on #oneRMCalcDisclaimer p.emphasis {
+  color: rgba(0,0,0,0.75);
+}
+html.light-mode-on .who-hero,
+html.light-mode-on .who-chapter,
+html.light-mode-on .who-cta {
+  background: #eeeeee !important;
+}
+html.light-mode-on .who-hero-mark {
+  color: rgba(0,0,0,0.4);
+}
+html.light-mode-on .who-hero-title,
+html.light-mode-on .who-chapter-title {
+  color: var(--c-text-primary);
+}
+html.light-mode-on .who-hero-hint {
+  color: rgba(0,0,0,0.32);
+}
+html.light-mode-on .who-chapter-num {
+  color: rgba(0,0,0,0.35);
+}
+html.light-mode-on .who-chapter-body p {
+  color: rgba(0,0,0,0.82);
+}
+html.light-mode-on .who-chapter-body p.who-emphasis {
+  color: var(--c-text-primary);
+}
+html.light-mode-on .who-cta-sub {
+  color: rgba(0,0,0,0.6);
+}
+html.light-mode-on .who-cta-sub + button#whoForCtaBtn,
+html.light-mode-on #whoForCtaBtn {
+  border-color: rgba(0,0,0,0.5);
+  color: var(--c-text-primary);
+}
+html.light-mode-on .who-cta-sub + button#whoForCtaBtn:active,
+html.light-mode-on #whoForCtaBtn:active {
+  background: rgba(0,0,0,0.1);
 }
 
 /* 🔥 홈 탭(#tab1) 라이트모드: 필터를 전혀 안 받는 화면이라, "반전 후 결과"를 역산하는 게
@@ -3296,17 +3402,12 @@ html.light-mode-on #dietOverlay {
 /* 바깥(화면 전체) — 원래 #000이던 큰 배경들(자기 자신이 필터 적용 대상이라 스왑 방식 그대로 유지) */
 html.light-mode-on .nav-drawer,
 html.light-mode-on .food-search-panel,
-html.light-mode-on .diet-ai-chat-inputbar,
-html.light-mode-on .who-cta {
+html.light-mode-on .diet-ai-chat-inputbar {
   background: #111;
 }
 /* 바깥(화면 전체) — 인라인 style로 지정된 풀스크린 오버레이들(우선순위 위해 !important 필요) */
 html.light-mode-on #mySpecOverlay,
-html.light-mode-on #threeSummaryOverlay,
-html.light-mode-on #bodyweightOverlay,
-html.light-mode-on #muscleFinderOverlay,
-html.light-mode-on #oneRMCalcOverlay,
-html.light-mode-on #whoForOverlay {
+html.light-mode-on #bodyweightOverlay {
   background: #111 !important;
 }
 
@@ -3318,7 +3419,6 @@ html.light-mode-on .exercise-card,
 html.light-mode-on .diet-ai-chat-msg.ai,
 html.light-mode-on .diet-ai-chat-input,
 html.light-mode-on .diet-water-ml-input,
-html.light-mode-on .muscle-finder-card,
 html.light-mode-on .bw-menu-card,
 html.light-mode-on .bw-routine-card,
 html.light-mode-on .bw-text-input,
@@ -3340,8 +3440,6 @@ html.light-mode-on .bw-add-btn:active,
 html.light-mode-on .bw-add-set-btn:active,
 html.light-mode-on .dex-modal-input,
 html.light-mode-on .dex-modal-textarea,
-html.light-mode-on #oneRMCalcOverlay #goBtn,
-html.light-mode-on #oneRMCalcDisclaimer,
 html.light-mode-on #weightModal input.weight-field-input,
 html.light-mode-on .diet-food-db-search,
 html.light-mode-on .today-meal-box,
@@ -9247,7 +9345,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.8.1";
+const APP_VERSION = "0.8.2";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
