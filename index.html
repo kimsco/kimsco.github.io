@@ -2650,8 +2650,6 @@ html.mf-restore-settings .settings-panel {
    덮는 자기 자신이 position:fixed라 문제 없음).
 ================================ */
 html.light-mode-on #bodyweightOverlay,
-html.light-mode-on #graphOverlay,
-html.light-mode-on #graphSheet,
 html.light-mode-on #dietPanel-today,
 html.light-mode-on #dietPanel-settings,
 html.light-mode-on #dietSubTabBar,
@@ -3369,6 +3367,24 @@ html.light-mode-on #logoutModal .modal-btn + .modal-btn {
 }
 html.light-mode-on #logoutModal .modal-btn.danger {
   color: rgb(231,84,84);
+}
+
+/* 🔥 [10단계] 그래프 바텀시트(#graphOverlay/#graphSheet) 라이트모드: 필터 목록에서
+   빼고 실제 색상 직접 지정. .sheet/.sheetOverlay/.sheetGrab은 9단계에서 이미
+   #loginSheet(Overlay)로 스코프했던 것과 같은 이유로 #graphSheet(Overlay)로도
+   범위를 넓힘. .seg/.segBtn/.sheetTitle/.sheetSub/.sheetClose/.graphMeta/.graphWrap은
+   그래프 시트에서만 쓰여서 기본 선언 자체를 --c-ink-rgb 등으로 바꿔치기하거나
+   바로 옆에 라이트 전용 값을 추가함(무채색이 아닌 근사 회색은 정확한 값을 위해
+   Canvas 계산값을 그대로 사용) */
+html.light-mode-on #graphOverlay {
+  background: rgba(255,255,255,0.35);
+}
+html.light-mode-on #graphSheet {
+  background: rgb(244,244,244);
+  border-top-color: rgba(0,0,0,0.08);
+}
+html.light-mode-on #graphSheet .sheetGrab {
+  background: rgba(0,0,0,0.22);
 }
 
 /* 🔥 홈 탭(#tab1) 라이트모드: 필터를 전혀 안 받는 화면이라, "반전 후 결과"를 역산하는 게
@@ -4330,20 +4346,23 @@ html.light-mode-on .modal-box {
   display:flex;
   align-items:center;
   justify-content: space-between;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
+  border-bottom: 1px solid rgba(var(--c-ink-rgb),0.06);
 }
 
 .sheetTitle{
   font-size: 14px;
   font-weight: 850;
   letter-spacing: 1px;
-  color: #fff;
+  color: var(--c-text-primary);
 }
 
 .sheetSub{
   font-size: 12px;
   color: #777;
   margin-top: 2px;
+}
+html.light-mode-on .sheetSub {
+  color: rgb(136,136,136);
 }
 
 .sheetClose{
@@ -4357,9 +4376,12 @@ html.light-mode-on .modal-box {
   cursor:pointer;
   color: #aaa;
 }
+html.light-mode-on .sheetClose {
+  color: rgb(85,85,85);
+}
 
 .sheetClose:active{
-  background: rgba(255,255,255,0.06);
+  background: rgba(var(--c-ink-rgb),0.06);
   transform: scale(0.96);
 }
 
@@ -4425,9 +4447,12 @@ html.light-mode-on .modal-box {
   display:flex;
   gap:6px;
   background:#0f0f0f;
-  border:1px solid rgba(255,255,255,0.10);
+  border:1px solid rgba(var(--c-ink-rgb),0.10);
   padding:4px;
   border-radius: 999px;
+}
+html.light-mode-on .seg {
+  background: rgb(240,240,240);
 }
 
 .segBtn{
@@ -4438,18 +4463,21 @@ html.light-mode-on .modal-box {
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.6px;
-  color: rgba(255,255,255,0.65);
+  color: rgba(var(--c-ink-rgb),0.65);
 }
 
 .segBtn.active{
-  background:#fff;
-  color:#000;
+  background:rgb(var(--c-ink-rgb));
+  color:rgb(var(--c-anti-ink-rgb));
 }
 
 .graphMeta{
   font-size:12px;
   color:#777;
   white-space:nowrap;
+}
+html.light-mode-on .graphMeta {
+  color: rgb(136,136,136);
 }
 
 .graphScroll{
@@ -4489,8 +4517,11 @@ body.sheet-open .app{
   width: 100%;
   border-radius: 12px;
   background: #0a0a0a;
-  border: 1px solid rgba(255,255,255,0.06);
+  border: 1px solid rgba(var(--c-ink-rgb),0.06);
   overflow: hidden;
+}
+html.light-mode-on .graphWrap {
+  background: rgb(245,245,245);
 }
 
 /* 🔥 캔버스가 이제 컨테이너 폭에 딱 맞게 고정되고, 대신 핀치줌/팬으로 x축 범위를
@@ -9439,7 +9470,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.8.3";
+const APP_VERSION = "0.8.4";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
