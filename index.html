@@ -9616,7 +9616,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.8.10";
+const APP_VERSION = "0.8.11";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -15043,24 +15043,43 @@ const bottomTabEl = document.getElementById('bottomTab');
 const topBarEl = document.querySelector('.topBar'); // 🔥 메뉴/설정/식단 열고닫을 때 뒷화면(.app)과 같이 밀리게 하는 용도
 const dietSubTabBar = document.getElementById('dietSubTabBar');
 
-// 🔥 메뉴 드로어/설정/식단을 열고닫을 때 뒷화면(.app)이 옆으로 살짝 밀리는데, topBar/bottomTab은
-//    body 바로 밑으로 옮겨져 있어서(아래 이동 처리 참고) 그동안 제자리에 고정돼 있었음 — 이 셋도
-//    같은 폭만큼 같이 밀어주는 공용 헬퍼. transform이 아니라 translate를 쓰는 이유: 이 둘은 이미
-//    자기 transform으로 가운데 정렬(둘 다)/collapse(bottomTab만)를 하고 있어서, 그걸 안 건드리고
-//    "얹어서" 합성되는 별도 속성인 translate로 밀어야 서로 안 부딪힘.
+// 🔥 메뉴 드로어/설정/식단을 열고닫을 때 뒷화면(.app)이 옆으로 살짝 밀리는데, topBar/bottomTab과
+//    3대탭/기록탭의 알약형 저장바(#recordFloatBarTab2/#recordFloatBarAcc)·토스트 메시지
+//    (#recordMessage)는 body 바로 밑으로 옮겨져 있어서(아래 이동 처리 참고) 그동안 제자리에
+//    고정돼 있었음 — 이것들도 같은 폭만큼 같이 밀어주는 공용 헬퍼. transform이 아니라 translate를
+//    쓰는 이유: topBar/bottomTab/알약바는 이미 자기 transform으로 가운데 정렬·collapse·축소
+//    등을 하고 있어서, 그걸 안 건드리고 "얹어서" 합성되는 별도 속성인 translate로 밀어야 서로
+//    안 부딪힘.
 const BOTTOMTAB_BASE_TRANSITION = 'transform 0.32s cubic-bezier(0.22,1,0.36,1), opacity 0.22s ease';
+const RECORDFLOATBAR_BASE_TRANSITION = 'transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.28s cubic-bezier(0.22, 1, 0.36, 1)';
 function setChromePush(px){
   const t = px ? `${px}px` : '';
   if (topBarEl) topBarEl.style.translate = t;
   if (bottomTabEl) bottomTabEl.style.translate = t;
+  document.querySelectorAll('.recordFloatBar').forEach(el => { el.style.translate = t; });
+  const recordMessageEl = document.getElementById('recordMessage');
+  if (recordMessageEl) recordMessageEl.style.translate = t;
 }
 function setChromePushTransition(transformCss){
   // transformCss: .app에 실제로 주는 transition 값과 동일한 문자열(예: "transform 0.25s ease")
-  //   또는 즉시 반영을 위한 "none"/빈 값. bottomTab은 자기 collapse 애니메이션(transform/opacity)
-  //   전환 능력을 잃지 않도록 항상 BOTTOMTAB_BASE_TRANSITION을 깔고 translate만 새로 얹음.
+  //   또는 즉시 반영을 위한 "none"/빈 값. bottomTab/알약바는 자기 애니메이션(transform/opacity)
+  //   전환 능력을 잃지 않도록 항상 각자의 기본 transition을 깔고 translate만 새로 얹음.
   const translateCss = (!transformCss || transformCss === 'none') ? null : transformCss.replace(/\btransform\b/g, 'translate');
   if (topBarEl) topBarEl.style.transition = translateCss || 'none';
   if (bottomTabEl) bottomTabEl.style.transition = translateCss ? `${BOTTOMTAB_BASE_TRANSITION}, ${translateCss}` : BOTTOMTAB_BASE_TRANSITION;
+  document.querySelectorAll('.recordFloatBar').forEach(el => {
+    el.style.transition = translateCss ? `${RECORDFLOATBAR_BASE_TRANSITION}, ${translateCss}` : RECORDFLOATBAR_BASE_TRANSITION;
+  });
+  const recordMessageEl = document.getElementById('recordMessage');
+  if (recordMessageEl) recordMessageEl.style.transition = translateCss || 'none';
+}
+// 🔥 완전히 닫힌 뒤 인라인 translate/transition을 깨끗이 비워서 다음에 열 때 잔상 없이 시작하게 함
+function resetChromePush(){
+  if (topBarEl) { topBarEl.style.transition = ''; topBarEl.style.translate = ''; }
+  if (bottomTabEl) { bottomTabEl.style.transition = ''; bottomTabEl.style.translate = ''; }
+  document.querySelectorAll('.recordFloatBar').forEach(el => { el.style.transition = ''; el.style.translate = ''; });
+  const recordMessageEl = document.getElementById('recordMessage');
+  if (recordMessageEl) { recordMessageEl.style.transition = ''; recordMessageEl.style.translate = ''; }
 }
 const dietOverlay = document.getElementById('dietOverlay');
 
@@ -15353,8 +15372,7 @@ document.getElementById('dietBackCircleBtn').addEventListener('click', () => {
   setTimeout(() => {
     appEl1.style.transform = '';
     appEl1.style.transition = '';
-    if (topBarEl) { topBarEl.style.transition = ''; topBarEl.style.translate = ''; }
-    if (bottomTabEl) { bottomTabEl.style.transition = ''; bottomTabEl.style.translate = ''; }
+    resetChromePush();
   }, 350);
 
   // 🔥 오버레이는 60% 지점이 아니라 화면 끝(100%)까지 슬라이드아웃 (페이드아웃은 유지)
@@ -16361,8 +16379,7 @@ function closeSettings(){
   settingsOverlay.classList.add("hidden");
   const appEl = document.querySelector('.app');
   if (appEl) { appEl.style.transition = ""; appEl.style.transform = ""; appEl.style.opacity = ""; }
-  if (topBarEl) { topBarEl.style.transition = ""; topBarEl.style.translate = ""; }
-  if (bottomTabEl) { bottomTabEl.style.transition = ""; bottomTabEl.style.translate = ""; }
+  resetChromePush();
 }
 
 closeSettingsBtn.addEventListener("click", closeSettings);
@@ -16424,8 +16441,7 @@ closeSettingsBtn.addEventListener("click", closeSettings);
         settingsPanel.style.transition = 'none';
         settingsPanel.style.transform = 'translateX(0)';
         if (appEl) { appEl.style.transition = ''; appEl.style.transform = ''; appEl.style.opacity = ''; }
-        if (topBarEl) { topBarEl.style.transition = ''; topBarEl.style.translate = ''; }
-        if (bottomTabEl) { bottomTabEl.style.transition = ''; bottomTabEl.style.translate = ''; }
+        resetChromePush();
       }, 220);
     } else {
       settingsPanel.style.transform = 'translateX(0)';
