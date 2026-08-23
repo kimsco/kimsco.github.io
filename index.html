@@ -9705,7 +9705,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.8.29";
+const APP_VERSION = "0.8.30";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -15985,14 +15985,19 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
       // 🔥 커밋: 드래그로 미리보기 중이던 inline 스타일을 원래 상태(.show 클래스가
       //    그리는 완전히 열린 모습)로 되돌린 뒤, 뒤로가기 버튼과 동일한(FLIP 애니메이션
       //    포함) 정식 닫기 로직을 그대로 재사용 — 같은 동기 실행 안에서 처리되므로
-      //    화면 깜빡임 없이 바로 이어짐
+      //    화면 깜빡임 없이 바로 이어짐. dietOverlay는 .show 클래스가 그대로 남아있어서
+      //    인라인 스타일을 지우면(='') 클래스값(translateX(0)/opacity 1)으로 알아서
+      //    돌아가지만, .app은 그런 클래스가 없어서 지우면 기본값(안 밀리고 다
+      //    보이는 상태=사실상 "완전히 닫힌" 모습)이 돼버림 — "완전히 열린" 밀린 상태
+      //    (-16px/opacity 0)를 직접 명시해야 함(안 그러면 여기서 본 화면이 먼저
+      //    번쩍 다 드러나버리고 뒤로가기 버튼 애니메이션은 이미 끝난 것처럼 보임)
       dietOverlay.style.transition = '';
       dietOverlay.style.transform = '';
       dietOverlay.style.opacity = '';
       if (appEl) {
         appEl.style.transition = '';
-        appEl.style.transform = '';
-        appEl.style.opacity = '';
+        appEl.style.transform = 'translateX(-16px)';
+        appEl.style.opacity = '0';
       }
       document.getElementById('dietBackCircleBtn').click();
     } else {
