@@ -184,6 +184,9 @@ button {
   border-bottom: 1px solid rgba(255,255,255,0.04);
 
   z-index: 99999;
+  will-change: transform; /* 🔥 backdrop-filter가 걸린 position:fixed 요소에서, JS가 인라인으로
+    거는 transform 트랜지션이 사파리에서 애니메이션 없이 순간 적용되던 문제 — GPU 레이어로
+    미리 승격시켜두는 힌트를 줘야 트랜지션이 정상적으로 보간됨 */
 }
 
 
@@ -9702,7 +9705,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.8.28";
+const APP_VERSION = "0.8.29";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
