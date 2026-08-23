@@ -2640,7 +2640,6 @@ html.mf-restore-settings .settings-panel {
    아니라 "자기 자식들의" fixed 위치 계산 기준만 바뀌는데, 이 요소들은 전부 이미 뷰포트를
    덮는 자기 자신이 position:fixed라 문제 없음).
 ================================ */
-html.light-mode-on #tab4,
 html.light-mode-on #tab3,
 html.light-mode-on #calPopup,
 html.light-mode-on #exerciseDexOverlay,
@@ -2785,6 +2784,52 @@ html.light-mode-on .record-line {
 }
 html.light-mode-on #save3Result {
   color: var(--c-text-primary);
+}
+
+/* 🔥 [4단계] 기록 탭(#tab4) 라이트모드: 필터 목록에서 빼고 실제 색상 직접 지정.
+   .exercise-card는 아직 필터 방식인 다른 화면들과 "반전 전용 스왑값"(background:#020202)을
+   공유하고 있어서, #tab4로 범위를 좁혀 더 높은 우선순위로 실제 라이트 색을 덮어씀.
+   기록 날짜 색상(--c-text-date)은 JS 템플릿(renderAccessoryRecords)에서도 참조함 */
+html.light-mode-on #tab4 {
+  color: var(--c-text-primary);
+}
+html.light-mode-on .recordFolders4 {
+  border-bottom-color: rgba(0,0,0,0.12);
+}
+html.light-mode-on .folderBtn4 {
+  color: rgba(0,0,0,0.55);
+}
+html.light-mode-on .folderBtn4.active {
+  color: var(--c-text-primary);
+}
+html.light-mode-on .folderBtn4.active::after {
+  background: var(--c-text-primary);
+}
+html.light-mode-on #tab4 .exercise-card {
+  background: #fdfdfd;
+  border-color: var(--c-border);
+}
+html.light-mode-on #tab4 .exercise-name {
+  color: var(--c-text-primary);
+}
+html.light-mode-on #tab4 .add-btn {
+  background: var(--c-bg-elevated);
+  color: var(--c-text-primary);
+  border-color: var(--c-border);
+}
+html.light-mode-on #tab4 .folderContent {
+  background: #fdfdfd;
+  border-color: rgba(0,0,0,0.08);
+  color: rgba(0,0,0,0.85);
+}
+html.light-mode-on .acc-record-line {
+  color: rgba(0,0,0,0.85);
+}
+html.light-mode-on #edit-exercise-btn4 svg {
+  stroke: rgba(0,0,0,0.8);
+}
+html.light-mode-on #delete-exercise-btn4 svg {
+  stroke: var(--c-text-primary);
 }
 
 /* 🔥 홈 탭(#tab1) 라이트모드: 필터를 전혀 안 받는 화면이라, "반전 후 결과"를 역산하는 게
@@ -8118,7 +8163,7 @@ document.querySelectorAll('.folderBtn4').forEach(btn => {
     if (appEl0) appEl0.style.overflowY = 'auto';
 
     // 🔥 클릭 즉시 이전 목록을 지우고 로딩 표시 (체감 딜레이 방지)
-    exerciseListEl.innerHTML = `<div style="color:#777;font-size:13px;">불러오는 중...</div>`;
+    exerciseListEl.innerHTML = `<div style="color:var(--c-text-secondary);font-size:13px;">불러오는 중...</div>`;
 
     // Firestore에서 해당 종목 불러오기
     await loadExercises(currentPart);
@@ -8408,7 +8453,7 @@ function renderAccessoryRecords(exerciseName, opts) {
   const flatRows = buildFlatAccessoryRows(exerciseName);
 
   if (!flatRows.length) {
-    el.innerHTML = `<div style="color:#777;font-size:13px;">기록이 여기에 쌓입니다</div>`;
+    el.innerHTML = `<div style="color:var(--c-text-secondary);font-size:13px;">기록이 여기에 쌓입니다</div>`;
     setupRecordInfiniteScroll(el, 0, 0, !exerciseHistoryFullyLoaded.has(exerciseName),
       () => {},
       async () => { await ensureExerciseHistory(exerciseName); renderAccessoryRecords(exerciseName, opts); }
@@ -8431,7 +8476,7 @@ function renderAccessoryRecords(exerciseName, opts) {
         <div style="
           width:90px;
           text-align:right;
-          color:rgba(255,255,255,0.75);
+          color:var(--c-text-date);
           font-size:13px;
         ">
           ${showDate ? row.date : ''}
@@ -8874,7 +8919,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.97";
+const APP_VERSION = "0.7.98";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -15097,7 +15142,7 @@ function renderExercises(opts) {
 
   if (!currentExercises.length) {
     targetEl.innerHTML =
-      `<div style="color:#777;font-size:13px;">아직 추가된 종목이 없습니다</div>`;
+      `<div style="color:var(--c-text-secondary);font-size:13px;">아직 추가된 종목이 없습니다</div>`;
     return;
   }
 
