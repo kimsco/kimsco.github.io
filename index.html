@@ -2650,13 +2650,7 @@ html.mf-restore-settings .settings-panel {
    덮는 자기 자신이 position:fixed라 문제 없음).
 ================================ */
 html.light-mode-on #threeSummaryOverlay,
-html.light-mode-on #myRoutineOverlay,
 html.light-mode-on #bodyweightOverlay,
-html.light-mode-on #myRoutinePastListOverlay,
-html.light-mode-on #routineSaveModal,
-html.light-mode-on #myRoutineBuilderNameModal,
-html.light-mode-on #myRoutineBuilderOverlay,
-html.light-mode-on #myRoutineDetailOverlay,
 html.light-mode-on #muscleFinderOverlay,
 html.light-mode-on #oneRMCalcOverlay,
 html.light-mode-on #whoForOverlay,
@@ -2665,8 +2659,6 @@ html.light-mode-on #consentModal,
 html.light-mode-on #graphOverlay,
 html.light-mode-on #graphSheet,
 html.light-mode-on #deleteAccountModal,
-html.light-mode-on #myRoutineRevealOverlay,
-html.light-mode-on #myRoutineBannerOverlay,
 html.light-mode-on #dietPanel-today,
 html.light-mode-on #dietPanel-settings,
 html.light-mode-on #dietSubTabBar,
@@ -3087,6 +3079,98 @@ html.light-mode-on #dexDeleteConfirmModal .modal-btn.danger {
   color: rgb(231,84,84);
 }
 
+/* 🔥 [7단계] 내 루틴(#myRoutineOverlay/#myRoutinePastListOverlay/#routineSaveModal/
+   #myRoutineBuilderNameModal/#myRoutineBuilderOverlay/#myRoutineDetailOverlay/
+   #myRoutineRevealOverlay/#myRoutineBannerOverlay) 라이트모드: 필터 목록에서 빼고
+   실제 색상 직접 지정. .my-routine-* 클래스는 이 8개 화면에서만 쓰여서, 아예 그
+   클래스들의 "기본" 선언 자체를 --c-ink-rgb/--c-anti-ink-rgb/--c-text-primary
+   변수로 바꿔치기함(별도 html.light-mode-on 규칙 추가 없이 다크/라이트 자동 대응 —
+   다크모드는 --c-ink-rgb가 원래 255,255,255라 계산 결과가 완전히 동일함).
+   단 .bw-menu-header는 맨몸운동(#bodyweightOverlay, 아직 필터 방식)과 클래스를
+   공유해서 #myRoutineOverlay로 범위를 좁힘 */
+html.light-mode-on #myRoutineOverlay,
+html.light-mode-on #myRoutinePastListOverlay,
+html.light-mode-on #myRoutineDetailOverlay,
+html.light-mode-on #myRoutineRevealOverlay {
+  background: #eeeeee !important;
+  color: var(--c-text-primary);
+}
+html.light-mode-on #myRoutineBuilderOverlay {
+  background: #fdfdfd !important;
+  color: var(--c-text-primary);
+}
+html.light-mode-on #myRoutineOverlay .bw-menu-header {
+  background: rgba(var(--c-anti-ink-rgb),0.92);
+  border-bottom-color: rgba(0,0,0,0.04);
+}
+html.light-mode-on #myRoutineOverlay .bw-menu-header-close {
+  color: #555;
+}
+html.light-mode-on #myRoutineOverlay .bw-menu-header-title {
+  color: var(--c-text-primary);
+}
+html.light-mode-on #myRoutineRevealInputBar {
+  background: rgba(255,255,255,0.75);
+  border-color: rgba(0,0,0,0.08);
+}
+html.light-mode-on #myRoutineRevealInputBar input[type="number"] {
+  background: rgba(0,0,0,0.06);
+  color: #1a1a1a;
+}
+html.light-mode-on #myRoutineRevealInputBar input[type="number"]::placeholder {
+  color: rgba(0,0,0,0.35);
+}
+html.light-mode-on #myRoutineRevealInputBar button {
+  background: #1a1a1a;
+  color: #fff;
+}
+html.light-mode-on #myRoutineBanner {
+  background: rgba(227,227,229,0.85) !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15) !important;
+}
+html.light-mode-on #myRoutineBannerText {
+  color: var(--c-text-primary) !important;
+}
+html.light-mode-on #myRoutineBannerNo {
+  background: rgba(0,0,0,0.08) !important;
+  color: rgba(0,0,0,0.75) !important;
+}
+html.light-mode-on #myRoutineBannerYes {
+  background: #000 !important;
+  color: #fff !important;
+}
+html.light-mode-on #routineSaveModal .modal-box,
+html.light-mode-on #myRoutineBuilderNameModal .modal-box {
+  background: #fdfdfd;
+  border-color: rgba(0,0,0,0.08);
+}
+html.light-mode-on #routineSaveModal .modal-title,
+html.light-mode-on #myRoutineBuilderNameModal .modal-title {
+  color: var(--c-text-primary);
+}
+html.light-mode-on #routineSaveModal .modal-desc,
+html.light-mode-on #myRoutineBuilderNameModal .modal-desc {
+  color: rgb(48,48,48);
+}
+html.light-mode-on #routineSaveModal .modal-actions,
+html.light-mode-on #myRoutineBuilderNameModal .modal-actions {
+  border-top-color: rgba(0,0,0,0.08);
+}
+html.light-mode-on #routineSaveModal .modal-btn,
+html.light-mode-on #myRoutineBuilderNameModal .modal-btn {
+  color: rgb(28,78,144);
+}
+html.light-mode-on #routineSaveModal .modal-btn + .modal-btn,
+html.light-mode-on #myRoutineBuilderNameModal .modal-btn + .modal-btn {
+  border-left-color: rgba(0,0,0,0.08);
+}
+html.light-mode-on #routineSaveModal .food-modal-form input,
+html.light-mode-on #myRoutineBuilderNameModal .food-modal-form input {
+  background: #fdfdfd;
+  border-color: rgb(213,213,213);
+  color: var(--c-text-primary);
+}
+
 /* 🔥 홈 탭(#tab1) 라이트모드: 필터를 전혀 안 받는 화면이라, "반전 후 결과"를 역산하는 게
    아니라 실제로 화면에 보일 색을 직접(literal) 지정함. 카드/상자류는 기존에 확정했던
    시각적 결과(#fdfdfd, 거의 흰색)를 그대로 유지하고, 텍스트/테두리는 다크모드의
@@ -3219,11 +3303,7 @@ html.light-mode-on .who-cta {
 /* 바깥(화면 전체) — 인라인 style로 지정된 풀스크린 오버레이들(우선순위 위해 !important 필요) */
 html.light-mode-on #mySpecOverlay,
 html.light-mode-on #threeSummaryOverlay,
-html.light-mode-on #myRoutineOverlay,
 html.light-mode-on #bodyweightOverlay,
-html.light-mode-on #myRoutineRevealOverlay,
-html.light-mode-on #myRoutinePastListOverlay,
-html.light-mode-on #myRoutineDetailOverlay,
 html.light-mode-on #muscleFinderOverlay,
 html.light-mode-on #oneRMCalcOverlay,
 html.light-mode-on #whoForOverlay {
@@ -3268,10 +3348,6 @@ html.light-mode-on .today-meal-box,
 html.light-mode-on .food-modal-form input,
 html.light-mode-on .modal-box {
   background: #020202;
-}
-/* 상자 — 인라인 style로 지정된 오버레이(다른 오버레이 위에 뜨는 2차 팝업이라 원래도 #111) */
-html.light-mode-on #myRoutineBuilderOverlay {
-  background: #020202 !important;
 }
 .dex-post-card-label{
   font-size: 17px;
@@ -5549,12 +5625,12 @@ input[type="number"] {
 .today-routine-save-prompt {
   margin-top: 28px;
   padding-top: 20px;
-  border-top: 1px solid rgba(255,255,255,0.1);
+  border-top: 1px solid rgba(var(--c-ink-rgb),0.1);
 }
 .today-routine-save-prompt.hidden { display: none; }
 .today-routine-save-text {
   font-size: 14px;
-  color: #fff;
+  color: var(--c-text-primary);
   font-weight: 600;
   text-align: center;
   margin-bottom: 12px;
@@ -5567,18 +5643,18 @@ input[type="number"] {
   margin: 0 auto;
   padding: 0;
   display: block;
-  border: 1px solid rgba(255,255,255,0.25);
+  border: 1px solid rgba(var(--c-ink-rgb),0.25);
   border-radius: 10px;
   background: transparent;
-  color: rgba(255,255,255,0.75);
+  color: rgba(var(--c-ink-rgb),0.75);
   font-size: 14px;
   font-weight: 700;
   cursor: pointer;
 }
 .today-routine-save-btn.primary {
-  background: #fff;
-  color: #000;
-  border-color: #fff;
+  background: rgb(var(--c-ink-rgb));
+  color: rgb(var(--c-anti-ink-rgb));
+  border-color: var(--c-text-primary);
 }
 .routine-save-existing-list {
   max-height: 160px;
@@ -5589,8 +5665,8 @@ input[type="number"] {
   box-sizing: border-box;
   padding: 12px;
   border-radius: 8px;
-  background: rgba(255,255,255,0.06);
-  color: rgba(255,255,255,0.85);
+  background: rgba(var(--c-ink-rgb),0.06);
+  color: rgba(var(--c-ink-rgb),0.85);
   font-size: 13px;
   font-weight: 600;
   text-align: center;
@@ -5598,10 +5674,10 @@ input[type="number"] {
   cursor: pointer;
 }
 .routine-save-existing-row:active {
-  background: rgba(255,255,255,0.12);
+  background: rgba(var(--c-ink-rgb),0.12);
 }
 .my-routine-detail-card {
-  border: 1px solid rgba(255,255,255,0.16);
+  border: 1px solid rgba(var(--c-ink-rgb),0.16);
   border-radius: 12px;
   padding: 14px 16px;
   margin-bottom: 14px;
@@ -5609,22 +5685,22 @@ input[type="number"] {
 .my-routine-detail-name {
   font-size: 17px;
   font-weight: 700;
-  color: #fff;
+  color: var(--c-text-primary);
   margin-bottom: 8px;
 }
 .my-routine-detail-set {
   font-size: 15px;
-  color: rgba(255,255,255,0.6);
+  color: rgba(var(--c-ink-rgb),0.6);
   line-height: 1.8;
 }
 .my-routine-detail-sublabel {
   font-size: 13px;
-  color: rgba(255,255,255,0.35);
+  color: rgba(var(--c-ink-rgb),0.35);
   letter-spacing: 0.4px;
   margin-bottom: 4px;
 }
 .my-routine-today-set {
-  color: #fff;
+  color: var(--c-text-primary);
 }
 .my-routine-input-row {
   display: flex;
@@ -5637,17 +5713,17 @@ input[type="number"] {
   flex: 1;
   min-width: 0;
   height: 38px;
-  background: rgba(255,255,255,0.08);
+  background: rgba(var(--c-ink-rgb),0.08);
   border: none;
   border-radius: 8px;
-  color: #fff;
+  color: var(--c-text-primary);
   text-align: center;
   font-size: 16px;
   margin: 0;
   padding: 0;
 }
 .my-routine-input::placeholder {
-  color: rgba(255,255,255,0.35);
+  color: rgba(var(--c-ink-rgb),0.35);
 }
 .my-routine-save-btn {
   -webkit-appearance: none;
@@ -5659,8 +5735,8 @@ input[type="number"] {
   padding: 0 16px;
   border-radius: 8px;
   border: none;
-  background: rgba(255,255,255,0.6);
-  color: #000;
+  background: rgba(var(--c-ink-rgb),0.6);
+  color: rgb(var(--c-anti-ink-rgb));
   font-size: 15px;
   font-weight: 700;
   cursor: pointer;
@@ -5674,7 +5750,7 @@ input[type="number"] {
   min-width: 0;
 }
 .my-routine-col-past {
-  border-left: 1px solid rgba(255,255,255,0.1);
+  border-left: 1px solid rgba(var(--c-ink-rgb),0.1);
   padding-left: 16px;
 }
 .my-routine-today-set {
@@ -5686,7 +5762,7 @@ input[type="number"] {
 /* 내 루틴: 섹션 타이틀 / 추가하기 행 */
 .my-routine-section-title {
   font-size: 12px;
-  color: rgba(255,255,255,0.4);
+  color: rgba(var(--c-ink-rgb),0.4);
   letter-spacing: 0.5px;
   margin: 6px 0 4px;
 }
@@ -5695,24 +5771,24 @@ input[type="number"] {
   align-items: center;
   justify-content: space-between;
   padding: 16px 4px;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
+  border-bottom: 1px solid rgba(var(--c-ink-rgb),0.1);
   cursor: pointer;
 }
 .my-routine-past-row-label {
   font-size: 15px;
   font-weight: 700;
-  color: #fff;
+  color: var(--c-text-primary);
 }
 .my-routine-past-row-chevron {
-  color: rgba(255,255,255,0.25);
+  color: rgba(var(--c-ink-rgb),0.25);
   font-size: 20px;
 }
 .my-routine-add-row {
   padding: 16px 4px;
-  color: rgba(255,255,255,0.6);
+  color: rgba(var(--c-ink-rgb),0.6);
   font-size: 14px;
   font-weight: 600;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
+  border-bottom: 1px solid rgba(var(--c-ink-rgb),0.1);
   cursor: pointer;
 }
 
@@ -5720,12 +5796,12 @@ input[type="number"] {
 .my-routine-builder-title {
   font-size: 20px;
   font-weight: 700;
-  color: #fff;
+  color: var(--c-text-primary);
   margin: 6px 0 20px;
 }
 .my-routine-builder-sublabel {
   font-size: 11px;
-  color: rgba(255,255,255,0.4);
+  color: rgba(var(--c-ink-rgb),0.4);
   letter-spacing: 0.4px;
   margin-bottom: 10px;
 }
@@ -5736,15 +5812,15 @@ input[type="number"] {
   height: 44px;
   margin: 0 0 24px;
   padding: 0 14px;
-  background: rgba(255,255,255,0.08);
+  background: rgba(var(--c-ink-rgb),0.08);
   border: none;
   border-radius: 10px;
-  color: #fff;
+  color: var(--c-text-primary);
   font-size: 15px;
   box-sizing: border-box;
 }
 .my-routine-builder-name-input::placeholder {
-  color: rgba(255,255,255,0.3);
+  color: rgba(var(--c-ink-rgb),0.3);
 }
 .my-routine-builder-parts {
   display: flex;
@@ -5759,9 +5835,9 @@ input[type="number"] {
   flex: 1;
   min-width: 0;
   background: transparent;
-  border: 1px solid rgba(255,255,255,0.3);
+  border: 1px solid rgba(var(--c-ink-rgb),0.3);
   border-radius: 999px;
-  color: rgba(255,255,255,0.6);
+  color: rgba(var(--c-ink-rgb),0.6);
   font-size: 12px;
   padding: 7px 4px;
   cursor: pointer;
@@ -5769,20 +5845,20 @@ input[type="number"] {
   text-align: center;
 }
 .my-routine-part-chip.active {
-  background: rgba(255,255,255,0.6);
+  background: rgba(var(--c-ink-rgb),0.6);
   border-color: transparent;
-  color: #000;
+  color: rgb(var(--c-anti-ink-rgb));
   font-weight: 700;
 }
 .my-routine-builder-part-section {
   margin-top: 26px;
   padding-top: 16px;
-  border-top: 1px solid rgba(255,255,255,0.1);
+  border-top: 1px solid rgba(var(--c-ink-rgb),0.1);
 }
 .my-routine-builder-part-name {
   font-size: 15px;
   font-weight: 700;
-  color: #fff;
+  color: var(--c-text-primary);
   margin-bottom: 12px;
 }
 .my-routine-ex-check-row {
@@ -5792,21 +5868,21 @@ input[type="number"] {
 .my-routine-ex-check-label {
   display: inline-block;
   font-size: 14px;
-  color: rgba(255,255,255,0.85);
+  color: rgba(var(--c-ink-rgb),0.85);
   padding: 6px 14px;
   border: 1px solid transparent;
   border-radius: 999px;
 }
 .my-routine-ex-check-row.checked .my-routine-ex-check-label {
-  color: #fff;
-  border-color: #fff;
+  color: var(--c-text-primary);
+  border-color: var(--c-text-primary);
   font-weight: 700;
 }
 .my-routine-builder-order-item {
   font-size: 14px;
-  color: rgba(255,255,255,0.85);
+  color: rgba(var(--c-ink-rgb),0.85);
   padding: 8px 2px;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
+  border-bottom: 1px solid rgba(var(--c-ink-rgb),0.08);
 }
 .my-routine-ex-add-row {
   display: flex;
@@ -5823,14 +5899,14 @@ input[type="number"] {
   height: 36px;
   margin: 0;
   padding: 0 10px;
-  background: rgba(255,255,255,0.08);
+  background: rgba(var(--c-ink-rgb),0.08);
   border: none;
   border-radius: 8px;
-  color: #fff;
+  color: var(--c-text-primary);
   font-size: 13px;
 }
 .my-routine-ex-add-input::placeholder {
-  color: rgba(255,255,255,0.3);
+  color: rgba(var(--c-ink-rgb),0.3);
 }
 .my-routine-ex-add-btn {
   -webkit-appearance: none;
@@ -5841,9 +5917,9 @@ input[type="number"] {
   margin: 0;
   padding: 0;
   border-radius: 8px;
-  border: 1px solid rgba(255,255,255,0.35);
+  border: 1px solid rgba(var(--c-ink-rgb),0.35);
   background: transparent;
-  color: #fff;
+  color: var(--c-text-primary);
   font-size: 16px;
   cursor: pointer;
 }
@@ -5854,7 +5930,7 @@ input[type="number"] {
   width: 100%;
 }
 .my-routine-carousel-frame {
-  border: 1px solid rgba(255,255,255,0.16);
+  border: 1px solid rgba(var(--c-ink-rgb),0.16);
   border-radius: 14px;
   width: 100%;
   box-sizing: border-box;
@@ -5897,7 +5973,7 @@ input[type="number"] {
 .my-routine-template-ex-box {
   padding: 8px 12px;
   font-size: 14px;
-  color: rgba(255,255,255,0.85);
+  color: rgba(var(--c-ink-rgb),0.85);
   white-space: normal;
   word-break: keep-all;
   text-align: center;
@@ -5906,7 +5982,7 @@ input[type="number"] {
 .my-routine-template-ex-line {
   width: 1px;
   height: 10px;
-  background: rgba(255,255,255,0.25);
+  background: rgba(var(--c-ink-rgb),0.25);
 }
 
 /* ✨ 루틴 리빌 화면 (JS로 순서대로 revealed 클래스를 붙여가며 하나씩 나타남) */
@@ -5922,31 +5998,31 @@ input[type="number"] {
 .my-routine-reveal-title {
   font-size: 30px;
   font-weight: 800;
-  color: #fff;
+  color: var(--c-text-primary);
   letter-spacing: 6px;
   margin-bottom: 10px;
 }
 .my-routine-reveal-sub {
   font-size: 13px;
-  color: rgba(255,255,255,0.4);
+  color: rgba(var(--c-ink-rgb),0.4);
   letter-spacing: 2px;
   margin-bottom: 44px;
 }
 .my-routine-reveal-ex-name {
   font-size: 19px;
   font-weight: 700;
-  color: #fff;
+  color: var(--c-text-primary);
   margin-bottom: 8px;
 }
 .my-routine-reveal-ex-set {
   font-size: 15px;
-  color: rgba(255,255,255,0.55);
+  color: rgba(var(--c-ink-rgb),0.55);
   line-height: 1.7;
 }
 .my-routine-reveal-divider {
   width: 1px;
   height: 26px;
-  background: rgba(255,255,255,0.25);
+  background: rgba(var(--c-ink-rgb),0.25);
   margin: 22px 0;
 }
 .my-routine-record-row {
@@ -5970,7 +6046,7 @@ input[type="number"] {
 .my-routine-record-new-set {
   position: absolute;
   left: 4px;
-  color: #fff !important;
+  color: var(--c-text-primary) !important;
   text-align: left;
   white-space: nowrap;
 }
@@ -5982,9 +6058,9 @@ input[type="number"] {
   margin: 0;
   padding: 0 16px;
   border-radius: 999px;
-  border: 1px solid rgba(255,255,255,0.4);
+  border: 1px solid rgba(var(--c-ink-rgb),0.4);
   background: transparent;
-  color: rgba(255,255,255,0.85);
+  color: rgba(var(--c-ink-rgb),0.85);
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
@@ -5996,9 +6072,9 @@ input[type="number"] {
   opacity: 1;
 }
 .my-routine-record-input-btn.selected {
-  background: #fff;
-  color: #000;
-  border-color: #fff;
+  background: rgb(var(--c-ink-rgb));
+  color: rgb(var(--c-anti-ink-rgb));
+  border-color: var(--c-text-primary);
 }
 .my-routine-record-past-half {
   flex-shrink: 0;
@@ -6008,7 +6084,7 @@ input[type="number"] {
 }
 .my-routine-reveal-question {
   font-size: 15px;
-  color: rgba(255,255,255,0.85);
+  color: rgba(var(--c-ink-rgb),0.85);
   margin-top: 54px;
   margin-bottom: 20px;
 }
@@ -6025,23 +6101,23 @@ input[type="number"] {
   margin: 0;
   padding: 0 22px;
   border-radius: 999px;
-  border: 1px solid rgba(255,255,255,0.4);
+  border: 1px solid rgba(var(--c-ink-rgb),0.4);
   background: transparent;
-  color: #fff;
+  color: var(--c-text-primary);
   font-size: 14px;
   font-weight: 700;
   cursor: pointer;
 }
 .my-routine-reveal-choice-btn.primary {
-  background: #fff;
-  color: #000;
+  background: rgb(var(--c-ink-rgb));
+  color: rgb(var(--c-anti-ink-rgb));
   border-color: transparent;
 }
 
 .my-routine-days-ago {
   text-align: center;
   font-size: 15px;
-  color: rgba(255,255,255,0.55);
+  color: rgba(var(--c-ink-rgb),0.55);
   margin-bottom: 14px;
 }
 .my-routine-date-line {
@@ -6058,18 +6134,18 @@ input[type="number"] {
 }
 .my-routine-date-past {
   font-size: 14px;
-  color: rgba(255,255,255,0.3);
+  color: rgba(var(--c-ink-rgb),0.3);
   white-space: nowrap;
 }
 .my-routine-date-dots {
   font-size: 14px;
-  color: rgba(255,255,255,0.25);
+  color: rgba(var(--c-ink-rgb),0.25);
   letter-spacing: 2px;
 }
 .my-routine-date-today {
   font-size: 22px;
   font-weight: 800;
-  color: #fff;
+  color: var(--c-text-primary);
   white-space: nowrap;
 }
 
@@ -6954,7 +7030,7 @@ input[type="number"] {
     <div class="bw-menu-header">
       <button onclick="closeMyRoutine()" class="bw-menu-header-close" aria-label="닫기">‹</button>
       <span class="bw-menu-header-title">내 루틴</span>
-      <div id="myRoutineAddRow" style="flex-shrink:0; font-size:14px; font-weight:600; color:#fff; cursor:pointer; white-space:nowrap;">+ 루틴 추가하기</div>
+      <div id="myRoutineAddRow" style="flex-shrink:0; font-size:14px; font-weight:600; color:var(--c-text-primary); cursor:pointer; white-space:nowrap;">+ 루틴 추가하기</div>
     </div>
     <div id="myRoutineBody" style="flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; padding: 0 18px calc(24px + env(safe-area-inset-bottom));">
       <div id="myRoutinePastRow" class="my-routine-past-row">
@@ -7373,10 +7449,10 @@ input[type="number"] {
   ">
   <div id="myRoutinePastListScreen" style="height:100%; display:flex; flex-direction:column;">
     <div style="flex-shrink:0; padding: calc(28px + env(safe-area-inset-top)) 18px 16px; display:flex; align-items:center; cursor:pointer;" onclick="closeMyRoutinePastList()">
-      ← <span style="margin-left:6px; font-size:15px; font-weight:600; color:#fff;">오늘의 운동</span>
+      ← <span style="margin-left:6px; font-size:15px; font-weight:600; color:var(--c-text-primary);">오늘의 운동</span>
     </div>
     <div id="myRoutinePastListBody" style="flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; padding: 0 18px calc(24px + env(safe-area-inset-bottom));">
-      <div id="myRoutineEmpty" style="color:rgba(255,255,255,0.35); font-size:13px; margin: 20px 0;">
+      <div id="myRoutineEmpty" style="color:rgba(var(--c-ink-rgb),0.35); font-size:13px; margin: 20px 0;">
         아직 오늘 기록된 운동이 없습니다.
       </div>
 
@@ -7431,8 +7507,8 @@ input[type="number"] {
   ">
   <div id="myRoutineBuilderScreen" style="height:100%; display:flex; flex-direction:column;">
     <div style="display:flex; align-items:center; justify-content:space-between; padding: calc(16px + env(safe-area-inset-top)) 18px 14px; flex-shrink:0;">
-      <div id="myRoutineBuilderCancel" style="cursor:pointer; flex-shrink:0; white-space:nowrap; font-size:15px; color:rgba(255,255,255,0.7);">취소</div>
-      <button id="myRoutineBuilderSaveBtn" style="-webkit-appearance:none !important; appearance:none !important; flex-shrink:0; width:auto; background:transparent; border:none; color:#fff; font-size:15px; font-weight:700; padding:4px 2px; cursor:pointer;">저장</button>
+      <div id="myRoutineBuilderCancel" style="cursor:pointer; flex-shrink:0; white-space:nowrap; font-size:15px; color:rgba(var(--c-ink-rgb),0.7);">취소</div>
+      <button id="myRoutineBuilderSaveBtn" style="-webkit-appearance:none !important; appearance:none !important; flex-shrink:0; width:auto; background:transparent; border:none; color:var(--c-text-primary); font-size:15px; font-weight:700; padding:4px 2px; cursor:pointer;">저장</button>
     </div>
     <div style="border-bottom:1px solid rgba(255,255,255,0.35); flex-shrink:0;"></div>
 
@@ -7440,7 +7516,7 @@ input[type="number"] {
       <div class="my-routine-builder-title">루틴 만들기</div>
 
       <div class="my-routine-builder-sublabel">루틴 이름</div>
-      <button type="button" id="myRoutineBuilderNameRow" class="my-routine-builder-name-input" style="text-align:left; cursor:pointer; color:rgba(255,255,255,0.4);">저장위치를 선택하세요</button>
+      <button type="button" id="myRoutineBuilderNameRow" class="my-routine-builder-name-input" style="text-align:left; cursor:pointer; color:rgba(var(--c-ink-rgb),0.4);">저장위치를 선택하세요</button>
 
       <div class="my-routine-builder-sublabel">부위 선택</div>
       <div id="myRoutineBuilderParts" class="my-routine-builder-parts"></div>
@@ -7461,9 +7537,9 @@ input[type="number"] {
   <div id="myRoutineDetailScreen" style="height:100%; display:flex; flex-direction:column;">
     <div style="flex-shrink:0; padding: calc(28px + env(safe-area-inset-top)) 18px 16px; display:flex; align-items:center; justify-content:space-between;">
       <div style="display:flex; align-items:center; cursor:pointer;" onclick="closeMyRoutineDetail()">
-        ← <span id="myRoutineDetailTitle" style="margin-left:6px; font-size:15px; font-weight:600; color:#fff;">하체</span>
+        ← <span id="myRoutineDetailTitle" style="margin-left:6px; font-size:15px; font-weight:600; color:var(--c-text-primary);">하체</span>
       </div>
-      <button id="myRoutineDeleteTemplateBtn" style="display:none; -webkit-appearance:none; appearance:none; width:32px; height:32px; align-items:center; justify-content:center; background:transparent; border:1px solid rgba(255,255,255,0.3); border-radius:8px; cursor:pointer; padding:0;" aria-label="루틴 삭제">
+      <button id="myRoutineDeleteTemplateBtn" style="display:none; -webkit-appearance:none; appearance:none; width:32px; height:32px; align-items:center; justify-content:center; background:transparent; border:1px solid rgba(var(--c-ink-rgb),0.3); border-radius:8px; cursor:pointer; padding:0;" aria-label="루틴 삭제">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ff5b5b" stroke-width="1.6"
              stroke-linecap="round" stroke-linejoin="round">
           <path d="M9.5 4V2.5c0-.8.7-1.5 1.5-1.5h2c.8 0 1.5.7 1.5 1.5V4"></path>
@@ -9171,7 +9247,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.8.0";
+const APP_VERSION = "0.8.1";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -11945,7 +12021,7 @@ document.getElementById("myRoutineBuilderNameConfirmBtn").addEventListener("clic
   builderRoutineName = name;
   const nameRowEl = document.getElementById("myRoutineBuilderNameRow");
   nameRowEl.textContent = name;
-  nameRowEl.style.color = "#fff";
+  nameRowEl.style.color = "var(--c-text-primary)";
 
   closeMyRoutineBuilderNameModal();
 });
@@ -12275,7 +12351,7 @@ function openMyRoutineBuilder(){
   builderRoutineName = "";
   const nameRowEl = document.getElementById("myRoutineBuilderNameRow");
   nameRowEl.textContent = "저장위치를 선택하세요";
-  nameRowEl.style.color = "rgba(255,255,255,0.4)";
+  nameRowEl.style.color = "rgba(var(--c-ink-rgb),0.4)";
   document.getElementById("myRoutineBuilderPartSections").innerHTML = "";
   renderBuilderOrderList();
 
