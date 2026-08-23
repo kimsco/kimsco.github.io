@@ -2676,8 +2676,7 @@ html.mf-restore-settings .settings-panel {
    아니라 "자기 자식들의" fixed 위치 계산 기준만 바뀌는데, 이 요소들은 전부 이미 뷰포트를
    덮는 자기 자신이 position:fixed라 문제 없음).
 ================================ */
-html.light-mode-on #bodyweightOverlay,
-html.light-mode-on #mySpecOverlay {
+html.light-mode-on #bodyweightOverlay {
   filter: invert(1) hue-rotate(180deg);
 }
 
@@ -3598,9 +3597,12 @@ html.light-mode-on #dietOverlay {
 }
 
 /* 바깥(화면 전체) — 인라인 style로 지정된 풀스크린 오버레이들(우선순위 위해 !important 필요) */
-html.light-mode-on #mySpecOverlay,
 html.light-mode-on #bodyweightOverlay {
   background: #111 !important;
+}
+html.light-mode-on #mySpecOverlay {
+  background: #eeeeee !important;
+  color: var(--c-text-primary);
 }
 
 /* 상자(카드/입력창/버튼 등) — 원래 #111 또는 #1a1a1a이던 박스들
@@ -4811,7 +4813,7 @@ input[type="number"] {
 .spec-row label {
   display: block;
   font-size: 11px;
-  color: rgba(255,255,255,0.4);
+  color: rgba(var(--c-ink-rgb),0.4);
   margin-bottom: 8px;
   letter-spacing: 0.4px;
 }
@@ -4821,8 +4823,8 @@ input[type="number"] {
   height: 40px;
   background: transparent;
   border: none;
-  border-bottom: 1px solid rgba(255,255,255,0.18);
-  color: #fff;
+  border-bottom: 1px solid rgba(var(--c-ink-rgb),0.18);
+  color: var(--c-text-primary);
   padding: 0 2px;
   font-size: 15px;
   box-sizing: border-box;
@@ -4830,7 +4832,7 @@ input[type="number"] {
 .spec-row input[type="number"]:focus,
 .spec-row input[type="text"]:focus {
   outline: none;
-  border-bottom-color: #fff;
+  border-bottom-color: var(--c-text-primary);
 }
 
 /* 🔥 이름 입력칸: 세로 폭 2배 + 그에 맞는 글자 크기 + 상하좌 여백 */
@@ -4853,7 +4855,7 @@ input[type="number"] {
 .spec-row-grid3 > div label {
   display: block;
   font-size: 10px;
-  color: rgba(255,255,255,0.4);
+  color: rgba(var(--c-ink-rgb),0.4);
   margin-bottom: 8px;
   text-align: center;
   letter-spacing: 0.4px;
@@ -4863,8 +4865,8 @@ input[type="number"] {
   height: 40px;
   background: transparent;
   border: none;
-  border-bottom: 1px solid rgba(255,255,255,0.18);
-  color: #fff;
+  border-bottom: 1px solid rgba(var(--c-ink-rgb),0.18);
+  color: var(--c-text-primary);
   padding: 0;
   font-size: 15px;
   text-align: center;
@@ -4872,13 +4874,13 @@ input[type="number"] {
 }
 .spec-row-grid3 input[type="number"]:focus {
   outline: none;
-  border-bottom-color: #fff;
+  border-bottom-color: var(--c-text-primary);
 }
 
 .gender-toggle, .goal-toggle {
   display: flex;
   gap: 0;
-  border: 1px solid rgba(255,255,255,0.18);
+  border: 1px solid rgba(var(--c-ink-rgb),0.18);
   border-radius: 8px;
   overflow: hidden;
 }
@@ -4886,9 +4888,9 @@ input[type="number"] {
   flex: 1;
   height: 38px;
   border: none;
-  border-right: 1px solid rgba(255,255,255,0.18);
+  border-right: 1px solid rgba(var(--c-ink-rgb),0.18);
   background: transparent;
-  color: rgba(255,255,255,0.4);
+  color: rgba(var(--c-ink-rgb),0.4);
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
@@ -4897,7 +4899,7 @@ input[type="number"] {
   border-right: none;
 }
 .genderBtn.active, .goalBtn.active {
-  color: #fff;
+  color: var(--c-text-primary);
   font-weight: 700;
 }
 
@@ -4905,21 +4907,21 @@ input[type="number"] {
 .activity-slider-track {
   position: relative;
   height: 1px;
-  background: rgba(255,255,255,0.18);
+  background: rgba(var(--c-ink-rgb),0.18);
   margin: 26px 10px 12px;
 }
 .activity-slider-fill {
   position: absolute;
   left: 0; top: 0;
   height: 100%;
-  background: rgba(255,255,255,0.6);
+  background: rgba(var(--c-ink-rgb),0.6);
 }
 .activity-slider-handle {
   position: absolute;
   top: 50%;
   width: 16px; height: 16px;
-  background: #000;
-  border: 1.5px solid #fff;
+  background: rgb(var(--c-anti-ink-rgb));
+  border: 1.5px solid rgb(var(--c-ink-rgb));
   border-radius: 50%;
   transform: translate(-50%, -50%);
   cursor: grab;
@@ -4929,20 +4931,20 @@ input[type="number"] {
   text-align: center;
   font-size: 12px;
   font-weight: 500;
-  color: rgba(255,255,255,0.7);
+  color: rgba(var(--c-ink-rgb),0.7);
   letter-spacing: 0.4px;
 }
 
 .spec-summary-box {
   margin-top: 22px;
   padding: 16px 0 0;
-  border-top: 1px solid rgba(255,255,255,0.14);
+  border-top: 1px solid rgba(var(--c-ink-rgb),0.14);
   font-size: 12px;
-  color: rgba(255,255,255,0.45);
+  color: rgba(var(--c-ink-rgb),0.45);
   line-height: 1.9;
 }
 .spec-summary-box b {
-  color: #fff;
+  color: var(--c-text-primary);
   font-weight: 600;
 }
 
@@ -4950,9 +4952,9 @@ input[type="number"] {
   width: 100%;
   height: 42px;
   border-radius: 8px;
-  border: 1px solid #fff;
+  border: 1px solid rgb(var(--c-ink-rgb));
   background: transparent;
-  color: #fff;
+  color: var(--c-text-primary);
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.5px;
@@ -7296,7 +7298,7 @@ html.light-mode-on #weightModal .food-modal-form label {
   ">
   <div id="mySpecScreen" style="height:100%; overflow-y:auto; padding: calc(16px + env(safe-area-inset-top)) 18px calc(24px + env(safe-area-inset-bottom));">
     <div style="display:flex; align-items:center; margin-bottom:16px; cursor:pointer;" onclick="closeMySpec()">
-      ← <span style="margin-left:6px; font-size:15px; font-weight:600; color:#fff;">내 정보 수정</span>
+      ← <span style="margin-left:6px; font-size:15px; font-weight:600; color:var(--c-text-primary);">내 정보 수정</span>
     </div>
 
     <div class="spec-row spec-row-name">
@@ -9614,7 +9616,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.8.6";
+const APP_VERSION = "0.8.7";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
