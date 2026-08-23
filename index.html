@@ -1577,17 +1577,17 @@ html.mf-restore-settings .bottomTab {
 .muscle-finder-cards {
   flex-shrink: 0;
   display: flex;
-  gap: 10px;
-  padding: 12px 18px;
+  gap: 6px;
+  padding: 12px 14px;
 }
 .muscle-finder-card {
   flex: 1;
-  padding: 12px 0;
+  padding: 11px 0;
   border-radius: 12px;
   background: #111;
   border: 1px solid #222;
   color: #aaa;
-  font-size: 14px;
+  font-size: 12.5px;
   font-weight: 600;
   cursor: pointer;
 }
@@ -1604,10 +1604,26 @@ html.mf-restore-settings .bottomTab {
   justify-content: center;
   perspective: 1200px;
   padding: 0 24px calc(24px + env(safe-area-inset-bottom));
+  position: relative; /* 🔥 정보 팝업(.muscle-finder-info-popup)의 기준점 — flip의 3D 회전에 안 딸려가게 */
+}
+.muscle-finder-scale-wrap {
+  /* 🔥 이미지 원본 비율(1086:1448)로 고정 — 핫스팟 좌표(%)가 이미지 실제 내용 영역과
+     정확히 맞아떨어지려면, object-fit:contain의 레터박스(빈 여백)가 생기면 안 됨.
+     이 컨테이너 자체를 이미지 비율로 맞춰서 <img>가 여백 없이 꽉 채우게 함.
+     scale은 여기(바깥 래퍼)에서 걸어서, 안쪽 .muscle-finder-flip이 JS로 직접
+     제어하는 rotateY 트랜스폼과 안 부딪히게 분리함 */
+  aspect-ratio: 1086 / 1448;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  transform: scale(1.3);
+  transform-style: preserve-3d; /* 🔥 부모(.muscle-finder-stage)의 perspective가 안쪽 rotateY까지 그대로 전달되게 */
 }
 .muscle-finder-flip {
   width: 100%;
   height: 100%;
+  position: relative;
   transform-style: preserve-3d;
   will-change: transform;
 }
@@ -1618,6 +1634,67 @@ html.mf-restore-settings .bottomTab {
   display: block;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
+}
+
+/* 🔥 근육 핫스팟(부위 탭 지점) — 이미지 위에 % 좌표로 얹는 투명 원형 버튼 */
+.muscle-finder-hotspots {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.muscle-finder-hotspots.hidden {
+  display: none;
+}
+/* 🔥 눈에 보이는 원/펄스 없이, 탭만 되는 투명 영역으로 */
+.muscle-finder-hotspot {
+  all: unset;
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  margin-left: -15px;
+  margin-top: -15px;
+  border-radius: 50%;
+  cursor: pointer;
+  pointer-events: auto;
+}
+.muscle-finder-hotspot:active {
+  transform: scale(0.88);
+}
+
+/* 🔥 핫스팟 탭하면 뜨는 이름+설명 카드(화면 하단에서 슬라이드업) */
+.muscle-finder-info-popup {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  background: rgba(24,24,24,0.96);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 18px;
+  padding: 16px 18px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  transform: translateY(12px);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.22s ease, opacity 0.22s ease;
+  z-index: 5;
+}
+.muscle-finder-info-popup.show {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+.muscle-finder-info-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 6px;
+}
+.muscle-finder-info-desc {
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: rgba(255,255,255,0.65);
 }
 
 /* 맨몸운동 메뉴(01~06 카드) */
@@ -3223,6 +3300,17 @@ html.light-mode-on .muscle-finder-card.active {
 }
 html.light-mode-on #muscleFinderOverlay img {
   filter: none;
+}
+html.light-mode-on .muscle-finder-info-popup {
+  background: rgba(253,253,253,0.98);
+  border-color: rgba(0,0,0,0.1);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+}
+html.light-mode-on .muscle-finder-info-name {
+  color: var(--c-text-primary);
+}
+html.light-mode-on .muscle-finder-info-desc {
+  color: rgb(85,85,85);
 }
 html.light-mode-on #oneRMCalcOverlay #oneRMLiftSelect,
 html.light-mode-on #oneRMCalcOverlay #weight,
@@ -7947,7 +8035,7 @@ html.light-mode-on #weightModal .food-modal-form label {
     <button id="navMyRoutineBtn" class="nav-drawer-item">내 루틴</button>
     <button id="navBodyweightBtn" class="nav-drawer-item">맨몸운동</button>
     <button id="navOneRMCalcBtn" class="nav-drawer-item">1RM 계산기</button>
-    <button id="navMuscleFinderBtn" class="nav-drawer-item" style="opacity:0.45;">근육부위 🔒</button>
+    <button id="navMuscleFinderBtn" class="nav-drawer-item">근육부위</button>
     <button id="navWhoForBtn" class="nav-drawer-item" style="margin-top:auto;">WHO IS TTT FOR?</button>
     <!-- 🔥 아직 실험 단계인 테스트용 버튼이라 맨 아래로 -->
     <button id="navTestRoutineRoomBtn" class="nav-drawer-item">Test Routine Room</button>
@@ -7969,11 +8057,46 @@ html.light-mode-on #weightModal .food-modal-form label {
     <div class="muscle-finder-cards">
       <button type="button" class="muscle-finder-card active" data-part="chest" data-face="front">가슴</button>
       <button type="button" class="muscle-finder-card" data-part="back" data-face="back">등</button>
+      <button type="button" class="muscle-finder-card" data-part="shoulder" data-face="front">어깨</button>
+      <button type="button" class="muscle-finder-card" data-part="lower" data-face="front">하체</button>
+      <button type="button" class="muscle-finder-card" data-part="arm" data-face="front">팔</button>
     </div>
 
     <div class="muscle-finder-stage">
+      <div class="muscle-finder-scale-wrap">
       <div class="muscle-finder-flip" id="muscleFinderFlip">
         <img id="muscleFinderImg" class="muscle-finder-img" src="icons/muscle/front.png" alt="근육 부위 인체 이미지">
+
+        <div class="muscle-finder-hotspots" id="muscleFinderHotspotsFront">
+          <button type="button" class="muscle-finder-hotspot" style="left:50%;top:24%;" data-muscle="chest" aria-label="가슴"></button>
+          <button type="button" class="muscle-finder-hotspot" style="left:33%;top:21%;" data-muscle="shoulder" aria-label="어깨"></button>
+          <button type="button" class="muscle-finder-hotspot" style="left:67%;top:21%;" data-muscle="shoulder" aria-label="어깨"></button>
+          <button type="button" class="muscle-finder-hotspot" style="left:30%;top:33%;" data-muscle="biceps" aria-label="이두근"></button>
+          <button type="button" class="muscle-finder-hotspot" style="left:70%;top:33%;" data-muscle="biceps" aria-label="이두근"></button>
+          <button type="button" class="muscle-finder-hotspot" style="left:50%;top:36%;" data-muscle="abs" aria-label="복근"></button>
+          <button type="button" class="muscle-finder-hotspot" style="left:41%;top:63%;" data-muscle="quad" aria-label="대퇴사두근"></button>
+          <button type="button" class="muscle-finder-hotspot" style="left:59%;top:63%;" data-muscle="quad" aria-label="대퇴사두근"></button>
+        </div>
+        <div class="muscle-finder-hotspots hidden" id="muscleFinderHotspotsBack">
+          <button type="button" class="muscle-finder-hotspot" style="left:50%;top:23%;" data-muscle="traps" aria-label="승모근"></button>
+          <button type="button" class="muscle-finder-hotspot" style="left:34%;top:23%;" data-muscle="shoulder" aria-label="어깨"></button>
+          <button type="button" class="muscle-finder-hotspot" style="left:66%;top:23%;" data-muscle="shoulder" aria-label="어깨"></button>
+          <button type="button" class="muscle-finder-hotspot" style="left:44%;top:33%;" data-muscle="lats" aria-label="광배근"></button>
+          <button type="button" class="muscle-finder-hotspot" style="left:56%;top:33%;" data-muscle="lats" aria-label="광배근"></button>
+          <button type="button" class="muscle-finder-hotspot" style="left:30%;top:33%;" data-muscle="triceps" aria-label="삼두근"></button>
+          <button type="button" class="muscle-finder-hotspot" style="left:70%;top:33%;" data-muscle="triceps" aria-label="삼두근"></button>
+          <button type="button" class="muscle-finder-hotspot" style="left:50%;top:45%;" data-muscle="glutes" aria-label="둔근"></button>
+          <button type="button" class="muscle-finder-hotspot" style="left:42%;top:60%;" data-muscle="hamstring" aria-label="햄스트링"></button>
+          <button type="button" class="muscle-finder-hotspot" style="left:58%;top:60%;" data-muscle="hamstring" aria-label="햄스트링"></button>
+          <button type="button" class="muscle-finder-hotspot" style="left:42%;top:78%;" data-muscle="calf" aria-label="종아리"></button>
+          <button type="button" class="muscle-finder-hotspot" style="left:58%;top:78%;" data-muscle="calf" aria-label="종아리"></button>
+        </div>
+      </div>
+      </div>
+
+      <div class="muscle-finder-info-popup" id="muscleFinderInfoPopup">
+        <div class="muscle-finder-info-name" id="muscleFinderInfoName"></div>
+        <div class="muscle-finder-info-desc" id="muscleFinderInfoDesc"></div>
       </div>
     </div>
   </div>
@@ -9624,7 +9747,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.8.19";
+const APP_VERSION = "0.8.21";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -12159,15 +12282,17 @@ let muscleFinderFace = "front"; // 지금 보이는 면
 let muscleFinderFlipping = false; // 회전 애니메이션 도중이면 true(다음 클릭 무시)
 
 document.getElementById("navMuscleFinderBtn").addEventListener("click", () => {
-  // 🔒 준비 중(턴테이블용 각도 사진 모으는 중) — 완성될 때까지 임시로 잠가둠
-  alert("근육부위 기능은 현재 준비 중입니다.");
+  closeNavDrawerInstant();
+  openMuscleFinder();
 });
 
 function openMuscleFinder(){
   muscleFinderOverlay.classList.remove("hidden");
+  hideMuscleInfo();
 }
 function closeMuscleFinder(){
   muscleFinderOverlay.classList.add("hidden");
+  hideMuscleInfo();
 }
 
 // 🔥 0deg -> 90deg(에지 상태에서 이미지 교체) -> (미러링 방지용 순간 이동) -90deg -> 0deg
@@ -12189,6 +12314,10 @@ function goToMuscleFace(targetFace, cardEl){
     muscleFinderFlip.removeEventListener("transitionend", onHalfway);
 
     muscleFinderImg.src = targetFace === "front" ? MUSCLE_FRONT_SRC : MUSCLE_BACK_SRC;
+    // 🔥 핫스팟도 이미지와 같은 타이밍(회전이 완전히 접힌 옆모습 순간)에 같이 바꿔치기
+    document.getElementById("muscleFinderHotspotsFront").classList.toggle("hidden", targetFace !== "front");
+    document.getElementById("muscleFinderHotspotsBack").classList.toggle("hidden", targetFace !== "back");
+    hideMuscleInfo();
 
     muscleFinderFlip.style.transition = "none";
     muscleFinderFlip.style.transform = "rotateY(-90deg)";
@@ -12213,6 +12342,43 @@ function goToMuscleFace(targetFace, cardEl){
 document.querySelectorAll(".muscle-finder-card").forEach(card => {
   card.addEventListener("click", () => goToMuscleFace(card.dataset.face, card));
 });
+
+// 🔥 핫스팟 탭하면 이름+간단한 설명 카드가 뜸(운동 목록 연결 없이 정보만)
+const MUSCLE_INFO = {
+  chest: { name: "가슴 (대흉근)", desc: "팔을 앞으로 밀거나 모으는 동작에 쓰이는 가슴 근육. 벤치프레스, 푸시업 등으로 단련." },
+  shoulder: { name: "어깨 (삼각근)", desc: "팔을 옆·앞·뒤로 들어올리는 동작에 관여하는 어깨 근육. 숄더프레스, 레터럴레이즈로 단련." },
+  biceps: { name: "이두근 (상완이두근)", desc: "팔을 구부릴 때 쓰이는 팔 앞쪽 근육. 덤벨컬, 바벨컬로 단련." },
+  abs: { name: "복근 (복직근)", desc: "몸통을 구부리거나 자세를 지탱하는 배 근육. 크런치, 플랭크로 단련." },
+  quad: { name: "대퇴사두근", desc: "무릎을 펴는 데 쓰이는 허벅지 앞쪽 근육. 스쿼트, 런지로 단련." },
+  traps: { name: "승모근", desc: "어깨를 으쓱하거나 견갑골을 조절하는 목~등 위쪽 근육. 슈러그로 단련." },
+  lats: { name: "광배근", desc: "팔을 아래로 당기는 등 넓은 근육. 풀업, 랫풀다운으로 단련." },
+  triceps: { name: "삼두근 (상완삼두근)", desc: "팔을 펼 때 쓰이는 팔 뒤쪽 근육. 딥스, 케이블 푸시다운으로 단련." },
+  glutes: { name: "둔근", desc: "엉덩이를 펴거나 하체를 지탱하는 근육. 힙스러스트, 스쿼트로 단련." },
+  hamstring: { name: "햄스트링", desc: "무릎을 굽히는 허벅지 뒤쪽 근육. 데드리프트, 레그컬로 단련." },
+  calf: { name: "종아리 (비복근)", desc: "발목을 펴는 종아리 근육. 카프레이즈로 단련." },
+};
+const muscleFinderInfoPopup = document.getElementById("muscleFinderInfoPopup");
+const muscleFinderInfoName = document.getElementById("muscleFinderInfoName");
+const muscleFinderInfoDesc = document.getElementById("muscleFinderInfoDesc");
+
+function showMuscleInfo(key){
+  const info = MUSCLE_INFO[key];
+  if (!info) return;
+  muscleFinderInfoName.textContent = info.name;
+  muscleFinderInfoDesc.textContent = info.desc;
+  muscleFinderInfoPopup.classList.add("show");
+}
+function hideMuscleInfo(){
+  muscleFinderInfoPopup.classList.remove("show");
+}
+document.querySelectorAll(".muscle-finder-hotspot").forEach(hotspot => {
+  hotspot.addEventListener("click", (e) => {
+    e.stopPropagation(); // 🔥 배경(스테이지) 클릭 핸들러(팝업 닫기)로 안 번지게
+    showMuscleInfo(hotspot.dataset.muscle);
+  });
+});
+// 🔥 핫스팟 말고 배경(인체 이미지/빈 공간)을 탭하면 팝업 닫힘
+document.querySelector(".muscle-finder-stage").addEventListener("click", hideMuscleInfo);
 
 /* 🔥 맨몸운동 첫 화면(메뉴)은 스와이프로 못 나가게(오탈출 방지) — 상단 X 버튼으로만 닫힘.
    그 안의 하위 화면(← 버튼이 있는 화면들)은 아래에서 왼쪽 끝→오른쪽 스와이프로 뒤로가기 가능 */
