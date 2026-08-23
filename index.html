@@ -6656,6 +6656,11 @@ html.light-mode-on #weightModal .food-modal-form label {
 
 <body>
 
+<!-- 🔥 메뉴/설정/식단 드로어를 스와이프로 열고닫는 도중(손가락을 중간에 멈추거나 다시
+     움직이는 상태 포함) 다른 손가락 터치가 드로어 안 버튼 등을 눌러버려서 드래그 상태와
+     화면이 어긋난 채로 멈춰버리는 버그 방지용 — 드래그가 확정(dragging=true)되는 순간부터
+     손을 뗄 때까지, 투명하게 화면 전체를 덮어 다른 터치를 전부 무시시킴 -->
+<div id="swipeTouchGuard" style="position:fixed; inset:0; z-index:999999; pointer-events:none;"></div>
 
 <div class="app">
    
@@ -9697,7 +9702,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.8.25";
+const APP_VERSION = "0.8.26";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -15114,6 +15119,14 @@ const bottomTabEl = document.getElementById('bottomTab');
 const topBarEl = document.querySelector('.topBar'); // 🔥 메뉴/설정/식단 열고닫을 때 뒷화면(.app)과 같이 밀리게 하는 용도
 const dietSubTabBar = document.getElementById('dietSubTabBar');
 
+// 🔥 메뉴/설정/식단 드로어 스와이프 드래그가 확정된(dragging=true) 순간부터 손을 뗄 때까지,
+//    화면 전체를 투명하게 덮어서 다른 터치가 드로어 안 버튼 등을 눌러 상태가 꼬이는(중간
+//    위치에 멈춰버리는) 걸 막는 가드. 드래그 자체는 이미 시작된 터치의 identifier를 계속
+//    따라가므로(브라우저가 터치 시작 시점 타깃을 유지) 이 가드가 덮여도 정상 진행됨
+const swipeTouchGuardEl = document.getElementById('swipeTouchGuard');
+function showSwipeTouchGuard(){ if (swipeTouchGuardEl) swipeTouchGuardEl.style.pointerEvents = 'auto'; }
+function hideSwipeTouchGuard(){ if (swipeTouchGuardEl) swipeTouchGuardEl.style.pointerEvents = 'none'; }
+
 // 🔥 메뉴 드로어/설정/식단을 열고닫을 때 뒷화면(.app)이 옆으로 살짝 밀리는데, topBar/bottomTab과
 //    3대탭/기록탭의 알약형 저장바(#recordFloatBarTab2/#recordFloatBarAcc)·토스트 메시지
 //    (#recordMessage)는 body 바로 밑으로 옮겨져 있어서(아래 이동 처리 참고) 그동안 제자리에
@@ -15739,7 +15752,7 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
 
     if (!dragging) {
       // 왼쪽으로 움직였을 때만(dx < 0) 닫기 드래그로 확정
-      if (dx < -COMMIT_MOVE && Math.abs(dx) > Math.abs(dy) * 0.6) dragging = true;
+      if (dx < -COMMIT_MOVE && Math.abs(dx) > Math.abs(dy) * 0.6) { dragging = true; showSwipeTouchGuard(); }
       else if (Math.abs(dy) > COMMIT_MOVE && Math.abs(dy) > Math.abs(dx)) { tracking = false; return; }
       else return;
     }
@@ -15762,6 +15775,7 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
     if (!tracking) return;
     const wasDragging = dragging;
     tracking = false; dragging = false;
+    hideSwipeTouchGuard();
     if (!wasDragging) return;
 
     const width = navDrawer.offsetWidth || window.innerWidth;
@@ -15835,6 +15849,7 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
     if (!dragging) {
       if (dx > COMMIT_MOVE && dx > Math.abs(dy) * 0.6) {
         dragging = true;
+        showSwipeTouchGuard();
         // 드래그 시작: 드로어를 화면 밖(닫힌 상태)에 배치하고 오버레이를 보이게 함
         document.querySelectorAll(".nav-drawer-item").forEach(item => {
           const activeTarget = document.querySelector('.bottomTab .tabBtn.active')?.dataset.target;
@@ -15866,6 +15881,7 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
     if (!tracking) return;
     const wasDragging = dragging;
     tracking = false; dragging = false;
+    hideSwipeTouchGuard();
     if (!wasDragging) return;
 
     const width = navDrawer.offsetWidth || window.innerWidth;
@@ -15919,6 +15935,7 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
     if (!dragging) {
       if (dx > COMMIT_MOVE && dx > Math.abs(dy) * 0.6) {
         dragging = true;
+        showSwipeTouchGuard();
         appEl = document.querySelector('.app');
         dietOverlay.style.transition = 'none';
         appEl.style.transition = 'none';
@@ -15946,6 +15963,7 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
     if (!tracking) return;
     const wasDragging = dragging;
     tracking = false; dragging = false;
+    hideSwipeTouchGuard();
     if (!wasDragging) return;
 
     const width = window.innerWidth;
@@ -16517,7 +16535,7 @@ closeSettingsBtn.addEventListener("click", closeSettings);
     const t = e.touches[0];
     const dx = t.clientX - startX, dy = t.clientY - startY;
     if (!dragging) {
-      if (dx > COMMIT_MOVE && dx > Math.abs(dy) * 0.6) dragging = true;
+      if (dx > COMMIT_MOVE && dx > Math.abs(dy) * 0.6) { dragging = true; showSwipeTouchGuard(); }
       else if (Math.abs(dy) > COMMIT_MOVE && Math.abs(dy) > dx) { tracking = false; return; }
       else return;
     }
@@ -16534,6 +16552,7 @@ closeSettingsBtn.addEventListener("click", closeSettings);
     if (!tracking) return;
     const wasDragging = dragging;
     tracking = false; dragging = false;
+    hideSwipeTouchGuard();
     if (!wasDragging) return;
 
     const width = settingsPanel.offsetWidth || window.innerWidth;
