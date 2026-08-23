@@ -1368,7 +1368,7 @@ html.mf-restore-settings .settings-panel {
   display: flex;
   align-items: center;
   gap: 4px;
-  background: rgba(0,0,0,0.92);
+  background: rgba(var(--c-anti-ink-rgb),0.92);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }
@@ -1388,7 +1388,7 @@ html.mf-restore-settings .settings-panel {
 .bw-header-title {
   font-size: 17px;
   font-weight: 700;
-  color: #fff;
+  color: var(--c-text-primary);
 }
 .bw-header-spacer { width: 36px; flex-shrink: 0; }
 
@@ -1401,10 +1401,10 @@ html.mf-restore-settings .settings-panel {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  background: rgba(0,0,0,0.92);
+  background: rgba(var(--c-anti-ink-rgb),0.92);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(255,255,255,0.04);
+  border-bottom: 1px solid rgba(var(--c-ink-rgb),0.04);
 }
 .bw-menu-header-close {
   all: unset;
@@ -1427,7 +1427,7 @@ html.mf-restore-settings .settings-panel {
   font-weight: 700;
   letter-spacing: 0.5px;
   line-height: 1.4;
-  color: #fff;
+  color: var(--c-text-primary);
   opacity: 0.95;
 }
 .bw-menu-header-spacer { width: 56px; flex-shrink: 0; }
@@ -1630,7 +1630,7 @@ html.mf-restore-settings .settings-panel {
   align-items: center;
   justify-content: center;
   text-align: center;
-  color: #fff;
+  color: var(--c-text-primary);
   font-family: 'Nanum Myeongjo', 'AppleMyungjo', 'Batang', serif;
   font-size: 15px;
   font-weight: 700;
@@ -1640,8 +1640,8 @@ html.mf-restore-settings .settings-panel {
 }
 .bw-menu-card {
   box-sizing: border-box;
-  background: #111;
-  border: 1px solid #222;
+  background: var(--c-bg-elevated);
+  border: 1px solid var(--c-border);
   border-radius: 16px;
   padding: 18px 18px;
   cursor: pointer;
@@ -1661,23 +1661,23 @@ html.mf-restore-settings .settings-panel {
 .bw-menu-num {
   font-size: 12px;
   font-weight: 700;
-  color: rgba(255,255,255,0.35);
+  color: rgba(var(--c-ink-rgb),0.35);
   letter-spacing: 0.5px;
   margin-bottom: 6px;
 }
 .bw-menu-title {
   font-size: 19px;
   font-weight: 750;
-  color: #fff;
+  color: var(--c-text-primary);
   margin-bottom: 6px;
 }
 .bw-menu-sub {
   font-size: 13px;
-  color: rgba(255,255,255,0.45);
+  color: rgba(var(--c-ink-rgb),0.45);
   line-height: 1.4;
 }
 .bw-menu-icon {
-  color: rgba(255,255,255,0.85);
+  color: rgba(var(--c-ink-rgb),0.85);
   flex-shrink: 0;
 }
 .bw-menu-icon svg {
@@ -1687,7 +1687,7 @@ html.mf-restore-settings .settings-panel {
 }
 .bw-menu-arrow {
   font-size: 18px;
-  color: rgba(255,255,255,0.3);
+  color: rgba(var(--c-ink-rgb),0.3);
 }
 
 /* 맨몸운동 「02 — 루틴」 목록 */
@@ -1702,19 +1702,19 @@ html.mf-restore-settings .settings-panel {
 .bw-routine-hero-en {
   font-size: 12px;
   font-weight: 700;
-  color: rgba(255,255,255,0.4);
+  color: rgba(var(--c-ink-rgb),0.4);
   letter-spacing: 1.5px;
   margin-bottom: 4px;
 }
 .bw-routine-hero-kr {
   font-size: 26px;
   font-weight: 800;
-  color: #fff;
+  color: var(--c-text-primary);
   margin-bottom: 12px;
 }
 .bw-routine-hero-tagline {
   font-size: 14px;
-  color: rgba(255,255,255,0.5);
+  color: rgba(var(--c-ink-rgb),0.5);
 }
 .bw-routine-cards {
   display: flex;
@@ -1724,8 +1724,8 @@ html.mf-restore-settings .settings-panel {
 .bw-routine-card {
   position: relative;
   box-sizing: border-box;
-  background: #111;
-  border: 1px solid #222;
+  background: var(--c-bg-elevated);
+  border: 1px solid var(--c-border);
   border-radius: 16px;
   padding: 18px 20px 44px;
   cursor: pointer;
@@ -1734,13 +1734,13 @@ html.mf-restore-settings .settings-panel {
 .bw-routine-card-name {
   font-size: 20px;
   font-weight: 800;
-  color: #fff;
+  color: var(--c-text-primary);
   letter-spacing: 0.3px;
   margin-bottom: 6px;
 }
 .bw-routine-card-desc {
   font-size: 13.5px;
-  color: rgba(255,255,255,0.5);
+  color: rgba(var(--c-ink-rgb),0.5);
   margin-bottom: 14px;
 }
 .bw-routine-card-meta {
@@ -1748,7 +1748,7 @@ html.mf-restore-settings .settings-panel {
   gap: 14px;
   font-size: 12.5px;
   font-weight: 600;
-  color: rgba(255,255,255,0.45);
+  color: rgba(var(--c-ink-rgb),0.45);
   margin-bottom: 14px;
 }
 .bw-routine-card-exlist {
@@ -1760,7 +1760,7 @@ html.mf-restore-settings .settings-panel {
 }
 .bw-routine-card-exlist > div {
   font-size: 13.5px;
-  color: rgba(255,255,255,0.65);
+  color: rgba(var(--c-ink-rgb),0.65);
 }
 .bw-routine-card .bw-menu-arrow { bottom: 16px; }
 
@@ -1770,24 +1770,24 @@ html.mf-restore-settings .settings-panel {
   appearance: none;
   width: 100%;
   box-sizing: border-box;
-  background: #111;
-  border: 1px solid #222;
+  background: var(--c-bg-elevated);
+  border: 1px solid var(--c-border);
   border-radius: 14px;
   padding: 15px 16px;
-  color: #fff;
+  color: var(--c-text-primary);
   font-size: 15px;
   font-weight: 600;
   outline: none;
 }
-.bw-text-input::placeholder { color: rgba(255,255,255,0.3); font-weight: 500; }
+.bw-text-input::placeholder { color: rgba(var(--c-ink-rgb),0.3); font-weight: 500; }
 .bw-routine-create-exlist { display: flex; flex-direction: column; gap: 8px; }
 .bw-routine-create-ex-empty { font-size: 13px; color: #555; padding: 4px 2px; }
 .bw-routine-create-ex-row {
   display: flex;
   align-items: center;
   gap: 10px;
-  background: #111;
-  border: 1px solid #222;
+  background: var(--c-bg-elevated);
+  border: 1px solid var(--c-border);
   border-radius: 14px;
   padding: 12px 14px;
 }
@@ -1796,7 +1796,7 @@ html.mf-restore-settings .settings-panel {
   min-width: 0;
   font-size: 14px;
   font-weight: 600;
-  color: #fff;
+  color: var(--c-text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1809,31 +1809,31 @@ html.mf-restore-settings .settings-panel {
   border: none;
   border-bottom: 1px solid #333;
   outline: none;
-  color: #fff;
+  color: var(--c-text-primary);
   font-size: 15px;
   font-weight: 700;
   text-align: center;
   -webkit-appearance: none;
 }
-.bw-routine-create-ex-reps-suffix { flex-shrink: 0; color: rgba(255,255,255,0.4); font-size: 12px; }
-.bw-routine-create-ex-remove { flex-shrink: 0; color: rgba(255,255,255,0.35); font-size: 15px; cursor: pointer; padding: 4px; }
+.bw-routine-create-ex-reps-suffix { flex-shrink: 0; color: rgba(var(--c-ink-rgb),0.4); font-size: 12px; }
+.bw-routine-create-ex-remove { flex-shrink: 0; color: rgba(var(--c-ink-rgb),0.35); font-size: 15px; cursor: pointer; padding: 4px; }
 
 /* 「02 — 루틴」 상세(개별 루틴) */
 .bw-routine-detail-en {
   font-size: 24px;
   font-weight: 800;
-  color: #fff;
+  color: var(--c-text-primary);
   margin-bottom: 4px;
 }
 .bw-routine-detail-kr {
   font-size: 14px;
-  color: rgba(255,255,255,0.5);
+  color: rgba(var(--c-ink-rgb),0.5);
   margin-bottom: 14px;
 }
 .bw-routine-detail-meta {
   font-size: 12px;
   font-weight: 700;
-  color: rgba(255,255,255,0.4);
+  color: rgba(var(--c-ink-rgb),0.4);
   letter-spacing: 0.5px;
   margin-bottom: 4px;
 }
@@ -1849,37 +1849,37 @@ html.mf-restore-settings .settings-panel {
 .bw-routine-detail-ex-num {
   font-size: 12px;
   font-weight: 700;
-  color: rgba(255,255,255,0.35);
+  color: rgba(var(--c-ink-rgb),0.35);
   margin-bottom: 4px;
 }
 .bw-routine-detail-ex-en {
   font-size: 16px;
   font-weight: 700;
-  color: #fff;
+  color: var(--c-text-primary);
 }
 .bw-routine-detail-ex-kr {
   font-size: 12.5px;
-  color: rgba(255,255,255,0.45);
+  color: rgba(var(--c-ink-rgb),0.45);
   margin-top: 2px;
 }
 .bw-routine-detail-ex-reps {
   font-size: 12px;
   font-weight: 700;
-  color: rgba(255,255,255,0.55);
+  color: rgba(var(--c-ink-rgb),0.55);
   letter-spacing: 0.5px;
   margin-top: 6px;
 }
 .bw-routine-detail-total-label {
   font-size: 12px;
   font-weight: 700;
-  color: rgba(255,255,255,0.4);
+  color: rgba(var(--c-ink-rgb),0.4);
   letter-spacing: 0.5px;
   margin-bottom: 4px;
 }
 .bw-routine-detail-total-value {
   font-size: 24px;
   font-weight: 800;
-  color: #fff;
+  color: var(--c-text-primary);
 }
 
 /* 맨몸운동 「03 — 기록」 메인 */
@@ -1894,7 +1894,7 @@ html.mf-restore-settings .settings-panel {
 .bw-log-empty-text {
   font-size: 15px;
   line-height: 1.7;
-  color: rgba(255,255,255,0.55);
+  color: rgba(var(--c-ink-rgb),0.55);
   margin-bottom: 24px;
 }
 .bw-log-hero-stat {
@@ -1907,23 +1907,23 @@ html.mf-restore-settings .settings-panel {
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 1.2px;
-  color: rgba(255,255,255,0.4);
+  color: rgba(var(--c-ink-rgb),0.4);
   margin-bottom: 8px;
 }
 .bw-log-hero-stat-value {
   font-size: 44px;
   font-weight: 800;
-  color: #fff;
+  color: var(--c-text-primary);
   line-height: 1;
   margin-bottom: 6px;
 }
-.bw-log-hero-stat-caption { font-size: 13px; color: rgba(255,255,255,0.5); }
+.bw-log-hero-stat-caption { font-size: 13px; color: rgba(var(--c-ink-rgb),0.5); }
 .bw-log-stat-row { display: flex; gap: 12px; margin-bottom: 24px; }
 .bw-log-stat-card {
   flex: 1;
   min-width: 0;
-  background: #111;
-  border: 1px solid #222;
+  background: var(--c-bg-elevated);
+  border: 1px solid var(--c-border);
   border-radius: 14px;
   padding: 16px;
   text-align: center;
@@ -1932,11 +1932,11 @@ html.mf-restore-settings .settings-panel {
   font-size: 10.5px;
   font-weight: 700;
   letter-spacing: 0.8px;
-  color: rgba(255,255,255,0.4);
+  color: rgba(var(--c-ink-rgb),0.4);
   margin-bottom: 8px;
 }
-.bw-log-stat-value { font-size: 24px; font-weight: 800; color: #fff; margin-bottom: 4px; }
-.bw-log-stat-caption { font-size: 11.5px; color: rgba(255,255,255,0.45); }
+.bw-log-stat-value { font-size: 24px; font-weight: 800; color: var(--c-text-primary); margin-bottom: 4px; }
+.bw-log-stat-caption { font-size: 11.5px; color: rgba(var(--c-ink-rgb),0.45); }
 .bw-log-section-label {
   font-size: 13px;
   font-weight: 600;
@@ -1948,8 +1948,8 @@ html.mf-restore-settings .settings-panel {
   display: flex;
   align-items: center;
   gap: 14px;
-  background: #111;
-  border: 1px solid #222;
+  background: var(--c-bg-elevated);
+  border: 1px solid var(--c-border);
   border-radius: 14px;
   padding: 14px 16px;
   cursor: pointer;
@@ -1957,31 +1957,31 @@ html.mf-restore-settings .settings-panel {
 .bw-log-record-row:active { opacity: 0.85; }
 .bw-log-record-row.is-static { cursor: default; }
 .bw-log-record-row.is-static:active { opacity: 1; }
-.bw-log-record-date { flex-shrink: 0; width: 44px; font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.4); }
+.bw-log-record-date { flex-shrink: 0; width: 44px; font-size: 12px; font-weight: 700; color: rgba(var(--c-ink-rgb),0.4); }
 .bw-log-record-main { flex: 1; min-width: 0; }
-.bw-log-record-name { font-size: 15px; font-weight: 700; color: #fff; }
-.bw-log-record-meta { font-size: 12.5px; color: rgba(255,255,255,0.5); margin-top: 2px; }
+.bw-log-record-name { font-size: 15px; font-weight: 700; color: var(--c-text-primary); }
+.bw-log-record-meta { font-size: 12.5px; color: rgba(var(--c-ink-rgb),0.5); margin-top: 2px; }
 .bw-log-link-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #111;
-  border: 1px solid #222;
+  background: var(--c-bg-elevated);
+  border: 1px solid var(--c-border);
   border-radius: 14px;
   padding: 16px 18px;
   margin-bottom: 24px;
   font-size: 15px;
   font-weight: 700;
-  color: #fff;
+  color: var(--c-text-primary);
   cursor: pointer;
 }
 .bw-log-link-row:active { opacity: 0.85; }
-.bw-menu-arrow-inline { color: rgba(255,255,255,0.3); font-size: 16px; }
+.bw-menu-arrow-inline { color: rgba(var(--c-ink-rgb),0.3); font-size: 16px; }
 
 /* 날짜별 기록 달력 */
-.bw-log-cal { background: #111; border: 1px solid #222; border-radius: 16px; padding: 14px 12px 16px; }
+.bw-log-cal { background: var(--c-bg-elevated); border: 1px solid var(--c-border); border-radius: 16px; padding: 14px 12px 16px; }
 .bw-log-cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-.bw-log-cal-month { font-size: 14px; font-weight: 700; color: #fff; letter-spacing: 0.3px; }
+.bw-log-cal-month { font-size: 14px; font-weight: 700; color: var(--c-text-primary); letter-spacing: 0.3px; }
 .bw-log-cal-nav {
   all: unset;
   width: 28px;
@@ -1989,7 +1989,7 @@ html.mf-restore-settings .settings-panel {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(255,255,255,0.5);
+  color: rgba(var(--c-ink-rgb),0.5);
   font-size: 18px;
   cursor: pointer;
 }
@@ -2009,13 +2009,13 @@ html.mf-restore-settings .settings-panel {
   align-items: center;
   justify-content: center;
   font-size: 12.5px;
-  color: rgba(255,255,255,0.7);
+  color: rgba(var(--c-ink-rgb),0.7);
   cursor: default;
   border-radius: 8px;
   box-sizing: border-box;
 }
 .bw-log-cal-day.is-empty { visibility: hidden; }
-.bw-log-cal-day.has-record { color: #fff; font-weight: 700; cursor: pointer; }
+.bw-log-cal-day.has-record { color: var(--c-text-primary); font-weight: 700; cursor: pointer; }
 .bw-log-cal-day.has-record::after {
   content: "";
   position: absolute;
@@ -2025,9 +2025,9 @@ html.mf-restore-settings .settings-panel {
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background: #fff;
+  background: rgb(var(--c-ink-rgb));
 }
-.bw-log-cal-day.is-today { border: 1px solid rgba(255,255,255,0.4); }
+.bw-log-cal-day.is-today { border: 1px solid rgba(var(--c-ink-rgb),0.4); }
 
 /* 운동별 기록 목록 */
 .bw-log-exercise-list {
@@ -2041,24 +2041,24 @@ html.mf-restore-settings .settings-panel {
   gap: 10px;
 }
 .bw-log-exercise-card {
-  background: #111;
-  border: 1px solid #222;
+  background: var(--c-bg-elevated);
+  border: 1px solid var(--c-border);
   border-radius: 14px;
   padding: 16px;
   cursor: pointer;
 }
 .bw-log-exercise-card:active { opacity: 0.85; }
-.bw-log-exercise-name-en { font-size: 16px; font-weight: 700; color: #fff; }
-.bw-log-exercise-name-kr { font-size: 12.5px; color: rgba(255,255,255,0.45); margin-top: 2px; margin-bottom: 10px; }
-.bw-log-exercise-meta-row { display: flex; gap: 16px; font-size: 12.5px; color: rgba(255,255,255,0.55); }
+.bw-log-exercise-name-en { font-size: 16px; font-weight: 700; color: var(--c-text-primary); }
+.bw-log-exercise-name-kr { font-size: 12.5px; color: rgba(var(--c-ink-rgb),0.45); margin-top: 2px; margin-bottom: 10px; }
+.bw-log-exercise-meta-row { display: flex; gap: 16px; font-size: 12.5px; color: rgba(var(--c-ink-rgb),0.55); }
 
 /* 운동 상세 기록 */
-.bw-log-detail-en { font-size: 24px; font-weight: 800; color: #fff; margin-bottom: 4px; }
-.bw-log-detail-kr { font-size: 14px; color: rgba(255,255,255,0.5); margin-bottom: 14px; }
+.bw-log-detail-en { font-size: 24px; font-weight: 800; color: var(--c-text-primary); margin-bottom: 4px; }
+.bw-log-detail-kr { font-size: 14px; color: rgba(var(--c-ink-rgb),0.5); margin-bottom: 14px; }
 .bw-log-stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.bw-log-stat-tile { background: #111; border: 1px solid #222; border-radius: 14px; padding: 14px 16px; }
-.bw-log-stat-tile-label { font-size: 11.5px; color: rgba(255,255,255,0.4); margin-bottom: 6px; }
-.bw-log-stat-tile-value { font-size: 20px; font-weight: 800; color: #fff; }
+.bw-log-stat-tile { background: var(--c-bg-elevated); border: 1px solid var(--c-border); border-radius: 14px; padding: 14px 16px; }
+.bw-log-stat-tile-label { font-size: 11.5px; color: rgba(var(--c-ink-rgb),0.4); margin-bottom: 6px; }
+.bw-log-stat-tile-value { font-size: 20px; font-weight: 800; color: var(--c-text-primary); }
 
 /* 기록 변화 그래프(단순 선형 SVG) */
 .bw-log-chart { min-height: 140px; }
@@ -2073,24 +2073,24 @@ html.mf-restore-settings .settings-panel {
   padding: 6px 2px;
   font-size: 14px;
 }
-.bw-log-date-total-row span:first-child { color: rgba(255,255,255,0.5); }
-.bw-log-date-total-row span:last-child { color: #fff; font-weight: 700; }
+.bw-log-date-total-row span:first-child { color: rgba(var(--c-ink-rgb),0.5); }
+.bw-log-date-total-row span:last-child { color: var(--c-text-primary); font-weight: 700; }
 
 /* 맨몸운동 「04 — 목표」 목록 */
 .bw-goal-cards { display: flex; flex-direction: column; gap: 12px; margin-bottom: 14px; }
-.bw-goal-card { background: #111; border: 1px solid #222; border-radius: 16px; padding: 18px 20px; cursor: pointer; }
+.bw-goal-card { background: var(--c-bg-elevated); border: 1px solid var(--c-border); border-radius: 16px; padding: 18px 20px; cursor: pointer; }
 .bw-goal-card:active { opacity: 0.85; }
-.bw-goal-card-en { font-size: 18px; font-weight: 800; color: #fff; }
-.bw-goal-card-desc { font-size: 13px; color: rgba(255,255,255,0.5); margin-top: 2px; margin-bottom: 16px; }
-.bw-goal-numbers { font-size: 20px; font-weight: 800; color: #fff; margin-bottom: 10px; }
-.bw-goal-numbers .muted { color: rgba(255,255,255,0.35); font-weight: 700; }
+.bw-goal-card-en { font-size: 18px; font-weight: 800; color: var(--c-text-primary); }
+.bw-goal-card-desc { font-size: 13px; color: rgba(var(--c-ink-rgb),0.5); margin-top: 2px; margin-bottom: 16px; }
+.bw-goal-numbers { font-size: 20px; font-weight: 800; color: var(--c-text-primary); margin-bottom: 10px; }
+.bw-goal-numbers .muted { color: rgba(var(--c-ink-rgb),0.35); font-weight: 700; }
 .bw-goal-progress-bar { height: 8px; border-radius: 4px; background: #1c1c1c; overflow: hidden; margin-bottom: 8px; }
-.bw-goal-progress-fill { height: 100%; background: #fff; border-radius: 4px; }
-.bw-goal-progress-meta { display: flex; align-items: center; justify-content: space-between; font-size: 12.5px; color: rgba(255,255,255,0.5); margin-bottom: 14px; }
-.bw-goal-card-best { font-size: 12.5px; color: rgba(255,255,255,0.45); }
-.bw-goal-card-best b { color: #fff; font-weight: 700; }
-.bw-goal-card-completed-badge { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 12px; }
-.bw-goal-card-completed-date { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 10px; }
+.bw-goal-progress-fill { height: 100%; background: rgb(var(--c-ink-rgb)); border-radius: 4px; }
+.bw-goal-progress-meta { display: flex; align-items: center; justify-content: space-between; font-size: 12.5px; color: rgba(var(--c-ink-rgb),0.5); margin-bottom: 14px; }
+.bw-goal-card-best { font-size: 12.5px; color: rgba(var(--c-ink-rgb),0.45); }
+.bw-goal-card-best b { color: var(--c-text-primary); font-weight: 700; }
+.bw-goal-card-completed-badge { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: var(--c-text-primary); margin-bottom: 12px; }
+.bw-goal-card-completed-date { font-size: 12px; color: rgba(var(--c-ink-rgb),0.4); margin-top: 10px; }
 
 /* 목표 생성/수정 */
 .bw-goal-field-label { font-size: 13px; font-weight: 600; color: #777; margin: 20px 2px 10px; }
@@ -2102,26 +2102,26 @@ html.mf-restore-settings .settings-panel {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #111;
-  border: 1px solid #222;
+  background: var(--c-bg-elevated);
+  border: 1px solid var(--c-border);
   border-radius: 14px;
   padding: 15px 16px;
-  color: #fff;
+  color: var(--c-text-primary);
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
 }
-.bw-goal-picker-arrow { color: rgba(255,255,255,0.35); font-size: 12px; }
-.bw-goal-picker-list { margin-top: 8px; background: #111; border: 1px solid #222; border-radius: 14px; overflow: hidden; }
-.bw-goal-picker-item { padding: 14px 16px; font-size: 14.5px; color: #fff; border-bottom: 1px solid #1c1c1c; cursor: pointer; }
+.bw-goal-picker-arrow { color: rgba(var(--c-ink-rgb),0.35); font-size: 12px; }
+.bw-goal-picker-list { margin-top: 8px; background: var(--c-bg-elevated); border: 1px solid var(--c-border); border-radius: 14px; overflow: hidden; }
+.bw-goal-picker-item { padding: 14px 16px; font-size: 14.5px; color: var(--c-text-primary); border-bottom: 1px solid #1c1c1c; cursor: pointer; }
 .bw-goal-picker-item:last-child { border-bottom: none; }
-.bw-goal-picker-item:active { background: #1a1a1a; }
+.bw-goal-picker-item:active { background: var(--c-bg-elevated-2); }
 .bw-goal-target-input-row {
   display: flex;
   align-items: center;
   gap: 10px;
-  background: #111;
-  border: 1px solid #222;
+  background: var(--c-bg-elevated);
+  border: 1px solid var(--c-border);
   border-radius: 14px;
   padding: 15px 16px;
 }
@@ -2131,25 +2131,25 @@ html.mf-restore-settings .settings-panel {
   background: transparent;
   border: none;
   outline: none;
-  color: #fff;
+  color: var(--c-text-primary);
   font-size: 22px;
   font-weight: 800;
   -webkit-appearance: none;
 }
-.bw-goal-target-input-row span { color: rgba(255,255,255,0.5); font-size: 14px; font-weight: 600; }
+.bw-goal-target-input-row span { color: rgba(var(--c-ink-rgb),0.5); font-size: 14px; font-weight: 600; }
 .bw-goal-preview-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 2px; font-size: 14px; }
-.bw-goal-preview-row span:first-child { color: rgba(255,255,255,0.5); }
-.bw-goal-preview-row span:last-child { color: #fff; font-weight: 700; }
+.bw-goal-preview-row span:first-child { color: rgba(var(--c-ink-rgb),0.5); }
+.bw-goal-preview-row span:last-child { color: var(--c-text-primary); font-weight: 700; }
 
 /* 목표 상세 */
 .bw-goal-detail-actions { display: flex; gap: 16px; margin-bottom: 4px; }
-.bw-goal-detail-action { font-size: 13px; color: rgba(255,255,255,0.45); text-decoration: underline; cursor: pointer; }
+.bw-goal-detail-action { font-size: 13px; color: rgba(var(--c-ink-rgb),0.45); text-decoration: underline; cursor: pointer; }
 .bw-goal-detail-stat-row { margin-bottom: 18px; }
-.bw-goal-detail-stat-label { font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.4); letter-spacing: 0.3px; margin-bottom: 6px; }
-.bw-goal-detail-stat-value { font-size: 28px; font-weight: 800; color: #fff; }
-.bw-goal-detail-progress-pct { font-size: 14px; font-weight: 700; color: #fff; text-align: right; margin-top: 8px; margin-bottom: 6px; }
-.bw-goal-detail-remain { font-size: 14px; color: rgba(255,255,255,0.55); }
-.bw-goal-detail-completed-badge { font-size: 14px; font-weight: 700; color: #fff; letter-spacing: 0.5px; margin-bottom: 20px; }
+.bw-goal-detail-stat-label { font-size: 12px; font-weight: 700; color: rgba(var(--c-ink-rgb),0.4); letter-spacing: 0.3px; margin-bottom: 6px; }
+.bw-goal-detail-stat-value { font-size: 28px; font-weight: 800; color: var(--c-text-primary); }
+.bw-goal-detail-progress-pct { font-size: 14px; font-weight: 700; color: var(--c-text-primary); text-align: right; margin-top: 8px; margin-bottom: 6px; }
+.bw-goal-detail-remain { font-size: 14px; color: rgba(var(--c-ink-rgb),0.55); }
+.bw-goal-detail-completed-badge { font-size: 14px; font-weight: 700; color: var(--c-text-primary); letter-spacing: 0.5px; margin-bottom: 20px; }
 
 /* 오늘의 운동: 가로 스크롤 퀵 액세스 */
 .bw-today-label {
@@ -2169,8 +2169,8 @@ html.mf-restore-settings .settings-panel {
 .bw-today-card {
   flex-shrink: 0;
   min-width: 92px;
-  background: #111;
-  border: 1px solid #222;
+  background: var(--c-bg-elevated);
+  border: 1px solid var(--c-border);
   border-radius: 14px;
   padding: 14px 12px;
   text-align: center;
@@ -2179,7 +2179,7 @@ html.mf-restore-settings .settings-panel {
 .bw-today-name {
   font-size: 12px;
   font-weight: 600;
-  color: rgba(255,255,255,0.6);
+  color: rgba(var(--c-ink-rgb),0.6);
   letter-spacing: 0.3px;
   margin-bottom: 6px;
   white-space: nowrap;
@@ -2187,7 +2187,7 @@ html.mf-restore-settings .settings-panel {
 .bw-today-count {
   font-size: 18px;
   font-weight: 700;
-  color: #fff;
+  color: var(--c-text-primary);
 }
 
 /* 기본운동 목록 */
@@ -2203,8 +2203,8 @@ html.mf-restore-settings .settings-panel {
   gap: 14px;
   padding: 16px;
   border-radius: 14px;
-  background: #111;
-  border: 1px solid #222;
+  background: var(--c-bg-elevated);
+  border: 1px solid var(--c-border);
 }
 .bw-exercise-card:active { opacity: 0.85; }
 .bw-exercise-num {
@@ -2212,7 +2212,7 @@ html.mf-restore-settings .settings-panel {
   width: 26px;
   font-size: 13px;
   font-weight: 700;
-  color: rgba(255,255,255,0.35);
+  color: rgba(var(--c-ink-rgb),0.35);
 }
 .bw-exercise-names {
   flex: 1;
@@ -2221,25 +2221,25 @@ html.mf-restore-settings .settings-panel {
 .bw-exercise-en {
   font-size: 16px;
   font-weight: 700;
-  color: #fff;
+  color: var(--c-text-primary);
   letter-spacing: 0.3px;
 }
 .bw-exercise-kr {
   font-size: 12.5px;
-  color: rgba(255,255,255,0.45);
+  color: rgba(var(--c-ink-rgb),0.45);
   margin-top: 2px;
 }
 .bw-exercise-recent {
   flex-shrink: 0;
   font-size: 13px;
   font-weight: 600;
-  color: rgba(255,255,255,0.55);
+  color: rgba(var(--c-ink-rgb),0.55);
   white-space: nowrap;
 }
 .bw-exercise-arrow {
   flex-shrink: 0;
   font-size: 18px;
-  color: rgba(255,255,255,0.3);
+  color: rgba(var(--c-ink-rgb),0.3);
 }
 .bw-add-btn {
   -webkit-appearance: none;
@@ -2249,13 +2249,13 @@ html.mf-restore-settings .settings-panel {
   padding: 15px;
   border-radius: 14px;
   background: transparent;
-  border: 1px solid #222;
-  color: rgba(255,255,255,0.6);
+  border: 1px solid var(--c-border);
+  color: rgba(var(--c-ink-rgb),0.6);
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
 }
-.bw-add-btn:active { background: #111; }
+.bw-add-btn:active { background: var(--c-bg-elevated); }
 
 /* 종목 상세(오늘 기록) 화면 */
 .bw-detail-header {
@@ -2272,7 +2272,7 @@ html.mf-restore-settings .settings-panel {
 .bw-detail-title {
   font-size: 22px;
   font-weight: 800;
-  color: #fff;
+  color: var(--c-text-primary);
   letter-spacing: 0.3px;
 }
 .bw-detail-body { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; }
@@ -2295,8 +2295,8 @@ html.mf-restore-settings .settings-panel {
   font-size: 15px;
 }
 .bw-set-row:last-child { border-bottom: none; }
-.bw-set-label { color: rgba(255,255,255,0.55); }
-.bw-set-count { color: #fff; font-weight: 700; }
+.bw-set-label { color: rgba(var(--c-ink-rgb),0.55); }
+.bw-set-count { color: var(--c-text-primary); font-weight: 700; }
 .bw-today-sets-empty {
   color: #777;
   font-size: 13px;
@@ -2311,15 +2311,15 @@ html.mf-restore-settings .settings-panel {
   border-radius: 12px;
   background: transparent;
   border: 1px dashed #333;
-  color: rgba(255,255,255,0.55);
+  color: rgba(var(--c-ink-rgb),0.55);
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
 }
-.bw-add-set-btn:active { background: #111; }
+.bw-add-set-btn:active { background: var(--c-bg-elevated); }
 .bw-detail-divider {
   height: 1px;
-  background: #222;
+  background: var(--c-border);
   margin: 22px 0 16px;
 }
 .bw-detail-total {
@@ -2327,13 +2327,13 @@ html.mf-restore-settings .settings-panel {
   align-items: baseline;
   justify-content: space-between;
   font-size: 15px;
-  color: rgba(255,255,255,0.55);
+  color: rgba(var(--c-ink-rgb),0.55);
   font-weight: 600;
 }
 #bodyweightTodayTotal {
   font-size: 22px;
   font-weight: 800;
-  color: #fff;
+  color: var(--c-text-primary);
 }
 .bw-finish-btn {
   -webkit-appearance: none;
@@ -2343,9 +2343,9 @@ html.mf-restore-settings .settings-panel {
   margin-top: 16px;
   padding: 16px;
   border-radius: 14px;
-  background: #fff;
+  background: rgb(var(--c-ink-rgb));
   border: none;
-  color: #000;
+  color: rgb(var(--c-anti-ink-rgb));
   font-size: 16px;
   font-weight: 700;
   cursor: pointer;
@@ -2668,18 +2668,12 @@ html.mf-restore-settings .settings-panel {
 }
 
 /* ===============================
-   ✅ 라이트모드: 예전엔 html 전체에 반전 필터를 걸었지만, 홈 탭(#tab1)만은 "진짜 색"을
-   직접 쓰기 위해 필터 대상에서 완전히 뺐음(위쪽 JS의 applyLightMode 주석 참고).
-   대신 아직 전환 안 한 나머지 화면/오버레이 각각에 개별적으로 동일한 반전 필터를 적용해서
-   기존 동작을 그대로 유지함 — DOM 구조는 전혀 안 건드리고 각 요소에 filter만 직접 부여하는
-   방식이라, position:fixed 요소들의 뷰포트 기준 위치 계산에도 영향 없음(요소 자신의 위치가
-   아니라 "자기 자식들의" fixed 위치 계산 기준만 바뀌는데, 이 요소들은 전부 이미 뷰포트를
-   덮는 자기 자신이 position:fixed라 문제 없음).
+   ✅ 라이트모드: 예전엔 html 전체에 반전 필터를 걸었지만, [14단계]까지 완료되어
+   이제 모든 화면/오버레이가 실제 색상 직접 지정 방식으로 전환 완료됨(위쪽 JS의
+   applyLightMode 주석 참고). 남은 건 실사 이미지에 반전 필터를 걸어 보정하는
+   용도뿐(사진 자체는 반전되면 안 되므로, 컨테이너 필터가 없어진 지금도 이미지에만
+   개별적으로 동일한 필터를 적용해 원래 색을 유지시킴).
 ================================ */
-html.light-mode-on #bodyweightOverlay {
-  filter: invert(1) hue-rotate(180deg);
-}
-
 html.light-mode-on img:not(.settings-item-icon),
 html.light-mode-on .dex-post-card.has-image{
   filter: invert(1) hue-rotate(180deg);
@@ -3083,8 +3077,8 @@ html.light-mode-on #dexDeleteConfirmModal .modal-btn.danger {
    클래스들의 "기본" 선언 자체를 --c-ink-rgb/--c-anti-ink-rgb/--c-text-primary
    변수로 바꿔치기함(별도 html.light-mode-on 규칙 추가 없이 다크/라이트 자동 대응 —
    다크모드는 --c-ink-rgb가 원래 255,255,255라 계산 결과가 완전히 동일함).
-   단 .bw-menu-header는 맨몸운동(#bodyweightOverlay, 아직 필터 방식)과 클래스를
-   공유해서 #myRoutineOverlay로 범위를 좁힘 */
+   단 .bw-menu-header는 맨몸운동(#bodyweightOverlay)과도 클래스를 공유해서
+   화면 ID별로 범위를 좁혀 지정함([14단계]에서 #bodyweightOverlay 추가) */
 html.light-mode-on #myRoutineOverlay,
 html.light-mode-on #myRoutinePastListOverlay,
 html.light-mode-on #myRoutineDetailOverlay,
@@ -3099,20 +3093,23 @@ html.light-mode-on #myRoutineBuilderOverlay {
 html.light-mode-on #myRoutineOverlay .bw-menu-header,
 html.light-mode-on #threeSummaryOverlay .bw-menu-header,
 html.light-mode-on #muscleFinderOverlay .bw-menu-header,
-html.light-mode-on #oneRMCalcOverlay .bw-menu-header {
+html.light-mode-on #oneRMCalcOverlay .bw-menu-header,
+html.light-mode-on #bodyweightOverlay .bw-menu-header {
   background: rgba(var(--c-anti-ink-rgb),0.92);
   border-bottom-color: rgba(0,0,0,0.04);
 }
 html.light-mode-on #myRoutineOverlay .bw-menu-header-close,
 html.light-mode-on #threeSummaryOverlay .bw-menu-header-close,
 html.light-mode-on #muscleFinderOverlay .bw-menu-header-close,
-html.light-mode-on #oneRMCalcOverlay .bw-menu-header-close {
+html.light-mode-on #oneRMCalcOverlay .bw-menu-header-close,
+html.light-mode-on #bodyweightOverlay .bw-menu-header-close {
   color: #555;
 }
 html.light-mode-on #myRoutineOverlay .bw-menu-header-title,
 html.light-mode-on #threeSummaryOverlay .bw-menu-header-title,
 html.light-mode-on #muscleFinderOverlay .bw-menu-header-title,
-html.light-mode-on #oneRMCalcOverlay .bw-menu-header-title {
+html.light-mode-on #oneRMCalcOverlay .bw-menu-header-title,
+html.light-mode-on #bodyweightOverlay .bw-menu-header-title {
   color: var(--c-text-primary);
 }
 html.light-mode-on #myRoutineRevealInputBar {
@@ -3473,6 +3470,41 @@ html.light-mode-on #lightModeToggle.toggle-switch.active::after {
   background: rgb(197,197,197);
 }
 
+/* 🔥 [14단계] 맨몸운동(#bodyweightOverlay) 라이트모드: 필터 목록에서 빼고 실제 색상 직접
+   지정. .bw-* 클래스는 이 화면에서만 쓰여서, #111/#222/#1a1a1a 같은 기존 디자인
+   토큰과 정확히 일치하는 값들은 var(--c-bg-elevated)/var(--c-border)/
+   var(--c-bg-elevated-2)로 "기본" 선언 자체를 바꿔치기했고(다크모드 값 완전 동일),
+   #eee/#555/#333/#1c1c1c처럼 순수 흰/검이 아니라 --c-ink-rgb 지름길을 못 쓰는
+   값들만 캔버스로 역산한 정확한 라이트값을 이 블록에서 개별 지정함
+   (.bw-menu-header* 는 다른 화면과 공유하는 클래스라 위쪽 [7/8단계] 블록에서
+   #bodyweightOverlay를 추가하는 방식으로 처리) */
+html.light-mode-on .bw-header-back,
+html.light-mode-on .bw-detail-back {
+  color: var(--c-text-primary);
+}
+html.light-mode-on .bw-routine-create-ex-empty,
+html.light-mode-on .bw-log-cal-weekdays {
+  color: rgb(170,170,170);
+}
+html.light-mode-on .bw-routine-card-exlist {
+  border-top-color: rgb(227,227,227);
+}
+html.light-mode-on .bw-routine-detail-ex,
+html.light-mode-on .bw-log-hero-stat,
+html.light-mode-on .bw-goal-picker-item,
+html.light-mode-on .bw-set-row {
+  border-bottom-color: rgb(227,227,227);
+}
+html.light-mode-on .bw-goal-progress-bar {
+  background: rgb(227,227,227);
+}
+html.light-mode-on .bw-routine-create-ex-reps {
+  border-bottom-color: rgb(204,204,204);
+}
+html.light-mode-on .bw-add-set-btn {
+  border-color: rgb(204,204,204);
+}
+
 /* 🔥 홈 탭(#tab1) 라이트모드: 필터를 전혀 안 받는 화면이라, "반전 후 결과"를 역산하는 게
    아니라 실제로 화면에 보일 색을 직접(literal) 지정함. 카드/상자류는 기존에 확정했던
    시각적 결과(#fdfdfd, 거의 흰색)를 그대로 유지하고, 텍스트/테두리는 다크모드의
@@ -3597,8 +3629,10 @@ html.light-mode-on #dietOverlay {
 }
 
 /* 바깥(화면 전체) — 인라인 style로 지정된 풀스크린 오버레이들(우선순위 위해 !important 필요) */
+/* 🔥 [14단계] 맨몸운동(#bodyweightOverlay)도 필터 목록에서 빼고 실제 색상 직접 지정 */
 html.light-mode-on #bodyweightOverlay {
-  background: #111 !important;
+  background: #eeeeee !important;
+  color: var(--c-text-primary);
 }
 html.light-mode-on #mySpecOverlay {
   background: #eeeeee !important;
@@ -3611,25 +3645,6 @@ html.light-mode-on .popup-box,
 html.light-mode-on .loginBtn:active,
 html.light-mode-on .exercise-card,
 html.light-mode-on .diet-water-ml-input,
-html.light-mode-on .bw-menu-card,
-html.light-mode-on .bw-routine-card,
-html.light-mode-on .bw-text-input,
-html.light-mode-on .bw-routine-create-ex-row,
-html.light-mode-on .bw-log-stat-card,
-html.light-mode-on .bw-log-record-row,
-html.light-mode-on .bw-log-link-row,
-html.light-mode-on .bw-log-cal,
-html.light-mode-on .bw-log-exercise-card,
-html.light-mode-on .bw-log-stat-tile,
-html.light-mode-on .bw-goal-card,
-html.light-mode-on .bw-goal-picker-btn,
-html.light-mode-on .bw-goal-picker-list,
-html.light-mode-on .bw-goal-picker-item:active,
-html.light-mode-on .bw-goal-target-input-row,
-html.light-mode-on .bw-today-card,
-html.light-mode-on .bw-exercise-card,
-html.light-mode-on .bw-add-btn:active,
-html.light-mode-on .bw-add-set-btn:active,
 html.light-mode-on .dex-modal-input,
 html.light-mode-on .dex-modal-textarea,
 html.light-mode-on #weightModal input.weight-field-input,
@@ -9616,7 +9631,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.8.7";
+const APP_VERSION = "0.8.8";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
