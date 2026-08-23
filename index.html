@@ -41,6 +41,37 @@ try {
 /* ===============================
    🔥 전체 레이아웃 (폰 비율 고정)
 ================================ */ 
+/* ===============================
+   🔥 [진행중] 라이트/다크 색상 팔레트 — CSS 변수 도입 1단계
+   지금 당장은 어디서도 참조 안 함(기존 filter:invert() 방식 그대로 유지,
+   화면 변화 전혀 없음) — 화면을 하나씩 이 변수로 옮겨가면서 반전 필터를
+   걷어낼 예정. 다크 값은 파일에서 실제로 가장 많이 쓰이던 값 기준으로 뽑음
+   (#fff 166회, #000 39회, #111 46회, #1a1a1a 26회, #222 39회, #777 33회,
+   #888 10회, #FFD700 23회, #e0203f 15회)
+================================ */
+:root {
+  --c-bg: #000;
+  --c-bg-elevated: #111;
+  --c-bg-elevated-2: #1a1a1a;
+  --c-text-primary: #fff;
+  --c-text-secondary: #777;
+  --c-text-tertiary: #888;
+  --c-border: #222;
+  --c-accent-gold: #FFD700;
+  --c-accent-red: #e0203f;
+}
+html.light-mode-on {
+  --c-bg: #f5f5f5;
+  --c-bg-elevated: #fff;
+  --c-bg-elevated-2: #eee;
+  --c-text-primary: #111;
+  --c-text-secondary: #666;
+  --c-text-tertiary: #888;
+  --c-border: #ddd;
+  --c-accent-gold: #b8860b;
+  --c-accent-red: #d81b3f;
+}
+
 html, body {
     margin: 0;
     padding: 0;
@@ -8781,7 +8812,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.7.94";
+const APP_VERSION = "0.7.95";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
