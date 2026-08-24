@@ -1665,6 +1665,7 @@ html.mf-restore-settings .bottomTab {
   letter-spacing: 0.5px;
   cursor: pointer;
   transition: color 0.28s ease;
+  -webkit-tap-highlight-color: transparent; /* 🔥 다른 버튼들처럼 iOS 기본 탭 회색 하이라이트 제거 */
 }
 .muscle-finder-face-btn.active {
   color: #000;
@@ -9919,7 +9920,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.8.46";
+const APP_VERSION = "0.8.47";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
