@@ -1,4 +1,4 @@
-const CACHE = "mf-v4"; // 🔥 정적 파일이 바뀔 때마다 버전을 올려야 기존 캐시가 갱신됨
+const CACHE = "mf-v5"; // 🔥 정적 파일이 바뀔 때마다 버전을 올려야 기존 캐시가 갱신됨 — 이번엔 index.html 캐시가 옛 버전에 갇혀있던 걸 강제로 비우기 위해 올림
 const ASSETS = [
   "/",
   "/index.html",
@@ -51,7 +51,12 @@ self.addEventListener("fetch", e => {
     return e.respondWith(
       fetch(e.request)
         .then(res => {
-          caches.open(CACHE).then(c => c.put(e.request, res.clone()));
+          // 🔥 e.waitUntil로 감싸지 않으면 respondWith의 res를 반환한 직후 브라우저가
+          //    SW를 바로 종료시켜버릴 수 있어 캐시 저장이 중간에 끊길 수 있음(fire-and-forget).
+          //    그 결과 index.html 캐시가 install 시점(오래된 버전)에 멈춰있게 되고,
+          //    ?modeswitch=1(화면모드 토글) 리로드는 캐시 우선이라 그 옛날 버전을 계속 보여주게 됨.
+          //    waitUntil로 감싸 캐시 저장이 항상 끝까지 완료되도록 보장.
+          e.waitUntil(caches.open(CACHE).then(c => c.put(e.request, res.clone())));
           return res;
         })
         .catch(() => caches.match(e.request, { ignoreSearch: true }))
