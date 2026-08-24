@@ -1636,10 +1636,24 @@ html.mf-restore-settings .bottomTab {
   border-radius: 999px;
   border: 1px solid #333;
   background: transparent;
+  position: relative;
+}
+/* 🔥 흰 알약 자체는 이 인디케이터 하나가 슬라이드하며 담당 — 버튼 2개는 텍스트만
+   그 위에 얹혀서 색만 바뀜(배경은 더 이상 버튼 자신이 안 그림) */
+.muscle-finder-facetoggle-indicator {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  height: calc(100% - 8px);
+  background: #fff;
+  border-radius: 999px;
+  transition: transform 0.28s cubic-bezier(0.22,1,0.36,1), width 0.28s cubic-bezier(0.22,1,0.36,1);
 }
 .muscle-finder-face-btn {
   all: unset;
   box-sizing: border-box;
+  position: relative;
+  z-index: 1;
   min-width: 108px;
   text-align: center;
   padding: 9px 0;
@@ -1650,9 +1664,9 @@ html.mf-restore-settings .bottomTab {
   font-weight: 700;
   letter-spacing: 0.5px;
   cursor: pointer;
+  transition: color 0.28s ease;
 }
 .muscle-finder-face-btn.active {
-  background: #fff;
   color: #000;
 }
 
@@ -3385,11 +3399,13 @@ html.light-mode-on .muscle-finder-card.active {
 html.light-mode-on .muscle-finder-facetoggle-track {
   border-color: rgb(213,213,213);
 }
+html.light-mode-on .muscle-finder-facetoggle-indicator {
+  background: var(--c-text-primary);
+}
 html.light-mode-on .muscle-finder-face-btn {
   color: rgb(120,120,120);
 }
 html.light-mode-on .muscle-finder-face-btn.active {
-  background: var(--c-text-primary);
   color: #fff;
 }
 html.light-mode-on .muscle-finder-callout {
@@ -8172,7 +8188,8 @@ html.light-mode-on #weightModal .food-modal-form label {
 
     <!-- 🔥 정면/후면(FRONT/BACK) 전환 — 인체 이미지 바로 위 알약형 토글 -->
     <div class="muscle-finder-facetoggle">
-      <div class="muscle-finder-facetoggle-track">
+      <div class="muscle-finder-facetoggle-track" id="muscleFinderFaceTrack">
+        <div class="muscle-finder-facetoggle-indicator" id="muscleFinderFaceIndicator"></div>
         <button type="button" class="muscle-finder-face-btn active" data-face="front">FRONT</button>
         <button type="button" class="muscle-finder-face-btn" data-face="back">BACK</button>
       </div>
@@ -9901,7 +9918,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.8.40";
+const APP_VERSION = "0.8.41";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -12441,6 +12458,15 @@ document.getElementById("navMuscleFinderBtn").addEventListener("click", () => {
 
 function openMuscleFinder(){
   muscleFinderOverlay.classList.remove("hidden");
+  // 🔥 hidden 상태에선 버튼 폭 측정이 0으로 나와서, 열릴 때마다 트랜지션 없이
+  //    현재 선택된 면(front/back)에 맞는 위치로 즉시 스냅시켜둠
+  const indicator = document.getElementById("muscleFinderFaceIndicator");
+  if (indicator) {
+    indicator.style.transition = "none";
+    moveMuscleFaceIndicator(muscleFinderFace);
+    void indicator.offsetWidth;
+    indicator.style.transition = "";
+  }
 }
 function closeMuscleFinder(){
   muscleFinderOverlay.classList.add("hidden");
@@ -12448,8 +12474,17 @@ function closeMuscleFinder(){
 
 // 🔥 카드처럼 뒤집는 회전 애니메이션 없이, FRONT/BACK 버튼 누르면 이미지가 그 자리에서 바로 바뀜
 // (부위 선택과 완전히 독립 — 어떤 부위를 골랐든 정면/후면은 언제든 따로 전환 가능)
+function moveMuscleFaceIndicator(targetFace){
+  // 🔥 알약이 버튼 실제 위치/너비에 딱 맞춰 슬라이드하도록, 하드코딩 대신 직접 측정
+  const btn = document.querySelector(`.muscle-finder-face-btn[data-face="${targetFace}"]`);
+  const indicator = document.getElementById("muscleFinderFaceIndicator");
+  if (!btn || !indicator) return;
+  indicator.style.width = btn.offsetWidth + "px";
+  indicator.style.transform = `translateX(${btn.offsetLeft - 4}px)`;
+}
 function goToMuscleFace(targetFace){
   document.querySelectorAll(".muscle-finder-face-btn").forEach(b => b.classList.toggle("active", b.dataset.face === targetFace));
+  moveMuscleFaceIndicator(targetFace);
   document.getElementById("muscleFinderLinesFront").classList.toggle("hidden", targetFace !== "front");
   document.getElementById("muscleFinderLinesBack").classList.toggle("hidden", targetFace !== "back");
   document.getElementById("muscleFinderCalloutsFront").classList.toggle("hidden", targetFace !== "front");
