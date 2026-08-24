@@ -2908,7 +2908,8 @@ html.light-mode-on .menu-btn {
   border-color: rgba(0,0,0,0.1);
 }
 html.light-mode-on #bottomTab {
-  background: rgba(255,255,255,0.92);
+  background: #eeeeee; /* 🔥 본문(body/.app) 배경과 완전히 동일한 색으로 맞춤 */
+  backdrop-filter: none; /* 🔥 완전 불투명 단색이라 블러가 의미 없어서 같이 끔 */
   border-top-color: rgba(0,0,0,0.08);
 }
 html.light-mode-on .bottomTab .tabBtn {
@@ -9920,7 +9921,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.8.47";
+const APP_VERSION = "0.8.48";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
