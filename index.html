@@ -5890,12 +5890,16 @@ html.light-mode-on .diet-food-db-search {
 }
 .diet-cal-days div .diet-cal-day-num {
   font-size: 13px;
-  line-height: 1;
+  line-height: 14px; /* 🔥 line-height:1(글꼴 자체 메트릭에 의존)이면 숫자 자릿수/글자마다
+    미세하게 줄 높이가 달라져서 두 줄(날짜+kcal) 전체 높이가 셀마다 들쭉날쭉해지고,
+    그만큼 세로 중앙정렬 위치도 줄마다 흔들리는 문제가 있었음 — 고정 px로 못박음 */
+  height: 14px;
 }
 .diet-cal-days div .diet-cal-day-kcal {
   font-size: 9px;
   font-weight: 600;
-  line-height: 1;
+  line-height: 10px; /* 🔥 위와 동일한 이유로 고정 */
+  height: 10px;
   color: #e0203f; /* 🔥 달력에서 날짜 선택 시 쓰는 빨강(.days div.selected/.today)과 동일하게 */
   /* 🔥 보통 kcal은 3~4자리라 문제없지만, 혹시 훨씬 긴 숫자가 들어와도 셀 폭을 안
      밀어내고 그 안에서 말줄임표로 잘리도록(칸 크기는 항상 고정) */
@@ -9949,7 +9953,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.8.60";
+const APP_VERSION = "0.8.61";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
