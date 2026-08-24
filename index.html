@@ -7109,7 +7109,7 @@ html.light-mode-on #weightModal .food-modal-form label {
 <!-- 예정 (연습용 수정 탭 - 기록탭과 동일 기능, 로컬 저장만 사용) -->
 <!-- 🔥 식단: 다른 오버레이들(운동도감/내루틴 등)처럼 탑바까지 완전히 덮는 새창(풀스크린) -->
 <div id="dietOverlay" class="hidden" style="
-    position:fixed; top:0; bottom:0; left:50%; transform:translateX(-50%);
+    position:fixed; top:0; bottom:0; left:0; right:0; margin:0 auto;
     width:390px; max-width:100%; background:#000; z-index:100000;
     overflow:hidden;
   ">
@@ -9933,7 +9933,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.8.55";
+const APP_VERSION = "0.8.56";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
