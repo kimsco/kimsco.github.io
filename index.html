@@ -5441,6 +5441,10 @@ html.light-mode-on #weightModal input.weight-field-input:focus {
 .home-weight-quick-backdrop.open { opacity: 1; pointer-events: auto; }
 .home-weight-quick-pop {
   position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); /* 🔥 항상 화면 정중앙에 위치 — width/height가 애니메이션으로
+     바뀌어도 %기반 translate가 매 프레임 재계산되어 커지는 동안에도 중앙이 계속 유지됨 */
   z-index: 200001; /* 🔥 백드롭(200000)보다 위 */
   box-sizing: border-box;
   display: flex;
@@ -10052,7 +10056,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.8.72";
+const APP_VERSION = "0.8.73";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -19183,12 +19187,10 @@ document.getElementById('weightModalSave')?.addEventListener('click', () => {
   closeWeightModal();
 });
 
-// 🔥 홈 화면 체중 알약 전용 간단 팝업(목표 몸무게 없이 현재 몸무게만) — 알약
-// 자체가 그 자리에서 커지면서 팝업이 되는 연출. 클릭 시점 알약의 위치를
-// 기준으로 top·right 좌표는 고정하고 width·height만 애니메이션으로 키워서,
-// 우측 상단 모서리가 알약과 항상 일치한 채로 좌측 아래 방향으로만 확장되게 함.
-// 펼쳐진 너비는 아래 상자(.home-card) 가로폭과 동일하게, 높이는 그 비율에
-// 맞춰 자동으로 커짐(기존 214x44 비율 유지). 뒤 화면은 배경 블러(.open)로 흐릿하게.
+// 🔥 홈 화면 체중 알약 전용 간단 팝업(목표 몸무게 없이 현재 몸무게만) — 화면
+// 정중앙에서 알약 크기만큼 작게 시작해 아래 상자(.home-card) 가로폭에 맞는
+// 크기로 커지는 연출(위치는 항상 중앙 고정, width·height만 애니메이션).
+// 뒤 화면은 다른 모달과 동일하게 topBar/bottomTab까지 어둡게 덮임.
 const homeWeightQuickPop = document.getElementById('homeWeightQuickPop');
 const homeWeightQuickBackdrop = document.getElementById('homeWeightQuickBackdrop');
 const HOME_WEIGHT_QUICK_POP_BASE_W = 214;
@@ -19197,14 +19199,16 @@ function openHomeWeightQuickModal(){
   const pill = document.getElementById('homeWeightPill');
   const rect = pill.getBoundingClientRect();
   const today = (userWeight.log || {})[formatTodayYYMMDD()];
-  document.getElementById('homeWeightQuickInput').value = formatWeightInputValue(today ?? userWeight.current);
+  const prefillVal = today ?? userWeight.current;
+  // 🔥 formatWeightInputValue()는 "82.1 kg"처럼 단위까지 텍스트로 붙이는 함수라 —
+  // 이 팝업은 옆에 별도 "Kg" 라벨이 이미 있어서 그대로 쓰면 kg가 중복 표시됨.
+  // 숫자만 프리필.
+  document.getElementById('homeWeightQuickInput').value = (prefillVal || prefillVal === 0) ? prefillVal : '';
 
   const cardWidth = document.querySelector('#tab1 .home-card')?.getBoundingClientRect().width || HOME_WEIGHT_QUICK_POP_BASE_W;
   const targetW = cardWidth;
   const targetH = Math.round(cardWidth * (HOME_WEIGHT_QUICK_POP_BASE_H / HOME_WEIGHT_QUICK_POP_BASE_W));
 
-  homeWeightQuickPop.style.top = rect.top + 'px';
-  homeWeightQuickPop.style.right = (window.innerWidth - rect.right) + 'px';
   homeWeightQuickPop.style.width = rect.width + 'px';
   homeWeightQuickPop.style.height = rect.height + 'px';
   homeWeightQuickPop.classList.remove('hidden');
