@@ -1593,28 +1593,33 @@ html.mf-restore-settings .bottomTab {
 /* ===============================
    🔥 근육부위찾기(실험용 v1) — 정면/후면 3D 회전
 ================================ */
-/* 🔥 최하단 부위 선택 버튼(가슴/등/어깨/팔/하체/코어) — 목업처럼 화면 맨 아래로 이동 */
+/* 🔥 최하단 부위 선택 버튼(가슴/등/어깨/팔/하체/코어) — 목업처럼 화면 맨 아래로 이동,
+   FRONT/BACK 토글과 똑같은 "알약 속 알약" 세그먼트 트랙 스타일로 통일 */
 .muscle-finder-cards {
   flex-shrink: 0;
   display: flex;
-  gap: 5px;
-  padding: 8px 10px calc(12px + env(safe-area-inset-bottom));
+  gap: 2px;
+  padding: 4px;
+  margin: 8px 10px calc(12px + env(safe-area-inset-bottom));
+  border-radius: 999px;
+  border: 1px solid #333;
 }
 .muscle-finder-card {
+  all: unset;
+  box-sizing: border-box;
   flex: 1;
-  padding: 10px 0;
-  border-radius: 11px;
-  background: #111;
-  border: 1px solid #222;
-  color: #aaa;
-  font-size: 11.5px;
+  text-align: center;
+  padding: 9px 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #888;
+  font-size: 11px;
   font-weight: 600;
   cursor: pointer;
 }
 .muscle-finder-card.active {
-  background: #a11d1d;
-  border-color: #a11d1d;
-  color: #fff;
+  background: #fff;
+  color: #000;
 }
 
 /* 🔥 정면/후면(FRONT/BACK) 전환 — 목업처럼 인체 이미지 바로 위에 알약형 토글로 */
@@ -1705,10 +1710,12 @@ html.mf-restore-settings .bottomTab {
   fill: #fff;
 }
 .muscle-finder-line.active {
-  stroke: #ff4d4d;
+  stroke: #fff;
+  stroke-width: 0.6;
 }
 .muscle-finder-dot.active {
-  fill: #ff4d4d;
+  fill: #fff;
+  r: 1.6;
 }
 
 /* 🔥 부위 이름표(콜아웃) — 이미지 바깥 좌/우 여백에 라인 끝과 나란히 배치 */
@@ -1738,9 +1745,9 @@ html.mf-restore-settings .bottomTab {
   transform: translateY(-50%);
 }
 .muscle-finder-callout.active {
-  background: #a11d1d;
-  border-color: #a11d1d;
-  color: #fff;
+  background: #fff;
+  border-color: #fff;
+  color: #000;
 }
 
 /* 맨몸운동 메뉴(01~06 카드) */
@@ -3334,14 +3341,14 @@ html.light-mode-on #save3Btn {
   border-color: var(--c-text-primary);
   color: var(--c-text-primary);
 }
+html.light-mode-on .muscle-finder-cards {
+  border-color: rgb(213,213,213);
+}
 html.light-mode-on .muscle-finder-card {
-  background: #fdfdfd;
-  border-color: rgb(221,221,221);
-  color: rgb(85,85,85);
+  color: rgb(120,120,120);
 }
 html.light-mode-on .muscle-finder-card.active {
-  background: #a11d1d;
-  border-color: #a11d1d;
+  background: var(--c-text-primary);
   color: #fff;
 }
 html.light-mode-on .muscle-finder-facetoggle-track {
@@ -3360,8 +3367,8 @@ html.light-mode-on .muscle-finder-callout {
   color: rgb(85,85,85);
 }
 html.light-mode-on .muscle-finder-callout.active {
-  background: #a11d1d;
-  border-color: #a11d1d;
+  background: var(--c-text-primary);
+  border-color: var(--c-text-primary);
   color: #fff;
 }
 html.light-mode-on .muscle-finder-line {
@@ -3369,6 +3376,12 @@ html.light-mode-on .muscle-finder-line {
 }
 html.light-mode-on .muscle-finder-dot {
   fill: rgba(0,0,0,0.6);
+}
+html.light-mode-on .muscle-finder-line.active {
+  stroke: var(--c-text-primary);
+}
+html.light-mode-on .muscle-finder-dot.active {
+  fill: var(--c-text-primary);
 }
 html.light-mode-on #muscleFinderOverlay img {
   filter: none;
@@ -9843,7 +9856,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.8.36";
+const APP_VERSION = "0.8.37";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
