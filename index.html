@@ -4074,14 +4074,6 @@ html.light-mode-on .settings-panel {
   background: #eeeeee;
   color: var(--c-text-primary);
 }
-/* 🔥 화면모드 토글 시 설정 화면 배경/글자/테두리 색도 알약 구슬처럼 순간이동 대신
-   서서히 페이드되도록 — 설정 화면 안(#settingsOverlay)으로만 한정.
-   (::after 같은 가상요소는 * 에 안 걸려서 토글 알약 자체의 슬라이드 트랜지션과는
-   안 겹침) */
-#settingsOverlay,
-#settingsOverlay * {
-  transition: background-color 0.28s ease, color 0.28s ease, border-color 0.28s ease;
-}
 
 /* 헤더: 좌측 상단 "‹ 설정" */
 .settings-header-bar {
@@ -9926,7 +9918,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.8.44";
+const APP_VERSION = "0.8.45";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -16919,9 +16911,10 @@ lightModeToggle.addEventListener("click", () => {
   // 🔥 상태바 스타일(apple-mobile-web-app-status-bar-style)은 앱 로드 시점에만 다시 읽히므로,
   // 여기서 필터만 토글하지 않고 저장 후 강제로 새로고침해서 <head>의 재적용 스크립트를 다시 태움
   const next = !lightModeToggle.classList.contains("active");
-  // 🔥 바로 아래에서 새로고침을 걸어버리면 구슬이 슬라이드하는 CSS 트랜지션(0.25s)이
-  //    재생될 시간도 없이 화면이 넘어가버려서 안 움직이는 것처럼 보임 — 클래스는 여기서
-  //    바로 토글해 슬라이드가 보이게 하고, 새로고침만 트랜지션이 끝날 때까지 살짝 늦춤
+  // 🔥 클래스는 여기서 바로 토글해 구슬이 슬라이드를 시작하도록 함(0.25s 트랜지션).
+  //    화면 테마 전환은 슬라이드가 "도착"할 때가 아니라 "중간 지점"에 딱 한번에
+  //    바뀌도록(페이드 아님, 순간 전환) — 아래 setTimeout 지연을 트랜지션의 절반
+  //    시점(125ms)으로 맞춰서, 구슬이 반쯤 이동한 상태에서 화면 전체가 확 바뀜
   lightModeToggle.classList.toggle("active", next);
   try {
     localStorage.setItem("mf_light_mode", next ? "1" : "0");
@@ -16934,12 +16927,6 @@ lightModeToggle.addEventListener("click", () => {
     // 🔥 상태바 스타일(apple-mobile-web-app-status-bar-style)은 앱 로드 시점에만 다시 읽히므로,
     // 여기서 필터만 토글하지 않고 저장 후 강제로 새로고침해서 <head>의 재적용 스크립트를 다시 태움
     sessionStorage.setItem("mf_status_bar_kick", "1");
-    // 🔥 새로고침 직후 설정 화면 배경색을 페이드로 전환시키기 위한 플래그 — 아래
-    // "저장된 설정 있으면 페이지 로드 시 바로 반영" 쪽에서 이 값을 보고, 새 문서를
-    // 일단 이전 테마로 그렸다가 한 프레임 뒤에 최종 테마로 바꿔서 트랜지션이 실제로
-    // 재생될 시간을 만들어줌(그냥 바로 최종 테마로 그리면 전환 전 상태가 아예 없어서
-    // CSS 트랜지션이 재생될 수가 없음)
-    sessionStorage.setItem("mf_theme_fade_pending", "1");
   } catch(e){}
   // 🔥 그냥 reload()하면 서비스워커의 "네트워크 우선" 규칙 때문에 2만 줄짜리 index.html을
   // 통째로 다시 다운로드해서 토글 반응이 네트워크 속도만큼 느렸음 — 모드 전환은 방금까지
@@ -16948,26 +16935,11 @@ lightModeToggle.addEventListener("click", () => {
   // 사용자가 직접 하는 새로고침은 여전히 네트워크 우선(최신 배포 반영)으로 동작.
   setTimeout(() => {
     location.replace(location.pathname + "?modeswitch=1");
-  }, 260);
+  }, 125);
 });
 // 저장된 설정 있으면 페이지 로드 시 바로 반영
 try {
-  const savedLightMode = localStorage.getItem("mf_light_mode") === "1";
-  if (sessionStorage.getItem("mf_theme_fade_pending") === "1") {
-    // 🔥 화면모드 토글 직후의 리로드: 일단 이전 테마로 그려서 "전환 전" 상태를 실제로
-    // 한 프레임 페인트시킨 다음, 다음 프레임에 최종 테마로 바꿔서 위 #settingsOverlay
-    // 트랜지션(0.28s)이 재생되게 함. rAF 한 번만 쓰면 브라우저가 그 사이 페인트를 아예
-    // 건너뛸 수 있어 두 번 중첩해서 확실히 한 프레임은 그려지도록 보장.
-    sessionStorage.removeItem("mf_theme_fade_pending");
-    applyLightMode(!savedLightMode);
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        applyLightMode(savedLightMode);
-      });
-    });
-  } else {
-    applyLightMode(savedLightMode);
-  }
+  applyLightMode(localStorage.getItem("mf_light_mode") === "1");
 } catch(e){}
 // 🔥 방금 토글해서 새로고침된 직후라면, 있던 탭/설정 화면 상태를 그대로 복원(제자리 유지)하고
 // 나서 iOS 상태바 재계산을 강제 트리거.
@@ -16990,10 +16962,7 @@ try {
     // 애니메이션이 매번 재생돼서, 이미 있던 자리인데 설정 화면이 새로 열리는 것처럼 보이는
     // 게 어색함 — 애니메이션 없이 원래부터 열려있었던 것처럼 즉시 복원
     settingsOverlay.classList.remove("hidden");
-    // 🔥 transition을 그냥 "none"으로 끄면 위 #settingsOverlay 배경색 페이드용
-    // transition까지 이 요소(인라인 스타일이 최우선순위라) 통째로 죽어버림 — 위치(transform)
-    // 슬라이드만 끄고 배경/글자색 페이드는 살려둠(잠시 뒤 rAF로 적용될 테마 전환에 필요)
-    settingsPanelEl.style.transition = "background-color 0.28s ease, color 0.28s ease, border-color 0.28s ease";
+    settingsPanelEl.style.transition = "none";
     settingsPanelEl.style.animation = "none";
     settingsPanelEl.style.transform = "translateX(0)";
     const appElRestore = document.querySelector('.app');
@@ -19855,7 +19824,13 @@ renderHomeTab();
 <script>
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/sw.js");
+    navigator.serviceWorker.register("/sw.js").then(reg => {
+      // 🔥 iOS Safari는 sw.js 변경 여부를 브라우저가 알아서 체크하는 주기가 매우 뜸해서(며칠씩
+      // 안 걸리기도 함), 서비스워커 코드를 고쳐 배포해도 이미 설치된 PWA는 한참 동안 옛
+      // 서비스워커(캐시 버그가 있던 버전 포함)를 계속 쓰는 문제가 있었음 — 앱 로드마다
+      // 직접 update()를 호출해서 새 sw.js가 있는지 능동적으로 체크하도록 함
+      if (reg) reg.update();
+    });
   });
 }
 </script>
