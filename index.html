@@ -5887,6 +5887,12 @@ html.light-mode-on .diet-food-db-search {
   background: transparent;
   border-radius: 0;
   color: inherit; /* 🔥 .days div의 색(#eee)이 안쪽 div에도 직접 걸려서 부모(셀) 색을 안 따라가던 문제 */
+  /* 🔥 이 안쪽 div들도 .days div 규칙에 다시 걸려서 display:flex + aspect-ratio:1/1까지
+     상속받는 바람에, height를 px로 고정하자마자 그 높이와 같은 폭(정사각형)으로
+     줄어들어서 kcal 숫자가 양옆으로 잘리는 버그가 있었음 — 전부 무효화 */
+  display: block;
+  aspect-ratio: auto;
+  width: auto;
 }
 .diet-cal-days div .diet-cal-day-num {
   font-size: 13px;
@@ -5916,6 +5922,13 @@ html.light-mode-on .diet-food-db-search {
   color: #eee;
   font-weight: 500;
   border: 1.5px solid #e0203f;
+  /* 🔥 kcal 있는 날은 두 줄(날짜+kcal)이라 정중앙에 두면 살짝 아래로 처져 보여서,
+     날짜 쪽으로 조금 더 올라오게 살짝 위쪽으로 치우쳐 배치 — box-sizing을
+     border-box로 바꿔서 이 padding이 셀 자체 크기(aspect-ratio 기준 정사각형)를
+     안 늘리고 안쪽 여백으로만 흡수되게 함(안 그러면 done 칸만 커져서 같은
+     줄의 다른 칸들과 높이가 안 맞는 문제가 다시 생김) */
+  box-sizing: border-box;
+  padding-bottom: 5px;
 }
 .diet-cal-days div.done .diet-cal-day-kcal {
   color: #e0203f;
@@ -9953,7 +9966,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.8.61";
+const APP_VERSION = "0.8.63";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
