@@ -3800,12 +3800,16 @@ html.light-mode-on #dietPanel-stats .diet-stats-weight-track { background: rgba(
 /* 🔥 식단 > 기록(#dietPanel-history) 라이트모드: 마찬가지로 필터를 전혀 안 받는 화면.
    골드(#FFD700 계열)는 리터럴 값이라 그대로 두면 다크모드와 동일하게 나오므로 손 안 댐 */
 html.light-mode-on #dietPanel-history .days > div:not(.empty) { color: #1a1a1a; }
-html.light-mode-on #dietPanel-history .days > div:not(.empty):not(.done) { background: #f0f0f0; }
-html.light-mode-on #dietPanel-history .days > div:not(.empty):not(.done):hover { background: #e5e5e5; }
+html.light-mode-on #dietPanel-history .days > div:not(.empty):not(.done) { background: rgb(218,218,218); } /* 🔥 기록 탭 달력과 동일한 톤(토글색-본문색 중간)으로 통일 */
+html.light-mode-on #dietPanel-history .days > div:not(.empty):not(.done):hover { background: rgb(208,208,208); }
 html.light-mode-on #dietPanel-history .weekdays div { color: rgba(0,0,0,0.45); }
-html.light-mode-on #dietPanel-history .diet-cal-days > div.done:not(.today) { color: #1a1a1a; }
-html.light-mode-on #dietPanel-history .diet-cal-days > div.today { border-color: #FFD700; color: #FFD700; }
-html.light-mode-on #dietPanel-history .diet-cal-days > div.selected { border-color: #FFD700; }
+/* 🔥 today/selected는 이제 골드 전용 스타일 없이 다른 달력들과 같은 전역 규칙
+   (html.light-mode-on .days div.today/.selected, #ff7d69)을 그대로 따름 —
+   기록 탭(#tab3) 달력과 동일하게 done(식사 기록된 날)만 검정 그라디언트로 지정 */
+html.light-mode-on #dietPanel-history .diet-cal-days > div.done {
+  background: linear-gradient(135deg, rgb(0,0,0), rgb(54,54,54));
+  color: #eee;
+}
 html.light-mode-on #dietPanel-history .diet-cal-detail-header span:first-child { color: rgba(0,0,0,0.45); }
 html.light-mode-on #dietPanel-history .today-meal-box { background: #fdfdfd; border-color: #ddd; }
 html.light-mode-on #dietPanel-history #dietCalDetailList > div[style] { color: rgba(0,0,0,0.45) !important; }
@@ -5864,37 +5868,10 @@ html.light-mode-on .diet-food-db-search {
   flex-shrink: 0;
   margin-bottom: 18px;
 }
-.diet-cal-days div {
-  flex-direction: column;
-  gap: 2px;
-  font-size: 13px;
-}
-.diet-cal-days div .diet-cal-day-num {
-  font-size: 13px;
-  line-height: 1;
-}
-.diet-cal-days div .diet-cal-day-kcal {
-  font-size: 9px;
-  font-weight: 600;
-  line-height: 1;
-  color: rgba(255,215,0,0.85);
-}
-.diet-cal-days div.done {
-  background: rgba(255,215,0,0.12);
-  border: 1px solid rgba(255,215,0,0.35);
-  color: #fff;
-}
-.diet-cal-days div.done .diet-cal-day-kcal {
-  color: #FFD700;
-}
-.diet-cal-days div.selected {
-  border: 1px solid #FFD700;
-  box-shadow: 0 0 0 1px #FFD700 inset;
-}
-.diet-cal-days div.today {
-  border: 1px solid #FFD700;
-  color: #FFD700;
-}
+/* 🔥 예전엔 셀 안에 날짜숫자/kcal용 div를 따로 중첩해서 넣었는데, 그 div도
+   .days div 규칙(자손 선택자)에 다시 걸려서 셀 안에 작고 동그란 "이중 배지"처럼
+   보이는 버그가 있었음 — 기존 기록 탭(#tab3) 달력과 똑같이 셀에 숫자만 바로
+   넣는 방식으로 교체(JS도 함께 수정)해서 구조적으로 그 버그 자체가 사라짐 */
 
 .diet-cal-detail-header {
   display: flex;
@@ -9927,7 +9904,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.8.51";
+const APP_VERSION = "0.8.53";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -18551,10 +18528,7 @@ function dietCalRender(){
     if (kcal > 0) cell.classList.add("done");
     if (key === dietCalSelectedKey) cell.classList.add("selected");
 
-    cell.innerHTML = `
-      <div class="diet-cal-day-num">${d}</div>
-      ${kcal > 0 ? `<div class="diet-cal-day-kcal">${kcal}</div>` : ""}
-    `;
+    cell.textContent = d; // 🔥 기록 탭(#tab3) 달력과 동일하게 셀에 숫자만 바로 표시(중첩 div 제거)
 
     cell.addEventListener("click", () => {
       dietCalSelectedKey = key;
