@@ -9705,7 +9705,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.8.32";
+const APP_VERSION = "0.8.33";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -15882,6 +15882,9 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
     }
 
     if (dragging) {
+      e.preventDefault(); // 🔥 이게 없으면 손가락이 살짝만 위아래로 흔들려도 브라우저 기본
+        // 스크롤이 같이 발동해서, 뒷화면(.app)이 가로로만 밀려야 하는데 세로로도 같이
+        // 움직이는 것처럼 보임(닫기 스와이프 쪽엔 이미 있던 처리인데 열기 스와이프만 빠져있었음)
       const width = navDrawer.offsetWidth || window.innerWidth;
       const progress = Math.max(0, Math.min(1, dx / width));
       const clampedDx = Math.min(dx, width); // 🔥 완전히 열린 위치(translateX(0))보다 더 끌려나가지 않게 상한 고정
@@ -15890,7 +15893,7 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
       const maxPush = Math.round(width / 5);
       setAppPush(maxPush * progress);
     }
-  }, { passive: true });
+  }, { passive: false });
 
   function endDrag(e){
     if (!tracking) return;
