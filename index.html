@@ -8502,11 +8502,14 @@ html.light-mode-on #weightModal .food-modal-form label {
   </div>
 </div>
 
-<!-- ✅ 하단 로그아웃/회원탈퇴 (카드 밖, 텍스트 링크) -->
-<div id="settingsLogoutText" class="settings-logout-text">
+<!-- ✅ 하단 로그아웃/회원탈퇴 (카드 밖, 텍스트 링크)
+     🔥 settingsAccountRow와 동일하게 기본값을 display:none으로 둠(로그인 상태
+     확정 전까지는 숨김) — 안 그러면 Firebase auth 확정 전(특히 화면모드 토글로
+     reload된 직후) 게스트 화면에서도 잠깐 보였다가 사라지는 깜빡임이 생김 -->
+<div id="settingsLogoutText" class="settings-logout-text" style="display:none;">
   로그아웃
 </div>
-<div id="settingsDeleteAccountText" class="settings-logout-text settings-delete-account-text">
+<div id="settingsDeleteAccountText" class="settings-logout-text settings-delete-account-text" style="display:none;">
   회원탈퇴
 </div>
 
@@ -9921,7 +9924,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.8.48";
+const APP_VERSION = "0.8.49";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
