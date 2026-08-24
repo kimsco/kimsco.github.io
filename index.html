@@ -5438,11 +5438,20 @@ html.light-mode-on #weightModal input.weight-field-input:focus {
   border-radius: 12px;
   padding: 0 16px;
 }
-.home-weight-quick-input-wrap input {
+/* 🔥 .food-modal-form input(공용, height:42px/배경#111/테두리 있음)과 동일한
+   특이도(class+element)라 파일상 더 뒤에 있는 그 규칙이 이겨서 입력칸 자체가
+   독자적인 어두운 박스+테두리로 보이던 문제 — #homeWeightQuickModal을 앞에
+   붙여 특이도를 확실히 높여서 이 규칙이 항상 이기도록 함(그 결과 입력칸 자체는
+   투명 채우기+투명 선이 되고, 보이는 박스는 바깥 .home-weight-quick-input-wrap
+   하나만 남음). */
+#homeWeightQuickModal .home-weight-quick-input-wrap input {
   flex: 1;
   min-width: 0;
+  width: auto;
+  height: auto;
   background: transparent;
-  border: none;
+  border: 1px solid transparent;
+  border-radius: 0;
   color: var(--c-text-primary);
   font-size: 24px;
   font-weight: 700;
@@ -10026,7 +10035,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.8.74";
+const APP_VERSION = "0.8.75";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
