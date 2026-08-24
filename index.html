@@ -9918,7 +9918,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.8.41";
+const APP_VERSION = "0.8.42";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -16911,6 +16911,10 @@ lightModeToggle.addEventListener("click", () => {
   // 🔥 상태바 스타일(apple-mobile-web-app-status-bar-style)은 앱 로드 시점에만 다시 읽히므로,
   // 여기서 필터만 토글하지 않고 저장 후 강제로 새로고침해서 <head>의 재적용 스크립트를 다시 태움
   const next = !lightModeToggle.classList.contains("active");
+  // 🔥 바로 아래에서 새로고침을 걸어버리면 구슬이 슬라이드하는 CSS 트랜지션(0.25s)이
+  //    재생될 시간도 없이 화면이 넘어가버려서 안 움직이는 것처럼 보임 — 클래스는 여기서
+  //    바로 토글해 슬라이드가 보이게 하고, 새로고침만 트랜지션이 끝날 때까지 살짝 늦춤
+  lightModeToggle.classList.toggle("active", next);
   try {
     localStorage.setItem("mf_light_mode", next ? "1" : "0");
     // 🔥 리로드하면 원래 홈 탭(#tab1)으로 초기화되고 설정 화면도 닫혀버려서, 토글 누르던
@@ -16928,7 +16932,9 @@ lightModeToggle.addEventListener("click", () => {
   // 쓰던 것과 똑같은 HTML을 다시 여는 것뿐이므로, ?modeswitch=1 쿼리를 붙여 서비스워커가
   // 캐시에서 즉시 응답하게 함(sw.js에 대응 규칙 있음). 쿼리는 로드 직후 주소에서 지워서
   // 사용자가 직접 하는 새로고침은 여전히 네트워크 우선(최신 배포 반영)으로 동작.
-  location.replace(location.pathname + "?modeswitch=1");
+  setTimeout(() => {
+    location.replace(location.pathname + "?modeswitch=1");
+  }, 260);
 });
 // 저장된 설정 있으면 페이지 로드 시 바로 반영
 try {
