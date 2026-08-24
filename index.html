@@ -3023,7 +3023,7 @@ html.light-mode-on #tab3 .weekdays div:first-child {
   color: rgb(255,196,196);
 }
 html.light-mode-on #tab3 .days div:not(.empty) {
-  background: rgb(197,197,197); /* 🔥 본문(#eee)이랑 거의 같아서 구분 안 되던 문제 — 토글 바탕색과 동일하게 */
+  background: rgb(218,218,218); /* 🔥 토글색(197)과 본문색(238)의 중간값 */
   color: var(--c-text-primary);
 }
 html.light-mode-on #tab3 .days div.empty {
@@ -9927,7 +9927,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.8.50";
+const APP_VERSION = "0.8.51";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
