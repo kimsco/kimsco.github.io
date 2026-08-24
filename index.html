@@ -3799,6 +3799,8 @@ html.light-mode-on #dietPanel-stats .diet-stats-weight-track { background: rgba(
 
 /* 🔥 식단 > 기록(#dietPanel-history) 라이트모드: 마찬가지로 필터를 전혀 안 받는 화면.
    골드(#FFD700 계열)는 리터럴 값이라 그대로 두면 다크모드와 동일하게 나오므로 손 안 댐 */
+html.light-mode-on #dietPanel-history .month-title { color: var(--c-text-primary); } /* 🔥 상단 "< 월 >" 글자가 흰색이라 라이트모드에서 안 보이던 문제 */
+html.light-mode-on #dietPanel-history .month-btn { color: rgba(0,0,0,0.6); }
 html.light-mode-on #dietPanel-history .days > div:not(.empty) { color: #1a1a1a; }
 html.light-mode-on #dietPanel-history .days > div:not(.empty) { background: rgb(218,218,218); } /* 🔥 기록 탭 달력과 동일한 톤(토글색-본문색 중간)으로 통일 — done도 배경은 동일, 테두리로만 구분 */
 html.light-mode-on #dietPanel-history .days > div:not(.empty):not(.done):hover { background: rgb(208,208,208); }
@@ -7107,7 +7109,8 @@ html.light-mode-on #weightModal .food-modal-form label {
 <!-- 예정 (연습용 수정 탭 - 기록탭과 동일 기능, 로컬 저장만 사용) -->
 <!-- 🔥 식단: 다른 오버레이들(운동도감/내루틴 등)처럼 탑바까지 완전히 덮는 새창(풀스크린) -->
 <div id="dietOverlay" class="hidden" style="
-    position:fixed; inset:0; background:#000; z-index:100000;
+    position:fixed; top:0; bottom:0; left:50%; transform:translateX(-50%);
+    width:390px; max-width:100%; background:#000; z-index:100000;
     overflow:hidden;
   ">
   <div id="dietOverlayBody" style="height:100%; overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:none;
@@ -9930,7 +9933,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.8.54";
+const APP_VERSION = "0.8.55";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
