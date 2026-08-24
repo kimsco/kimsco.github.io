@@ -5424,82 +5424,45 @@ html.light-mode-on #weightModal input.weight-field-input:focus {
   border-color: var(--c-text-primary);
 }
 
-/* 🔥 홈 화면 체중 알약 전용 팝업 — 알약 그 자체가 그 자리에서 커지면서
-   팝업이 되는 연출. 클릭 시점 알약의 top/right 좌표는 고정한 채
-   width/height만 애니메이션으로 키워서, 우측 상단 모서리가 알약과 항상
-   일치한 채로 좌측 아래 방향으로만 확장되는 것처럼 보이게 함. */
-.home-weight-quick-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 200000; /* 🔥 topBar/bottomTab(z-index:99999)보다 위로 — 다른 팝업(.modal)과 동일하게 그 위까지 어둡게 덮이도록 */
-  background: rgba(0,0,0,0.55); /* 🔥 .modal과 완전히 동일한 딤 처리(블러 없음) */
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity .22s ease;
-}
-.home-weight-quick-backdrop.hidden { display: none; }
-.home-weight-quick-backdrop.open { opacity: 1; pointer-events: auto; }
-.home-weight-quick-pop {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%); /* 🔥 항상 화면 정중앙에 위치 — width/height가 애니메이션으로
-     바뀌어도 %기반 translate가 매 프레임 재계산되어 커지는 동안에도 중앙이 계속 유지됨 */
-  z-index: 200001; /* 🔥 백드롭(200000)보다 위 */
-  box-sizing: border-box;
+/* 🔥 홈 화면 체중 알약 전용 팝업 — 특수 연출 없이 기존 .modal(다른 팝업들과
+   동일한 중앙 정렬 + 딤 배경)을 그대로 사용. 내용은 오늘의 몸무게 입력만. */
+#homeWeightQuickModal .modal-actions { grid-template-columns: 1fr; } /* 버튼 1개라 절반폭 안 되게 */
+.home-weight-quick-input-wrap {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
+  height: 64px;
   background: #111;
-  border: 1px solid #222;
-  border-radius: 999px;
-  padding: 0 14px;
-  overflow: hidden;
-  transition: width .22s cubic-bezier(.3,.8,.3,1), height .22s cubic-bezier(.3,.8,.3,1),
-              padding .22s cubic-bezier(.3,.8,.3,1), gap .22s cubic-bezier(.3,.8,.3,1);
+  border: 1px solid #2a2a2a;
+  border-radius: 12px;
+  padding: 0 16px;
 }
-.home-weight-quick-pop.hidden { display: none; }
-.home-weight-quick-pop.expanded { gap: 13px; padding: 0 22px; }
-.home-weight-quick-pop input {
+.home-weight-quick-input-wrap input {
   flex: 1;
-  width: auto; /* 🔥 전역 button,input{width:100%} 리셋 무력화 */
   min-width: 0;
   background: transparent;
   border: none;
-  color: #fff;
+  color: var(--c-text-primary);
+  font-size: 24px;
+  font-weight: 700;
+  text-align: center;
+  padding: 0;
+  margin: 0;
+}
+.home-weight-quick-input-wrap input:focus { outline: none; }
+.home-weight-quick-input-wrap span {
   font-size: 16px;
   font-weight: 700;
-  padding: 0;
-  margin: 0;
-  transition: font-size .22s cubic-bezier(.3,.8,.3,1);
+  color: rgba(255,255,255,0.5);
 }
-.home-weight-quick-pop.expanded input { font-size: 25px; }
-.home-weight-quick-pop input:focus { outline: none; }
-.home-weight-quick-pop input::-webkit-outer-spin-button,
-.home-weight-quick-pop input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-.home-weight-quick-unit { flex-shrink: 0; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.5); transition: font-size .22s cubic-bezier(.3,.8,.3,1); }
-.home-weight-quick-pop.expanded .home-weight-quick-unit { font-size: 20px; }
-.home-weight-quick-sep { flex-shrink: 0; width: 1px; height: 18px; background: rgba(255,255,255,0.15); transition: height .22s cubic-bezier(.3,.8,.3,1); }
-.home-weight-quick-pop.expanded .home-weight-quick-sep { height: 28px; }
-.home-weight-quick-pop button {
-  flex-shrink: 0;
-  width: auto; /* 🔥 전역 button,input{width:100%} 리셋 무력화 */
-  background: none;
-  border: none;
-  padding: 0;
-  margin: 0;
-  font-size: 14px;
-  font-weight: 800;
-  color: #fff;
-  cursor: pointer;
-  transition: font-size .22s cubic-bezier(.3,.8,.3,1);
+html.light-mode-on .home-weight-quick-input-wrap {
+  background: #fdfdfd;
+  border-color: rgb(213,213,213);
 }
-.home-weight-quick-pop.expanded button { font-size: 22px; }
-html.light-mode-on .home-weight-quick-pop { background: #fdfdfd; border-color: rgb(213,213,213); }
-html.light-mode-on .home-weight-quick-pop input,
-html.light-mode-on .home-weight-quick-pop button { color: #1a1a1a; }
-html.light-mode-on .home-weight-quick-unit { color: rgba(0,0,0,0.5); }
-html.light-mode-on .home-weight-quick-sep { background: rgba(0,0,0,0.12); }
+html.light-mode-on .home-weight-quick-input-wrap span {
+  color: rgba(0,0,0,0.5);
+}
 .weight-stepper-row {
   display: flex;
   align-items: stretch;
@@ -8881,16 +8844,23 @@ MuscleFlow는 개인의 운동 및 식단 기록을 관리하는 PWA 서비스�
   </div>
 </div>
 
-<!-- 🔥 홈 화면 체중 알약 전용 — 알약을 누르면 그 알약 자체가 팝업으로 커지는
-     연출(우측 상단 고정, 좌측 아래로 확장). 목표 몸무게 없이 현재 몸무게만
-     빠르게 입력하는 최소 구성(위 #weightModal은 목표 몸무게 기능이 다른
-     곳(식단 탭 진행률 차트 목표선 등)에서도 쓰이고 있어서 그대로 두고 별도로 만듦) -->
-<div id="homeWeightQuickBackdrop" class="home-weight-quick-backdrop hidden"></div>
-<div id="homeWeightQuickPop" class="home-weight-quick-pop hidden">
-  <input id="homeWeightQuickInput" type="text" inputmode="decimal" placeholder="예: 75">
-  <span class="home-weight-quick-unit">Kg</span>
-  <span class="home-weight-quick-sep"></span>
-  <button id="homeWeightQuickSave">저장</button>
+<!-- 🔥 홈 화면 체중 알약 전용 — 일반적인 팝업(.modal). 목표 몸무게 없이
+     오늘의 몸무게 입력만 있는 최소 구성(위 #weightModal은 목표 몸무게
+     기능이 다른 곳(식단 탭 진행률 차트 목표선 등)에서도 쓰이고 있어서
+     그대로 두고 별도로 만듦) -->
+<div id="homeWeightQuickModal" class="modal hidden">
+  <div class="modal-box">
+    <div class="modal-title">오늘의 몸무게</div>
+    <div class="food-modal-form">
+      <div class="home-weight-quick-input-wrap">
+        <input id="homeWeightQuickInput" type="text" inputmode="decimal" placeholder="예: 75">
+        <span>kg</span>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button id="homeWeightQuickSave" class="modal-btn">저장</button>
+    </div>
+  </div>
 </div>
 
 <div id="logoutModal" class="modal hidden">
@@ -10056,7 +10026,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.8.73";
+const APP_VERSION = "0.8.74";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -19187,59 +19157,22 @@ document.getElementById('weightModalSave')?.addEventListener('click', () => {
   closeWeightModal();
 });
 
-// 🔥 홈 화면 체중 알약 전용 간단 팝업(목표 몸무게 없이 현재 몸무게만) — 화면
-// 정중앙에서 알약 크기만큼 작게 시작해 아래 상자(.home-card) 가로폭에 맞는
-// 크기로 커지는 연출(위치는 항상 중앙 고정, width·height만 애니메이션).
-// 뒤 화면은 다른 모달과 동일하게 topBar/bottomTab까지 어둡게 덮임.
-const homeWeightQuickPop = document.getElementById('homeWeightQuickPop');
-const homeWeightQuickBackdrop = document.getElementById('homeWeightQuickBackdrop');
-const HOME_WEIGHT_QUICK_POP_BASE_W = 214;
-const HOME_WEIGHT_QUICK_POP_BASE_H = 44;
+// 🔥 홈 화면 체중 알약 전용 간단 팝업(목표 몸무게 없이 오늘의 몸무게만) —
+// 특수 연출 없이 기존 .modal과 동일하게 동작(다른 모달들과 완전히 동일한
+// 중앙 정렬 + 딤 배경).
+const homeWeightQuickModal = document.getElementById('homeWeightQuickModal');
 function openHomeWeightQuickModal(){
-  const pill = document.getElementById('homeWeightPill');
-  const rect = pill.getBoundingClientRect();
   const today = (userWeight.log || {})[formatTodayYYMMDD()];
   const prefillVal = today ?? userWeight.current;
-  // 🔥 formatWeightInputValue()는 "82.1 kg"처럼 단위까지 텍스트로 붙이는 함수라 —
-  // 이 팝업은 옆에 별도 "Kg" 라벨이 이미 있어서 그대로 쓰면 kg가 중복 표시됨.
-  // 숫자만 프리필.
   document.getElementById('homeWeightQuickInput').value = (prefillVal || prefillVal === 0) ? prefillVal : '';
-
-  const cardWidth = document.querySelector('#tab1 .home-card')?.getBoundingClientRect().width || HOME_WEIGHT_QUICK_POP_BASE_W;
-  const targetW = cardWidth;
-  const targetH = Math.round(cardWidth * (HOME_WEIGHT_QUICK_POP_BASE_H / HOME_WEIGHT_QUICK_POP_BASE_W));
-
-  homeWeightQuickPop.style.width = rect.width + 'px';
-  homeWeightQuickPop.style.height = rect.height + 'px';
-  homeWeightQuickPop.classList.remove('hidden');
-  homeWeightQuickBackdrop.classList.remove('hidden');
-
-  // 🔥 hidden 해제 직후 바로 목표 크기를 넣으면 transition 시작점(알약 크기)이
-  // 브라우저에 반영되기 전이라 애니메이션 없이 바로 커져버림 — 두 번의
-  // requestAnimationFrame으로 알약 크기 레이아웃이 확실히 반영된 뒤에 목표
-  // 크기로 바꿔야 transition이 정상적으로 재생됨.
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      homeWeightQuickPop.style.width = targetW + 'px';
-      homeWeightQuickPop.style.height = targetH + 'px';
-      homeWeightQuickPop.classList.add('expanded');
-      homeWeightQuickBackdrop.classList.add('open');
-    });
-  });
+  homeWeightQuickModal.classList.remove('hidden');
 }
 function closeHomeWeightQuickModal(){
-  const pill = document.getElementById('homeWeightPill');
-  const rect = pill.getBoundingClientRect();
-  homeWeightQuickPop.classList.remove('expanded');
-  homeWeightQuickPop.style.width = rect.width + 'px';
-  homeWeightQuickPop.style.height = rect.height + 'px';
-  homeWeightQuickBackdrop.classList.remove('open');
-  setTimeout(() => {
-    homeWeightQuickPop.classList.add('hidden');
-    homeWeightQuickBackdrop.classList.add('hidden');
-  }, 220);
+  homeWeightQuickModal.classList.add('hidden');
 }
-homeWeightQuickBackdrop.addEventListener('click', closeHomeWeightQuickModal);
+homeWeightQuickModal.addEventListener('click', (e) => {
+  if (e.target === homeWeightQuickModal) closeHomeWeightQuickModal();
+});
 document.getElementById('homeWeightQuickSave')?.addEventListener('click', () => {
   const val = parseFloat(document.getElementById('homeWeightQuickInput').value);
   if (!val) return;
