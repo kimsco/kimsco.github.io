@@ -12475,19 +12475,19 @@ document.querySelectorAll(".muscle-finder-card, .muscle-finder-callout").forEach
 
 // 🔥 부위별 세부 부위 목록 — 우측 하단에 표시할 텍스트
 const MUSCLE_SUBPARTS = {
-  chest:    { no: "01", label: "가슴", items: ["상부 가슴", "중부 가슴", "하부 가슴", "소흉근"] },
-  back:     { no: "02", label: "등", items: ["광배근", "대원근", "승모근 상부", "승모근 중부", "승모근 하부", "능형근", "척추기립근"] },
-  shoulder: { no: "03", label: "어깨", items: ["전면 삼각근", "측면 삼각근", "후면 삼각근"] },
-  arm:      { no: "04", label: "팔", items: ["이두근", "삼두근 장두", "삼두근 외측두", "삼두근 내측두", "전완근"] },
-  lower:    { no: "05", label: "하체", items: ["대퇴직근", "외측광근", "내측광근", "중간광근", "햄스트링", "대둔근", "중둔근", "내전근", "비복근", "가자미근"] },
-  core:     { no: "06", label: "코어", items: ["복직근", "외복사근", "내복사근", "복횡근"] },
+  chest:    { label: "가슴", items: ["상부 가슴", "중부 가슴", "하부 가슴", "소흉근"] },
+  back:     { label: "등", items: ["광배근", "대원근", "승모근 상부", "승모근 중부", "승모근 하부", "능형근", "척추기립근"] },
+  shoulder: { label: "어깨", items: ["전면 삼각근", "측면 삼각근", "후면 삼각근"] },
+  arm:      { label: "팔", items: ["이두근", "삼두근 장두", "삼두근 외측두", "삼두근 내측두", "전완근"] },
+  lower:    { label: "하체", items: ["대퇴직근", "외측광근", "내측광근", "중간광근", "햄스트링", "대둔근", "중둔근", "내전근", "비복근", "가자미근"] },
+  core:     { label: "코어", items: ["복직근", "외복사근", "내복사근", "복횡근"] },
 };
 function renderMuscleSubparts(key){
   const info = MUSCLE_SUBPARTS[key];
   const titleEl = document.getElementById("muscleFinderSubpartsTitle");
   const listEl = document.getElementById("muscleFinderSubpartsList");
   if (!info || !titleEl || !listEl) return;
-  titleEl.textContent = `${info.no}. ${info.label}`;
+  titleEl.textContent = info.label;
   listEl.innerHTML = "";
   info.items.forEach(name => {
     const li = document.createElement("li");
