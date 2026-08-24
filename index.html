@@ -3812,7 +3812,10 @@ html.light-mode-on #dietPanel-history .days > div:not(.empty) { background: rgb(
 html.light-mode-on #dietPanel-history .days > div:not(.empty):not(.done):hover { background: rgb(208,208,208); }
 html.light-mode-on #dietPanel-history .weekdays div { color: rgba(0,0,0,0.45); }
 /* 🔥 today/selected는 골드 전용 스타일 없이 다른 달력들과 같은 전역 규칙
-   (html.light-mode-on .days div.today/.selected, #ff7d69)을 그대로 따름 */
+   (html.light-mode-on .days div.today/.selected, #ff7d69)을 그대로 따름 —
+   done(식사 기록된 날) 테두리/kcal 색도 동일한 빨강으로 맞춤 */
+html.light-mode-on #dietPanel-history .diet-cal-days > div.done { border-color: #ff7d69; }
+html.light-mode-on #dietPanel-history .diet-cal-day-kcal { color: #ff7d69; }
 html.light-mode-on #dietPanel-history .diet-cal-detail-header span:first-child { color: rgba(0,0,0,0.45); }
 html.light-mode-on #dietPanel-history .today-meal-box { background: #fdfdfd; border-color: #ddd; }
 html.light-mode-on #dietPanel-history #dietCalDetailList > div[style] { color: rgba(0,0,0,0.45) !important; }
@@ -5893,7 +5896,7 @@ html.light-mode-on .diet-food-db-search {
   font-size: 9px;
   font-weight: 600;
   line-height: 1;
-  color: rgba(224,32,63,0.85);
+  color: #e0203f; /* 🔥 달력에서 날짜 선택 시 쓰는 빨강(.days div.selected/.today)과 동일하게 */
   /* 🔥 보통 kcal은 3~4자리라 문제없지만, 혹시 훨씬 긴 숫자가 들어와도 셀 폭을 안
      밀어내고 그 안에서 말줄임표로 잘리도록(칸 크기는 항상 고정) */
   max-width: 100%;
@@ -5902,15 +5905,16 @@ html.light-mode-on .diet-food-db-search {
   white-space: nowrap;
 }
 /* 🔥 식사 기록된 날: 배경은 일반 날짜와 동일하게 유지(전역 .days div.done의
-   흰색 그라디언트를 명시적으로 덮어씀)하고 연한 빨강 테두리만 둘러서 구분 */
+   흰색 그라디언트를 명시적으로 덮어씀)하고, 달력 날짜 선택 시 쓰는 것과 동일한
+   빨강(#e0203f) 테두리로 구분 */
 .diet-cal-days div.done {
   background: #1a1a1a;
   color: #eee;
   font-weight: 500;
-  border: 1.5px solid rgba(224,32,63,0.45);
+  border: 1.5px solid #e0203f;
 }
 .diet-cal-days div.done .diet-cal-day-kcal {
-  color: #ff6b6b;
+  color: #e0203f;
 }
 
 .diet-cal-detail-header {
@@ -9945,7 +9949,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.8.59";
+const APP_VERSION = "0.8.60";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
