@@ -5922,13 +5922,17 @@ html.light-mode-on .diet-food-db-search {
   color: #eee;
   font-weight: 500;
   border: 1.5px solid #e0203f;
-  /* 🔥 kcal 있는 날은 두 줄(날짜+kcal)이라 정중앙에 두면 살짝 아래로 처져 보여서,
-     날짜 쪽으로 조금 더 올라오게 살짝 위쪽으로 치우쳐 배치 — box-sizing을
-     border-box로 바꿔서 이 padding이 셀 자체 크기(aspect-ratio 기준 정사각형)를
-     안 늘리고 안쪽 여백으로만 흡수되게 함(안 그러면 done 칸만 커져서 같은
-     줄의 다른 칸들과 높이가 안 맞는 문제가 다시 생김) */
+  /* 🔥 kcal은 원래(정중앙 배치였을 때)에 가까운 하단 위치에 고정(justify-content:
+     flex-end + padding-bottom)하고, 날짜만 살짝 위로 띄움(margin-bottom) —
+     box-sizing은 border-box로 둬서 이 padding이 셀 자체 크기(aspect-ratio 기준
+     정사각형)를 안 늘리고 안쪽 여백으로만 흡수되게 함(안 그러면 done 칸만 커져서
+     같은 줄 다른 칸들과 높이가 안 맞는 문제가 재발함) */
   box-sizing: border-box;
-  padding-bottom: 5px;
+  justify-content: flex-end;
+  padding-bottom: 8px;
+}
+.diet-cal-days div.done .diet-cal-day-num {
+  margin-bottom: 1.5px; /* 🔥 날짜만 이만큼 위로 */
 }
 .diet-cal-days div.done .diet-cal-day-kcal {
   color: #e0203f;
@@ -9966,7 +9970,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.8.63";
+const APP_VERSION = "0.8.65";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
