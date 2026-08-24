@@ -3800,8 +3800,8 @@ html.light-mode-on #dietPanel-stats .diet-stats-weight-track { background: rgba(
 /* 🔥 식단 > 기록(#dietPanel-history) 라이트모드: 마찬가지로 필터를 전혀 안 받는 화면.
    골드(#FFD700 계열)는 리터럴 값이라 그대로 두면 다크모드와 동일하게 나오므로 손 안 댐 */
 html.light-mode-on #dietPanel-history .days > div:not(.empty) { color: #1a1a1a; }
-html.light-mode-on #dietPanel-history .days > div:not(.empty):not(.done) { background: #f0f0f0; }
-html.light-mode-on #dietPanel-history .days > div:not(.empty):not(.done):hover { background: #e5e5e5; }
+html.light-mode-on #dietPanel-history .days > div:not(.empty):not(.done) { background: rgb(218,218,218); } /* 🔥 기록 탭 달력과 동일한 톤(토글색-본문색 중간)으로 통일 */
+html.light-mode-on #dietPanel-history .days > div:not(.empty):not(.done):hover { background: rgb(208,208,208); }
 html.light-mode-on #dietPanel-history .weekdays div { color: rgba(0,0,0,0.45); }
 html.light-mode-on #dietPanel-history .diet-cal-days > div.done:not(.today) { color: #1a1a1a; }
 html.light-mode-on #dietPanel-history .diet-cal-days > div.today { border-color: #FFD700; color: #FFD700; }
@@ -9927,7 +9927,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.8.51";
+const APP_VERSION = "0.8.52";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
