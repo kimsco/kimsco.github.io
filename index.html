@@ -8433,7 +8433,9 @@ html.light-mode-on #weightModal .food-modal-form label {
   </div>
   <div class="settings-item" style="justify-content:space-between; border-bottom:none;">
     <span class="settings-item-label"><img src="icons/setting-version.png" class="settings-item-icon" alt="">앱 버전</span>
-    <span style="color:var(--c-text-tertiary); font-size:14px;" id="appVersionDisplay">0.1.0</span>
+    <!-- 🔥 버전 숫자는 아래 JS(APP_VERSION)가 채움 — 예전엔 "0.1.0"이 박혀있어서
+         리로드 중 잠깐 엉뚱한 버전이 보였음. 채워지기 전까지는 빈칸이 맞음 -->
+    <span style="color:var(--c-text-tertiary); font-size:14px;" id="appVersionDisplay"></span>
   </div>
 </div>
 
@@ -9856,7 +9858,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.8.37";
+const APP_VERSION = "0.8.39";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -16805,7 +16807,12 @@ lightModeToggle.addEventListener("click", () => {
     // 여기서 필터만 토글하지 않고 저장 후 강제로 새로고침해서 <head>의 재적용 스크립트를 다시 태움
     sessionStorage.setItem("mf_status_bar_kick", "1");
   } catch(e){}
-  location.reload();
+  // 🔥 그냥 reload()하면 서비스워커의 "네트워크 우선" 규칙 때문에 2만 줄짜리 index.html을
+  // 통째로 다시 다운로드해서 토글 반응이 네트워크 속도만큼 느렸음 — 모드 전환은 방금까지
+  // 쓰던 것과 똑같은 HTML을 다시 여는 것뿐이므로, ?modeswitch=1 쿼리를 붙여 서비스워커가
+  // 캐시에서 즉시 응답하게 함(sw.js에 대응 규칙 있음). 쿼리는 로드 직후 주소에서 지워서
+  // 사용자가 직접 하는 새로고침은 여전히 네트워크 우선(최신 배포 반영)으로 동작.
+  location.replace(location.pathname + "?modeswitch=1");
 });
 // 저장된 설정 있으면 페이지 로드 시 바로 반영
 try {
@@ -16872,6 +16879,15 @@ try {
         }, 300);
       }
     }, 0);
+  }
+} catch(e){}
+
+// 🔥 모드 전환 리로드용 ?modeswitch=1 쿼리는 로드가 끝나면 주소에서 바로 제거 —
+// 남겨두면 이후 사용자가 직접 하는 새로고침까지 서비스워커가 캐시 우선으로 응답해서
+// 최신 배포가 반영 안 되는(=아까 겪은 "업데이트 안 됨") 문제가 생길 수 있음
+try {
+  if (location.search.includes("modeswitch=1")) {
+    history.replaceState(null, "", location.pathname);
   }
 } catch(e){}
 
