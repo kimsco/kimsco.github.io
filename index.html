@@ -610,6 +610,12 @@ button {
 
   cursor: pointer;
   transition: all 0.18s ease;
+
+  /* 🔥 그리드 아이템은 기본 min-width가 auto라, 안에 긴 텍스트(예: 식단 kcal 숫자)가
+     들어가면 셀이 내용 크기만큼 옆으로 늘어나면서 한 주(row)의 정렬이 깨짐 —
+     0으로 낮춰서 셀 크기가 항상 grid의 1fr 칸 폭에 고정되도록 함 */
+  min-width: 0;
+  overflow: hidden;
 }
 
 /* hover (PC) */
@@ -5888,6 +5894,12 @@ html.light-mode-on .diet-food-db-search {
   font-weight: 600;
   line-height: 1;
   color: rgba(224,32,63,0.85);
+  /* 🔥 보통 kcal은 3~4자리라 문제없지만, 혹시 훨씬 긴 숫자가 들어와도 셀 폭을 안
+     밀어내고 그 안에서 말줄임표로 잘리도록(칸 크기는 항상 고정) */
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 /* 🔥 식사 기록된 날: 배경은 일반 날짜와 동일하게 유지(전역 .days div.done의
    흰색 그라디언트를 명시적으로 덮어씀)하고 연한 빨강 테두리만 둘러서 구분 */
@@ -9933,7 +9945,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.8.58";
+const APP_VERSION = "0.8.59";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
