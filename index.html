@@ -5432,8 +5432,15 @@ html.light-mode-on #weightModal input.weight-field-input:focus {
   position: fixed;
   inset: 0;
   z-index: 998;
+  background: rgba(0,0,0,0.35);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .22s ease;
 }
 .home-weight-quick-backdrop.hidden { display: none; }
+.home-weight-quick-backdrop.open { opacity: 1; pointer-events: auto; }
 .home-weight-quick-pop {
   position: fixed;
   z-index: 999;
@@ -5446,9 +5453,11 @@ html.light-mode-on #weightModal input.weight-field-input:focus {
   border-radius: 999px;
   padding: 0 14px;
   overflow: hidden;
-  transition: width .22s cubic-bezier(.3,.8,.3,1), height .22s cubic-bezier(.3,.8,.3,1);
+  transition: width .22s cubic-bezier(.3,.8,.3,1), height .22s cubic-bezier(.3,.8,.3,1),
+              padding .22s cubic-bezier(.3,.8,.3,1), gap .22s cubic-bezier(.3,.8,.3,1);
 }
 .home-weight-quick-pop.hidden { display: none; }
+.home-weight-quick-pop.expanded { gap: 13px; padding: 0 22px; }
 .home-weight-quick-pop input {
   flex: 1;
   width: auto; /* 🔥 전역 button,input{width:100%} 리셋 무력화 */
@@ -5460,12 +5469,16 @@ html.light-mode-on #weightModal input.weight-field-input:focus {
   font-weight: 700;
   padding: 0;
   margin: 0;
+  transition: font-size .22s cubic-bezier(.3,.8,.3,1);
 }
+.home-weight-quick-pop.expanded input { font-size: 25px; }
 .home-weight-quick-pop input:focus { outline: none; }
 .home-weight-quick-pop input::-webkit-outer-spin-button,
 .home-weight-quick-pop input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-.home-weight-quick-unit { flex-shrink: 0; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.5); }
-.home-weight-quick-sep { flex-shrink: 0; width: 1px; height: 18px; background: rgba(255,255,255,0.15); }
+.home-weight-quick-unit { flex-shrink: 0; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.5); transition: font-size .22s cubic-bezier(.3,.8,.3,1); }
+.home-weight-quick-pop.expanded .home-weight-quick-unit { font-size: 20px; }
+.home-weight-quick-sep { flex-shrink: 0; width: 1px; height: 18px; background: rgba(255,255,255,0.15); transition: height .22s cubic-bezier(.3,.8,.3,1); }
+.home-weight-quick-pop.expanded .home-weight-quick-sep { height: 28px; }
 .home-weight-quick-pop button {
   flex-shrink: 0;
   width: auto; /* 🔥 전역 button,input{width:100%} 리셋 무력화 */
@@ -5477,7 +5490,9 @@ html.light-mode-on #weightModal input.weight-field-input:focus {
   font-weight: 800;
   color: #fff;
   cursor: pointer;
+  transition: font-size .22s cubic-bezier(.3,.8,.3,1);
 }
+.home-weight-quick-pop.expanded button { font-size: 22px; }
 html.light-mode-on .home-weight-quick-pop { background: #fdfdfd; border-color: rgb(213,213,213); }
 html.light-mode-on .home-weight-quick-pop input,
 html.light-mode-on .home-weight-quick-pop button { color: #1a1a1a; }
@@ -10039,7 +10054,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.8.70";
+const APP_VERSION = "0.8.71";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -19171,18 +19186,24 @@ document.getElementById('weightModalSave')?.addEventListener('click', () => {
 });
 
 // 🔥 홈 화면 체중 알약 전용 간단 팝업(목표 몸무게 없이 현재 몸무게만) — 알약
-// 자체가 그 자리에서 커지면서 팝업이 되는 연출. 클릭 시점 알약의 위치/크기를
+// 자체가 그 자리에서 커지면서 팝업이 되는 연출. 클릭 시점 알약의 위치를
 // 기준으로 top·right 좌표는 고정하고 width·height만 애니메이션으로 키워서,
 // 우측 상단 모서리가 알약과 항상 일치한 채로 좌측 아래 방향으로만 확장되게 함.
+// 펼쳐진 너비는 아래 상자(.home-card) 가로폭과 동일하게, 높이는 그 비율에
+// 맞춰 자동으로 커짐(기존 214x44 비율 유지). 뒤 화면은 배경 블러(.open)로 흐릿하게.
 const homeWeightQuickPop = document.getElementById('homeWeightQuickPop');
 const homeWeightQuickBackdrop = document.getElementById('homeWeightQuickBackdrop');
-const HOME_WEIGHT_QUICK_POP_W = 214; // 펼쳐진 팝업 너비
-const HOME_WEIGHT_QUICK_POP_H = 44;  // 펼쳐진 팝업 높이
+const HOME_WEIGHT_QUICK_POP_BASE_W = 214;
+const HOME_WEIGHT_QUICK_POP_BASE_H = 44;
 function openHomeWeightQuickModal(){
   const pill = document.getElementById('homeWeightPill');
   const rect = pill.getBoundingClientRect();
   const today = (userWeight.log || {})[formatTodayYYMMDD()];
   document.getElementById('homeWeightQuickInput').value = formatWeightInputValue(today ?? userWeight.current);
+
+  const cardWidth = document.querySelector('#tab1 .home-card')?.getBoundingClientRect().width || HOME_WEIGHT_QUICK_POP_BASE_W;
+  const targetW = cardWidth;
+  const targetH = Math.round(cardWidth * (HOME_WEIGHT_QUICK_POP_BASE_H / HOME_WEIGHT_QUICK_POP_BASE_W));
 
   homeWeightQuickPop.style.top = rect.top + 'px';
   homeWeightQuickPop.style.right = (window.innerWidth - rect.right) + 'px';
@@ -19197,18 +19218,24 @@ function openHomeWeightQuickModal(){
   // 크기로 바꿔야 transition이 정상적으로 재생됨.
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
-      homeWeightQuickPop.style.width = HOME_WEIGHT_QUICK_POP_W + 'px';
-      homeWeightQuickPop.style.height = HOME_WEIGHT_QUICK_POP_H + 'px';
+      homeWeightQuickPop.style.width = targetW + 'px';
+      homeWeightQuickPop.style.height = targetH + 'px';
+      homeWeightQuickPop.classList.add('expanded');
+      homeWeightQuickBackdrop.classList.add('open');
     });
   });
 }
 function closeHomeWeightQuickModal(){
   const pill = document.getElementById('homeWeightPill');
   const rect = pill.getBoundingClientRect();
+  homeWeightQuickPop.classList.remove('expanded');
   homeWeightQuickPop.style.width = rect.width + 'px';
   homeWeightQuickPop.style.height = rect.height + 'px';
-  homeWeightQuickBackdrop.classList.add('hidden');
-  setTimeout(() => homeWeightQuickPop.classList.add('hidden'), 220);
+  homeWeightQuickBackdrop.classList.remove('open');
+  setTimeout(() => {
+    homeWeightQuickPop.classList.add('hidden');
+    homeWeightQuickBackdrop.classList.add('hidden');
+  }, 220);
 }
 homeWeightQuickBackdrop.addEventListener('click', closeHomeWeightQuickModal);
 document.getElementById('homeWeightQuickSave')?.addEventListener('click', () => {
