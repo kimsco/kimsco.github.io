@@ -1,4 +1,4 @@
-const CACHE = "mf-v6"; // 🔥 정적 파일이 바뀔 때마다 버전을 올려야 기존 캐시가 갱신됨 — index.html 쪽에서 매번 능동적으로 update()를 호출하도록 바꾼 김에, 옛 서비스워커를 쓰던 기기의 캐시도 확실히 새로 받도록 한번 더 올림
+const CACHE = "mf-v7"; // 🔥 정적 파일이 바뀔 때마다 버전을 올려야 기존 캐시가 갱신됨 — "/"와 "/index.html" 캐시가 서로 따로 놀던(=화면모드 토글 시 옛날 버전) 문제를 고친 김에 한번 더 올려서 모든 기기가 확실히 새 로직으로 다시 시작하게 함
 const ASSETS = [
   "/",
   "/index.html",
@@ -36,16 +36,38 @@ self.addEventListener("fetch", e => {
   //    네트워크 실패(오프라인) 시에만 캐시로 폴백.
   const isAppShell = e.request.mode === "navigate" || url.endsWith("/index.html") || url.endsWith("/");
   if (isAppShell) {
+    // 🔥 index.html 캐시 저장을 항상 "/"와 "/index.html" 두 키에 동시에 저장 — manifest의
+    //    start_url("/")로 열 때와 직접 "/index.html"로 열 때가 각자 다른 캐시 항목을 쓰다보니,
+    //    한쪽만 갱신되고 다른 쪽은 install 시점 그대로 멈춰있는(=구버전 홈화면 아이콘에서
+    //    화면모드 토글 시 옛날 버전이 나오던) 문제가 있었음 — 두 키를 항상 같이 갱신해서
+    //    어느 경로로 접속하든 항상 같은(최신) 캐시를 보게 함.
+    function cacheAppShell(res) {
+      const clone = res.clone();
+      return caches.open(CACHE).then(c => Promise.all([
+        c.put("/", clone.clone()),
+        c.put("/index.html", clone),
+      ]));
+    }
     // 🔥 화면모드(다크/라이트) 토글 리로드(?modeswitch=1): 방금까지 쓰던 것과 같은 HTML을
-    //    다시 여는 것뿐이므로 네트워크를 기다릴 이유가 없음 — 캐시 우선으로 즉시 응답해서
-    //    토글 딜레이를 없앰(쿼리스트링은 무시하고 매칭). 캐시가 없을 때만 네트워크 폴백.
+    //    다시 여는 것뿐이라 캐시 우선으로 즉시 응답해서 토글 딜레이를 없애고 싶지만, 캐시가
+    //    실제로 최신인지 100% 보장할 수 없으므로(위 이유 등) 아주 짧게(180ms)만 네트워크를
+    //    기다려보고, 그 안에 응답이 오면 그걸 쓰고(가장 신선함) 없으면 캐시로 즉시 폴백 —
+    //    느린 네트워크에서도 체감 딜레이 없이, 빠른 네트워크에서는 항상 최신을 보장.
     //    이 쿼리는 로드 직후 index.html 쪽 JS가 주소에서 지워주므로, 사용자가 직접 하는
     //    새로고침/재실행은 여전히 네트워크 우선(최신 배포 반영)으로 동작함.
     if (url.includes("modeswitch=1")) {
+      const networkPromise = fetch(url.split("?")[0], { cache: "no-store" }).then(res => {
+        e.waitUntil(cacheAppShell(res.clone()));
+        return res;
+      }).catch(() => null);
+      const timeoutPromise = new Promise(resolve => setTimeout(() => resolve(null), 180));
       return e.respondWith(
-        caches.match(e.request, { ignoreSearch: true })
-          .then(r => r || caches.match("/index.html"))
-          .then(r => r || fetch(e.request))
+        Promise.race([networkPromise, timeoutPromise]).then(res =>
+          res || caches.match("/", { ignoreSearch: true })
+            .then(r => r || caches.match("/index.html"))
+            .then(r => r || networkPromise)
+            .then(r => r || fetch(e.request))
+        )
       );
     }
     return e.respondWith(
@@ -53,10 +75,8 @@ self.addEventListener("fetch", e => {
         .then(res => {
           // 🔥 e.waitUntil로 감싸지 않으면 respondWith의 res를 반환한 직후 브라우저가
           //    SW를 바로 종료시켜버릴 수 있어 캐시 저장이 중간에 끊길 수 있음(fire-and-forget).
-          //    그 결과 index.html 캐시가 install 시점(오래된 버전)에 멈춰있게 되고,
-          //    ?modeswitch=1(화면모드 토글) 리로드는 캐시 우선이라 그 옛날 버전을 계속 보여주게 됨.
           //    waitUntil로 감싸 캐시 저장이 항상 끝까지 완료되도록 보장.
-          e.waitUntil(caches.open(CACHE).then(c => c.put(e.request, res.clone())));
+          e.waitUntil(cacheAppShell(res.clone()));
           return res;
         })
         .catch(() => caches.match(e.request, { ignoreSearch: true }))
