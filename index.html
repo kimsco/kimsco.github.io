@@ -1750,6 +1750,37 @@ html.mf-restore-settings .bottomTab {
   color: #000;
 }
 
+/* 🔥 선택된 부위의 세부 부위 목록 — 스테이지 우측 하단 빈 공간에 표시 */
+.muscle-finder-subparts {
+  position: absolute;
+  right: 4%;
+  bottom: 4%;
+  max-width: 44%;
+  text-align: right;
+  pointer-events: none;
+}
+.muscle-finder-subparts-title {
+  color: rgba(255,255,255,0.45);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  margin-bottom: 8px;
+}
+.muscle-finder-subparts-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.muscle-finder-subparts-list li {
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
 /* 맨몸운동 메뉴(01~06 카드) */
 .bw-menu-list {
   flex: 1;
@@ -3385,6 +3416,12 @@ html.light-mode-on .muscle-finder-dot.active {
 }
 html.light-mode-on #muscleFinderOverlay img {
   filter: none;
+}
+html.light-mode-on .muscle-finder-subparts-title {
+  color: rgba(0,0,0,0.4);
+}
+html.light-mode-on .muscle-finder-subparts-list li {
+  color: var(--c-text-primary);
 }
 html.light-mode-on #oneRMCalcOverlay #oneRMLiftSelect,
 html.light-mode-on #oneRMCalcOverlay #weight,
@@ -8197,6 +8234,12 @@ html.light-mode-on #weightModal .food-modal-form label {
         <button type="button" class="muscle-finder-callout muscle-finder-callout-right" data-part="core" style="top:56%;">코어</button>
       </div>
       </div>
+
+      <!-- 🔥 선택된 부위의 세부 부위 목록 — 스테이지 우측 하단 빈 공간에 표시 -->
+      <div class="muscle-finder-subparts" id="muscleFinderSubparts">
+        <div class="muscle-finder-subparts-title" id="muscleFinderSubpartsTitle"></div>
+        <ul class="muscle-finder-subparts-list" id="muscleFinderSubpartsList"></ul>
+      </div>
     </div>
 
     <!-- 🔥 부위 선택 버튼(최하단) -->
@@ -12424,10 +12467,35 @@ function setActiveMusclePart(key){
   document.querySelectorAll(".muscle-finder-card").forEach(c => c.classList.toggle("active", c.dataset.part === key));
   document.querySelectorAll(".muscle-finder-callout").forEach(c => c.classList.toggle("active", c.dataset.part === key));
   document.querySelectorAll(".muscle-finder-line, .muscle-finder-dot").forEach(el => el.classList.toggle("active", el.dataset.part === key));
+  renderMuscleSubparts(key);
 }
 document.querySelectorAll(".muscle-finder-card, .muscle-finder-callout").forEach(el => {
   el.addEventListener("click", () => setActiveMusclePart(el.dataset.part));
 });
+
+// 🔥 부위별 세부 부위 목록 — 우측 하단에 표시할 텍스트
+const MUSCLE_SUBPARTS = {
+  chest:    { no: "01", label: "가슴", items: ["상부 가슴", "중부 가슴", "하부 가슴", "소흉근"] },
+  back:     { no: "02", label: "등", items: ["광배근", "대원근", "승모근 상부", "승모근 중부", "승모근 하부", "능형근", "척추기립근"] },
+  shoulder: { no: "03", label: "어깨", items: ["전면 삼각근", "측면 삼각근", "후면 삼각근"] },
+  arm:      { no: "04", label: "팔", items: ["이두근", "삼두근 장두", "삼두근 외측두", "삼두근 내측두", "전완근"] },
+  lower:    { no: "05", label: "하체", items: ["대퇴직근", "외측광근", "내측광근", "중간광근", "햄스트링", "대둔근", "중둔근", "내전근", "비복근", "가자미근"] },
+  core:     { no: "06", label: "코어", items: ["복직근", "외복사근", "내복사근", "복횡근"] },
+};
+function renderMuscleSubparts(key){
+  const info = MUSCLE_SUBPARTS[key];
+  const titleEl = document.getElementById("muscleFinderSubpartsTitle");
+  const listEl = document.getElementById("muscleFinderSubpartsList");
+  if (!info || !titleEl || !listEl) return;
+  titleEl.textContent = `${info.no}. ${info.label}`;
+  listEl.innerHTML = "";
+  info.items.forEach(name => {
+    const li = document.createElement("li");
+    li.textContent = name;
+    listEl.appendChild(li);
+  });
+}
+renderMuscleSubparts("chest"); // 기본 활성 부위(가슴)로 초기 표시
 
 /* 🔥 맨몸운동 첫 화면(메뉴)은 스와이프로 못 나가게(오탈출 방지) — 상단 X 버튼으로만 닫힘.
    그 안의 하위 화면(← 버튼이 있는 화면들)은 아래에서 왼쪽 끝→오른쪽 스와이프로 뒤로가기 가능 */
