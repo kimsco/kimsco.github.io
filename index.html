@@ -5431,10 +5431,8 @@ html.light-mode-on #weightModal input.weight-field-input:focus {
 .home-weight-quick-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 998;
-  background: rgba(0,0,0,0.35);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  z-index: 200000; /* 🔥 topBar/bottomTab(z-index:99999)보다 위로 — 다른 팝업(.modal)과 동일하게 그 위까지 어둡게 덮이도록 */
+  background: rgba(0,0,0,0.55); /* 🔥 .modal과 완전히 동일한 딤 처리(블러 없음) */
   opacity: 0;
   pointer-events: none;
   transition: opacity .22s ease;
@@ -5443,7 +5441,7 @@ html.light-mode-on #weightModal input.weight-field-input:focus {
 .home-weight-quick-backdrop.open { opacity: 1; pointer-events: auto; }
 .home-weight-quick-pop {
   position: fixed;
-  z-index: 999;
+  z-index: 200001; /* 🔥 백드롭(200000)보다 위 */
   box-sizing: border-box;
   display: flex;
   align-items: center;
@@ -10054,7 +10052,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.8.71";
+const APP_VERSION = "0.8.72";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
