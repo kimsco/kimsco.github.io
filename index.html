@@ -10148,7 +10148,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.8.89";
+const APP_VERSION = "0.8.90";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -12883,7 +12883,7 @@ muscleRotateStage.addEventListener("pointerdown", (e) => {
 muscleRotateStage.addEventListener("pointermove", (e) => {
   if (!muscleRotateDragging) return;
   const deltaX = e.clientX - muscleRotateDragStartX;
-  muscleRotateContinuousIndex = muscleRotateDragStartIndex - deltaX / MUSCLE_ROTATE_PX_PER_FRAME;
+  muscleRotateContinuousIndex = muscleRotateDragStartIndex + deltaX / MUSCLE_ROTATE_PX_PER_FRAME; // 🔥 드래그 방향과 반대로 돌던 것을 뒤집음
   renderMuscleRotateFrame();
 });
 function muscleRotateEndDrag(e){
