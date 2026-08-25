@@ -1633,7 +1633,32 @@ html.mf-restore-settings .bottomTab {
   flex-shrink: 0;
   display: flex;
   justify-content: center;
+  position: relative; /* 🔥 우측 원형 버튼(다른 기능용)을 이 기준으로 절대 위치시킴 */
   padding: 14px 0 4px;
+}
+/* 🔥 FRONT/BACK 알약 토글과는 별개 — 우측 공간의 원형 버튼(추후 다른 기능 연결 예정) */
+.muscle-finder-extra-btn {
+  all: unset;
+  box-sizing: border-box;
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid #333;
+  background: transparent;
+  color: #aaa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.muscle-finder-extra-btn:active {
+  background: rgba(255,255,255,0.08);
 }
 .muscle-finder-facetoggle-track {
   display: flex;
@@ -3410,6 +3435,10 @@ html.light-mode-on .muscle-finder-card.active {
 }
 html.light-mode-on .muscle-finder-facetoggle-track {
   border-color: rgb(213,213,213);
+}
+html.light-mode-on .muscle-finder-extra-btn {
+  border-color: rgb(213,213,213);
+  color: rgb(120,120,120);
 }
 html.light-mode-on .muscle-finder-facetoggle-indicator {
   background: var(--c-text-primary);
@@ -8281,13 +8310,22 @@ html.light-mode-on #weightModal .food-modal-form label {
       <span class="bw-menu-header-spacer"></span>
     </div>
 
-    <!-- 🔥 정면/후면(FRONT/BACK) 전환 — 인체 이미지 바로 위 알약형 토글 -->
+    <!-- 🔥 정면/후면(FRONT/BACK) 전환 — 인체 이미지 바로 위 알약형 토글.
+         우측의 원형 버튼은 별개 기능(추후 연결 예정)용 -->
     <div class="muscle-finder-facetoggle">
       <div class="muscle-finder-facetoggle-track" id="muscleFinderFaceTrack">
         <div class="muscle-finder-facetoggle-indicator" id="muscleFinderFaceIndicator"></div>
         <button type="button" class="muscle-finder-face-btn active" data-face="front">FRONT</button>
         <button type="button" class="muscle-finder-face-btn" data-face="back">BACK</button>
       </div>
+      <button type="button" class="muscle-finder-extra-btn" id="muscleFinderExtraBtn" aria-label="추가 기능">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="17 1 21 5 17 9"></polyline>
+          <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
+          <polyline points="7 23 3 19 7 15"></polyline>
+          <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
+        </svg>
+      </button>
     </div>
 
     <div class="muscle-finder-stage">
@@ -10041,7 +10079,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.8.85";
+const APP_VERSION = "0.8.87";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
