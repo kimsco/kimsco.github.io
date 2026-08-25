@@ -10148,7 +10148,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.8.88";
+const APP_VERSION = "0.8.89";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -12843,19 +12843,23 @@ let muscleRotateDragStartIndex = 0;
 let muscleRotateDragging = false;
 const MUSCLE_ROTATE_PX_PER_FRAME = 14; // 🔥 이 픽셀만큼 드래그해야 프레임 1장 넘어감(작을수록 민감)
 
-// 🔥 0~N-1을 왕복하는 삼각파 — continuousIndex가 아무리 커지거나 작아져도
-// 0(정면)과 N-1(후면) 사이를 자연스럽게 왔다갔다 하도록 접어줌. 예: N=13이면
-// 0,1,...,12,11,...,1,0,1,2,... 순으로 끝없이 반복 → 같은 방향으로 계속
-// 드래그해도 반바퀴 사진만으로 끊김 없이 계속 도는 것처럼 보임.
-function muscleRotatePingPong(continuousIndex, n){
+// 🔥 반바퀴(13장, 정면→오른쪽 옆면 경유→후면)만 있으므로, 후면(12)을 지난 뒤엔
+// 같은 프레임들을 좌우 반전(scaleX(-1))해서 이어 재생 — 몸이 좌우 대칭이라
+// 후면부터는 "왼쪽 옆면을 거쳐 다시 정면으로" 도는 것처럼 자연스럽게 보이고,
+// 이전처럼 후면에서 되감기(반대로 되돌아가는 것처럼 보이는) 느낌 없이 계속
+// 같은 방향으로 도는 진짜 360도 회전 착시가 됨. 예: N=13이면 인덱스 순서는
+// 0,1,...,12,(반전)11,...,1,0,1,... 로 끝없이 반복.
+function muscleRotateGetFrame(continuousIndex, n){
   const period = 2 * (n - 1);
   let m = Math.round(continuousIndex) % period;
   if (m < 0) m += period;
-  return m <= (n - 1) ? m : period - m;
+  if (m <= n - 1) return { index: m, mirrored: false };
+  return { index: period - m, mirrored: true };
 }
 function renderMuscleRotateFrame(){
-  const idx = muscleRotatePingPong(muscleRotateContinuousIndex, MUSCLE_ROTATE_FRAME_COUNT);
-  muscleRotateImg.src = muscleRotateFrameSrc(idx);
+  const { index, mirrored } = muscleRotateGetFrame(muscleRotateContinuousIndex, MUSCLE_ROTATE_FRAME_COUNT);
+  muscleRotateImg.src = muscleRotateFrameSrc(index);
+  muscleRotateImg.style.transform = mirrored ? "scaleX(-1)" : "";
 }
 function openMuscleRotate(){
   muscleRotateOverlay.classList.remove("hidden");
