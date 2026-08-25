@@ -8335,7 +8335,7 @@ html.light-mode-on #weightModal .food-modal-form label {
 
       <!-- 🔥 부위 이름표(정면) -->
       <div class="muscle-finder-callouts" id="muscleFinderCalloutsFront">
-        <button type="button" class="muscle-finder-callout muscle-finder-callout-left active" data-part="chest" style="top:24%;">가슴</button>
+        <button type="button" class="muscle-finder-callout muscle-finder-callout-left" data-part="chest" style="top:24%;">가슴</button>
         <button type="button" class="muscle-finder-callout muscle-finder-callout-right" data-part="shoulder" style="top:20%;">어깨</button>
         <button type="button" class="muscle-finder-callout muscle-finder-callout-left" data-part="arm" style="top:42%;">팔</button>
         <button type="button" class="muscle-finder-callout muscle-finder-callout-right" data-part="back" style="top:38%;">등</button>
@@ -8344,7 +8344,7 @@ html.light-mode-on #weightModal .food-modal-form label {
       </div>
       <!-- 🔥 부위 이름표(후면) -->
       <div class="muscle-finder-callouts hidden" id="muscleFinderCalloutsBack">
-        <button type="button" class="muscle-finder-callout muscle-finder-callout-left active" data-part="chest" style="top:24%;">가슴</button>
+        <button type="button" class="muscle-finder-callout muscle-finder-callout-left" data-part="chest" style="top:24%;">가슴</button>
         <button type="button" class="muscle-finder-callout muscle-finder-callout-right" data-part="shoulder" style="top:20%;">어깨</button>
         <button type="button" class="muscle-finder-callout muscle-finder-callout-left" data-part="arm" style="top:42%;">팔</button>
         <button type="button" class="muscle-finder-callout muscle-finder-callout-right" data-part="back" style="top:38%;">등</button>
@@ -8362,7 +8362,7 @@ html.light-mode-on #weightModal .food-modal-form label {
 
     <!-- 🔥 부위 선택 버튼(최하단) -->
     <div class="muscle-finder-cards">
-      <button type="button" class="muscle-finder-card active" data-part="chest">가슴</button>
+      <button type="button" class="muscle-finder-card" data-part="chest">가슴</button>
       <button type="button" class="muscle-finder-card" data-part="back">등</button>
       <button type="button" class="muscle-finder-card" data-part="shoulder">어깨</button>
       <button type="button" class="muscle-finder-card" data-part="arm">팔</button>
@@ -10041,7 +10041,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.8.80";
+const APP_VERSION = "0.8.81";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -12655,16 +12655,20 @@ document.querySelectorAll(".muscle-finder-face-btn").forEach(btn => {
   btn.addEventListener("click", () => goToMuscleFace(btn.dataset.face));
 });
 
-// 🔥 최하단 부위 버튼과 인체 이미지 옆 이름표(콜아웃) — 같은 data-part끼리 항상 같이 강조됨
-let muscleFinderActivePart = "chest"; // 지금 선택된 부위(FRONT/BACK 전환 시 세부 목록 재렌더링에 씀)
+// 🔥 최하단 부위 버튼과 인체 이미지 옆 이름표(콜아웃) — 같은 data-part끼리 항상 같이 강조됨.
+// 처음 진입 시엔 아무 부위도 선택 안 된 기본 상태(하단 탭 전부 미선택, 이미지엔
+// 선/점/콜아웃만 보임) — 이미 선택된 부위를 다시 누르면 선택 취소되어 이 기본
+// 상태로 되돌아감(토글).
+let muscleFinderActivePart = null; // 지금 선택된 부위(null=아무것도 선택 안 됨)
 function setActiveMusclePart(key){
+  const nextKey = (key === muscleFinderActivePart) ? null : key; // 🔥 같은 부위 재클릭 시 선택 취소
   // 🔥 하단 부위 탭(.muscle-finder-card)은 강조 이미지 사용 여부와 무관하게 항상 유지됨
-  document.querySelectorAll(".muscle-finder-card").forEach(c => c.classList.toggle("active", c.dataset.part === key));
-  document.querySelectorAll(".muscle-finder-callout").forEach(c => c.classList.toggle("active", c.dataset.part === key));
-  document.querySelectorAll(".muscle-finder-line, .muscle-finder-dot").forEach(el => el.classList.toggle("active", el.dataset.part === key));
-  muscleFinderActivePart = key;
+  document.querySelectorAll(".muscle-finder-card").forEach(c => c.classList.toggle("active", c.dataset.part === nextKey));
+  document.querySelectorAll(".muscle-finder-callout").forEach(c => c.classList.toggle("active", c.dataset.part === nextKey));
+  document.querySelectorAll(".muscle-finder-line, .muscle-finder-dot").forEach(el => el.classList.toggle("active", el.dataset.part === nextKey));
+  muscleFinderActivePart = nextKey;
   refreshMuscleFinderView();
-  renderMuscleSubparts(key);
+  renderMuscleSubparts(nextKey);
 }
 document.querySelectorAll(".muscle-finder-card, .muscle-finder-callout").forEach(el => {
   el.addEventListener("click", () => setActiveMusclePart(el.dataset.part));
@@ -12687,10 +12691,16 @@ const MUSCLE_SUBPARTS = {
   core:     { label: "코어", items: ["복직근", "외복사근", "내복사근", "복횡근"] },
 };
 function renderMuscleSubparts(key){
-  const info = MUSCLE_SUBPARTS[key];
   const titleEl = document.getElementById("muscleFinderSubpartsTitle");
   const listEl = document.getElementById("muscleFinderSubpartsList");
-  if (!info || !titleEl || !listEl) return;
+  if (!titleEl || !listEl) return;
+  if (!key) { // 🔥 선택 취소된 기본 상태 — 세부 목록 패널 비움
+    titleEl.textContent = "";
+    listEl.innerHTML = "";
+    return;
+  }
+  const info = MUSCLE_SUBPARTS[key];
+  if (!info) return;
   const items = info.items || info[muscleFinderFace] || [];
   titleEl.textContent = info.label;
   listEl.innerHTML = "";
@@ -12700,8 +12710,8 @@ function renderMuscleSubparts(key){
     listEl.appendChild(li);
   });
 }
-renderMuscleSubparts("chest"); // 기본 활성 부위(가슴)로 초기 표시
-refreshMuscleFinderView(); // 🔥 초기 이미지/오버레이 상태도 위와 동일한 로직으로 결정(기본 부위인 가슴은 강조 이미지가 있어 처음부터 그 이미지로 시작)
+renderMuscleSubparts(muscleFinderActivePart); // 🔥 초기엔 선택된 부위가 없어(null) 세부 목록 패널도 비어있는 채로 시작
+refreshMuscleFinderView(); // 🔥 초기 이미지/오버레이 상태도 위와 동일한 로직으로 결정 — 선택된 부위가 없으므로 기본 인체 이미지 + 선/점/콜아웃으로 시작
 
 /* 🔥 맨몸운동 첫 화면(메뉴)은 스와이프로 못 나가게(오탈출 방지) — 상단 X 버튼으로만 닫힘.
    그 안의 하위 화면(← 버튼이 있는 화면들)은 아래에서 왼쪽 끝→오른쪽 스와이프로 뒤로가기 가능 */
