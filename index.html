@@ -7760,7 +7760,7 @@ html.light-mode-on #weightModal .food-modal-form label {
   <div id="threeSummaryScreen" style="height:100%; display:flex; flex-direction:column;">
     <div class="bw-menu-header">
       <button onclick="closeThreeSummary()" class="bw-menu-header-close" aria-label="닫기">‹</button>
-      <span class="bw-menu-header-title">3대 총합</span>
+      <span class="bw-menu-header-title">3대 PR</span>
       <span class="bw-menu-header-spacer"></span>
     </div>
     <div id="threeSummaryBody" style="flex:1; min-height:0; overflow-y:auto; padding: 0 20px; display:flex; flex-direction:column;">
@@ -8332,7 +8332,7 @@ html.light-mode-on #weightModal .food-modal-form label {
   <div id="navDrawerDim" class="nav-drawer-dim"></div>
   <div id="navDrawer" class="nav-drawer" onclick="event.stopPropagation()">
     <div class="nav-drawer-title">메뉴</div>
-    <button id="navThreeSummaryBtn" class="nav-drawer-item">3대 총합</button>
+    <button id="navThreeSummaryBtn" class="nav-drawer-item">3대 PR</button>
     <!-- 🔥 운동도감 일시 폐쇄: 데이터/로직은 그대로 두고 메뉴 진입만 막음.
          나중에 다시 열려면 이 버튼의 style="display:none;"만 지우면 됨 -->
     <button id="navExerciseDexBtn" class="nav-drawer-item" style="display:none;">운동도감</button>
@@ -10148,7 +10148,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.8.90";
+const APP_VERSION = "0.8.91";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
