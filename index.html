@@ -10041,7 +10041,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.8.78";
+const APP_VERSION = "0.8.79";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -12570,8 +12570,17 @@ const muscleFinderImg = document.getElementById("muscleFinderImg");
 //    오를 때마다 URL 자체가 바뀌어 캐시를 우회하고 새로 받아오게 함.
 const MUSCLE_FRONT_SRC = "icons/muscle/front.png?v=" + APP_VERSION;
 const MUSCLE_BACK_SRC = "icons/muscle/back.png?v=" + APP_VERSION;
+// 🔥 부위별로 해당 근육이 빨갛게 강조된 전용 이미지 — 있으면 선/점/이름표(콜아웃)
+// 오버레이 대신 이 이미지 자체로 부위를 보여줌(더 정확하고 실제 근육 모양이 보임).
+// 아직 일부 부위(가슴)만 준비돼 있고, 없는 부위는 기존 선/점 방식으로 자동 폴백.
+const MUSCLE_HIGHLIGHT_IMAGES = {
+  front: {
+    chest: "icons/muscle/highlight/chest_front.png?v=" + APP_VERSION,
+    shoulder: "icons/muscle/highlight/shoulder_front.png?v=" + APP_VERSION,
+  },
+  back: {},
+};
 let muscleFinderFace = "front"; // 지금 보이는 면
-muscleFinderImg.src = MUSCLE_FRONT_SRC; // 🔥 정적 HTML의 캐시버스팅 안 된 src를 즉시 교체
 
 document.getElementById("navMuscleFinderBtn").addEventListener("click", () => {
   closeNavDrawerInstant();
@@ -12604,20 +12613,41 @@ function moveMuscleFaceIndicator(targetFace){
   indicator.style.width = btn.offsetWidth + "px";
   indicator.style.transform = `translateX(${btn.offsetLeft - 4}px)`;
 }
+// 🔥 현재 면(front/back)+선택된 부위 조합에 맞는 이미지/오버레이 상태를 한 곳에서
+// 결정 — 부위별 강조 이미지(MUSCLE_HIGHLIGHT_IMAGES)가 있으면 그 이미지로 바꾸고
+// 선/점(라인)과 이름표(콜아웃)는 숨김(하단 부위 탭은 별도 DOM이라 그대로 유지됨).
+// 없으면 기존 기본 인체 이미지 + 선/점/콜아웃 오버레이로 폴백.
+function refreshMuscleFinderView(){
+  const linesFront = document.getElementById("muscleFinderLinesFront");
+  const linesBack = document.getElementById("muscleFinderLinesBack");
+  const calloutsFront = document.getElementById("muscleFinderCalloutsFront");
+  const calloutsBack = document.getElementById("muscleFinderCalloutsBack");
+  const highlightSrc = (MUSCLE_HIGHLIGHT_IMAGES[muscleFinderFace] || {})[muscleFinderActivePart];
+
+  if (highlightSrc) {
+    muscleFinderImg.src = highlightSrc;
+    linesFront.classList.add("hidden");
+    linesBack.classList.add("hidden");
+    calloutsFront.classList.add("hidden");
+    calloutsBack.classList.add("hidden");
+  } else {
+    muscleFinderImg.src = muscleFinderFace === "front" ? MUSCLE_FRONT_SRC : MUSCLE_BACK_SRC;
+    linesFront.classList.toggle("hidden", muscleFinderFace !== "front");
+    linesBack.classList.toggle("hidden", muscleFinderFace !== "back");
+    calloutsFront.classList.toggle("hidden", muscleFinderFace !== "front");
+    calloutsBack.classList.toggle("hidden", muscleFinderFace !== "back");
+  }
+}
 function goToMuscleFace(targetFace){
   document.querySelectorAll(".muscle-finder-face-btn").forEach(b => b.classList.toggle("active", b.dataset.face === targetFace));
   moveMuscleFaceIndicator(targetFace);
-  document.getElementById("muscleFinderLinesFront").classList.toggle("hidden", targetFace !== "front");
-  document.getElementById("muscleFinderLinesBack").classList.toggle("hidden", targetFace !== "back");
-  document.getElementById("muscleFinderCalloutsFront").classList.toggle("hidden", targetFace !== "front");
-  document.getElementById("muscleFinderCalloutsBack").classList.toggle("hidden", targetFace !== "back");
 
   if (targetFace === muscleFinderFace) {
     return;
   }
 
-  muscleFinderImg.src = targetFace === "front" ? MUSCLE_FRONT_SRC : MUSCLE_BACK_SRC;
   muscleFinderFace = targetFace;
+  refreshMuscleFinderView();
   renderMuscleSubparts(muscleFinderActivePart); // 🔥 하체처럼 정면/후면마다 세부 목록이 다른 부위 대응
 }
 document.querySelectorAll(".muscle-finder-face-btn").forEach(btn => {
@@ -12627,10 +12657,12 @@ document.querySelectorAll(".muscle-finder-face-btn").forEach(btn => {
 // 🔥 최하단 부위 버튼과 인체 이미지 옆 이름표(콜아웃) — 같은 data-part끼리 항상 같이 강조됨
 let muscleFinderActivePart = "chest"; // 지금 선택된 부위(FRONT/BACK 전환 시 세부 목록 재렌더링에 씀)
 function setActiveMusclePart(key){
+  // 🔥 하단 부위 탭(.muscle-finder-card)은 강조 이미지 사용 여부와 무관하게 항상 유지됨
   document.querySelectorAll(".muscle-finder-card").forEach(c => c.classList.toggle("active", c.dataset.part === key));
   document.querySelectorAll(".muscle-finder-callout").forEach(c => c.classList.toggle("active", c.dataset.part === key));
   document.querySelectorAll(".muscle-finder-line, .muscle-finder-dot").forEach(el => el.classList.toggle("active", el.dataset.part === key));
   muscleFinderActivePart = key;
+  refreshMuscleFinderView();
   renderMuscleSubparts(key);
 }
 document.querySelectorAll(".muscle-finder-card, .muscle-finder-callout").forEach(el => {
@@ -12668,6 +12700,7 @@ function renderMuscleSubparts(key){
   });
 }
 renderMuscleSubparts("chest"); // 기본 활성 부위(가슴)로 초기 표시
+refreshMuscleFinderView(); // 🔥 초기 이미지/오버레이 상태도 위와 동일한 로직으로 결정(기본 부위인 가슴은 강조 이미지가 있어 처음부터 그 이미지로 시작)
 
 /* 🔥 맨몸운동 첫 화면(메뉴)은 스와이프로 못 나가게(오탈출 방지) — 상단 X 버튼으로만 닫힘.
    그 안의 하위 화면(← 버튼이 있는 화면들)은 아래에서 왼쪽 끝→오른쪽 스와이프로 뒤로가기 가능 */
