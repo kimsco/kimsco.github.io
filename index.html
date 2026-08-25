@@ -1390,6 +1390,9 @@ html.mf-restore-settings .bottomTab {
 #muscleRotateOverlay.hidden {
   display: none;
 }
+#weightPRDetailOverlay.hidden {
+  display: none;
+}
 #oneRMCalcOverlay.hidden {
   display: none;
 }
@@ -3352,6 +3355,7 @@ html.light-mode-on #myRoutineBuilderOverlay {
 }
 html.light-mode-on #myRoutineOverlay .bw-menu-header,
 html.light-mode-on #threeSummaryOverlay .bw-menu-header,
+html.light-mode-on #weightPRDetailOverlay .bw-menu-header,
 html.light-mode-on #muscleFinderOverlay .bw-menu-header,
 html.light-mode-on #muscleRotateOverlay .bw-menu-header,
 html.light-mode-on #oneRMCalcOverlay .bw-menu-header,
@@ -3361,6 +3365,7 @@ html.light-mode-on #bodyweightOverlay .bw-menu-header {
 }
 html.light-mode-on #myRoutineOverlay .bw-menu-header-close,
 html.light-mode-on #threeSummaryOverlay .bw-menu-header-close,
+html.light-mode-on #weightPRDetailOverlay .bw-menu-header-close,
 html.light-mode-on #muscleFinderOverlay .bw-menu-header-close,
 html.light-mode-on #muscleRotateOverlay .bw-menu-header-close,
 html.light-mode-on #oneRMCalcOverlay .bw-menu-header-close,
@@ -3369,6 +3374,7 @@ html.light-mode-on #bodyweightOverlay .bw-menu-header-close {
 }
 html.light-mode-on #myRoutineOverlay .bw-menu-header-title,
 html.light-mode-on #threeSummaryOverlay .bw-menu-header-title,
+html.light-mode-on #weightPRDetailOverlay .bw-menu-header-title,
 html.light-mode-on #muscleFinderOverlay .bw-menu-header-title,
 html.light-mode-on #muscleRotateOverlay .bw-menu-header-title,
 html.light-mode-on #oneRMCalcOverlay .bw-menu-header-title,
@@ -3445,6 +3451,7 @@ html.light-mode-on #myRoutineBuilderNameModal .food-modal-form input {
 html.light-mode-on #threeSummaryOverlay,
 html.light-mode-on #muscleFinderOverlay,
 html.light-mode-on #muscleRotateOverlay,
+html.light-mode-on #weightPRDetailOverlay,
 html.light-mode-on #oneRMCalcOverlay,
 html.light-mode-on #whoForOverlay {
   background: #eeeeee !important;
@@ -3466,6 +3473,26 @@ html.light-mode-on .rmInput:focus {
 html.light-mode-on #save3Btn {
   border-color: var(--c-text-primary);
   color: var(--c-text-primary);
+}
+html.light-mode-on .three-detail-link {
+  color: rgba(0,0,0,0.45);
+}
+html.light-mode-on .weight-pr-tabs {
+  border-bottom-color: rgb(221,221,221);
+}
+html.light-mode-on .weight-pr-tab {
+  color: rgb(120,120,120);
+}
+html.light-mode-on .weight-pr-tab.active {
+  color: var(--c-text-primary);
+  border-bottom-color: var(--c-text-primary);
+}
+html.light-mode-on .weight-pr-item {
+  color: var(--c-text-primary);
+  border-bottom-color: rgba(0,0,0,0.1);
+}
+html.light-mode-on .weight-pr-empty {
+  color: rgba(0,0,0,0.4);
 }
 html.light-mode-on .muscle-finder-cards {
   border-color: rgb(213,213,213);
@@ -5116,6 +5143,80 @@ input[type="number"] {
   font-weight: 600;
   letter-spacing: 0.5px;
   cursor: pointer;
+}
+
+/* 🔥 "상세보기" — 버튼처럼 강조하지 않는 조용한 링크 하나만 */
+.three-detail-link {
+  all: unset;
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  text-align: center;
+  margin-top: 32px; /* 🔥 저장 버튼과 충분히 떨어뜨림 */
+  padding: 8px 0;
+  color: rgba(255,255,255,0.45);
+  font-size: 13px;
+  letter-spacing: 0.2px;
+  cursor: pointer;
+}
+
+/* 🔥 중량별 최고기록 — 종목 탭(흰 텍스트 + 얇은 밑줄만, 배경/효과 없음) */
+.weight-pr-tabs {
+  flex-shrink: 0;
+  display: flex;
+  padding: 0 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.12);
+}
+.weight-pr-tab {
+  all: unset;
+  box-sizing: border-box;
+  flex: 1;
+  text-align: center;
+  padding: 16px 0 14px;
+  color: rgba(255,255,255,0.4);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px; /* 🔥 부모 구분선과 겹쳐서 밑줄이 자연스럽게 이어짐 */
+  -webkit-tap-highlight-color: transparent;
+}
+.weight-pr-tab.active {
+  color: #fff;
+  border-bottom-color: #fff;
+}
+
+/* 🔥 기록 목록 — 카드/배경 없이 "115KG - 1회" 텍스트를 가로로 나열, 공간이
+   부족하면 자연스럽게 다음 줄로. 각 항목 아래 얇은 선만으로 구분 */
+.weight-pr-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 28px 20px;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 22px 14px;
+}
+.weight-pr-item {
+  flex: 1 1 calc(33.333% - 10px);
+  min-width: 92px;
+  box-sizing: border-box;
+  text-align: center;
+  color: #fff;
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.weight-pr-empty {
+  width: 100%;
+  text-align: center;
+  color: rgba(255,255,255,0.4);
+  font-size: 13px;
+  margin-top: 40px;
 }
 
 /* ===============================
@@ -7784,9 +7885,39 @@ html.light-mode-on #weightModal .food-modal-form label {
         </div>
 
         <button id="save3Btn">PR 저장</button>
+
+        <!-- 🔥 지나치게 강조하지 않는 조회 전용 링크 — 아래 상세보기 화면(중량별
+             최고기록)으로 이동만 함. 이 화면(3대 PR)의 기존 저장/입력 기능은
+             건드리지 않음 -->
+        <button type="button" id="threeDetailViewBtn" class="three-detail-link">상세보기 〉</button>
       </div>
       <div style="flex: 7 0 auto;"></div>
     </div>
+  </div>
+</div>
+
+<!-- 🔥 중량별 최고기록 — 3대 탭(#tab2)에 이미 저장돼 있는 실제 세트 기록
+     (records.bench/squat/dead, "kg × 회" 입력으로 쌓이는 데이터)을 그대로
+     읽어서, 같은 중량 중 최고 반복 횟수만 뽑아 보여주는 조회 전용 화면.
+     여기엔 추가/수정/삭제 기능이 없음 — 기록 관리는 여전히 3대 탭(#tab2)에서.
+     열릴 때마다 records를 다시 읽어 렌더링하므로, 3대 탭에서 기록이
+     바뀌면 다음에 열 때 자동으로 반영됨. -->
+<div id="weightPRDetailOverlay" class="hidden" style="
+    position:fixed; inset:0; background:#000; z-index:100010;
+    overflow:hidden;
+  ">
+  <div style="height:100%; display:flex; flex-direction:column;">
+    <div class="bw-menu-header">
+      <button onclick="closeWeightPRDetail()" class="bw-menu-header-close" aria-label="닫기">‹</button>
+      <span class="bw-menu-header-title">중량별 최고기록</span>
+      <span class="bw-menu-header-spacer"></span>
+    </div>
+    <div class="weight-pr-tabs">
+      <button type="button" class="weight-pr-tab active" data-lift="bench">벤치프레스</button>
+      <button type="button" class="weight-pr-tab" data-lift="squat">스쿼트</button>
+      <button type="button" class="weight-pr-tab" data-lift="dead">데드리프트</button>
+    </div>
+    <div class="weight-pr-list" id="weightPRList"></div>
   </div>
 </div>
 
@@ -10148,7 +10279,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.8.92";
+const APP_VERSION = "0.8.93";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -11027,6 +11158,64 @@ document.getElementById("navThreeSummaryBtn").addEventListener("click", () => {
   // 🔥 메뉴 드로어는 자연스럽게 닫히고, 3대 총합 화면이 새로 열림
   closeNavDrawer();
   openThreeSummary();
+});
+
+/* ===============================
+   중량별 최고기록 상세보기 (읽기 전용)
+   - 새 저장소 없음: 기존 records.bench/squat/dead(3대 탭에서 입력된 기록) 그대로 사용
+   - 저장/수정/삭제는 여기서 하지 않음(관리는 기존 3대 탭에서)
+================================ */
+const weightPRDetailOverlay = document.getElementById("weightPRDetailOverlay");
+const weightPRList = document.getElementById("weightPRList");
+let weightPRActiveLift = "bench";
+
+function buildWeightPRRows(liftKey){
+  const list = records[liftKey] || [];
+  const bestByWeight = new Map(); // weight(round1) -> max reps
+  list.forEach(entry => {
+    const w = round1(entry.weight);
+    const r = parseInt(entry.reps, 10);
+    if(!Number.isFinite(w) || !Number.isFinite(r)) return;
+    const prev = bestByWeight.get(w);
+    if(prev === undefined || r > prev) bestByWeight.set(w, r);
+  });
+  return Array.from(bestByWeight.entries())
+    .sort((a, b) => b[0] - a[0])
+    .map(([weight, reps]) => ({ weight, reps }));
+}
+
+function renderWeightPRDetail(){
+  document.querySelectorAll(".weight-pr-tab").forEach(tab => {
+    tab.classList.toggle("active", tab.dataset.lift === weightPRActiveLift);
+  });
+  const rows = buildWeightPRRows(weightPRActiveLift);
+  if(rows.length === 0){
+    weightPRList.innerHTML = `<div class="weight-pr-empty">저장된 기록이 없습니다.</div>`;
+    return;
+  }
+  weightPRList.innerHTML = rows.map(({weight, reps}) =>
+    `<div class="weight-pr-item">${formatKgSmart(weight)}KG - ${reps}회</div>`
+  ).join("");
+}
+
+function openWeightPRDetail(){
+  weightPRActiveLift = "bench";
+  renderWeightPRDetail();
+  weightPRDetailOverlay.classList.remove("hidden");
+}
+
+function closeWeightPRDetail(){
+  weightPRDetailOverlay.classList.add("hidden");
+}
+
+document.getElementById("threeDetailViewBtn").addEventListener("click", openWeightPRDetail);
+
+document.querySelectorAll(".weight-pr-tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    if(weightPRActiveLift === tab.dataset.lift) return;
+    weightPRActiveLift = tab.dataset.lift;
+    renderWeightPRDetail();
+  });
 });
 
 /* ===============================
@@ -15842,7 +16031,7 @@ document.body.appendChild(bottomTabEl);
 // — 같은 이유로 이 오버레이들도 전부 body로 이동
 [
   'oneRMCalcOverlay', 'threeSummaryOverlay', 'bodyweightOverlay', 'muscleFinderOverlay',
-  'muscleRotateOverlay',
+  'muscleRotateOverlay', 'weightPRDetailOverlay',
   'whoForOverlay', 'myRoutineOverlay', 'myRoutinePastListOverlay', 'myRoutineBuilderOverlay',
   'myRoutineDetailOverlay', 'exerciseDexOverlay', 'dexWriteOverlay', 'dexPostDetailOverlay',
   'graphOverlay'
@@ -16451,7 +16640,7 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
       "mySpecOverlay", "threeSummaryOverlay", "settingsOverlay",
       "myRoutineOverlay", "myRoutinePastListOverlay", "myRoutineDetailOverlay",
       "myRoutineBuilderOverlay", "myRoutineRevealOverlay", "dietOverlay",
-      "bodyweightOverlay", "oneRMCalcOverlay", "muscleFinderOverlay", "muscleRotateOverlay", "whoForOverlay"
+      "bodyweightOverlay", "oneRMCalcOverlay", "muscleFinderOverlay", "muscleRotateOverlay", "weightPRDetailOverlay", "whoForOverlay"
     ];
     return overlayIds.some(id => {
       const el = document.getElementById(id);
