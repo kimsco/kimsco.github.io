@@ -1387,6 +1387,9 @@ html.mf-restore-settings .bottomTab {
 #muscleFinderOverlay.hidden {
   display: none;
 }
+#muscleRotateOverlay.hidden {
+  display: none;
+}
 #oneRMCalcOverlay.hidden {
   display: none;
 }
@@ -1825,6 +1828,43 @@ html.mf-restore-settings .bottomTab {
   font-size: 12px;
   font-weight: 600;
   line-height: 1.3;
+}
+
+/* 🔥 인체 360도 회전 보기 */
+.muscle-rotate-stage {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: none; /* 🔥 브라우저 기본 스크롤/줌 제스처를 막고 드래그를 직접 처리 */
+  cursor: grab;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.muscle-rotate-stage:active {
+  cursor: grabbing;
+}
+.muscle-rotate-img {
+  max-width: 78%;
+  max-height: 88%;
+  pointer-events: none; /* 🔥 드래그는 스테이지가 담당 — 이미지 자체의 네이티브 드래그(고스트 이미지) 방지 */
+  -webkit-user-drag: none;
+}
+.muscle-rotate-hint {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  color: rgba(255,255,255,0.4);
+  letter-spacing: 0.3px;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+  white-space: nowrap;
+}
+.muscle-rotate-hint.hidden {
+  opacity: 0;
 }
 
 /* 맨몸운동 메뉴(01~06 카드) */
@@ -3313,6 +3353,7 @@ html.light-mode-on #myRoutineBuilderOverlay {
 html.light-mode-on #myRoutineOverlay .bw-menu-header,
 html.light-mode-on #threeSummaryOverlay .bw-menu-header,
 html.light-mode-on #muscleFinderOverlay .bw-menu-header,
+html.light-mode-on #muscleRotateOverlay .bw-menu-header,
 html.light-mode-on #oneRMCalcOverlay .bw-menu-header,
 html.light-mode-on #bodyweightOverlay .bw-menu-header {
   background: rgba(var(--c-anti-ink-rgb),0.92);
@@ -3321,6 +3362,7 @@ html.light-mode-on #bodyweightOverlay .bw-menu-header {
 html.light-mode-on #myRoutineOverlay .bw-menu-header-close,
 html.light-mode-on #threeSummaryOverlay .bw-menu-header-close,
 html.light-mode-on #muscleFinderOverlay .bw-menu-header-close,
+html.light-mode-on #muscleRotateOverlay .bw-menu-header-close,
 html.light-mode-on #oneRMCalcOverlay .bw-menu-header-close,
 html.light-mode-on #bodyweightOverlay .bw-menu-header-close {
   color: #555;
@@ -3328,6 +3370,7 @@ html.light-mode-on #bodyweightOverlay .bw-menu-header-close {
 html.light-mode-on #myRoutineOverlay .bw-menu-header-title,
 html.light-mode-on #threeSummaryOverlay .bw-menu-header-title,
 html.light-mode-on #muscleFinderOverlay .bw-menu-header-title,
+html.light-mode-on #muscleRotateOverlay .bw-menu-header-title,
 html.light-mode-on #oneRMCalcOverlay .bw-menu-header-title,
 html.light-mode-on #bodyweightOverlay .bw-menu-header-title {
   color: var(--c-text-primary);
@@ -3401,6 +3444,7 @@ html.light-mode-on #myRoutineBuilderNameModal .food-modal-form input {
    제거하고 이 블록에서 최종값으로 다시 정의함 */
 html.light-mode-on #threeSummaryOverlay,
 html.light-mode-on #muscleFinderOverlay,
+html.light-mode-on #muscleRotateOverlay,
 html.light-mode-on #oneRMCalcOverlay,
 html.light-mode-on #whoForOverlay {
   background: #eeeeee !important;
@@ -3477,8 +3521,12 @@ html.light-mode-on .muscle-finder-line.active {
 html.light-mode-on .muscle-finder-dot.active {
   fill: var(--c-text-primary);
 }
-html.light-mode-on #muscleFinderOverlay img {
+html.light-mode-on #muscleFinderOverlay img,
+html.light-mode-on #muscleRotateOverlay img {
   filter: none;
+}
+html.light-mode-on .muscle-rotate-hint {
+  color: rgba(0,0,0,0.4);
 }
 html.light-mode-on #oneRMCalcOverlay #oneRMLiftSelect,
 html.light-mode-on #oneRMCalcOverlay #weight,
@@ -8410,6 +8458,27 @@ html.light-mode-on #weightModal .food-modal-form label {
   </div>
 </div>
 
+<!-- 🔥 인체 360도 회전 보기 — 정면~후면 반바퀴(13장) 스프라이트를 좌우 드래그로
+     넘겨보는 화면. 끝까지 돌리면(13번째 프레임) 다시 반대 방향으로 이어서
+     돌아오는 핑퐁 방식이라, 같은 방향으로 계속 드래그해도 끊김 없이 계속
+     도는 것처럼 보임(반바퀴(13장)만으로 360도 회전 느낌을 구현) -->
+<div id="muscleRotateOverlay" class="hidden" style="
+    position:fixed; inset:0; background:#000; z-index:100010;
+    overflow:hidden;
+  ">
+  <div style="height:100%; display:flex; flex-direction:column;">
+    <div class="bw-menu-header">
+      <button onclick="closeMuscleRotate()" class="bw-menu-header-close" aria-label="닫기">‹</button>
+      <span class="bw-menu-header-title">360도 보기</span>
+      <span class="bw-menu-header-spacer"></span>
+    </div>
+    <div class="muscle-rotate-stage" id="muscleRotateStage">
+      <img id="muscleRotateImg" class="muscle-rotate-img" src="" alt="인체 회전 이미지" draggable="false">
+      <div class="muscle-rotate-hint" id="muscleRotateHint">← 드래그해서 회전 →</div>
+    </div>
+  </div>
+</div>
+
 <!-- 🔥 1RM 계산기 — 원래 하단 1RM탭이었던 화면을 좌측 메뉴로 이동 -->
 <div id="oneRMCalcOverlay" class="hidden" style="
     position:fixed; inset:0; background:#000; z-index:100000;
@@ -10079,7 +10148,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.8.87";
+const APP_VERSION = "0.8.88";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -12752,6 +12821,74 @@ function renderMuscleSubparts(key){
 }
 renderMuscleSubparts(muscleFinderActivePart); // 🔥 초기엔 선택된 부위가 없어(null) 세부 목록 패널도 비어있는 채로 시작
 refreshMuscleFinderView(); // 🔥 초기 이미지/오버레이 상태도 위와 동일한 로직으로 결정 — 선택된 부위가 없으므로 기본 인체 이미지 + 선/점/콜아웃으로 시작
+
+/* ===============================
+   🔥 인체 360도 회전 보기 — 정면~후면 반바퀴(13장)를 좌우 드래그로 넘기며
+   실제 360도 회전처럼 보이게 하는 화면. 근육부위 화면의 원형 버튼으로 진입.
+================================ */
+const MUSCLE_ROTATE_FRAME_COUNT = 13;
+function muscleRotateFrameSrc(i){
+  // 🔥 다른 근육 이미지들과 동일하게 ?v=APP_VERSION 캐시버스팅 적용
+  return `icons/muscle/rotate/${String(i + 1).padStart(2, "0")}.png?v=${APP_VERSION}`;
+}
+const muscleRotateOverlay = document.getElementById("muscleRotateOverlay");
+const muscleRotateImg = document.getElementById("muscleRotateImg");
+const muscleRotateStage = document.getElementById("muscleRotateStage");
+const muscleRotateHint = document.getElementById("muscleRotateHint");
+// 🔥 -∞~+∞ 자유롭게 움직일 수 있는 연속값 — 드래그하는 동안 계속 누적됨(끝에서
+// 멈추지 않음). 실제로 보여줄 프레임은 이 값을 핑퐁(왕복) 파형으로 접어서 계산.
+let muscleRotateContinuousIndex = 0;
+let muscleRotateDragStartX = 0;
+let muscleRotateDragStartIndex = 0;
+let muscleRotateDragging = false;
+const MUSCLE_ROTATE_PX_PER_FRAME = 14; // 🔥 이 픽셀만큼 드래그해야 프레임 1장 넘어감(작을수록 민감)
+
+// 🔥 0~N-1을 왕복하는 삼각파 — continuousIndex가 아무리 커지거나 작아져도
+// 0(정면)과 N-1(후면) 사이를 자연스럽게 왔다갔다 하도록 접어줌. 예: N=13이면
+// 0,1,...,12,11,...,1,0,1,2,... 순으로 끝없이 반복 → 같은 방향으로 계속
+// 드래그해도 반바퀴 사진만으로 끊김 없이 계속 도는 것처럼 보임.
+function muscleRotatePingPong(continuousIndex, n){
+  const period = 2 * (n - 1);
+  let m = Math.round(continuousIndex) % period;
+  if (m < 0) m += period;
+  return m <= (n - 1) ? m : period - m;
+}
+function renderMuscleRotateFrame(){
+  const idx = muscleRotatePingPong(muscleRotateContinuousIndex, MUSCLE_ROTATE_FRAME_COUNT);
+  muscleRotateImg.src = muscleRotateFrameSrc(idx);
+}
+function openMuscleRotate(){
+  muscleRotateOverlay.classList.remove("hidden");
+  muscleRotateHint.classList.remove("hidden");
+  renderMuscleRotateFrame();
+}
+function closeMuscleRotate(){
+  muscleRotateOverlay.classList.add("hidden");
+}
+document.getElementById("muscleFinderExtraBtn")?.addEventListener("click", () => {
+  openMuscleRotate();
+});
+
+muscleRotateStage.addEventListener("pointerdown", (e) => {
+  muscleRotateDragging = true;
+  muscleRotateDragStartX = e.clientX;
+  muscleRotateDragStartIndex = muscleRotateContinuousIndex;
+  muscleRotateStage.setPointerCapture(e.pointerId);
+  muscleRotateHint.classList.add("hidden"); // 🔥 한 번 조작하면 힌트는 더 이상 필요 없음
+});
+muscleRotateStage.addEventListener("pointermove", (e) => {
+  if (!muscleRotateDragging) return;
+  const deltaX = e.clientX - muscleRotateDragStartX;
+  muscleRotateContinuousIndex = muscleRotateDragStartIndex - deltaX / MUSCLE_ROTATE_PX_PER_FRAME;
+  renderMuscleRotateFrame();
+});
+function muscleRotateEndDrag(e){
+  if (!muscleRotateDragging) return;
+  muscleRotateDragging = false;
+  try { muscleRotateStage.releasePointerCapture(e.pointerId); } catch (err) {}
+}
+muscleRotateStage.addEventListener("pointerup", muscleRotateEndDrag);
+muscleRotateStage.addEventListener("pointercancel", muscleRotateEndDrag);
 
 /* 🔥 맨몸운동 첫 화면(메뉴)은 스와이프로 못 나가게(오탈출 방지) — 상단 X 버튼으로만 닫힘.
    그 안의 하위 화면(← 버튼이 있는 화면들)은 아래에서 왼쪽 끝→오른쪽 스와이프로 뒤로가기 가능 */
@@ -15701,6 +15838,7 @@ document.body.appendChild(bottomTabEl);
 // — 같은 이유로 이 오버레이들도 전부 body로 이동
 [
   'oneRMCalcOverlay', 'threeSummaryOverlay', 'bodyweightOverlay', 'muscleFinderOverlay',
+  'muscleRotateOverlay',
   'whoForOverlay', 'myRoutineOverlay', 'myRoutinePastListOverlay', 'myRoutineBuilderOverlay',
   'myRoutineDetailOverlay', 'exerciseDexOverlay', 'dexWriteOverlay', 'dexPostDetailOverlay',
   'graphOverlay'
@@ -16309,7 +16447,7 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
       "mySpecOverlay", "threeSummaryOverlay", "settingsOverlay",
       "myRoutineOverlay", "myRoutinePastListOverlay", "myRoutineDetailOverlay",
       "myRoutineBuilderOverlay", "myRoutineRevealOverlay", "dietOverlay",
-      "bodyweightOverlay", "oneRMCalcOverlay", "muscleFinderOverlay", "whoForOverlay"
+      "bodyweightOverlay", "oneRMCalcOverlay", "muscleFinderOverlay", "muscleRotateOverlay", "whoForOverlay"
     ];
     return overlayIds.some(id => {
       const el = document.getElementById(id);
