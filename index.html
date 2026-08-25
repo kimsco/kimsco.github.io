@@ -3476,12 +3476,17 @@ html.light-mode-on .three-detail-link {
 html.light-mode-on .weight-pr-inline {
   border-top-color: rgb(221,221,221);
 }
+html.light-mode-on .weight-pr-tabs {
+  border-color: rgb(213,213,213);
+}
+html.light-mode-on .weight-pr-tab-indicator {
+  background: var(--c-text-primary);
+}
 html.light-mode-on .weight-pr-tab {
   color: rgb(120,120,120);
 }
 html.light-mode-on .weight-pr-tab.active {
-  color: var(--c-text-primary);
-  border-bottom-color: var(--c-text-primary);
+  color: #fff;
 }
 html.light-mode-on .weight-pr-item {
   color: var(--c-text-primary);
@@ -5163,28 +5168,49 @@ input[type="number"] {
   border-top: 1px solid rgba(255,255,255,0.12);
 }
 
-/* 종목 탭(흰 텍스트 + 얇은 밑줄만, 배경/효과 없음) */
+/* 🔥 종목(벤치/스쿼트/데드) 탭 — 근육부위찾기 FRONT/BACK 알약 토글과 완전히
+   같은 "알약 속 알약(슬라이딩 인디케이터)" 스타일. 탭 3개가 폭을 균등하게
+   나눠 쓰도록만 flex:1을 추가했고, 나머지 트랙/인디케이터/버튼 스타일은
+   .muscle-finder-facetoggle-track 계열 그대로 가져옴 */
 .weight-pr-tabs {
+  margin-top: 20px;
   display: flex;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 999px;
+  border: 1px solid #333;
+  background: transparent;
+  position: relative;
+}
+.weight-pr-tab-indicator {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  height: calc(100% - 8px);
+  background: #fff;
+  border-radius: 999px;
+  transition: transform 0.28s cubic-bezier(0.22,1,0.36,1), width 0.28s cubic-bezier(0.22,1,0.36,1);
 }
 .weight-pr-tab {
   all: unset;
   box-sizing: border-box;
+  position: relative;
+  z-index: 1;
   flex: 1;
   text-align: center;
-  padding: 16px 0 14px;
-  color: rgba(255,255,255,0.4);
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: 0.2px;
+  padding: 9px 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #888;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
   cursor: pointer;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -1px; /* 🔥 부모 구분선과 겹쳐서 밑줄이 자연스럽게 이어짐 */
+  transition: color 0.28s ease;
   -webkit-tap-highlight-color: transparent;
 }
 .weight-pr-tab.active {
-  color: #fff;
-  border-bottom-color: #fff;
+  color: #000;
 }
 
 /* 🔥 기록 목록 — 카드/배경 없이 "115KG - 1회" 한 줄씩 세로로 1열 나열,
@@ -7895,7 +7921,10 @@ html.light-mode-on #weightModal .food-modal-form label {
              3대 탭(#tab2)에서. 펼칠 때마다 records를 다시 읽어 렌더링하므로,
              3대 탭에서 기록이 바뀌면 다음에 펼칠 때 자동으로 반영됨. -->
         <div id="weightPRDetailInline" class="hidden weight-pr-inline">
-          <div class="weight-pr-tabs">
+          <!-- 🔥 FRONT/BACK 알약 토글과 완전히 같은 "알약 속 알약(슬라이딩 인디케이터)"
+               스타일 — 탭 전환 시 흰 알약이 부드럽게 그 위치로 슬라이드함 -->
+          <div class="weight-pr-tabs" id="weightPRTabsTrack">
+            <div class="weight-pr-tab-indicator" id="weightPRTabIndicator"></div>
             <button type="button" class="weight-pr-tab active" data-lift="bench">벤치프레스</button>
             <button type="button" class="weight-pr-tab" data-lift="squat">스쿼트</button>
             <button type="button" class="weight-pr-tab" data-lift="dead">데드리프트</button>
@@ -10266,7 +10295,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.8.95";
+const APP_VERSION = "0.8.96";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -11191,6 +11220,16 @@ function renderWeightPRDetail(){
   ).join("");
 }
 
+// 🔥 FRONT/BACK 알약 토글의 moveMuscleFaceIndicator()와 완전히 같은 방식 —
+// 버튼의 실제 위치/너비를 직접 측정해 흰 알약을 그 자리로 슬라이드시킴
+function moveWeightPRTabIndicator(targetLift){
+  const btn = document.querySelector(`.weight-pr-tab[data-lift="${targetLift}"]`);
+  const indicator = document.getElementById("weightPRTabIndicator");
+  if (!btn || !indicator) return;
+  indicator.style.width = btn.offsetWidth + "px";
+  indicator.style.transform = `translateX(${btn.offsetLeft - 4}px)`;
+}
+
 function toggleWeightPRDetail(){
   const isOpen = !weightPRDetailInline.classList.contains("hidden");
   if(isOpen){
@@ -11201,6 +11240,13 @@ function toggleWeightPRDetail(){
     renderWeightPRDetail();
     weightPRDetailInline.classList.remove("hidden");
     threeDetailViewBtn.textContent = "닫기 ‹";
+    // 🔥 hidden 상태에선 버튼 폭 측정이 0으로 나오므로, 펼쳐진 직후
+    //    트랜지션 없이 현재 탭 위치로 즉시 스냅시켜둠(openMuscleFinder와 동일 패턴)
+    const indicator = document.getElementById("weightPRTabIndicator");
+    indicator.style.transition = "none";
+    moveWeightPRTabIndicator(weightPRActiveLift);
+    void indicator.offsetWidth;
+    indicator.style.transition = "";
   }
 }
 
@@ -11211,6 +11257,7 @@ document.querySelectorAll(".weight-pr-tab").forEach(tab => {
     if(weightPRActiveLift === tab.dataset.lift) return;
     weightPRActiveLift = tab.dataset.lift;
     renderWeightPRDetail();
+    moveWeightPRTabIndicator(weightPRActiveLift);
   });
 });
 
