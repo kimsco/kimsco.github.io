@@ -8315,19 +8315,22 @@ html.light-mode-on #weightModal .food-modal-form label {
         <circle class="muscle-finder-dot" data-part="core" cx="48" cy="50" r="1"></circle>
       </svg>
       <!-- 🔥 부위별 연결선(후면) -->
+      <!-- 🔥 back.png 교체(새 인체 이미지)에 맞춰 좌표 재조정 — front.png 때와 동일한
+           이유(새 이미지는 인물이 프레임에서 차지하는 비율이 기존보다 커서: 가로
+           71%/세로 97% vs 기존 55%/86%) -->
       <svg class="muscle-finder-lines hidden" id="muscleFinderLinesBack" viewBox="0 0 100 100" preserveAspectRatio="none">
-        <line class="muscle-finder-line" data-part="chest" x1="0" y1="24" x2="35" y2="30"></line>
-        <circle class="muscle-finder-dot" data-part="chest" cx="35" cy="30" r="1"></circle>
-        <line class="muscle-finder-line" data-part="shoulder" x1="100" y1="20" x2="69" y2="23"></line>
-        <circle class="muscle-finder-dot" data-part="shoulder" cx="69" cy="23" r="1"></circle>
-        <line class="muscle-finder-line" data-part="arm" x1="0" y1="42" x2="30" y2="36"></line>
-        <circle class="muscle-finder-dot" data-part="arm" cx="30" cy="36" r="1"></circle>
-        <line class="muscle-finder-line" data-part="back" x1="100" y1="38" x2="62" y2="37"></line>
-        <circle class="muscle-finder-dot" data-part="back" cx="62" cy="37" r="1"></circle>
-        <line class="muscle-finder-line" data-part="lower" x1="0" y1="62" x2="44" y2="62"></line>
-        <circle class="muscle-finder-dot" data-part="lower" cx="44" cy="62" r="1"></circle>
-        <line class="muscle-finder-line" data-part="core" x1="100" y1="56" x2="57" y2="40"></line>
-        <circle class="muscle-finder-dot" data-part="core" cx="57" cy="40" r="1"></circle>
+        <line class="muscle-finder-line" data-part="chest" x1="0" y1="24" x2="38" y2="25"></line>
+        <circle class="muscle-finder-dot" data-part="chest" cx="38" cy="25" r="1"></circle>
+        <line class="muscle-finder-line" data-part="shoulder" x1="100" y1="20" x2="65" y2="28"></line>
+        <circle class="muscle-finder-dot" data-part="shoulder" cx="65" cy="28" r="1"></circle>
+        <line class="muscle-finder-line" data-part="arm" x1="0" y1="42" x2="24" y2="40"></line>
+        <circle class="muscle-finder-dot" data-part="arm" cx="24" cy="40" r="1"></circle>
+        <line class="muscle-finder-line" data-part="back" x1="100" y1="38" x2="65" y2="40"></line>
+        <circle class="muscle-finder-dot" data-part="back" cx="65" cy="40" r="1"></circle>
+        <line class="muscle-finder-line" data-part="lower" x1="0" y1="62" x2="38" y2="67"></line>
+        <circle class="muscle-finder-dot" data-part="lower" cx="38" cy="67" r="1"></circle>
+        <line class="muscle-finder-line" data-part="core" x1="100" y1="56" x2="58" y2="48"></line>
+        <circle class="muscle-finder-dot" data-part="core" cx="58" cy="48" r="1"></circle>
       </svg>
 
       <!-- 🔥 부위 이름표(정면) -->
@@ -10038,7 +10041,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.8.76";
+const APP_VERSION = "0.8.77";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
