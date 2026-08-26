@@ -1387,8 +1387,11 @@ html.mf-restore-settings .bottomTab {
 #muscleFinderOverlay.hidden {
   display: none;
 }
+/* 🔥 display:none이 아니라 visibility:hidden — 이 트랙이 차지하던 자리가
+   사라지면, 같은 줄에 있는 원형 체인지 버튼(절대 위치)과 아래 인체 이미지가
+   위로 붙어보이는 레이아웃 흔들림이 생겨서, 자리는 그대로 유지한 채 안 보이게만 함 */
 #muscleFinderFaceTrack.hidden {
-  display: none;
+  visibility: hidden;
 }
 #muscleFinderRotateHint.hidden {
   display: none;
@@ -10306,7 +10309,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.2";
+const APP_VERSION = "0.9.3";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
