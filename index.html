@@ -10328,7 +10328,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.8.98";
+const APP_VERSION = "0.8.99";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -13095,10 +13095,10 @@ renderMuscleSubparts(muscleFinderActivePart); // 🔥 초기엔 선택된 부위
 refreshMuscleFinderView(); // 🔥 초기 이미지/오버레이 상태도 위와 동일한 로직으로 결정 — 선택된 부위가 없으므로 기본 인체 이미지 + 선/점/콜아웃으로 시작
 
 /* ===============================
-   🔥 인체 360도 회전 보기 — 정면~후면 반바퀴(13장)를 좌우 드래그로 넘기며
+   🔥 인체 360도 회전 보기 — 정면~후면 반바퀴(14장)를 좌우 드래그로 넘기며
    실제 360도 회전처럼 보이게 하는 화면. 근육부위 화면의 원형 버튼으로 진입.
 ================================ */
-const MUSCLE_ROTATE_FRAME_COUNT = 13;
+const MUSCLE_ROTATE_FRAME_COUNT = 14;
 function muscleRotateFrameSrc(i){
   // 🔥 다른 근육 이미지들과 동일하게 ?v=APP_VERSION 캐시버스팅 적용
   return `icons/muscle/rotate/${String(i + 1).padStart(2, "0")}.png?v=${APP_VERSION}`;
@@ -13115,12 +13115,12 @@ let muscleRotateDragStartIndex = 0;
 let muscleRotateDragging = false;
 const MUSCLE_ROTATE_PX_PER_FRAME = 14; // 🔥 이 픽셀만큼 드래그해야 프레임 1장 넘어감(작을수록 민감)
 
-// 🔥 반바퀴(13장, 정면→오른쪽 옆면 경유→후면)만 있으므로, 후면(12)을 지난 뒤엔
+// 🔥 반바퀴(14장, 정면→오른쪽 옆면 경유→후면)만 있으므로, 후면(13)을 지난 뒤엔
 // 같은 프레임들을 좌우 반전(scaleX(-1))해서 이어 재생 — 몸이 좌우 대칭이라
 // 후면부터는 "왼쪽 옆면을 거쳐 다시 정면으로" 도는 것처럼 자연스럽게 보이고,
 // 이전처럼 후면에서 되감기(반대로 되돌아가는 것처럼 보이는) 느낌 없이 계속
-// 같은 방향으로 도는 진짜 360도 회전 착시가 됨. 예: N=13이면 인덱스 순서는
-// 0,1,...,12,(반전)11,...,1,0,1,... 로 끝없이 반복.
+// 같은 방향으로 도는 진짜 360도 회전 착시가 됨. 예: N=14면 인덱스 순서는
+// 0,1,...,13,(반전)12,...,1,0,1,... 로 끝없이 반복.
 function muscleRotateGetFrame(continuousIndex, n){
   const period = 2 * (n - 1);
   let m = Math.round(continuousIndex) % period;
