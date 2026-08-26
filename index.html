@@ -10328,7 +10328,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.8.99";
+const APP_VERSION = "0.9.0";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -13133,10 +13133,25 @@ function renderMuscleRotateFrame(){
   muscleRotateImg.src = muscleRotateFrameSrc(index);
   muscleRotateImg.style.transform = mirrored ? "scaleX(-1)" : "";
 }
+// 🔥 화면을 열 때 14장을 전부 미리 받아둠(브라우저가 캐시) — 모바일 네트워크에서
+// 드래그 도중 그때그때 새 프레임을 처음 받아오느라 버벅이거나 멈춰 보이는 문제 방지
+let muscleRotateFramesPreloaded = false;
+function preloadMuscleRotateFrames(){
+  if (muscleRotateFramesPreloaded) return;
+  muscleRotateFramesPreloaded = true;
+  for (let i = 0; i < MUSCLE_ROTATE_FRAME_COUNT; i++){
+    const img = new Image();
+    img.src = muscleRotateFrameSrc(i);
+  }
+}
 function openMuscleRotate(){
   muscleRotateOverlay.classList.remove("hidden");
   muscleRotateHint.classList.remove("hidden");
+  // 🔥 이전 세션에서 드래그하다 못 받아온 프레임 등으로 이상한 상태가 남아있어도,
+  // 열 때마다 항상 정면(0)부터 다시 시작하도록 안전하게 리셋
+  muscleRotateContinuousIndex = 0;
   renderMuscleRotateFrame();
+  preloadMuscleRotateFrames();
 }
 function closeMuscleRotate(){
   muscleRotateOverlay.classList.add("hidden");
