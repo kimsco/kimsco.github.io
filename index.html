@@ -9728,11 +9728,11 @@ document.getElementById('delete-exercise-btn4').addEventListener('click', (e) =>
    카드 상세 렌더링 (핵심)
 ================================ */
 // 🔥 기록 목록 무한스크롤 공통 설정값/헬퍼 — 3대(리프트)와 보조운동은 서로 다른
-// 날짜(일) 수 기준을 씀(3대는 10일치, 보조운동은 5일치)
-const RECORD_DAYS_INITIAL_LIFT = 10;
-const RECORD_DAYS_PER_PAGE_LIFT = 10;
-const RECORD_DAYS_INITIAL_ACCESSORY = 5;
-const RECORD_DAYS_PER_PAGE_ACCESSORY = 5;
+// 날짜(일) 수 기준을 씀(3대는 5일치, 보조운동은 4일치)
+const RECORD_DAYS_INITIAL_LIFT = 5;
+const RECORD_DAYS_PER_PAGE_LIFT = 5;
+const RECORD_DAYS_INITIAL_ACCESSORY = 4;
+const RECORD_DAYS_PER_PAGE_ACCESSORY = 4;
 const accessoryDaysVisible = new Map(); // 운동 이름별로 현재까지 펼친 날짜(일) 수
 
 // rows: [{date, ...}] 형태의 평탄 배열. rowLineHtml(row, showDate)는 한 행의 내용 HTML만 반환.
@@ -10051,7 +10051,7 @@ function getRecentWindowStartDateStr(baseDate = new Date()){
   return formatTodayYYMMDD(d);
 }
 
-// 🔥 운동 기록(3대는 최근 10일치, 보조운동은 최근 5일치)은 화면에도 처음엔 그만큼만 그려주는데,
+// 🔥 운동 기록(3대는 최근 5일치, 보조운동은 최근 4일치)은 화면에도 처음엔 그만큼만 그려주는데,
 //    Firestore 조회는 그거랑 무관하게 항상 3개월치를 통째로 읽어오고 있었음 — 화면에 안 그리는
 //    나머지 2개월치도 읽기로 과금됐다는 뜻. 초기 조회 창을 "화면에 실제로 보여줄 만큼"으로
 //    줄이고, 그보다 더 과거 기록은(스크롤로 화면에 다 그려서 더 볼 게 없어지는 순간) 기존
@@ -10312,7 +10312,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.5";
+const APP_VERSION = "0.9.6";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
