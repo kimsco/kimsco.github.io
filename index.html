@@ -9728,9 +9728,9 @@ document.getElementById('delete-exercise-btn4').addEventListener('click', (e) =>
    카드 상세 렌더링 (핵심)
 ================================ */
 // 🔥 기록 목록 무한스크롤 공통 설정값/헬퍼
-const RECORD_DAYS_INITIAL = 10;
-const RECORD_DAYS_PER_PAGE = 8;
-const accessoryDaysVisible = new Map(); // 운동 이름별로 현재까지 펼친 날짜(일) 수
+const RECORD_ITEMS_INITIAL = 10;
+const RECORD_ITEMS_PER_PAGE = 8;
+const accessoryItemsVisible = new Map(); // 운동 이름별로 현재까지 펼친 기록 개수
 
 // rows: [{date, ...}] 형태의 평탄 배열. rowLineHtml(row, showDate)는 한 행의 내용 HTML만 반환.
 // 날짜 라벨/구분선은 배열 상의 앞뒤 행과 비교해 그때그때 계산하므로, 어느 지점에서 잘라도 자연스럽다.
@@ -9743,29 +9743,6 @@ function buildFlatRowsHtml(rows, rowLineHtml){
       : '';
     return rowLineHtml(row, showDate) + dividerHtml;
   }).join('');
-}
-
-// rows: 날짜순으로 그룹된 평탄 배열([{date, ...}]) 안의 고유 날짜 개수.
-function countDistinctDays(rows){
-  let count = 0, last = undefined;
-  for (const row of rows) {
-    if (row.date !== last) { count++; last = row.date; }
-  }
-  return count;
-}
-
-// rows 앞에서부터 서로 다른 날짜를 dayCount개 채운 지점(그 날짜의 마지막 행까지 포함)에서 자른다.
-function takeRowsThroughDays(rows, dayCount){
-  if (dayCount <= 0) return [];
-  let seenDays = 0, last = undefined, cut = rows.length;
-  for (let i = 0; i < rows.length; i++) {
-    if (rows[i].date !== last) {
-      seenDays++;
-      last = rows[i].date;
-      if (seenDays > dayCount) { cut = i; break; }
-    }
-  }
-  return rows.slice(0, cut);
 }
 
 // containerEl 맨 끝에 로딩 스피너 sentinel을 붙이고, 스크롤로 뷰포트에 들어오면
@@ -9851,10 +9828,10 @@ function renderAccessoryRecords(exerciseName, opts) {
     return;
   }
 
-  if (!accessoryDaysVisible.has(exerciseName)) accessoryDaysVisible.set(exerciseName, RECORD_DAYS_INITIAL);
-  const totalDays = countDistinctDays(flatRows);
-  const visibleDays = Math.min(accessoryDaysVisible.get(exerciseName), totalDays);
-  const visibleRows = takeRowsThroughDays(flatRows, visibleDays);
+  if (!accessoryItemsVisible.has(exerciseName)) accessoryItemsVisible.set(exerciseName, RECORD_ITEMS_INITIAL);
+  const totalItems = flatRows.length;
+  const visibleItems = Math.min(accessoryItemsVisible.get(exerciseName), totalItems);
+  const visibleRows = flatRows.slice(0, visibleItems);
 
   el.innerHTML = buildFlatRowsHtml(visibleRows, (row, showDate) => {
     const p = row.packedItem;
@@ -9875,14 +9852,14 @@ function renderAccessoryRecords(exerciseName, opts) {
     `;
   });
 
-  setupRecordInfiniteScroll(el, totalDays, visibleDays, !exerciseHistoryFullyLoaded.has(exerciseName),
+  setupRecordInfiniteScroll(el, totalItems, visibleItems, !exerciseHistoryFullyLoaded.has(exerciseName),
     () => {
-      accessoryDaysVisible.set(exerciseName, visibleDays + RECORD_DAYS_PER_PAGE);
+      accessoryItemsVisible.set(exerciseName, visibleItems + RECORD_ITEMS_PER_PAGE);
       renderAccessoryRecords(exerciseName, opts);
     },
     async () => {
       const added = await ensureExerciseHistory(exerciseName);
-      if (added) accessoryDaysVisible.set(exerciseName, visibleDays + RECORD_DAYS_PER_PAGE);
+      if (added) accessoryItemsVisible.set(exerciseName, visibleItems + RECORD_ITEMS_PER_PAGE);
       renderAccessoryRecords(exerciseName, opts);
     }
   );
@@ -10048,7 +10025,7 @@ function getRecentWindowStartDateStr(baseDate = new Date()){
   return formatTodayYYMMDD(d);
 }
 
-// 🔥 운동 기록(3대/보조운동)은 화면에도 처음엔 최근 10일치만 그려주는데(RECORD_DAYS_INITIAL),
+// 🔥 운동 기록(3대/보조운동)은 화면에도 처음엔 최근 10개(RECORD_ITEMS_INITIAL)만 그려주는데,
 //    Firestore 조회는 그거랑 무관하게 항상 3개월치를 통째로 읽어오고 있었음 — 화면에 안 그리는
 //    나머지 2개월치도 읽기로 과금됐다는 뜻. 초기 조회 창을 "화면에 실제로 보여줄 만큼"으로
 //    줄이고, 그보다 더 과거 기록은(스크롤로 화면에 다 그려서 더 볼 게 없어지는 순간) 기존
@@ -10114,7 +10091,7 @@ recordDate.value = formatTodayYYMMDD();
 
 // 렌더 함수: 현재 active folder의 목록을 그려줌
 // 리프트별로 현재까지 펼친 날짜(일) 수
-const liftDaysVisible = { bench: RECORD_DAYS_INITIAL, squat: RECORD_DAYS_INITIAL, dead: RECORD_DAYS_INITIAL, ohp: RECORD_DAYS_INITIAL };
+const liftItemsVisible = { bench: RECORD_ITEMS_INITIAL, squat: RECORD_ITEMS_INITIAL, dead: RECORD_ITEMS_INITIAL, ohp: RECORD_ITEMS_INITIAL };
 
 function buildFlatLiftRows(liftKey){
     const arr = records[liftKey] || [];
@@ -10182,10 +10159,10 @@ function renderActiveBox(){
         return;
     }
 
-    if (!liftDaysVisible[liftKey]) liftDaysVisible[liftKey] = RECORD_DAYS_INITIAL;
-    const totalDays = countDistinctDays(flatRows);
-    const visibleDays = Math.min(liftDaysVisible[liftKey], totalDays);
-    const visibleRows = takeRowsThroughDays(flatRows, visibleDays);
+    if (!liftItemsVisible[liftKey]) liftItemsVisible[liftKey] = RECORD_ITEMS_INITIAL;
+    const totalItems = flatRows.length;
+    const visibleItems = Math.min(liftItemsVisible[liftKey], totalItems);
+    const visibleRows = flatRows.slice(0, visibleItems);
 
     boxEl.innerHTML = buildFlatRowsHtml(visibleRows, (row, showDate) => {
         const p = row.packedItem;
@@ -10212,14 +10189,14 @@ function renderActiveBox(){
         `;
     });
 
-    setupRecordInfiniteScroll(boxEl, totalDays, visibleDays, !liftFullHistoryLoaded[liftKey],
+    setupRecordInfiniteScroll(boxEl, totalItems, visibleItems, !liftFullHistoryLoaded[liftKey],
         () => {
-            liftDaysVisible[liftKey] = visibleDays + RECORD_DAYS_PER_PAGE;
+            liftItemsVisible[liftKey] = visibleItems + RECORD_ITEMS_PER_PAGE;
             renderActiveBox();
         },
         async () => {
             const added = await ensureFullLiftHistory(liftKey);
-            if (added) liftDaysVisible[liftKey] = visibleDays + RECORD_DAYS_PER_PAGE;
+            if (added) liftItemsVisible[liftKey] = visibleItems + RECORD_ITEMS_PER_PAGE;
             renderActiveBox();
         }
     );
@@ -10309,7 +10286,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.3";
+const APP_VERSION = "0.9.4";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
