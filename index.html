@@ -1849,8 +1849,8 @@ html.mf-restore-settings .bottomTab {
   cursor: grabbing;
 }
 .muscle-rotate-img {
-  max-width: 78%;
-  max-height: 88%;
+  max-width: 88%;
+  max-height: 94%;
   pointer-events: none; /* 🔥 드래그는 스테이지가 담당 — 이미지 자체의 네이티브 드래그(고스트 이미지) 방지 */
   -webkit-user-drag: none;
 }
@@ -10328,7 +10328,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.0";
+const APP_VERSION = "0.9.1";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
