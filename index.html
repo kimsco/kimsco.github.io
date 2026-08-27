@@ -7214,7 +7214,17 @@ html.light-mode-on #weightModal .food-modal-form label {
 <div id="tab1" class="tabContent active">
 <!-- 🔥 진심모드 ON: 기존 홈 화면(박스/날짜/체중 등) 대신 검정 화면만 보여줌
      (나중에 이 안에 진심모드 전용 콘텐츠를 채울 예정, 지금은 빈 화면) -->
-<div id="homeSeriousModeScreen" class="hidden" style="background:#000; min-height: calc(100vh - var(--topBarH) - var(--bottomTabH) - env(safe-area-inset-top));"></div>
+<div id="homeSeriousModeScreen" class="hidden" style="background:#000; min-height: calc(100vh - var(--topBarH) - var(--bottomTabH) - env(safe-area-inset-top)); display:flex; flex-direction:column; align-items:center;">
+  <div style="margin-top:36px; text-align:center; color:#fff; font-weight:700;">
+    <div id="seriousModeDate" style="font-size:19px; letter-spacing:0.3px;"></div>
+    <div id="seriousModeTime" style="font-size:19px; letter-spacing:0.3px; margin-top:4px;"></div>
+  </div>
+  <div style="flex:1; display:flex; align-items:center; justify-content:center; padding:0 32px;">
+    <div style="text-align:center; color:#fff; font-weight:600; font-size:17px; line-height:1.6;">
+      피곤함이라는 방패에 그냥 누워서 릴스만 보고있는 6개월 전의 내가 후회되지 않나?
+    </div>
+  </div>
+</div>
 <div id="homeNormalContent">
   <div class="home-greeting" id="homeGreeting"></div>
   <div class="home-title-row">
@@ -10349,7 +10359,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.14";
+const APP_VERSION = "0.9.15";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -12884,9 +12894,31 @@ const homeSeriousModeScreen = document.getElementById("homeSeriousModeScreen");
 const homeNormalContent = document.getElementById("homeNormalContent");
 // 🔥 진심모드 ON: 홈 탭의 기존 박스/날짜/체중 등을 다 숨기고 검정 화면만 보여줌
 // (지금은 빈 화면 — 이 안에 넣을 콘텐츠는 나중에 별도로 작업 예정)
+// 🔥 진심모드 화면 상단의 "6개월 뒤" 날짜/시간 — 초 단위까지 실시간으로 흘러가되,
+// 날짜만 지금으로부터 정확히 6개월 뒤로 고정
+const seriousModeDateEl = document.getElementById("seriousModeDate");
+const seriousModeTimeEl = document.getElementById("seriousModeTime");
+let seriousModeClockTimer = null;
+function renderSeriousModeClock(){
+  const d = new Date();
+  d.setMonth(d.getMonth() + 6);
+  const pad = n => String(n).padStart(2, "0");
+  seriousModeDateEl.textContent = `${d.getFullYear()}년 ${pad(d.getMonth() + 1)}월 ${pad(d.getDate())}일`;
+  seriousModeTimeEl.textContent = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
+function startSeriousModeClock(){
+  if (seriousModeClockTimer) return;
+  renderSeriousModeClock();
+  seriousModeClockTimer = setInterval(renderSeriousModeClock, 1000);
+}
+function stopSeriousModeClock(){
+  clearInterval(seriousModeClockTimer);
+  seriousModeClockTimer = null;
+}
 function applySeriousMode(on){
   homeSeriousModeScreen.classList.toggle("hidden", !on);
   homeNormalContent.classList.toggle("hidden", on);
+  if (on) startSeriousModeClock(); else stopSeriousModeClock();
 }
 try {
   const seriousModeOn = localStorage.getItem("mf_serious_mode") === "1";
