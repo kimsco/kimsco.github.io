@@ -6845,6 +6845,13 @@ html.light-mode-on #weightModal .food-modal-form label {
   cursor: pointer;
 }
 
+/* 🔥 "오늘의 운동" 구분선과 첫 루틴 상자 제목 사이 여백을 더 주기 위해
+   #myRoutineTemplateSection 자체에 상단 여백 추가 — 이 다음의 그룹 간
+   간격(.my-routine-template-part의 margin-top)에는 영향 없이 첫 상자만 더 띄움 */
+#myRoutineTemplateSection {
+  margin-top: 14px;
+}
+
 /* 만든 루틴 카드 캐러셀 (부위별로 가로 스와이프) */
 .my-routine-template-part {
   margin-top: 6px;
@@ -10349,7 +10356,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.16";
+const APP_VERSION = "0.9.17";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
