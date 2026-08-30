@@ -7158,6 +7158,35 @@ html.light-mode-on #weightModal .food-modal-form label {
 
 <body>
 
+<!-- 🔥 [실험] 앱 최초 구동(콜드 스타트) 시 iOS 런치 스플래시 → 실제 화면 전환이
+     번쩍이듯 도드라져 보이는 문제 완화용 자체 부팅 스플래시. iOS 스플래시는 OS가
+     통제해서 최소 노출시간을 못 정하지만, 이건 우리 코드라 최소 500ms는 붙잡아뒀다가
+     부드럽게 페이드아웃시킴 — 인스타 등 네이티브 앱의 "일정 시간 붙잡기" 느낌 재현.
+     화면모드(다크/라이트) 토글 리로드(?modeswitch=1)는 이미 빠른 전환을 위해 별도로
+     최적화돼 있으므로 여기선 아예 안 띄움. 마음에 안 들면 이 블록 통째로 지우면 원복됨 -->
+<div id="bootSplash" style="position:fixed; inset:0; z-index:1000000; background:#000; display:flex; align-items:center; justify-content:center; transition:opacity .35s ease;">
+  <img src="/icons/icon-512.png" alt="" style="width:84px; height:84px;">
+</div>
+<script>
+if (location.search.indexOf("modeswitch=1") !== -1) {
+  document.getElementById('bootSplash').style.display = 'none';
+} else {
+  window.__bootSplashStart = Date.now();
+  window.addEventListener('DOMContentLoaded', function hideBootSplash(){
+    var el = document.getElementById('bootSplash');
+    if (!el) return;
+    var MIN_MS = 500;
+    var elapsed = Date.now() - window.__bootSplashStart;
+    var wait = Math.max(0, MIN_MS - elapsed);
+    setTimeout(function(){
+      el.style.pointerEvents = 'none';
+      el.style.opacity = '0';
+      setTimeout(function(){ el.remove(); }, 400);
+    }, wait);
+  });
+}
+</script>
+
 <!-- 🔥 메뉴/설정/식단 드로어를 스와이프로 열고닫는 도중(손가락을 중간에 멈추거나 다시
      움직이는 상태 포함) 다른 손가락 터치가 드로어 안 버튼 등을 눌러버려서 드래그 상태와
      화면이 어긋난 채로 멈춰버리는 버그 방지용 — 드래그가 확정(dragging=true)되는 순간부터
@@ -10382,7 +10411,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.24";
+const APP_VERSION = "0.9.25";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;

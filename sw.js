@@ -1,4 +1,4 @@
-const CACHE = "mf-v13"; // 🔥 앱 이름 표기를 ttt -> TTT로 변경(manifest.json 포함) — 캐시 이름을 다시 올려서 새로 받아오게 함
+const CACHE = "mf-v14"; // 🔥 [실험] 자체 부팅 스플래시 추가(최소 노출시간 확보) — 캐시 이름을 다시 올려서 새로 받아오게 함
 const ASSETS = [
   "/",
   "/index.html",
