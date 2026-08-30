@@ -7166,7 +7166,10 @@ html.light-mode-on #weightModal .food-modal-form label {
      최적화돼 있으므로 여기선 아예 안 띄움. 마음에 안 들면 이 블록 통째로 지우면 원복됨.
      로고 크기는 icons/splash/*.png 생성 시 쓴 비율(화면 너비의 20%)과 정확히 맞춰야
      iOS 자체 스플래시 → 이 스플래시로 넘어가는 찰나에 크기가 달라 이중으로 겹쳐
-     보이는(번쩍이는 것처럼 보이는) 현상이 안 생김 -->
+     보이는(번쩍이는 것처럼 보이는) 현상이 안 생김. 페이드아웃 중(투명해지는 동안)에도
+     pointer-events를 막아둬야 함 — 안 그러면 사용자가 이 스플래시가 아직 보이는 채로
+     그 아래 실제 화면(예: 설정 아이콘)을 미리 눌러버려서, 스플래시가 다 사라지기도
+     전에 다른 화면으로 이동해버리고 그 위에 로고가 겹쳐 보이는 이상한 현상이 생김 -->
 <div id="bootSplash" style="position:fixed; inset:0; z-index:1000000; background:#000; display:flex; align-items:center; justify-content:center; transition:opacity .35s ease;">
   <img src="/icons/icon-512.png" alt="" style="width:20vw; height:20vw;">
 </div>
@@ -7182,7 +7185,6 @@ if (location.search.indexOf("modeswitch=1") !== -1) {
     var elapsed = Date.now() - window.__bootSplashStart;
     var wait = Math.max(0, MIN_MS - elapsed);
     setTimeout(function(){
-      el.style.pointerEvents = 'none';
       el.style.opacity = '0';
       setTimeout(function(){ el.remove(); }, 400);
     }, wait);
@@ -10414,7 +10416,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.26";
+const APP_VERSION = "0.9.27";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
