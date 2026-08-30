@@ -1,4 +1,4 @@
-const CACHE = "mf-v10"; // 🔥 앱 아이콘(로고) 이미지 재교체(빨간 원+사선 로고로 복귀) — 캐시 이름을 다시 올려서 새로 받아오게 함
+const CACHE = "mf-v11"; // 🔥 iOS 홈화면 실행 스플래시 이미지 추가 — 캐시 이름을 다시 올려서 새로 받아오게 함
 const ASSETS = [
   "/",
   "/index.html",
@@ -7,7 +7,17 @@ const ASSETS = [
   "/food-db-full.json",
   "/icons/icon-192.png",
   "/icons/icon-512.png",
-  "/icons/apple-touch-icon.png"
+  "/icons/apple-touch-icon.png",
+  "/icons/splash/1290x2796.png",
+  "/icons/splash/1206x2622.png",
+  "/icons/splash/1179x2556.png",
+  "/icons/splash/1284x2778.png",
+  "/icons/splash/1170x2532.png",
+  "/icons/splash/1125x2436.png",
+  "/icons/splash/1242x2688.png",
+  "/icons/splash/828x1792.png",
+  "/icons/splash/750x1334.png",
+  "/icons/splash/640x1136.png"
 ];
 
 self.addEventListener("install", e => {
