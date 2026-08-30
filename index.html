@@ -7163,9 +7163,12 @@ html.light-mode-on #weightModal .food-modal-form label {
      통제해서 최소 노출시간을 못 정하지만, 이건 우리 코드라 최소 500ms는 붙잡아뒀다가
      부드럽게 페이드아웃시킴 — 인스타 등 네이티브 앱의 "일정 시간 붙잡기" 느낌 재현.
      화면모드(다크/라이트) 토글 리로드(?modeswitch=1)는 이미 빠른 전환을 위해 별도로
-     최적화돼 있으므로 여기선 아예 안 띄움. 마음에 안 들면 이 블록 통째로 지우면 원복됨 -->
+     최적화돼 있으므로 여기선 아예 안 띄움. 마음에 안 들면 이 블록 통째로 지우면 원복됨.
+     로고 크기는 icons/splash/*.png 생성 시 쓴 비율(화면 너비의 20%)과 정확히 맞춰야
+     iOS 자체 스플래시 → 이 스플래시로 넘어가는 찰나에 크기가 달라 이중으로 겹쳐
+     보이는(번쩍이는 것처럼 보이는) 현상이 안 생김 -->
 <div id="bootSplash" style="position:fixed; inset:0; z-index:1000000; background:#000; display:flex; align-items:center; justify-content:center; transition:opacity .35s ease;">
-  <img src="/icons/icon-512.png" alt="" style="width:84px; height:84px;">
+  <img src="/icons/icon-512.png" alt="" style="width:20vw; height:20vw;">
 </div>
 <script>
 if (location.search.indexOf("modeswitch=1") !== -1) {
@@ -10411,7 +10414,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.25";
+const APP_VERSION = "0.9.26";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
