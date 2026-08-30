@@ -7339,6 +7339,10 @@ html.light-mode-on #weightModal .food-modal-form label {
 
 <div id="exercise-screen">
 <div class="search-wrap">
+  <button id="exerciseSortBtn" style="background:none; border:none; padding:0; margin:6px 0 0 8px; display:flex; align-items:center; gap:4px; color:var(--c-text-secondary); font-size:14px; cursor:pointer;">
+    <span id="exerciseSortLabel">최신순</span>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+  </button>
   <div style="flex:1;"></div>
   <button id="add-exercise-btn" class="add-btn">+</button>
 </div>
@@ -9576,6 +9580,15 @@ const exerciseListEl = document.getElementById('exercise-list');
 const addExerciseBtn = document.getElementById('add-exercise-btn');
    
 addExerciseBtn.addEventListener('click', addExercise);
+
+const exerciseSortBtn = document.getElementById('exerciseSortBtn');
+const exerciseSortLabel = document.getElementById('exerciseSortLabel');
+exerciseSortBtn.addEventListener('click', () => {
+  exerciseListSortMode = exerciseListSortMode === 'recent' ? 'name' : 'recent';
+  exerciseSortLabel.textContent = exerciseListSortMode === 'recent' ? '최신순' : '이름순';
+  renderExercises();
+});
+
 const partButtons = document.querySelectorAll('.folderBtn4');
 
 document.querySelectorAll('.folderBtn4').forEach(btn => {
@@ -10356,7 +10369,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.19";
+const APP_VERSION = "0.9.20";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -17108,6 +17121,10 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
 
 
 
+// 🔥 종목 목록 정렬 기준 — currentExercises 자체(최신순 원본 순서, unshift로 관리됨)는
+// 건드리지 않고 화면에 그릴 때만 정렬해서 보여줌
+let exerciseListSortMode = 'recent'; // 'recent' | 'name'
+
 // 카드 렌더링
 function renderExercises(opts) {
   opts = opts || {};
@@ -17127,7 +17144,11 @@ function renderExercises(opts) {
 
   targetEl.innerHTML = '';
 
-  currentExercises.forEach(name => {
+  const displayExercises = exerciseListSortMode === 'name'
+    ? [...currentExercises].sort((a, b) => a.localeCompare(b, 'ko'))
+    : currentExercises;
+
+  displayExercises.forEach(name => {
     const card = document.createElement('div');
     card.className = 'exercise-card';
     card.innerHTML = `
