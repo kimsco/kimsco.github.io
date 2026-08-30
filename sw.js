@@ -1,4 +1,4 @@
-const CACHE = "mf-v12"; // 🔥 스플래시 로고 크기 축소(사라질 때 덜 튀도록) — 캐시 이름을 다시 올려서 새로 받아오게 함
+const CACHE = "mf-v13"; // 🔥 앱 이름 표기를 ttt -> TTT로 변경(manifest.json 포함) — 캐시 이름을 다시 올려서 새로 받아오게 함
 const ASSETS = [
   "/",
   "/index.html",
