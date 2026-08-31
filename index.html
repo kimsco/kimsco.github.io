@@ -7158,55 +7158,6 @@ html.light-mode-on #weightModal .food-modal-form label {
 
 <body>
 
-<!-- 🔥 [실험] 앱 최초 구동(콜드 스타트) 시 iOS 런치 스플래시 → 실제 화면 전환이
-     번쩍이듯 도드라져 보이는 문제 완화용 자체 부팅 스플래시. iOS 스플래시는 OS가
-     통제해서 최소 노출시간을 못 정하지만, 이건 우리 코드라 최소 500ms는 붙잡아뒀다가
-     부드럽게 페이드아웃시킴 — 인스타 등 네이티브 앱의 "일정 시간 붙잡기" 느낌 재현.
-     화면모드(다크/라이트) 토글 리로드(?modeswitch=1)는 이미 빠른 전환을 위해 별도로
-     최적화돼 있으므로 여기선 아예 안 띄움. 마음에 안 들면 이 블록 통째로 지우면 원복됨.
-     로고 크기는 icons/splash/*.png 생성 시 쓴 비율(화면 너비의 20%)과 정확히 맞춰야
-     iOS 자체 스플래시 → 이 스플래시로 넘어가는 찰나에 크기가 달라 이중으로 겹쳐
-     보이는(번쩍이는 것처럼 보이는) 현상이 안 생김. 페이드아웃 중(투명해지는 동안)에도
-     pointer-events를 막아둬야 함 — 안 그러면 사용자가 이 스플래시가 아직 보이는 채로
-     그 아래 실제 화면(예: 설정 아이콘)을 미리 눌러버려서, 스플래시가 다 사라지기도
-     전에 다른 화면으로 이동해버리고 그 위에 로고가 겹쳐 보이는 이상한 현상이 생김.
-     파일 맨 아래(mf_version_checked)에 배포 직후 접속 시 자동으로 location.reload()를
-     거는 로직이 있는데, 그 리로드가 이 스플래시 페이드 도중에 끼어들면 사라지던 로고
-     위에 새로 리로드된 페이지의 스플래시가 다시 뜨면서 로고가 겹쳐 보이거나(이중 로고)
-     리로드 순간 화면이 잠깐 회색으로 번쩍이는 현상이 생김. 처음엔 window.__versionCheckPromise를
-     최대 800ms만 기다렸다가 페이드를 시작하도록 했는데, 실제 셀룰러 환경에서는 그 버전
-     체크 fetch 자체가 800ms보다 오래 걸려서 타임아웃 이후 페이드가 먼저 시작되고 나서야
-     뒤늦게 리로드가 걸려버려 여전히 겹쳐 보이는 경우가 있었음(사용자가 실기기 영상으로
-     확인). 그래서 아예 "경쟁(race)"이 아니라 "순서(순차)"로 바꿈 — 이 스플래시가 완전히
-     사라진 뒤(window.__bootSplashDonePromise)에야 버전 체크 fetch 자체가 시작되도록 해서,
-     네트워크가 아무리 느려도 리로드가 스플래시 애니메이션과 절대 겹칠 수 없게 함(리로드가
-     필요하다면 이미 화면이 다 뜬 뒤에 일어남 — 이건 애초에 이 스플래시를 만들기 전부터
-     있던 동작과 동일) -->
-<div id="bootSplash" style="position:fixed; inset:0; z-index:1000000; background:#000; display:flex; align-items:center; justify-content:center; transition:opacity .35s ease;">
-  <img src="/icons/icon-512.png" alt="" style="width:20vw; height:20vw;">
-</div>
-<script>
-window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
-  if (location.search.indexOf("modeswitch=1") !== -1) {
-    document.getElementById('bootSplash').style.display = 'none';
-    resolveBootSplashDone();
-    return;
-  }
-  window.__bootSplashStart = Date.now();
-  window.addEventListener('DOMContentLoaded', function hideBootSplash(){
-    var el = document.getElementById('bootSplash');
-    if (!el) { resolveBootSplashDone(); return; }
-    var MIN_MS = 500;
-    var elapsed = Date.now() - window.__bootSplashStart;
-    var wait = Math.max(0, MIN_MS - elapsed);
-    setTimeout(function(){
-      el.style.opacity = '0';
-      setTimeout(function(){ el.remove(); resolveBootSplashDone(); }, 400);
-    }, wait);
-  });
-});
-</script>
-
 <!-- 🔥 메뉴/설정/식단 드로어를 스와이프로 열고닫는 도중(손가락을 중간에 멈추거나 다시
      움직이는 상태 포함) 다른 손가락 터치가 드로어 안 버튼 등을 눌러버려서 드래그 상태와
      화면이 어긋난 채로 멈춰버리는 버그 방지용 — 드래그가 확정(dragging=true)되는 순간부터
@@ -10431,7 +10382,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.29";
+const APP_VERSION = "0.9.30";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -20757,26 +20708,21 @@ if ("serviceWorker" in navigator) {
 // 몰래 받아와서 그 안의 APP_VERSION과 지금 내가 실행 중인 APP_VERSION을 비교 — 다르면(=내가
 // 옛날 버전을 붙들고 있는 것) 자동으로 새로고침해서 사용자가 직접 재설치할 필요 없이 스스로
 // 최신 버전을 따라잡게 함(무한 새로고침 방지용으로 세션당 강제 새로고침도 최대 1회만).
-// 🔥 부팅 스플래시(맨 위 #bootSplash)가 완전히 사라진 뒤에야 이 체크(와 혹시 모를
-// location.reload())가 시작되도록 함 — 네트워크가 느려서 이 fetch가 오래 걸려도
-// 스플래시 애니메이션과는 절대 겹치지 않게 됨(순서를 보장, 경쟁하지 않음)
-(window.__bootSplashDonePromise || Promise.resolve()).then(function(){
-  try {
-    if (!sessionStorage.getItem("mf_version_checked")) {
-      sessionStorage.setItem("mf_version_checked", "1");
-      fetch(location.pathname, { cache: "no-store" })
-        .then(res => res.text())
-        .then(text => {
-          const m = text.match(/const APP_VERSION = "([^"]+)"/);
-          if (m && m[1] && m[1] !== APP_VERSION && !sessionStorage.getItem("mf_version_force_reloaded")) {
-            sessionStorage.setItem("mf_version_force_reloaded", "1");
-            location.reload();
-          }
-        })
-        .catch(() => {});
-    }
-  } catch(e){}
-});
+try {
+  if (!sessionStorage.getItem("mf_version_checked")) {
+    sessionStorage.setItem("mf_version_checked", "1");
+    fetch(location.pathname, { cache: "no-store" })
+      .then(res => res.text())
+      .then(text => {
+        const m = text.match(/const APP_VERSION = "([^"]+)"/);
+        if (m && m[1] && m[1] !== APP_VERSION && !sessionStorage.getItem("mf_version_force_reloaded")) {
+          sessionStorage.setItem("mf_version_force_reloaded", "1");
+          location.reload();
+        }
+      })
+      .catch(() => {});
+  }
+} catch(e){}
 </script>
 
 </body>
