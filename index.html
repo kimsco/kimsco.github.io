@@ -7173,38 +7173,38 @@ html.light-mode-on #weightModal .food-modal-form label {
      파일 맨 아래(mf_version_checked)에 배포 직후 접속 시 자동으로 location.reload()를
      거는 로직이 있는데, 그 리로드가 이 스플래시 페이드 도중에 끼어들면 사라지던 로고
      위에 새로 리로드된 페이지의 스플래시가 다시 뜨면서 로고가 겹쳐 보이거나(이중 로고)
-     리로드 순간 화면이 잠깐 회색으로 번쩍이는 현상이 생김 — window.__versionCheckPromise가
-     정리(또는 800ms 타임아웃)될 때까지는 페이드를 아예 시작 안 해서, 자동 리로드가
-     일어난다면 이 스플래시는 (페이드 없이) 완전히 불투명한 채로 그냥 사라지고, 새로
-     리로드된 페이지가 스플래시 사이클을 처음부터 깔끔하게 한 번만 보여주게 함 -->
+     리로드 순간 화면이 잠깐 회색으로 번쩍이는 현상이 생김. 처음엔 window.__versionCheckPromise를
+     최대 800ms만 기다렸다가 페이드를 시작하도록 했는데, 실제 셀룰러 환경에서는 그 버전
+     체크 fetch 자체가 800ms보다 오래 걸려서 타임아웃 이후 페이드가 먼저 시작되고 나서야
+     뒤늦게 리로드가 걸려버려 여전히 겹쳐 보이는 경우가 있었음(사용자가 실기기 영상으로
+     확인). 그래서 아예 "경쟁(race)"이 아니라 "순서(순차)"로 바꿈 — 이 스플래시가 완전히
+     사라진 뒤(window.__bootSplashDonePromise)에야 버전 체크 fetch 자체가 시작되도록 해서,
+     네트워크가 아무리 느려도 리로드가 스플래시 애니메이션과 절대 겹칠 수 없게 함(리로드가
+     필요하다면 이미 화면이 다 뜬 뒤에 일어남 — 이건 애초에 이 스플래시를 만들기 전부터
+     있던 동작과 동일) -->
 <div id="bootSplash" style="position:fixed; inset:0; z-index:1000000; background:#000; display:flex; align-items:center; justify-content:center; transition:opacity .35s ease;">
   <img src="/icons/icon-512.png" alt="" style="width:20vw; height:20vw;">
 </div>
 <script>
-if (location.search.indexOf("modeswitch=1") !== -1) {
-  document.getElementById('bootSplash').style.display = 'none';
-} else {
+window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
+  if (location.search.indexOf("modeswitch=1") !== -1) {
+    document.getElementById('bootSplash').style.display = 'none';
+    resolveBootSplashDone();
+    return;
+  }
   window.__bootSplashStart = Date.now();
   window.addEventListener('DOMContentLoaded', function hideBootSplash(){
     var el = document.getElementById('bootSplash');
-    if (!el) return;
+    if (!el) { resolveBootSplashDone(); return; }
     var MIN_MS = 500;
-    var versionCheck = window.__versionCheckPromise || Promise.resolve();
-    var timeout = new Promise(function(r){ setTimeout(r, 800); });
-    Promise.race([versionCheck, timeout]).then(function(){
-      // 🔥 여기서 페이지가 이미 location.reload()로 새로 시작됐을 수 있음(이 el은 옛 문서 것) — 그럼 그냥 종료
-      if (!document.getElementById('bootSplash')) return;
-      var elapsed = Date.now() - window.__bootSplashStart;
-      var wait = Math.max(0, MIN_MS - elapsed);
-      setTimeout(function(){
-        var el2 = document.getElementById('bootSplash');
-        if (!el2) return;
-        el2.style.opacity = '0';
-        setTimeout(function(){ el2.remove(); }, 400);
-      }, wait);
-    });
+    var elapsed = Date.now() - window.__bootSplashStart;
+    var wait = Math.max(0, MIN_MS - elapsed);
+    setTimeout(function(){
+      el.style.opacity = '0';
+      setTimeout(function(){ el.remove(); resolveBootSplashDone(); }, 400);
+    }, wait);
   });
-}
+});
 </script>
 
 <!-- 🔥 메뉴/설정/식단 드로어를 스와이프로 열고닫는 도중(손가락을 중간에 멈추거나 다시
@@ -10431,7 +10431,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.28";
+const APP_VERSION = "0.9.29";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -20757,30 +20757,26 @@ if ("serviceWorker" in navigator) {
 // 몰래 받아와서 그 안의 APP_VERSION과 지금 내가 실행 중인 APP_VERSION을 비교 — 다르면(=내가
 // 옛날 버전을 붙들고 있는 것) 자동으로 새로고침해서 사용자가 직접 재설치할 필요 없이 스스로
 // 최신 버전을 따라잡게 함(무한 새로고침 방지용으로 세션당 강제 새로고침도 최대 1회만).
-try {
-  if (!sessionStorage.getItem("mf_version_checked")) {
-    sessionStorage.setItem("mf_version_checked", "1");
-    // 🔥 이 fetch가 끝날 때까지는(또는 800ms 타임아웃) 부팅 스플래시(맨 위 #bootSplash)가
-    // 페이드아웃을 시작하지 않도록 window.__versionCheckPromise로 알려줌 — 안 그러면
-    // 스플래시가 페이드아웃 도중에 location.reload()가 끼어들어서 사라지던 로고 위에
-    // 새로 리로드된 스플래시가 겹쳐 보이거나(이중 로고) 리로드 순간 화면이 잠깐
-    // 회색으로 번쩍이는 현상이 생김
-    window.__versionCheckPromise = fetch(location.pathname, { cache: "no-store" })
-      .then(res => res.text())
-      .then(text => {
-        const m = text.match(/const APP_VERSION = "([^"]+)"/);
-        if (m && m[1] && m[1] !== APP_VERSION && !sessionStorage.getItem("mf_version_force_reloaded")) {
-          sessionStorage.setItem("mf_version_force_reloaded", "1");
-          location.reload();
-        }
-      })
-      .catch(() => {});
-  } else {
-    window.__versionCheckPromise = Promise.resolve();
-  }
-} catch(e){
-  window.__versionCheckPromise = Promise.resolve();
-}
+// 🔥 부팅 스플래시(맨 위 #bootSplash)가 완전히 사라진 뒤에야 이 체크(와 혹시 모를
+// location.reload())가 시작되도록 함 — 네트워크가 느려서 이 fetch가 오래 걸려도
+// 스플래시 애니메이션과는 절대 겹치지 않게 됨(순서를 보장, 경쟁하지 않음)
+(window.__bootSplashDonePromise || Promise.resolve()).then(function(){
+  try {
+    if (!sessionStorage.getItem("mf_version_checked")) {
+      sessionStorage.setItem("mf_version_checked", "1");
+      fetch(location.pathname, { cache: "no-store" })
+        .then(res => res.text())
+        .then(text => {
+          const m = text.match(/const APP_VERSION = "([^"]+)"/);
+          if (m && m[1] && m[1] !== APP_VERSION && !sessionStorage.getItem("mf_version_force_reloaded")) {
+            sessionStorage.setItem("mf_version_force_reloaded", "1");
+            location.reload();
+          }
+        })
+        .catch(() => {});
+    }
+  } catch(e){}
+});
 </script>
 
 </body>
