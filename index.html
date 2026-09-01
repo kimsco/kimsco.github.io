@@ -132,20 +132,19 @@ html.keyboardOpen body {
     width: 100% !important;
     overflow: hidden !important;
 }
-/* 🔥 .recordFloatBar(3대/보조운동 기록 탭의 kg/회 알약바)는 position:fixed라서,
-   포커스가 가서 키보드가 뜰 때 일반 입력창처럼 "가장 가까운 스크롤 가능한 조상을
-   자연스럽게 스크롤해서 보이게" 하는 게 애초에 불가능함(스크롤해도 안 움직이는
-   요소니까) — 그래서 iOS가 대신 온갖 조상/형제 스크롤 컨테이너(.app,
-   .folderContent, 루틴 리빌 화면 등)를 헤집고 다니며 화면이 밀리는 증상이 계속
-   반복됐음(전부 다 잠가도(#516,#517) 해결 안 됨). 근본적으로 다르게 접근: 일반
-   입력창들은 원래 이 문제가 없다는 점에 착안해서, 포커스가 가있는 동안만
-   알약바를 position:fixed에서 일반 문서 흐름(static)으로 바꿔버림 — 그러면 이
-   알약바도 다른 정상 입력창들과 똑같이 .app의 자연스러운 스크롤로 보이게 되고,
-   iOS도 더 이상 엉뚱한 곳을 스크롤할 이유가 없어짐. 포커스가 풀리면 바로
-   position:fixed로 복귀 */
-.recordFloatBar.temporarilyUnfixed {
-    position: static !important;
-    margin: 0 20px 12px;
+/* 🔥 [재시도] 언픽스 방식(#519~#522)이 화면 전체 밀림은 확실히 잡았지만 알약바
+   자체가 키보드 뒤에 숨는 문제를 끝내 못 고쳐서, 사용자 제안으로 원래 방식
+   (position:fixed 유지 + 키보드 높이만큼 bottom 직접 계산해서 화면 바닥으로
+   끌어올림, #515)으로 다시 되돌려서 재시도함 — 이번엔 그때 이후 알아낸 보완들
+   (.app/.folderContent/루틴 리빌 화면 잠금(#516,#517), body 잠금을
+   position:fixed로(#518))을 전부 같이 적용한 채로 다시 테스트. #515 자체는
+   당시 알약바/하단탭이 키보드 바로 위에 잘 쌓였었고, 화면 전체 패닝은 별개
+   원인(스크롤 컨테이너들)으로 추정됐던 것이므로, 그 스크롤 컨테이너들을 전부
+   잠근 이 조합이 패닝 없이 알약바만 정확히 끌어올려줄지 확인 */
+html.keyboardOpenFixedInput .app,
+html.keyboardOpenFixedInput .folderContent,
+html.keyboardOpenFixedInput #myRoutineRevealScreen {
+    overflow: hidden !important;
 }
 
 body {
@@ -10463,7 +10462,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.42";
+const APP_VERSION = "0.9.43";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -19086,63 +19085,52 @@ if (window.visualViewport) {
   vv.addEventListener("scroll", adjustMySpecForKeyboard);
 }
 
+/* 🔥 [재시도] 3대/보조운동 기록 탭, 루틴 리빌 화면의 kg/회 알약형 입력바
+   (.recordFloatBar)는 position:fixed(또는 fixed 오버레이 안 absolute)라서
+   일반적인 스크롤 컨테이너 소속이 아님 — 화면 맨 아래쪽에 붙어있다보니, 여기
+   입력창에 포커스가 가서 키보드가 뜨면 iOS가 "이 알약바는 곧 키보드에 가려질
+   것"이라고 미리 판단해서 문서 전체를 패닝(pan)해버리는 문제가 있었음. 키보드가
+   뜨는 즉시 이 알약바를 키보드 높이만큼 위로 올려서 iOS 입장에서 "이미 다
+   보이는" 상태로 만들어버리면, iOS가 알아서 페이지를 패닝할 필요 자체가 없어짐
+   — #515에서 처음 시도했을 때 이 부분(알약바/하단탭이 키보드 바로 위에 쌓이는
+   것) 자체는 잘 됐었음. 그때 화면 전체가 패닝됐던 원인은 이 알약바 자체가
+   아니라 .app/.folderContent/루틴 리빌 화면 같은 스크롤 컨테이너들을 iOS가
+   대신 찾아 스크롤시켜버렸기 때문으로 추정 — 그 뒤 알아낸 그 컨테이너들의
+   잠금(#516,#517)까지 전부 같이 적용해서 재시도 */
+if (window.visualViewport) {
+  const vv = window.visualViewport;
+  const floatBarBaseBottom = new WeakMap();
+  const adjustFloatBarsForKeyboard = () => {
+    const keyboardHeight = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+    document.querySelectorAll(".recordFloatBar").forEach(el => {
+      if (!floatBarBaseBottom.has(el)) {
+        floatBarBaseBottom.set(el, parseFloat(getComputedStyle(el).bottom) || 0);
+      }
+      const base = floatBarBaseBottom.get(el);
+      el.style.bottom = keyboardHeight > 0 ? `${base + keyboardHeight}px` : "";
+    });
+  };
+  vv.addEventListener("resize", adjustFloatBarsForKeyboard);
+  vv.addEventListener("scroll", adjustFloatBarsForKeyboard);
+}
+
 /* 🔥 입력창에 포커스가 갈 때(iOS 키보드가 뜰 때) html.keyboardOpen을 걸어서 위 CSS로
    body 스크롤을 잠금 — 안 그러면 iOS가 포커스된 입력창을 보이게 하려고 body까지
    같이 밀어 올려서(#362 때문에 body가 항상 스크롤 가능하게 열려있음) 화면 전체가
-   통째로 스크롤되는 것처럼 보임. .recordFloatBar(3대/보조운동 기록 탭의 kg/회
-   알약바) 안 입력창일 때는 추가로 그 알약바 자체를 잠깐 position:static으로
-   풀어서(temporarilyUnfixed) 일반 입력창들과 똑같이 .app의 자연스러운 스크롤로
-   보이게 함 — 알약바는 원래 position:fixed라 "가장 가까운 스크롤 가능한 조상을
-   스크롤해서 보이게" 하는 일반적인 방식 자체가 통하지 않아서, 그 대신 iOS가 온갖
-   조상/형제 스크롤 컨테이너를 헤집고 다니며 화면이 밀리는 문제가 반복됐었음(다
-   잠가도 해결 안 됨) — 아예 그 문제가 없는 정상 입력창과 같은 처지로 만들어버림.
-   포커스가 다른 입력창으로 바로 옮겨갈 때(탭 이동 등) 깜빡이지 않도록 focusout에서
-   바로 풀지 않고 한 틱 뒤에 여전히 입력 요소가 아니면 그때 풀어줌.
-
-   🔥 [되돌림] 한때 여기에 알약바를 직접 scrollIntoView로 보이게 하는 보정을
-   추가했었는데(포커스 시점 + visualViewport resize 시점), 사용자가 실기기로
-   재확인한 결과 알약바가 여전히 안 보이는 데다 화면 전체가 상태바 아래까지
-   밀리는 증상까지 다시 생겨서 오히려 더 나빠졌음 — 제거하고 언픽스만 하는
-   원래 상태로 되돌림.
-
-   🔥 실기기 영상 프레임 분석으로 확인: 언픽스만 해두면 화면 전체 밀림은 확실히
-   해결됐지만(topBar/폴더탭이 전혀 안 움직임), 알약바뿐 아니라 bottomTab까지
-   화면에서 통째로 사라짐 — .app이 키보드가 뜬 만큼 스크롤하지 않아서, 원래
-   화면 맨 아래 있던 것들이 전부 키보드에 가려진 채 그대로 남아있던 것으로
-   보임(패닝이 아니라 그냥 스크롤이 부족했던 것). mySpecScreen에서 이미 검증된
-   방식 그대로, 알약바 입력창에 포커스가 가있는 동안 .app의 padding-bottom을
-   키보드 높이만큼 늘려서 스크롤할 여유 공간을 만들어줌 — 그러면 일반 입력창들과
-   똑같이 이미 잘 작동하던 iOS의 자연스러운 "포커스된 요소를 보이게 스크롤"
-   동작이 이 여유 공간을 써서 알약바까지 제대로 끌어올려줄 것으로 기대 */
+   통째로 스크롤되는 것처럼 보임. 포커스가 다른 입력창으로 바로 옮겨갈 때(탭 이동 등)
+   깜빡이지 않도록 focusout에서 바로 풀지 않고 한 틱 뒤에 여전히 입력 요소가 아니면
+   그때 풀어줌. */
 (function(){
   const isTextEntryEl = el => !!el && (
     el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable
   );
-  const appEl = document.querySelector(".app");
   let releaseTimer = null;
-  let unfixedBar = null;
-  let appBasePaddingBottom = null;
-  function adjustAppForKeyboard() {
-    if (!unfixedBar || !window.visualViewport) return;
-    const vv = window.visualViewport;
-    const keyboardHeight = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
-    if (appBasePaddingBottom === null) {
-      appBasePaddingBottom = parseFloat(getComputedStyle(appEl).paddingBottom) || 0;
-    }
-    appEl.style.paddingBottom = keyboardHeight > 0
-      ? `${appBasePaddingBottom + keyboardHeight}px`
-      : "";
-  }
   document.addEventListener("focusin", e => {
     if (!isTextEntryEl(e.target)) return;
     clearTimeout(releaseTimer);
     document.documentElement.classList.add("keyboardOpen");
-    const bar = e.target.closest(".recordFloatBar");
-    if (bar && bar !== unfixedBar) {
-      if (unfixedBar) unfixedBar.classList.remove("temporarilyUnfixed");
-      bar.classList.add("temporarilyUnfixed");
-      unfixedBar = bar;
-      requestAnimationFrame(adjustAppForKeyboard);
+    if (e.target.closest(".recordFloatBar")) {
+      document.documentElement.classList.add("keyboardOpenFixedInput");
     }
   });
   document.addEventListener("focusout", () => {
@@ -19150,18 +19138,10 @@ if (window.visualViewport) {
     releaseTimer = setTimeout(() => {
       if (!isTextEntryEl(document.activeElement)) {
         document.documentElement.classList.remove("keyboardOpen");
-        if (unfixedBar) {
-          unfixedBar.classList.remove("temporarilyUnfixed");
-          unfixedBar = null;
-          appEl.style.paddingBottom = "";
-          appBasePaddingBottom = null;
-        }
+        document.documentElement.classList.remove("keyboardOpenFixedInput");
       }
     }, 0);
   });
-  if (window.visualViewport) {
-    window.visualViewport.addEventListener("resize", adjustAppForKeyboard);
-  }
 })();
 
 document.getElementById("mySpecMenuBtn").addEventListener("click", () => {
