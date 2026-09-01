@@ -10463,7 +10463,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.40";
+const APP_VERSION = "0.9.41";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -19099,23 +19099,18 @@ if (window.visualViewport) {
    포커스가 다른 입력창으로 바로 옮겨갈 때(탭 이동 등) 깜빡이지 않도록 focusout에서
    바로 풀지 않고 한 틱 뒤에 여전히 입력 요소가 아니면 그때 풀어줌.
 
-   🔥 알약바를 언픽스만 해두면, iOS의 자동 "포커스된 입력창을 보이게 스크롤" 판단이
-   .folderContent(카드)의 padding-bottom:76px(원래 떠있는 알약바에 마지막 기록이
-   안 가려지게 남겨뒀던 여유 공간 — 이제 알약바가 그 흐름 바로 아래에 있어서 이제는
-   빈 여백일 뿐)까지만 스크롤하고 정작 알약바 자체는 화면 밖(키보드 뒤)에 남는 경우가
-   있었음(사용자가 실기기로 확인). iOS의 판단에 맡기지 않고 알약바를 직접
-   scrollIntoView로 확실히 보이게 함 — 포커스 시점과 키보드 애니메이션이 다 끝나는
-   시점(visualViewport resize) 둘 다에서 호출해서, 키보드 높이가 변하는 도중에도
-   계속 알약바가 화면에 남아있게 함 */
+   🔥 [되돌림] 한때 여기에 알약바를 직접 scrollIntoView로 보이게 하는 보정을
+   추가했었는데(포커스 시점 + visualViewport resize 시점), 사용자가 실기기로
+   재확인한 결과 알약바가 여전히 안 보이는 데다 화면 전체가 상태바 아래까지
+   밀리는 증상까지 다시 생겨서 오히려 더 나빠졌음 — 제거하고 언픽스만 하는
+   원래 상태로 되돌림. 알약바가 키보드 뒤에 숨는 문제는 아직 미해결 상태 —
+   다음엔 추측 대신 실기기 영상으로 정확히 확인하고 진행 예정 */
 (function(){
   const isTextEntryEl = el => !!el && (
     el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable
   );
   let releaseTimer = null;
   let unfixedBar = null;
-  function revealUnfixedBar() {
-    if (unfixedBar) unfixedBar.scrollIntoView({ block: "end", behavior: "instant" });
-  }
   document.addEventListener("focusin", e => {
     if (!isTextEntryEl(e.target)) return;
     clearTimeout(releaseTimer);
@@ -19125,7 +19120,6 @@ if (window.visualViewport) {
       if (unfixedBar) unfixedBar.classList.remove("temporarilyUnfixed");
       bar.classList.add("temporarilyUnfixed");
       unfixedBar = bar;
-      requestAnimationFrame(revealUnfixedBar);
     }
   });
   document.addEventListener("focusout", () => {
@@ -19140,9 +19134,6 @@ if (window.visualViewport) {
       }
     }, 0);
   });
-  if (window.visualViewport) {
-    window.visualViewport.addEventListener("resize", revealUnfixedBar);
-  }
 })();
 
 document.getElementById("mySpecMenuBtn").addEventListener("click", () => {
