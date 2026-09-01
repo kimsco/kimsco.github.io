@@ -10436,7 +10436,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.34";
+const APP_VERSION = "0.9.35";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -19057,6 +19057,32 @@ if (window.visualViewport) {
   };
   vv.addEventListener("resize", adjustMySpecForKeyboard);
   vv.addEventListener("scroll", adjustMySpecForKeyboard);
+}
+
+/* 🔥 3대/보조운동 기록 탭, 루틴 리빌 화면의 kg/회 알약형 입력바(.recordFloatBar)는
+   position:fixed(또는 fixed 오버레이 안 absolute)라서 일반적인 스크롤 컨테이너 소속이
+   아님 — 화면 맨 아래쪽에 붙어있다보니, 여기 입력창에 포커스가 가서 키보드가 뜨면
+   iOS가 "이 알약바는 곧 키보드에 가려질 것"이라고 미리 판단해서, .app 안쪽 스크롤이
+   아니라 문서(레이아웃 뷰포트) 자체를 통째로 패닝(pan)해버려 topBar까지 화면 밖으로
+   밀려나는 문제가 있었음(html/body의 overflow를 잠가도 이건 스크롤이 아니라 iOS 자체
+   뷰포트 패닝이라 안 막힘). 키보드가 뜨는 즉시 이 알약바를 키보드 높이만큼 위로
+   올려서 iOS 입장에서 "이미 다 보이는" 상태로 만들어버리면, iOS가 알아서 페이지를
+   패닝할 필요 자체가 없어짐 */
+if (window.visualViewport) {
+  const vv = window.visualViewport;
+  const floatBarBaseBottom = new WeakMap();
+  const adjustFloatBarsForKeyboard = () => {
+    const keyboardHeight = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+    document.querySelectorAll(".recordFloatBar").forEach(el => {
+      if (!floatBarBaseBottom.has(el)) {
+        floatBarBaseBottom.set(el, parseFloat(getComputedStyle(el).bottom) || 0);
+      }
+      const base = floatBarBaseBottom.get(el);
+      el.style.bottom = keyboardHeight > 0 ? `${base + keyboardHeight}px` : "";
+    });
+  };
+  vv.addEventListener("resize", adjustFloatBarsForKeyboard);
+  vv.addEventListener("scroll", adjustFloatBarsForKeyboard);
 }
 
 /* 🔥 입력창에 포커스가 갈 때(iOS 키보드가 뜰 때) html.keyboardOpen을 걸어서 위 CSS로
