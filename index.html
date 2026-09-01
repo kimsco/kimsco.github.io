@@ -132,19 +132,20 @@ html.keyboardOpen body {
     width: 100% !important;
     overflow: hidden !important;
 }
-/* 🔥 .recordFloatBar(3대/보조운동 기록 탭의 kg/회 알약바) 안 입력창에 포커스가 갔을
-   때는 body/.app을 잠가도 여전히 화면이 밀리는 문제가 남아있었음 — 알고 보니
-   .folderContent(기록 목록이 담긴 카드, height:488px + overflow:auto)와
-   #myRoutineRevealScreen(루틴 리빌 화면)이 .recordFloatBar와는 형제(sibling)
-   관계라 .app의 "조상"이 아니라서, .app을 잠가도 iOS가 이 카드 쪽을 스크롤 가능한
-   대상으로 계속 찾아내 대신 스크롤시켜버렸음(카드 자체 스크롤은 알약바를 전혀
-   움직이지 않으니 역시 아무 도움이 안 되고 부작용만 냄). 알약바와 같은 화면에
-   있을 수 있는 스크롤 컨테이너를 전부(.app + .folderContent + 루틴 리빌 화면)
-   같이 잠가서 iOS가 스크롤할 대상 자체가 하나도 없게 만듦 */
-html.keyboardOpenFixedInput .app,
-html.keyboardOpenFixedInput .folderContent,
-html.keyboardOpenFixedInput #myRoutineRevealScreen {
-    overflow: hidden !important;
+/* 🔥 .recordFloatBar(3대/보조운동 기록 탭의 kg/회 알약바)는 position:fixed라서,
+   포커스가 가서 키보드가 뜰 때 일반 입력창처럼 "가장 가까운 스크롤 가능한 조상을
+   자연스럽게 스크롤해서 보이게" 하는 게 애초에 불가능함(스크롤해도 안 움직이는
+   요소니까) — 그래서 iOS가 대신 온갖 조상/형제 스크롤 컨테이너(.app,
+   .folderContent, 루틴 리빌 화면 등)를 헤집고 다니며 화면이 밀리는 증상이 계속
+   반복됐음(전부 다 잠가도(#516,#517) 해결 안 됨). 근본적으로 다르게 접근: 일반
+   입력창들은 원래 이 문제가 없다는 점에 착안해서, 포커스가 가있는 동안만
+   알약바를 position:fixed에서 일반 문서 흐름(static)으로 바꿔버림 — 그러면 이
+   알약바도 다른 정상 입력창들과 똑같이 .app의 자연스러운 스크롤로 보이게 되고,
+   iOS도 더 이상 엉뚱한 곳을 스크롤할 이유가 없어짐. 포커스가 풀리면 바로
+   position:fixed로 복귀 */
+.recordFloatBar.temporarilyUnfixed {
+    position: static !important;
+    margin: 0 20px 12px;
 }
 
 body {
@@ -10462,7 +10463,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.38";
+const APP_VERSION = "0.9.39";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -19085,49 +19086,33 @@ if (window.visualViewport) {
   vv.addEventListener("scroll", adjustMySpecForKeyboard);
 }
 
-/* 🔥 3대/보조운동 기록 탭, 루틴 리빌 화면의 kg/회 알약형 입력바(.recordFloatBar)는
-   position:fixed(또는 fixed 오버레이 안 absolute)라서 일반적인 스크롤 컨테이너 소속이
-   아님 — 화면 맨 아래쪽에 붙어있다보니, 여기 입력창에 포커스가 가서 키보드가 뜨면
-   iOS가 "이 알약바는 곧 키보드에 가려질 것"이라고 미리 판단해서, .app 안쪽 스크롤이
-   아니라 문서(레이아웃 뷰포트) 자체를 통째로 패닝(pan)해버려 topBar까지 화면 밖으로
-   밀려나는 문제가 있었음(html/body의 overflow를 잠가도 이건 스크롤이 아니라 iOS 자체
-   뷰포트 패닝이라 안 막힘). 키보드가 뜨는 즉시 이 알약바를 키보드 높이만큼 위로
-   올려서 iOS 입장에서 "이미 다 보이는" 상태로 만들어버리면, iOS가 알아서 페이지를
-   패닝할 필요 자체가 없어짐 */
-if (window.visualViewport) {
-  const vv = window.visualViewport;
-  const floatBarBaseBottom = new WeakMap();
-  const adjustFloatBarsForKeyboard = () => {
-    const keyboardHeight = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
-    document.querySelectorAll(".recordFloatBar").forEach(el => {
-      if (!floatBarBaseBottom.has(el)) {
-        floatBarBaseBottom.set(el, parseFloat(getComputedStyle(el).bottom) || 0);
-      }
-      const base = floatBarBaseBottom.get(el);
-      el.style.bottom = keyboardHeight > 0 ? `${base + keyboardHeight}px` : "";
-    });
-  };
-  vv.addEventListener("resize", adjustFloatBarsForKeyboard);
-  vv.addEventListener("scroll", adjustFloatBarsForKeyboard);
-}
-
 /* 🔥 입력창에 포커스가 갈 때(iOS 키보드가 뜰 때) html.keyboardOpen을 걸어서 위 CSS로
    body 스크롤을 잠금 — 안 그러면 iOS가 포커스된 입력창을 보이게 하려고 body까지
    같이 밀어 올려서(#362 때문에 body가 항상 스크롤 가능하게 열려있음) 화면 전체가
-   통째로 스크롤되는 것처럼 보임. 포커스가 다른 입력창으로 바로 옮겨갈 때(탭 이동 등)
-   깜빡이지 않도록 focusout에서 바로 풀지 않고 한 틱 뒤에 여전히 입력 요소가 아니면
-   그때 풀어줌. */
+   통째로 스크롤되는 것처럼 보임. .recordFloatBar(3대/보조운동 기록 탭의 kg/회
+   알약바) 안 입력창일 때는 추가로 그 알약바 자체를 잠깐 position:static으로
+   풀어서(temporarilyUnfixed) 일반 입력창들과 똑같이 .app의 자연스러운 스크롤로
+   보이게 함 — 알약바는 원래 position:fixed라 "가장 가까운 스크롤 가능한 조상을
+   스크롤해서 보이게" 하는 일반적인 방식 자체가 통하지 않아서, 그 대신 iOS가 온갖
+   조상/형제 스크롤 컨테이너를 헤집고 다니며 화면이 밀리는 문제가 반복됐었음(다
+   잠가도 해결 안 됨) — 아예 그 문제가 없는 정상 입력창과 같은 처지로 만들어버림.
+   포커스가 다른 입력창으로 바로 옮겨갈 때(탭 이동 등) 깜빡이지 않도록 focusout에서
+   바로 풀지 않고 한 틱 뒤에 여전히 입력 요소가 아니면 그때 풀어줌. */
 (function(){
   const isTextEntryEl = el => !!el && (
     el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable
   );
   let releaseTimer = null;
+  let unfixedBar = null;
   document.addEventListener("focusin", e => {
     if (!isTextEntryEl(e.target)) return;
     clearTimeout(releaseTimer);
     document.documentElement.classList.add("keyboardOpen");
-    if (e.target.closest(".recordFloatBar")) {
-      document.documentElement.classList.add("keyboardOpenFixedInput");
+    const bar = e.target.closest(".recordFloatBar");
+    if (bar && bar !== unfixedBar) {
+      if (unfixedBar) unfixedBar.classList.remove("temporarilyUnfixed");
+      bar.classList.add("temporarilyUnfixed");
+      unfixedBar = bar;
     }
   });
   document.addEventListener("focusout", () => {
@@ -19135,7 +19120,10 @@ if (window.visualViewport) {
     releaseTimer = setTimeout(() => {
       if (!isTextEntryEl(document.activeElement)) {
         document.documentElement.classList.remove("keyboardOpen");
-        document.documentElement.classList.remove("keyboardOpenFixedInput");
+        if (unfixedBar) {
+          unfixedBar.classList.remove("temporarilyUnfixed");
+          unfixedBar = null;
+        }
       }
     }, 0);
   });
