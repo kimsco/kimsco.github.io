@@ -10463,7 +10463,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.41";
+const APP_VERSION = "0.9.42";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -19103,14 +19103,36 @@ if (window.visualViewport) {
    추가했었는데(포커스 시점 + visualViewport resize 시점), 사용자가 실기기로
    재확인한 결과 알약바가 여전히 안 보이는 데다 화면 전체가 상태바 아래까지
    밀리는 증상까지 다시 생겨서 오히려 더 나빠졌음 — 제거하고 언픽스만 하는
-   원래 상태로 되돌림. 알약바가 키보드 뒤에 숨는 문제는 아직 미해결 상태 —
-   다음엔 추측 대신 실기기 영상으로 정확히 확인하고 진행 예정 */
+   원래 상태로 되돌림.
+
+   🔥 실기기 영상 프레임 분석으로 확인: 언픽스만 해두면 화면 전체 밀림은 확실히
+   해결됐지만(topBar/폴더탭이 전혀 안 움직임), 알약바뿐 아니라 bottomTab까지
+   화면에서 통째로 사라짐 — .app이 키보드가 뜬 만큼 스크롤하지 않아서, 원래
+   화면 맨 아래 있던 것들이 전부 키보드에 가려진 채 그대로 남아있던 것으로
+   보임(패닝이 아니라 그냥 스크롤이 부족했던 것). mySpecScreen에서 이미 검증된
+   방식 그대로, 알약바 입력창에 포커스가 가있는 동안 .app의 padding-bottom을
+   키보드 높이만큼 늘려서 스크롤할 여유 공간을 만들어줌 — 그러면 일반 입력창들과
+   똑같이 이미 잘 작동하던 iOS의 자연스러운 "포커스된 요소를 보이게 스크롤"
+   동작이 이 여유 공간을 써서 알약바까지 제대로 끌어올려줄 것으로 기대 */
 (function(){
   const isTextEntryEl = el => !!el && (
     el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable
   );
+  const appEl = document.querySelector(".app");
   let releaseTimer = null;
   let unfixedBar = null;
+  let appBasePaddingBottom = null;
+  function adjustAppForKeyboard() {
+    if (!unfixedBar || !window.visualViewport) return;
+    const vv = window.visualViewport;
+    const keyboardHeight = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+    if (appBasePaddingBottom === null) {
+      appBasePaddingBottom = parseFloat(getComputedStyle(appEl).paddingBottom) || 0;
+    }
+    appEl.style.paddingBottom = keyboardHeight > 0
+      ? `${appBasePaddingBottom + keyboardHeight}px`
+      : "";
+  }
   document.addEventListener("focusin", e => {
     if (!isTextEntryEl(e.target)) return;
     clearTimeout(releaseTimer);
@@ -19120,6 +19142,7 @@ if (window.visualViewport) {
       if (unfixedBar) unfixedBar.classList.remove("temporarilyUnfixed");
       bar.classList.add("temporarilyUnfixed");
       unfixedBar = bar;
+      requestAnimationFrame(adjustAppForKeyboard);
     }
   });
   document.addEventListener("focusout", () => {
@@ -19130,10 +19153,15 @@ if (window.visualViewport) {
         if (unfixedBar) {
           unfixedBar.classList.remove("temporarilyUnfixed");
           unfixedBar = null;
+          appEl.style.paddingBottom = "";
+          appBasePaddingBottom = null;
         }
       }
     }, 0);
   });
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", adjustAppForKeyboard);
+  }
 })();
 
 document.getElementById("mySpecMenuBtn").addEventListener("click", () => {
