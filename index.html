@@ -120,6 +120,17 @@ html, body {
 html.keyboardOpen, html.keyboardOpen body {
     overflow-y: hidden !important;
 }
+/* 🔥 .recordFloatBar(3대/보조운동 기록 탭의 kg/회 알약바) 안 입력창에 포커스가 갔을
+   때는 body를 잠가도 iOS가 그다음으로 스크롤 가능한 조상인 .app을 찾아서 대신
+   스크롤시켜버리는 문제가 있었음 — 알약바 자체는 position:fixed라 .app이 스크롤돼도
+   실제로는 전혀 안 움직이니 이 스크롤은 알약바를 보이게 하는 데 아무 도움이 안 되고,
+   topBar 대신 자리잡은 .app 안 콘텐츠(폴더 탭/기록 목록 등)만 화면 밖으로 쓸려나가
+   빈 검정 화면처럼 보이는 부작용만 생겼음. 이런 경우엔 아예 .app도 같이 잠가서 iOS가
+   스크롤할 대상 자체가 없게 만듦(html.keyboardOpenFixedInput일 때만 — 홈 탭의 식단
+   빠른 추가 입력처럼 진짜로 .app 스크롤이 필요한 일반 입력창은 그대로 둠) */
+html.keyboardOpenFixedInput .app {
+    overflow-y: hidden !important;
+}
 
 body {
     background: #000;
@@ -10436,7 +10447,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.35";
+const APP_VERSION = "0.9.36";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -19100,12 +19111,16 @@ if (window.visualViewport) {
     if (!isTextEntryEl(e.target)) return;
     clearTimeout(releaseTimer);
     document.documentElement.classList.add("keyboardOpen");
+    if (e.target.closest(".recordFloatBar")) {
+      document.documentElement.classList.add("keyboardOpenFixedInput");
+    }
   });
   document.addEventListener("focusout", () => {
     clearTimeout(releaseTimer);
     releaseTimer = setTimeout(() => {
       if (!isTextEntryEl(document.activeElement)) {
         document.documentElement.classList.remove("keyboardOpen");
+        document.documentElement.classList.remove("keyboardOpenFixedInput");
       }
     }, 0);
   });
