@@ -117,8 +117,20 @@ html, body {
    밀려 올라가 보이는 문제가 있었음. 입력에 포커스가 가있는 동안만(html.keyboardOpen)
    overflow-y를 잠가서 iOS가 body를 밀어올릴 대상 자체를 없애버림 — 포커스가 풀리면
    바로 원래대로 풀리므로 #362의 안전영역 렌더링에는 영향 없음 */
-html.keyboardOpen, html.keyboardOpen body {
+html.keyboardOpen {
     overflow-y: hidden !important;
+}
+/* 🔥 body는 overflow-y:hidden만으로는 iOS Safari에서 스크롤/패닝을 확실히 못 막는
+   것으로 확인됨(iOS의 잘 알려진 제약 — overflow:hidden이 body/documentElement
+   레벨에서는 100% 신뢰할 수 없어서, 모바일 웹에서 널리 쓰이는 표준 우회법이
+   position:fixed로 아예 스크롤 컨텍스트 자체를 없애버리는 것임). 이 앱에서 body
+   자체의 scrollY는 항상 0(실제 스크롤은 .app이 담당)이므로 scrollY 보존 없이
+   그냥 고정만 해도 됨 */
+html.keyboardOpen body {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100% !important;
+    overflow: hidden !important;
 }
 /* 🔥 .recordFloatBar(3대/보조운동 기록 탭의 kg/회 알약바) 안 입력창에 포커스가 갔을
    때는 body/.app을 잠가도 여전히 화면이 밀리는 문제가 남아있었음 — 알고 보니
@@ -10450,7 +10462,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.37";
+const APP_VERSION = "0.9.38";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
