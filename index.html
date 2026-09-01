@@ -10471,7 +10471,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.44";
+const APP_VERSION = "0.9.45";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -19109,6 +19109,15 @@ if (window.visualViewport) {
 if (window.visualViewport) {
   const vv = window.visualViewport;
   const floatBarBaseBottom = new WeakMap();
+  /* 🔥 [실기기 영상 프레임 분석으로 확인] 알약바가 "사라진" 게 아니라, kg/회
+     입력창이 type="number"라서 iOS가 숫자 키패드 위에 자동으로 붙이는 네이티브
+     이전/다음/완료 툴바(위아래 화살표 + 체크) 바로 뒤에 깔려서 가려지고
+     있었음 — 알약바의 파란 포커스 테두리가 그 툴바 뒤로 비쳐 보이는 것까지
+     프레임에서 확인됨. keyboardHeight(=innerHeight - visualViewport.height)는
+     소프트 키보드 자체의 높이만 반영하고 이 네이티브 툴바 높이(iOS 표준
+     44pt)는 포함하지 않아서, 알약바를 키보드 바로 위로 올려도 실제로는 그
+     툴바와 정확히 같은 자리에 겹쳐버렸던 것 — 그만큼 추가로 더 끌어올림 */
+  const NATIVE_KEYBOARD_TOOLBAR_HEIGHT = 44;
   const adjustFloatBarsForKeyboard = () => {
     const keyboardHeight = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
     document.querySelectorAll(".recordFloatBar").forEach(el => {
@@ -19116,7 +19125,9 @@ if (window.visualViewport) {
         floatBarBaseBottom.set(el, parseFloat(getComputedStyle(el).bottom) || 0);
       }
       const base = floatBarBaseBottom.get(el);
-      el.style.bottom = keyboardHeight > 0 ? `${base + keyboardHeight}px` : "";
+      el.style.bottom = keyboardHeight > 0
+        ? `${base + keyboardHeight + NATIVE_KEYBOARD_TOOLBAR_HEIGHT}px`
+        : "";
     });
   };
   vv.addEventListener("resize", adjustFloatBarsForKeyboard);
