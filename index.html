@@ -111,6 +111,16 @@ html, body {
     overscroll-behavior: none;
 }
 
+/* 🔥 입력창에 포커스가 가서 iOS 키보드가 뜰 때, 위 이유(#362)로 html/body를 항상
+   스크롤 가능 상태로 열어둔 탓에 iOS가 "포커스된 입력창을 보이게" 자동으로 스크롤을
+   걸어주는 대상에 body까지 포함돼서, 안쪽 .app 스크롤과 별개로 화면 전체가 통째로
+   밀려 올라가 보이는 문제가 있었음. 입력에 포커스가 가있는 동안만(html.keyboardOpen)
+   overflow-y를 잠가서 iOS가 body를 밀어올릴 대상 자체를 없애버림 — 포커스가 풀리면
+   바로 원래대로 풀리므로 #362의 안전영역 렌더링에는 영향 없음 */
+html.keyboardOpen, html.keyboardOpen body {
+    overflow-y: hidden !important;
+}
+
 body {
     background: #000;
 
@@ -10426,7 +10436,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.33";
+const APP_VERSION = "0.9.34";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -19048,6 +19058,32 @@ if (window.visualViewport) {
   vv.addEventListener("resize", adjustMySpecForKeyboard);
   vv.addEventListener("scroll", adjustMySpecForKeyboard);
 }
+
+/* 🔥 입력창에 포커스가 갈 때(iOS 키보드가 뜰 때) html.keyboardOpen을 걸어서 위 CSS로
+   body 스크롤을 잠금 — 안 그러면 iOS가 포커스된 입력창을 보이게 하려고 body까지
+   같이 밀어 올려서(#362 때문에 body가 항상 스크롤 가능하게 열려있음) 화면 전체가
+   통째로 스크롤되는 것처럼 보임. 포커스가 다른 입력창으로 바로 옮겨갈 때(탭 이동 등)
+   깜빡이지 않도록 focusout에서 바로 풀지 않고 한 틱 뒤에 여전히 입력 요소가 아니면
+   그때 풀어줌. */
+(function(){
+  const isTextEntryEl = el => !!el && (
+    el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable
+  );
+  let releaseTimer = null;
+  document.addEventListener("focusin", e => {
+    if (!isTextEntryEl(e.target)) return;
+    clearTimeout(releaseTimer);
+    document.documentElement.classList.add("keyboardOpen");
+  });
+  document.addEventListener("focusout", () => {
+    clearTimeout(releaseTimer);
+    releaseTimer = setTimeout(() => {
+      if (!isTextEntryEl(document.activeElement)) {
+        document.documentElement.classList.remove("keyboardOpen");
+      }
+    }, 0);
+  });
+})();
 
 document.getElementById("mySpecMenuBtn").addEventListener("click", () => {
   closeSettings();
