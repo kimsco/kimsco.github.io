@@ -43,7 +43,16 @@ try {
 <link rel="apple-touch-startup-image" href="/icons/splash/750x1334.png" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
 <link rel="apple-touch-startup-image" href="/icons/splash/640x1136.png" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
+<!-- 🔥 [키보드 팬 근본 원인 시도] iOS Safari(WKWebView)는 페이지 전체를 네이티브
+     UIScrollView 위에 얹어 렌더링하는데, 입력창 포커스 시 iOS가 "포커스된 요소를
+     보이게" 하려고 이 네이티브 스크롤뷰 자체를 밀어버림 — CSS의 overflow/position:fixed
+     스크롤 잠금(html.keyboardOpen 등, 위 body 관련 규칙 참고)은 전혀 다른 레이어라
+     이 네이티브 팬을 못 막았던 것으로 추정됨. interactive-widget=resizes-content
+     (iOS 16.4+)를 켜면 키보드가 뜰 때 네이티브 팬 대신 레이아웃 뷰포트 자체를
+     안드로이드처럼 줄여줘서(window.innerHeight도 같이 줄어듦) 이 팬 자체가 안 생김.
+     미지원 구버전 iOS에서는 그냥 무시되고 기존 visualViewport 기반 보정 로직으로
+     자연스럽게 폴백됨 -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content"/>
 <title>TTT</title>
 <!-- 🔥 맨몸운동 페이지 제목용 명조체(나눔명조) — 시스템 폰트로는 기기마다 없을 수 있어 웹폰트로 확실히 로드 -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -10462,7 +10471,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.43";
+const APP_VERSION = "0.9.44";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
