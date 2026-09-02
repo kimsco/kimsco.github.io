@@ -43,7 +43,7 @@ try {
 <link rel="apple-touch-startup-image" href="/icons/splash/750x1334.png" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
 <link rel="apple-touch-startup-image" href="/icons/splash/640x1136.png" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
 <title>TTT</title>
 <!-- 🔥 맨몸운동 페이지 제목용 명조체(나눔명조) — 시스템 폰트로는 기기마다 없을 수 있어 웹폰트로 확실히 로드 -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -116,27 +116,6 @@ body {
 
     color: white;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
-}
-
-/* 🔥 1RM 계산기 / 3대 PR 화면 입력창 포커스 시 화면 고정.
-   v0.9.65(html+body 잠금만, 안쪽 div는 자유 스크롤)는 사용자 확인 결과
-   "부드럽게 위로 쉬프트" — 네이티브 패닝/스프링은 아니고, 안쪽 스크롤 div
-   (#oneRMCalcBody/#threeSummaryBody) 자체의 정상적인 스크롤이었음. 근데 이
-   화면은 그 div가 사실상 화면 전체라 "안 움직는 기준점"이 없어서, 정상
-   스크롤이어도 사용자한텐 "화면이 움직인다"로 보임 — pill바 때 .app 스크롤이
-   눈에 안 띄었던 것과 다른 점.
-   그래서 알약바 사가에서 최종적으로 안정화됐던 전체 조합(#524+#528)을 여기도
-   적용 — html+body 잠금에 더해: 안쪽 div도 같이 잠그고(#516/#517 역할),
-   viewport meta에 interactive-widget=resizes-content 추가(#524), 포커스
-   중 스크롤이 새면 즉시 0으로 되돌리는 방어(#528)까지 같이 넣음 */
-html.overlayKeyboardOpen {
-    overflow-y: hidden !important;
-}
-html.overlayKeyboardOpen body {
-    position: fixed !important;
-    inset: 0 !important;
-    width: 100% !important;
-    overflow: hidden !important;
 }
 
 .app{
@@ -10447,7 +10426,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.66";
+const APP_VERSION = "0.9.67";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -12954,52 +12933,6 @@ document.getElementById("navOneRMCalcBtn").addEventListener("click", () => {
   closeNavDrawerInstant();
   openOneRMCalc();
 });
-
-/* 🔥 1RM 계산기 / 3대 PR — v0.9.65(html+body만 잠금, 안쪽 div는 자유 스크롤)는
-   사용자 확인 결과 "부드럽게 위로 쉬프트"였음 — 네이티브 패닝이 아니라 안쪽
-   스크롤 div(#oneRMCalcBody/#threeSummaryBody) 자체의 정상 스크롤. 근데 이
-   화면들은 그 div가 사실상 화면 전체라, pill바 때(.app 스크롤이 눈에 잘 안
-   띔)와 달리 정상 스크롤이어도 사용자한텐 "화면이 움직인다"로 보임.
-   그래서 알약바 사가에서 최종 안정화됐던 전체 조합을 재적용 — 안쪽 div도
-   같이 잠그고(#516/#517), 포커스 중 스크롤이 새면 즉시 0으로 되돌리는 방어
-   (#528)까지 같이 넣음. viewport meta의 interactive-widget=resizes-content
-   (#524)와 짝을 맞춰야 함 */
-(function(){
-  const isTextEntryEl = el => !!el && (
-    el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.tagName === "SELECT"
-  );
-  const LOCK_SELECTOR = "#oneRMCalcOverlay, #threeSummaryOverlay";
-  const innerBodies = [
-    document.getElementById("oneRMCalcBody"),
-    document.getElementById("threeSummaryBody"),
-  ].filter(Boolean);
-  let releaseTimer = null;
-  function resetScrollWhileLocked() {
-    if (!document.documentElement.classList.contains("overlayKeyboardOpen")) return;
-    if (document.documentElement.scrollTop) document.documentElement.scrollTop = 0;
-    if (document.documentElement.scrollLeft) document.documentElement.scrollLeft = 0;
-    if (window.scrollY) window.scrollTo(0, 0);
-  }
-  document.addEventListener("scroll", resetScrollWhileLocked, true);
-  window.addEventListener("scroll", resetScrollWhileLocked, true);
-  document.addEventListener("focusin", e => {
-    if (!isTextEntryEl(e.target)) return;
-    if (!e.target.closest(LOCK_SELECTOR)) return;
-    clearTimeout(releaseTimer);
-    document.documentElement.classList.add("overlayKeyboardOpen");
-    innerBodies.forEach(el => { el.style.overflowY = "hidden"; });
-  });
-  document.addEventListener("focusout", e => {
-    if (!e.target.closest || !e.target.closest(LOCK_SELECTOR)) return;
-    clearTimeout(releaseTimer);
-    releaseTimer = setTimeout(() => {
-      if (!document.activeElement || !document.activeElement.closest || !document.activeElement.closest(LOCK_SELECTOR)) {
-        document.documentElement.classList.remove("overlayKeyboardOpen");
-        innerBodies.forEach(el => { el.style.overflowY = "auto"; });
-      }
-    }, 0);
-  });
-})();
 
 /* ===============================
    🔥 홈 설정 — 설정 > 일반 최상단
