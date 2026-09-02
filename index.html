@@ -3942,6 +3942,11 @@ html.light-mode-on #tab1 .home-tomorrow-label { color: rgba(0,0,0,0.4); }
 html.light-mode-on #tab1 .home-tomorrow-muscle { color: #1a1a1a; }
 html.light-mode-on #tab1 .home-week-day .d { background: #f0f0f0; border-color: #ddd; }
 html.light-mode-on #tab1 .home-week-day .lbl { color: rgba(0,0,0,0.4); }
+html.light-mode-on #tab1 .home-parts-head-sub { color: rgba(0,0,0,0.35); }
+html.light-mode-on #tab1 .home-part-name { color: rgba(0,0,0,0.85); }
+html.light-mode-on #tab1 .home-part-days { color: #1a1a1a; }
+html.light-mode-on #tab1 .home-part-sub { color: rgba(0,0,0,0.4); }
+html.light-mode-on #tab1 .home-part-item + .home-part-item { border-left-color: rgba(0,0,0,0.08); }
 html.light-mode-on #tab1 .home-quote-open,
 html.light-mode-on #tab1 .home-quote-close { color: rgba(0,0,0,0.15); }
 html.light-mode-on #tab1 .home-quote-headline { color: #1a1a1a; }
@@ -7115,6 +7120,17 @@ html.light-mode-on #weightModal .food-modal-form label {
 #tab1 .home-diet-input-row input::placeholder { color: rgba(255,255,255,0.3); }
 #tab1 .home-diet-input-row button { width: 44px; margin: 0; background: #fff; color: #000; border: none; border-radius: 10px; font-size: 18px; font-weight: 700; cursor: pointer; }
 
+#tab1 .home-parts-card { padding: 18px 20px; }
+#tab1 .home-parts-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 14px; }
+#tab1 .home-parts-head-sub { font-size: 11px; color: rgba(255,255,255,0.35); }
+#tab1 .home-parts-row { display: flex; }
+#tab1 .home-part-item { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 0 3px; text-align: center; }
+#tab1 .home-part-item + .home-part-item { border-left: 1px solid rgba(255,255,255,0.08); }
+#tab1 .home-part-name { font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.85); }
+#tab1 .home-part-img { width: 44px; height: 44px; object-fit: cover; border-radius: 8px; }
+#tab1 .home-part-days { font-size: 16px; font-weight: 800; color: #fff; margin-top: 2px; }
+#tab1 .home-part-sub { font-size: 10px; color: rgba(255,255,255,0.4); }
+
 #tab1 .home-quick-row { display: flex; gap: 10px; margin-bottom: 14px; }
 #tab1 .home-quick-btn { flex: 1; width: auto; margin: 0; background: #181818; border: 1px solid #222; border-radius: 14px; padding: 14px 10px; text-align: center; font-size: 12px; font-weight: 700; font-family: inherit; color: rgba(255,255,255,0.85); cursor: pointer; }
 #tab1 .home-quick-btn .home-quick-icon { display: flex; align-items: center; justify-content: center; margin-bottom: 6px; color: rgba(255,255,255,0.85); }
@@ -7283,6 +7299,14 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
       <input type="text" id="homeDietQuickInput" placeholder="음식 이름/칼로리 빠르게 추가" readonly>
       <button id="homeDietQuickBtn" aria-label="식단 빠르게 추가">+</button>
     </div>
+  </div>
+
+  <div class="home-card home-parts-card">
+    <div class="home-parts-head">
+      <div class="home-card-label">부위별 마지막 운동</div>
+      <div class="home-parts-head-sub">마지막 운동 후 경과일</div>
+    </div>
+    <div class="home-parts-row" id="homePartsRow"></div>
   </div>
 
   <div class="home-quick-row">
@@ -10375,7 +10399,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.90";
+const APP_VERSION = "0.9.91";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -10930,6 +10954,31 @@ function getCalendarKeyToday(){
   return `${dt.getFullYear()}-${dt.getMonth()+1}-${dt.getDate()}`;
 }
 
+// 🔥 홈 화면 "부위별 마지막 운동" 카드 — 근육찾기(muscleFinderOverlay)의
+// 전신 하이라이트 이미지를 부위 주변으로 크롭해서 작은 썸네일로 재사용.
+// 등(back)은 아직 전용 하이라이트 이미지가 없어 하이라이트 없는 등판
+// 이미지를 임시로 씀 — 나중에 전용 이미지가 생기면 이 경로만 교체하면 됨.
+const HOME_PARTS = ["가슴", "등", "어깨", "하체", "팔"];
+const HOME_PART_IMAGES = {
+  "가슴": "icons/muscle/highlight/home_chest.png?v=" + APP_VERSION,
+  "등": "icons/muscle/highlight/home_back.png?v=" + APP_VERSION,
+  "어깨": "icons/muscle/highlight/home_shoulder.png?v=" + APP_VERSION,
+  "하체": "icons/muscle/highlight/home_lower.png?v=" + APP_VERSION,
+  "팔": "icons/muscle/highlight/home_arm.png?v=" + APP_VERSION,
+};
+
+// 🔥 calData(캘린더에 자동/수동으로 태그된 부위 기록)를 오늘부터 거꾸로 훑어서
+// 해당 부위가 마지막으로 찍힌 날짜까지 며칠 지났는지 계산 — 기록 없으면 null
+function daysSinceLastWorkoutForMuscle(muscle){
+  const now = new Date();
+  for (let i = 0; i < 3650; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+    const key = `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+    if ((calData[key]?.muscles || []).includes(muscle)) return i;
+  }
+  return null;
+}
+
 async function autoMarkCalendarToday(partOrLift){
   const muscle = PART_TO_MUSCLE[partOrLift];
   if (!muscle) return;
@@ -11022,6 +11071,24 @@ function renderHomeTab(){
         <div class="lbl">${day.label}</div>
       </div>
     `).join("");
+  }
+
+  // 부위별 마지막 운동(별도 카드)
+  const partsRowEl = document.getElementById("homePartsRow");
+  if (partsRowEl) {
+    partsRowEl.innerHTML = HOME_PARTS.map(part => {
+      const days = daysSinceLastWorkoutForMuscle(part);
+      const daysLabel = days === null ? "-" : `${days}일`;
+      const subLabel = days === null ? "기록 없음" : "지났습니다";
+      return `
+        <div class="home-part-item">
+          <div class="home-part-name">${part}</div>
+          <img class="home-part-img" src="${HOME_PART_IMAGES[part]}" alt="${part}">
+          <div class="home-part-days">${daysLabel}</div>
+          <div class="home-part-sub">${subLabel}</div>
+        </div>
+      `;
+    }).join("");
   }
 
   // 오늘 식단
