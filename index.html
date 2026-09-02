@@ -4417,6 +4417,12 @@ html.light-mode-on .settings-row + .settings-row {
   justify-content: center;
   align-items: center;
   z-index: 200000;
+  /* 🔥 iOS Safari에서 -webkit-overflow-scrolling:touch가 걸린 스크롤 컨테이너
+     (예: 루틴 만들기 화면 본문) 위에서 display:none→flex로 새로 나타나는
+     position:fixed 모달이, 화면을 실제로 전환하거나 스크롤하기 전까지는
+     그려지지(paint) 않는 iOS 렌더링 버그가 있음 — 모달을 항상 별도의
+     GPU 컴포지팅 레이어로 미리 승격시켜서 이 문제를 원천적으로 방지 */
+  transform: translateZ(0);
 }
 
 .modal.hidden{ display:none; }
@@ -10432,7 +10438,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.74";
+const APP_VERSION = "0.9.75";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
