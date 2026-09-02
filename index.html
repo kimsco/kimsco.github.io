@@ -10427,7 +10427,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.72";
+const APP_VERSION = "0.9.73";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -13002,7 +13002,13 @@ function applyOpacityScrollFix(input) {
    안 생기는 게 목표. kg→회처럼 같은 바 안에서 입력창만 옮겨갈 때 바 위치가
    깜빡이지 않도록, blur 시 한 틱 뒤에도 여전히 그 바 안의 입력창이 아니면 그때
    position/opacity를 풀어줌(#0ec11ed 원본 로직과 동일 패턴) */
-const RECORD_BAR_TOOLBAR_COMPENSATION = 44;
+/* 🔥 [수정] 원래 44였음(#525 방식) — 실기기 영상 확인 결과 알약바와 네이티브
+   키보드 툴바(∧∨✓) 사이에 기록 목록이 두 줄이나 보일 만큼 큰 빈틈이 있었음.
+   iOS의 visualViewport.height는 키보드뿐 아니라 그 위에 붙는 네이티브
+   입력창 도구모음(∧∨✓)까지 이미 다 뺀 값을 주는 것으로 보여서, 여기에
+   44px를 추가로 더 얹는 게 오히려 과도한 보정이었던 것으로 추정 — 0으로
+   되돌려서 재확인 */
+const RECORD_BAR_TOOLBAR_COMPENSATION = 0;
 function setupPillBarKeyboardFix(bar, inputs) {
   inputs = inputs.filter(Boolean);
   if (!bar || !inputs.length) return;
