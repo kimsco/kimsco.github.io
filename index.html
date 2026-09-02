@@ -43,16 +43,7 @@ try {
 <link rel="apple-touch-startup-image" href="/icons/splash/750x1334.png" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
 <link rel="apple-touch-startup-image" href="/icons/splash/640x1136.png" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
 <meta charset="UTF-8" />
-<!-- 🔥 [키보드 팬 근본 원인 시도] iOS Safari(WKWebView)는 페이지 전체를 네이티브
-     UIScrollView 위에 얹어 렌더링하는데, 입력창 포커스 시 iOS가 "포커스된 요소를
-     보이게" 하려고 이 네이티브 스크롤뷰 자체를 밀어버림 — CSS의 overflow/position:fixed
-     스크롤 잠금(html.keyboardOpen 등, 위 body 관련 규칙 참고)은 전혀 다른 레이어라
-     이 네이티브 팬을 못 막았던 것으로 추정됨. interactive-widget=resizes-content
-     (iOS 16.4+)를 켜면 키보드가 뜰 때 네이티브 팬 대신 레이아웃 뷰포트 자체를
-     안드로이드처럼 줄여줘서(window.innerHeight도 같이 줄어듦) 이 팬 자체가 안 생김.
-     미지원 구버전 iOS에서는 그냥 무시되고 기존 visualViewport 기반 보정 로직으로
-     자연스럽게 폴백됨 -->
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
 <title>TTT</title>
 <!-- 🔥 맨몸운동 페이지 제목용 명조체(나눔명조) — 시스템 폰트로는 기기마다 없을 수 있어 웹폰트로 확실히 로드 -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -118,42 +109,6 @@ html, body {
        당겨서 튕기는 고무줄(바운스) 효과는 overscroll-behavior로 막아둠 */
     overflow-x: hidden;
     overscroll-behavior: none;
-}
-
-/* 🔥 입력창에 포커스가 가서 iOS 키보드가 뜰 때, 위 이유(#362)로 html/body를 항상
-   스크롤 가능 상태로 열어둔 탓에 iOS가 "포커스된 입력창을 보이게" 자동으로 스크롤을
-   걸어주는 대상에 body까지 포함돼서, 안쪽 .app 스크롤과 별개로 화면 전체가 통째로
-   밀려 올라가 보이는 문제가 있었음. 입력에 포커스가 가있는 동안만(html.keyboardOpen)
-   overflow-y를 잠가서 iOS가 body를 밀어올릴 대상 자체를 없애버림 — 포커스가 풀리면
-   바로 원래대로 풀리므로 #362의 안전영역 렌더링에는 영향 없음 */
-html.keyboardOpen {
-    overflow-y: hidden !important;
-}
-/* 🔥 body는 overflow-y:hidden만으로는 iOS Safari에서 스크롤/패닝을 확실히 못 막는
-   것으로 확인됨(iOS의 잘 알려진 제약 — overflow:hidden이 body/documentElement
-   레벨에서는 100% 신뢰할 수 없어서, 모바일 웹에서 널리 쓰이는 표준 우회법이
-   position:fixed로 아예 스크롤 컨텍스트 자체를 없애버리는 것임). 이 앱에서 body
-   자체의 scrollY는 항상 0(실제 스크롤은 .app이 담당)이므로 scrollY 보존 없이
-   그냥 고정만 해도 됨 */
-html.keyboardOpen body {
-    position: fixed !important;
-    inset: 0 !important;
-    width: 100% !important;
-    overflow: hidden !important;
-}
-/* 🔥 [재시도] 언픽스 방식(#519~#522)이 화면 전체 밀림은 확실히 잡았지만 알약바
-   자체가 키보드 뒤에 숨는 문제를 끝내 못 고쳐서, 사용자 제안으로 원래 방식
-   (position:fixed 유지 + 키보드 높이만큼 bottom 직접 계산해서 화면 바닥으로
-   끌어올림, #515)으로 다시 되돌려서 재시도함 — 이번엔 그때 이후 알아낸 보완들
-   (.app/.folderContent/루틴 리빌 화면 잠금(#516,#517), body 잠금을
-   position:fixed로(#518))을 전부 같이 적용한 채로 다시 테스트. #515 자체는
-   당시 알약바/하단탭이 키보드 바로 위에 잘 쌓였었고, 화면 전체 패닝은 별개
-   원인(스크롤 컨테이너들)으로 추정됐던 것이므로, 그 스크롤 컨테이너들을 전부
-   잠근 이 조합이 패닝 없이 알약바만 정확히 끌어올려줄지 확인 */
-html.keyboardOpenFixedInput .app,
-html.keyboardOpenFixedInput .folderContent,
-html.keyboardOpenFixedInput #myRoutineRevealScreen {
-    overflow: hidden !important;
 }
 
 body {
@@ -421,16 +376,7 @@ button {
 
   transform-origin: center bottom;
   transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
-              opacity 0.28s cubic-bezier(0.22, 1, 0.36, 1),
-              bottom 0.28s cubic-bezier(0.22, 1, 0.36, 1);
-  /* 🔥 [타임라인 HUD로 확인] 알약바 입력창에 포커스가 가면, 처음 약 0.3~0.35초 동안은
-     window.innerHeight/visualViewport 값이 아직 다 안정되지 않은 상태라서 알약바가
-     일단 키보드에 가려진 잘못된 위치(bottom 보정 전)에 있다가, 250ms 안전망 재계산이
-     값이 안정된 뒤에야 뒤늦게 정확한 위치로 순간 이동(스냅)하는 게 "튀는" 것처럼
-     보였음 — topBar/body/.app은 전혀 안 움직이고 알약바 혼자 이렇게 움직였던 것.
-     bottom에 transition을 걸어서, 그 뒤늦은 보정이 순간이동이 아니라 부드럽게
-     미끄러져 올라가는 모습으로 보이게 함(값 자체가 늦게 안정되는 근본 원인은 그대로
-     지만, 최소한 눈에 거슬리는 "스냅"은 없어짐) */
+              opacity 0.28s cubic-bezier(0.22, 1, 0.36, 1);
 }
 /* 🔥 스크롤 다운: 알약이 살짝 작아지고 옅어짐 / 스크롤 업: 원래대로 */
 .recordFloatBar.collapsed {
@@ -10480,7 +10426,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.54";
+const APP_VERSION = "0.9.55";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -19102,112 +19048,6 @@ if (window.visualViewport) {
   vv.addEventListener("resize", adjustMySpecForKeyboard);
   vv.addEventListener("scroll", adjustMySpecForKeyboard);
 }
-
-/* 🔥 [재시도] 3대/보조운동 기록 탭, 루틴 리빌 화면의 kg/회 알약형 입력바
-   (.recordFloatBar)는 position:fixed(또는 fixed 오버레이 안 absolute)라서
-   일반적인 스크롤 컨테이너 소속이 아님 — 화면 맨 아래쪽에 붙어있다보니, 여기
-   입력창에 포커스가 가서 키보드가 뜨면 iOS가 "이 알약바는 곧 키보드에 가려질
-   것"이라고 미리 판단해서 문서 전체를 패닝(pan)해버리는 문제가 있었음. 키보드가
-   뜨는 즉시 이 알약바를 키보드 높이만큼 위로 올려서 iOS 입장에서 "이미 다
-   보이는" 상태로 만들어버리면, iOS가 알아서 페이지를 패닝할 필요 자체가 없어짐
-   — #515에서 처음 시도했을 때 이 부분(알약바/하단탭이 키보드 바로 위에 쌓이는
-   것) 자체는 잘 됐었음. 그때 화면 전체가 패닝됐던 원인은 이 알약바 자체가
-   아니라 .app/.folderContent/루틴 리빌 화면 같은 스크롤 컨테이너들을 iOS가
-   대신 찾아 스크롤시켜버렸기 때문으로 추정 — 그 뒤 알아낸 그 컨테이너들의
-   잠금(#516,#517)까지 전부 같이 적용해서 재시도 */
-if (window.visualViewport) {
-  const vv = window.visualViewport;
-  const floatBarBaseBottom = new WeakMap();
-  /* 🔥 [실기기 영상 프레임 분석으로 확인] 알약바가 "사라진" 게 아니라, kg/회
-     입력창이 type="number"라서 iOS가 숫자 키패드 위에 자동으로 붙이는 네이티브
-     이전/다음/완료 툴바(위아래 화살표 + 체크) 바로 뒤에 깔려서 가려지고
-     있었음 — 알약바의 파란 포커스 테두리가 그 툴바 뒤로 비쳐 보이는 것까지
-     프레임에서 확인됨. keyboardHeight(=innerHeight - visualViewport.height)는
-     소프트 키보드 자체의 높이만 반영하고 이 네이티브 툴바 높이(iOS 표준
-     44pt)는 포함하지 않아서, 알약바를 키보드 바로 위로 올려도 실제로는 그
-     툴바와 정확히 같은 자리에 겹쳐버렸던 것 — 그만큼 추가로 더 끌어올림 */
-  const NATIVE_KEYBOARD_TOOLBAR_HEIGHT = 44;
-  const adjustFloatBarsForKeyboard = () => {
-    const keyboardHeight = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
-    document.querySelectorAll(".recordFloatBar").forEach(el => {
-      if (!floatBarBaseBottom.has(el)) {
-        floatBarBaseBottom.set(el, parseFloat(getComputedStyle(el).bottom) || 0);
-      }
-      const base = floatBarBaseBottom.get(el);
-      el.style.bottom = keyboardHeight > 0
-        ? `${base + keyboardHeight + NATIVE_KEYBOARD_TOOLBAR_HEIGHT}px`
-        : "";
-    });
-  };
-  vv.addEventListener("resize", adjustFloatBarsForKeyboard);
-  vv.addEventListener("scroll", adjustFloatBarsForKeyboard);
-  /* 🔥 [실기기 HUD로 확인] vv resize/scroll 이벤트만 믿고 있었더니, window.innerHeight
-     자체가 (예: 441 → 797로) 흔들리는 순간들이 있어서 그 이벤트가 발생한 시점에 마침
-     innerHeight가 아직 안 줄어든 상태였으면 keyboardHeight를 0으로 잘못 계산해서
-     알약바 위치가 원상복구돼버리는 문제가 있었음(HUD의 kbH는 356인데 알약바
-     inlineBottom은 빈 값으로 찍힌 게 이 불일치의 증거) — focusin 시점과 250ms
-     간격으로도 계속 재계산해서 값이 안정될 때까지 계속 따라가게 함 */
-  document.addEventListener("focusin", e => {
-    if (e.target && e.target.closest && e.target.closest(".recordFloatBar")) {
-      adjustFloatBarsForKeyboard();
-    }
-  });
-  setInterval(adjustFloatBarsForKeyboard, 250);
-}
-
-/* 🔥 입력창에 포커스가 갈 때(iOS 키보드가 뜰 때) html.keyboardOpen을 걸어서 위 CSS로
-   body 스크롤을 잠금 — 안 그러면 iOS가 포커스된 입력창을 보이게 하려고 body까지
-   같이 밀어 올려서(#362 때문에 body가 항상 스크롤 가능하게 열려있음) 화면 전체가
-   통째로 스크롤되는 것처럼 보임. 포커스가 다른 입력창으로 바로 옮겨갈 때(탭 이동 등)
-   깜빡이지 않도록 focusout에서 바로 풀지 않고 한 틱 뒤에 여전히 입력 요소가 아니면
-   그때 풀어줌. */
-(function(){
-  const isTextEntryEl = el => !!el && (
-    el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable
-  );
-  let releaseTimer = null;
-  document.addEventListener("focusin", e => {
-    if (!isTextEntryEl(e.target)) return;
-    clearTimeout(releaseTimer);
-    document.documentElement.classList.add("keyboardOpen");
-    if (e.target.closest(".recordFloatBar")) {
-      document.documentElement.classList.add("keyboardOpenFixedInput");
-    }
-  });
-  document.addEventListener("focusout", () => {
-    clearTimeout(releaseTimer);
-    releaseTimer = setTimeout(() => {
-      if (!isTextEntryEl(document.activeElement)) {
-        document.documentElement.classList.remove("keyboardOpen");
-        document.documentElement.classList.remove("keyboardOpenFixedInput");
-      }
-    }, 0);
-  });
-})();
-
-/* 🔥 [임시 디버그 — 실기기 HUD 수치로 확인 후 추가] 디버그 HUD로 실제 수치를 찍어보니
-   interactive-widget=resizes-content는 정상 작동해서 window.innerHeight 자체는 키보드
-   높이만큼 줄어들었는데(예: 441), visualViewport.offsetTop이 0이 아니라 356처럼 큰 값으로
-   나왔고, position:fixed로 잠가둔 body/topBar의 getBoundingClientRect().top이 정확히
-   그만큼(-356) 화면 위로 밀려나 있었음 — 즉 html.keyboardOpen으로 overflow-y:hidden을
-   걸어놨는데도 여전히 문서 자체가 그만큼 스크롤되려는 시도가 남아있고, overflow:hidden은
-   "사용자가 손으로 스크롤하는 것"만 막을 뿐 프로그램적으로 scrollTop이 바뀌는 것 자체는
-   못 막는다는 뜻으로 추정됨(iOS가 포커스된 입력창을 보이게 하려고 여전히 html/body를
-   스크롤시키는 시도). 그 스크롤이 실제로 걸리는 순간 바로 0으로 되돌려서 방어 */
-(function(){
-  const resetScrollIfKeyboardOpen = () => {
-    if (!document.documentElement.classList.contains("keyboardOpen")) return;
-    if (document.documentElement.scrollTop !== 0 || document.documentElement.scrollLeft !== 0) {
-      document.documentElement.scrollTop = 0;
-      document.documentElement.scrollLeft = 0;
-    }
-    if (window.scrollY !== 0 || window.scrollX !== 0) {
-      window.scrollTo(0, 0);
-    }
-  };
-  document.addEventListener("scroll", resetScrollIfKeyboardOpen, true);
-  window.addEventListener("scroll", resetScrollIfKeyboardOpen, true);
-})();
 
 document.getElementById("mySpecMenuBtn").addEventListener("click", () => {
   closeSettings();
