@@ -10327,7 +10327,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.76";
+const APP_VERSION = "0.9.77";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -13585,6 +13585,28 @@ function closeMyRoutineBuilderNameModal(){
   myRoutineBuilderNameModal.classList.add("hidden");
 }
 document.getElementById("myRoutineBuilderNameRow").addEventListener("click", openMyRoutineBuilderNameModal);
+// 🔥 이 버튼은 -webkit-overflow-scrolling:touch가 걸린 스크롤 컨테이너
+// (#myRoutineBuilderBody) 안에 있음 — iOS Safari는 이런 컨테이너 안에서는
+// 스크롤 직후(혹은 스크롤 관성이 남아있는 상태) 첫 탭의 click 이벤트를 씹어버리는
+// 경우가 있어서, 실제로는 화면을 나가는 등 "다른" 동작을 할 때 뒤늦게 눌린 걸로
+// 처리되는 것으로 보임(사용자 확인: 눌러도 반응 없다가 화면을 완전히 나가야
+// 그제서야 팝업이 뜸). click과 별개로 touchend를 직접 붙여서 확실하게 열리도록
+// 함 — 스크롤 중 손가락이 이 버튼 위를 지나가다 끝난 경우까지 열리면 안 되므로
+// touchmove 이동량이 작을 때만(진짜 탭일 때만) 실행.
+(function(){
+  const btn = document.getElementById("myRoutineBuilderNameRow");
+  let startY = null, moved = false;
+  btn.addEventListener("touchstart", (e) => {
+    startY = e.touches[0].clientY;
+    moved = false;
+  }, { passive: true });
+  btn.addEventListener("touchmove", (e) => {
+    if (startY !== null && Math.abs(e.touches[0].clientY - startY) > 10) moved = true;
+  }, { passive: true });
+  btn.addEventListener("touchend", () => {
+    if (!moved) openMyRoutineBuilderNameModal();
+  });
+})();
 document.getElementById("myRoutineBuilderNameCancelBtn").addEventListener("click", closeMyRoutineBuilderNameModal);
 myRoutineBuilderNameModal.addEventListener("click", (e) => {
   if (e.target === myRoutineBuilderNameModal) closeMyRoutineBuilderNameModal();
