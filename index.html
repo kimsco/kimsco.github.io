@@ -8735,7 +8735,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
       <span class="bw-menu-header-spacer"></span>
     </div>
 
-    <div style="flex:1; overflow-y:auto;">
+    <div id="oneRMCalcBody" style="flex:1; overflow-y:auto;">
       <select id="oneRMLiftSelect">
         <option value="squat">스쿼트</option>
         <option value="bench" selected>벤치프레스</option>
@@ -10426,7 +10426,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.55";
+const APP_VERSION = "0.9.56";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -12933,6 +12933,35 @@ document.getElementById("navOneRMCalcBtn").addEventListener("click", () => {
   closeNavDrawerInstant();
   openOneRMCalc();
 });
+
+/* 🔥 1RM 계산기의 kg 입력창은 알약바(.recordFloatBar)와 달리 position:fixed가 아니라
+   그냥 스크롤 가능한 div(#oneRMCalcBody) 안의 평범한 입력창이라서, 포커스 시 iOS가
+   "입력창을 보이게" 스크롤하는 대상이 명확히 이 div 하나뿐임 — 알약바 때처럼 엉뚱한
+   조상(html/body)까지 잘못 스크롤시킬 소지가 훨씬 적음. kg 입력창이 이미 화면 위쪽에
+   있어서 키보드가 떠도 안 가려지므로, 포커스가 가있는 동안만 이 div의 스크롤을
+   잠가서 화면이 아예 안 움직이게 함 */
+(function(){
+  const isTextEntryEl = el => !!el && (
+    el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.tagName === "SELECT"
+  );
+  const oneRMCalcBody = document.getElementById("oneRMCalcBody");
+  let releaseTimer = null;
+  document.addEventListener("focusin", e => {
+    if (!isTextEntryEl(e.target)) return;
+    if (!e.target.closest("#oneRMCalcOverlay")) return;
+    clearTimeout(releaseTimer);
+    oneRMCalcBody.style.overflowY = "hidden";
+  });
+  document.addEventListener("focusout", e => {
+    if (!e.target.closest || !e.target.closest("#oneRMCalcOverlay")) return;
+    clearTimeout(releaseTimer);
+    releaseTimer = setTimeout(() => {
+      if (!document.activeElement || !document.activeElement.closest || !document.activeElement.closest("#oneRMCalcOverlay")) {
+        oneRMCalcBody.style.overflowY = "auto";
+      }
+    }, 0);
+  });
+})();
 
 /* ===============================
    🔥 홈 설정 — 설정 > 일반 최상단
