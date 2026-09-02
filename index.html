@@ -3766,7 +3766,7 @@ html.light-mode-on #graphSheet .sheetGrab {
 }
 
 /* 🔥 [11단계] 식단(#dietPanel-today/#dietPanel-settings/#dietSubTabBar/
-   #foodTemplateModal/#quickAddMealModal/#foodDbSaveConfirmModal/#weightModal)
+   #foodTemplateModal/#quickAddMealModal/#weightModal)
    라이트모드: 필터 목록에서 빼고 실제 색상 직접 지정. #dietOverlay는 이미 배경이
    #eeeeee로 마이그레이션돼 있어서(dietPanel-history/stats), #dietPanel-today/
    -settings 자체는 배경 추가 작업 없이 부모를 그대로 물려받음(색만 var 추가).
@@ -3791,26 +3791,22 @@ html.light-mode-on #dietPanel-today .meal-log-protein {
 }
 html.light-mode-on #foodTemplateModal .modal-box,
 html.light-mode-on #quickAddMealModal .modal-box,
-html.light-mode-on #foodDbSaveConfirmModal .modal-box,
 html.light-mode-on #weightModal .modal-box {
   background: #fdfdfd;
   border-color: rgba(0,0,0,0.08);
 }
 html.light-mode-on #foodTemplateModal .modal-title,
 html.light-mode-on #quickAddMealModal .modal-title,
-html.light-mode-on #foodDbSaveConfirmModal .modal-title,
 html.light-mode-on #weightModal .modal-title {
   color: var(--c-text-primary);
 }
 html.light-mode-on #foodTemplateModal .modal-actions,
 html.light-mode-on #quickAddMealModal .modal-actions,
-html.light-mode-on #foodDbSaveConfirmModal .modal-actions,
 html.light-mode-on #weightModal .modal-actions {
   border-top-color: rgba(0,0,0,0.08);
 }
 html.light-mode-on #foodTemplateModal .modal-btn,
 html.light-mode-on #quickAddMealModal .modal-btn,
-html.light-mode-on #foodDbSaveConfirmModal .modal-btn,
 html.light-mode-on #weightModal .modal-btn {
   color: rgb(28,78,144);
 }
@@ -5970,33 +5966,6 @@ html.light-mode-on .diet-food-db-search {
   cursor: pointer;
 }
 
-/* 🔥 "내 식단" 헤더 바로 밑, 템플릿 목록 위에 있는 "찾기" 버튼 — 누르면 우측 드로어가 열림 */
-.food-search-open-btn {
-  -webkit-appearance: none;
-  appearance: none;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  padding: 14px 4px;
-  margin: 0 0 4px;
-  background: transparent;
-  border: none;
-  border-bottom: 1px solid rgba(var(--c-ink-rgb),0.1);
-  color: rgba(var(--c-ink-rgb),0.85);
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  text-align: left;
-}
-.food-search-open-btn:active {
-  color: var(--c-text-primary);
-}
-
-/* 🔥 "찾기" 버튼으로 여는 음식 DB 검색 패널 — 전체 화면이 아니라 "내 식단" 템플릿
-   박스 안에서만 우→좌로 슬라이드해 그 자리의 템플릿 목록을 덮는다.
-   "찾기" 버튼도 이 박스 안에 포함시켜, 패널이 버튼 자리까지 한 칸 더 위에서부터
-   덮이도록 함(박스 높이도 버튼 높이만큼 늘림). */
 .food-template-box {
   position: relative;
   height: 368px;
@@ -6004,63 +5973,10 @@ html.light-mode-on .diet-food-db-search {
   flex-direction: column;
   overflow: hidden;
 }
-.food-template-box .food-search-open-btn {
-  flex-shrink: 0;
-}
 .food-template-box #foodTemplateList {
   flex: 1;
   min-height: 0;
   height: auto;
-}
-.food-search-panel {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: 60%;
-  background: rgb(var(--c-anti-ink-rgb));
-  border-left: 1px solid rgba(var(--c-ink-rgb),0.14);
-  padding: 8px 4px 4px;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  transform: translateX(100%);
-  transition: transform 0.28s ease;
-  z-index: 1;
-}
-.food-search-panel.open {
-  transform: translateX(0);
-}
-.food-search-drawer-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-.food-search-drawer-header .diet-food-db-search {
-  width: auto;
-  min-width: 0; /* 🔥 input의 기본 최소폭(~200px)이 flex-shrink를 무시하고 넘치는 것 방지 */
-  flex: 1;
-  margin: 0;
-}
-.food-search-drawer-close {
-  -webkit-appearance: none;
-  appearance: none;
-  width: auto; /* 🔥 전역 button{width:100%} 리셋 무력화 */
-  background: transparent;
-  border: none;
-  color: rgba(var(--c-ink-rgb),0.6);
-  font-size: 18px;
-  line-height: 1;
-  padding: 4px 6px;
-  margin: 0;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-/* 패널 안에서는 고정 320px 대신 남은 세로 공간을 다 씀 */
-.food-search-panel .diet-food-split-scroll {
-  height: auto;
-  flex: 1;
 }
 
 .quick-add-meal-btn {
@@ -7594,23 +7510,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
       </div>
 
       <div class="food-template-box">
-        <button id="openFoodSearchDrawerBtn" type="button" class="food-search-open-btn">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="11" cy="11" r="7"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-          </svg>
-          <span>찾기</span>
-        </button>
-
         <div id="foodTemplateList" class="diet-food-split-scroll"></div>
-
-        <div id="foodSearchPanel" class="food-search-panel">
-          <div class="food-search-drawer-header">
-            <input id="foodDbSearchInput" type="text" class="diet-food-db-search" placeholder="검색">
-            <button id="closeFoodSearchDrawerBtn" class="food-search-drawer-close" aria-label="닫기">✕</button>
-          </div>
-          <div id="foodDbList" class="diet-food-split-scroll"></div>
-        </div>
       </div>
 
     </div>
@@ -9203,17 +9103,6 @@ MuscleFlow는 개인의 운동 및 식단 기록을 관리하는 PWA 서비스�
   </div>
 </div>
 
-<!-- 🔥 음식 DB 우측 목록 꾹 누르면 뜨는 "내 템플릿에 저장" 확인 팝업 -->
-<div id="foodDbSaveConfirmModal" class="modal hidden">
-  <div class="modal-box">
-    <div class="modal-title">내 템플릿에 저장하시겠습니까?</div>
-    <div class="modal-actions">
-      <button id="foodDbSaveCancelBtn" class="modal-btn">취소</button>
-      <button id="foodDbSaveConfirmBtn" class="modal-btn">저장</button>
-    </div>
-  </div>
-</div>
-
 <!-- 🔥 몸무게 목표/현재 입력 팝업 -->
 <div id="weightModal" class="modal hidden">
   <div class="modal-box">
@@ -10438,7 +10327,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.75";
+const APP_VERSION = "0.9.76";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -16511,7 +16400,6 @@ document.body.appendChild(dietSubTabBar);
 // 🔥 식단 안에서 쓰는 팝업 2개도 같은 이유로 body로 이동 (안 그러면 .app 트랜스폼에 갇혀서 안 보임)
 document.body.appendChild(document.getElementById('foodTemplateModal'));
 document.body.appendChild(document.getElementById('quickAddMealModal'));
-document.body.appendChild(document.getElementById('foodDbSaveConfirmModal'));
 document.body.appendChild(document.getElementById('weightModal'));
 // 🔥 라이트모드에서는 #tab2/#tab4에 반전 필터가 직접 걸리는데, 필터도 transform과
 //    마찬가지로 자식 position:fixed 요소의 기준점을 자기 자신으로 바꿔버려서 이
@@ -19701,110 +19589,7 @@ document.getElementById('dietCalNext')?.addEventListener('click', async () => {
   if (added) dietCalRender();
 });
 
-/* ---------- 식단 > 통계 탭: 오늘 요약 차트 + 부족 영양소 기반 음식 추천 ---------- */
-let FOOD_DB = [
-  { name: "닭가슴살 100g", protein: 23, carb: 0, fat: 2 },
-  { name: "닭다리살(껍질제거) 100g", protein: 19, carb: 0, fat: 8 },
-  { name: "닭안심 100g", protein: 22, carb: 0, fat: 1 },
-  { name: "소고기 등심 100g", protein: 21, carb: 0, fat: 18 },
-  { name: "소고기 홍두깨살 100g", protein: 22, carb: 0, fat: 6 },
-  { name: "돼지고기 안심 100g", protein: 21, carb: 0, fat: 4 },
-  { name: "돼지고기 목살 100g", protein: 19, carb: 0, fat: 17 },
-  { name: "돼지고기 삼겹살 100g", protein: 17, carb: 0, fat: 30 },
-  { name: "연어 100g", protein: 20, carb: 0, fat: 13 },
-  { name: "고등어 100g", protein: 19, carb: 0, fat: 12 },
-  { name: "참치캔(물) 100g", protein: 25, carb: 0, fat: 1 },
-  { name: "참치캔(기름) 100g", protein: 24, carb: 0, fat: 8 },
-  { name: "새우 100g", protein: 20, carb: 0.2, fat: 1.7 },
-  { name: "오징어 100g", protein: 18, carb: 3, fat: 1.4 },
-  { name: "게살 100g", protein: 18, carb: 0, fat: 1 },
-  { name: "계란 1개(50g)", protein: 6, carb: 0.6, fat: 5 },
-  { name: "계란흰자 100g", protein: 11, carb: 0.7, fat: 0.2 },
-  { name: "두부 100g", protein: 8, carb: 2, fat: 4 },
-  { name: "순두부 100g", protein: 5, carb: 2, fat: 3 },
-  { name: "낫토 1팩(50g)", protein: 8, carb: 6, fat: 5 },
-  { name: "그릭요거트 100g", protein: 10, carb: 4, fat: 0.4 },
-  { name: "코티지치즈 100g", protein: 11, carb: 3.4, fat: 4.3 },
-  { name: "슬라이스치즈 1장(20g)", protein: 4.5, carb: 0.5, fat: 6 },
-  { name: "프로틴쉐이크 1스쿱(30g)", protein: 24, carb: 3, fat: 1.5 },
-  { name: "오리고기 100g", protein: 18, carb: 0, fat: 20 },
-  { name: "백미밥 1공기(210g)", protein: 6, carb: 70, fat: 0.6 },
-  { name: "현미밥 1공기(210g)", protein: 5.5, carb: 65, fat: 1.5 },
-  { name: "잡곡밥 1공기(210g)", protein: 6, carb: 66, fat: 1.2 },
-  { name: "고구마 150g", protein: 2, carb: 34, fat: 0.2 },
-  { name: "감자 150g", protein: 3, carb: 26, fat: 0.2 },
-  { name: "단호박 150g", protein: 2, carb: 20, fat: 0.3 },
-  { name: "옥수수 1개(150g)", protein: 4.5, carb: 30, fat: 2 },
-  { name: "식빵 1장(35g)", protein: 3, carb: 17, fat: 1.2 },
-  { name: "통밀빵 1장(35g)", protein: 4, carb: 15, fat: 1 },
-  { name: "베이글 1개(90g)", protein: 9, carb: 48, fat: 1.5 },
-  { name: "바나나 1개(120g)", protein: 1.3, carb: 27, fat: 0.4 },
-  { name: "사과 1개(200g)", protein: 0.6, carb: 25, fat: 0.4 },
-  { name: "오트밀 50g", protein: 6.5, carb: 33, fat: 3.5 },
-  { name: "그래놀라 50g", protein: 5, carb: 32, fat: 8 },
-  { name: "국수(삶은면) 200g", protein: 7, carb: 50, fat: 1 },
-  { name: "스파게티(삶은면) 200g", protein: 8, carb: 62, fat: 1.5 },
-  { name: "떡 100g", protein: 3, carb: 48, fat: 0.5 },
-  { name: "시리얼 40g", protein: 3, carb: 30, fat: 1 },
-  { name: "감자칩 30g", protein: 2, carb: 15, fat: 10 },
-  { name: "크래커 30g", protein: 2, carb: 20, fat: 5 },
-  { name: "밤 100g", protein: 3.2, carb: 40, fat: 1 },
-  { name: "대추(건조) 30g", protein: 1, carb: 20, fat: 0.1 },
-  { name: "파인애플 150g", protein: 0.8, carb: 20, fat: 0.2 },
-  { name: "포도 150g", protein: 0.9, carb: 24, fat: 0.3 },
-  { name: "수박 200g", protein: 1, carb: 16, fat: 0.3 },
-  { name: "아몬드 20g", protein: 4, carb: 4, fat: 10 },
-  { name: "호두 20g", protein: 3, carb: 3, fat: 13 },
-  { name: "캐슈넛 20g", protein: 3.6, carb: 6, fat: 9 },
-  { name: "땅콩버터 1스푼(15g)", protein: 4, carb: 3, fat: 8 },
-  { name: "아보카도 1/2개(100g)", protein: 2, carb: 9, fat: 15 },
-  { name: "올리브유 1스푼(10g)", protein: 0, carb: 0, fat: 10 },
-  { name: "들기름 1스푼(10g)", protein: 0, carb: 0, fat: 10 },
-  { name: "참기름 1스푼(10g)", protein: 0, carb: 0, fat: 10 },
-  { name: "체다치즈 20g", protein: 5, carb: 0.5, fat: 7 },
-  { name: "마카다미아 20g", protein: 2, carb: 3, fat: 15 },
-  { name: "견과류믹스 20g", protein: 4.5, carb: 5, fat: 11 },
-  { name: "다크초콜릿 20g", protein: 1.5, carb: 9, fat: 8 },
-  { name: "코코넛오일 1스푼(10g)", protein: 0, carb: 0, fat: 10 },
-  { name: "버터 1스푼(10g)", protein: 0.1, carb: 0, fat: 8 },
-  { name: "치아씨드 15g", protein: 2.5, carb: 6, fat: 4.5 },
-  { name: "브로콜리 100g", protein: 3, carb: 6, fat: 0.4 },
-  { name: "시금치 100g", protein: 2.9, carb: 3.6, fat: 0.4 },
-  { name: "양배추 100g", protein: 1.3, carb: 6, fat: 0.1 },
-  { name: "오이 100g", protein: 0.7, carb: 3, fat: 0.1 },
-  { name: "방울토마토 100g", protein: 1, carb: 4, fat: 0.2 },
-  { name: "파프리카 100g", protein: 1, carb: 6, fat: 0.3 },
-  { name: "상추 100g", protein: 1.4, carb: 2.9, fat: 0.2 },
-  { name: "당근 100g", protein: 0.9, carb: 10, fat: 0.2 },
-  { name: "무 100g", protein: 0.6, carb: 4, fat: 0.1 },
-  { name: "콩나물 100g", protein: 3.5, carb: 4, fat: 0.5 },
-  { name: "표고버섯 100g", protein: 2.2, carb: 6, fat: 0.3 },
-  { name: "가지 100g", protein: 1, carb: 5.7, fat: 0.2 },
-  { name: "애호박 100g", protein: 1.2, carb: 3.6, fat: 0.2 },
-  { name: "미역(생) 100g", protein: 1.7, carb: 9.1, fat: 0.6 },
-  { name: "김 1봉(5g)", protein: 1.7, carb: 1.5, fat: 0.2 },
-  { name: "고사리 100g", protein: 2.7, carb: 5.5, fat: 0.3 },
-  { name: "깻잎 50g(20장)", protein: 2, carb: 3.4, fat: 0.3 },
-  { name: "부추 100g", protein: 2.1, carb: 4, fat: 0.3 },
-  { name: "양파 100g", protein: 1.1, carb: 9, fat: 0.1 },
-  { name: "마늘 20g", protein: 1.3, carb: 6, fat: 0.1 },
-  { name: "우유 200ml", protein: 6.6, carb: 9.6, fat: 7.6 },
-  { name: "저지방우유 200ml", protein: 6.8, carb: 10, fat: 2 },
-  { name: "두유 200ml", protein: 7, carb: 8, fat: 4 },
-  { name: "아몬드유 200ml", protein: 1, carb: 2, fat: 3 },
-  { name: "요거트(플레인) 100g", protein: 4, carb: 5, fat: 3 },
-  { name: "요거트(가당) 100g", protein: 3.5, carb: 15, fat: 2.5 },
-  { name: "아이스크림 1스쿱(60g)", protein: 2, carb: 15, fat: 7 },
-  { name: "초콜릿우유 200ml", protein: 6, carb: 24, fat: 5 },
-  { name: "곤약젤리 1개(20g)", protein: 0, carb: 5, fat: 0 },
-  { name: "프로틴바 1개(50g)", protein: 15, carb: 20, fat: 7 },
-  { name: "삶은달걀 2개(100g)", protein: 12, carb: 1.2, fat: 10 },
-  { name: "훈제오리 100g", protein: 18, carb: 0.5, fat: 20 },
-  { name: "닭가슴살소시지 1개(50g)", protein: 10, carb: 3, fat: 2 },
-  { name: "어묵 100g", protein: 10, carb: 15, fat: 5 },
-  { name: "두유라떼 200ml", protein: 6, carb: 12, fat: 5 },
-];
-
+/* ---------- 식단 > 통계 탭: 오늘 요약 차트 ---------- */
 let dietStatsChartInstance = null;
 
 function renderDietStatsChart(consumed, target){
@@ -20446,110 +20231,6 @@ function renderFoodTemplateList(){
     el.appendChild(card);
   });
 }
-
-/* 🔥 "내 식단" 우측: 준비된 음식 DB(FOOD_DB, 3,763건) 검색 + 클릭 시 오늘 식단에 바로 추가,
-   길게 누르면 내 식단 템플릿(좌측)으로 가져옴.
-   전체를 한 번에 DOM에 그리면(카드마다 롱프레스 리스너 여러 개씩 붙어서) 수천 개 노드가
-   생겨 openDietOverlay()의 강제 리플로우(offsetHeight)가 아주 느려지는 문제가 있었음
-   — 처음엔 30개만 그리고 스크롤하면 30개씩 더 펼치는 방식으로 변경(기록 목록 무한스크롤과
-   동일한 setupRecordInfiniteScroll 재사용, 서버 조회는 필요 없어 hasMoreRemote는 항상 false). */
-const FOOD_DB_LIST_INITIAL = 30;
-const FOOD_DB_LIST_PER_PAGE = 30;
-let foodDbListVisibleCount = FOOD_DB_LIST_INITIAL;
-let foodDbListLastFilter = null;
-
-function renderFoodDbList(filterText = ""){
-  const el = document.getElementById("foodDbList");
-  const q = filterText.trim().toLowerCase();
-
-  if (q !== foodDbListLastFilter) {
-    foodDbListVisibleCount = FOOD_DB_LIST_INITIAL; // 검색어가 바뀌면 처음부터 다시
-    foodDbListLastFilter = q;
-  }
-
-  const list = q ? FOOD_DB.filter(f => f.name.toLowerCase().includes(q)) : FOOD_DB;
-
-  if (!list.length) {
-    el.innerHTML = `<div style="color:#777; font-size:13px; padding:8px 0;">검색 결과가 없어요</div>`;
-    return;
-  }
-
-  const visibleCount = Math.min(foodDbListVisibleCount, list.length);
-  const visible = list.slice(0, visibleCount);
-
-  el.innerHTML = "";
-  visible.forEach(f => {
-    const card = document.createElement("div");
-    card.className = "diet-food-db-card";
-    card.innerHTML = `
-      <div class="food-template-name">${f.name}</div>
-      <div class="diet-stats-reco-macro">단백질 ${f.protein}g · 탄수 ${f.carb}g · 지방 ${f.fat}g</div>
-    `;
-    attachLongPress(card, {
-      onTap: () => {
-        addMealFromTemplate(f);
-        showAddedToast(card, "오늘 먹은 것에 추가되었습니다");
-      },
-      onHold: () => {
-        pendingFoodDbSaveItem = f;
-        // 🔥 롱프레스 터치가 아직 안 끝난 상태라, 모달이 뜬 뒤에도 손가락을 움직이면
-        //    (터치 이벤트는 시작된 엘리먼트에 계속 바인딩되므로) 뒤의 목록이 드래그로
-        //    스크롤되는 문제가 있었음 — 모달 떠있는 동안은 스크롤 자체를 막아버림.
-        el.style.overflowY = "hidden";
-        document.getElementById("foodDbSaveConfirmModal").classList.remove("hidden");
-      },
-    });
-    el.appendChild(card);
-  });
-
-  setupRecordInfiniteScroll(el, list.length, visibleCount, false,
-    () => {
-      foodDbListVisibleCount = visibleCount + FOOD_DB_LIST_PER_PAGE;
-      renderFoodDbList(filterText);
-    },
-    () => {} // 서버 조회 없음 — FOOD_DB는 이미 전부 메모리에 있음
-  );
-}
-
-// 🔥 우측 음식 DB 카드를 꾹 눌렀을 때 "내 템플릿에 저장" 확인 팝업에서 쓸 대상
-let pendingFoodDbSaveItem = null;
-document.getElementById("foodDbSaveCancelBtn").addEventListener("click", () => {
-  pendingFoodDbSaveItem = null;
-  document.getElementById("foodDbSaveConfirmModal").classList.add("hidden");
-  document.getElementById("foodDbList").style.overflowY = "";
-});
-document.getElementById("foodDbSaveConfirmBtn").addEventListener("click", () => {
-  if (pendingFoodDbSaveItem) addFoodTemplateItem(pendingFoodDbSaveItem);
-  pendingFoodDbSaveItem = null;
-  document.getElementById("foodDbSaveConfirmModal").classList.add("hidden");
-  document.getElementById("foodDbList").style.overflowY = "";
-});
-document.getElementById("foodDbSearchInput").addEventListener("input", (e) => {
-  renderFoodDbList(e.target.value);
-});
-renderFoodDbList();
-
-// 🔥 "찾기" 버튼으로 "내 식단" 템플릿 박스 안에서 우→좌로 슬라이드해 여는 음식 DB 검색 패널
-//    (전체 화면을 덮는 오버레이가 아니라, 템플릿 목록이 있던 그 자리에서만 나타남)
-const foodSearchPanel = document.getElementById("foodSearchPanel");
-document.getElementById("openFoodSearchDrawerBtn").addEventListener("click", () => {
-  foodSearchPanel.classList.add("open");
-});
-document.getElementById("closeFoodSearchDrawerBtn").addEventListener("click", () => {
-  foodSearchPanel.classList.remove("open");
-});
-
-// 🔥 식약처 식품영양성분DB 정제본(3,763건)을 온디맨드로 불러와 위 100개 하드코딩
-//    목록을 대체 — 실패해도(오프라인 등) 기존 100개로 계속 동작하도록 폴백 유지.
-fetch('/food-db-full.json')
-  .then(r => r.ok ? r.json() : null)
-  .then(data => {
-    if (Array.isArray(data) && data.length) {
-      FOOD_DB = data;
-      renderFoodDbList(document.getElementById('foodDbSearchInput').value);
-    }
-  })
-  .catch(() => {});
 
 function deleteFoodTemplate(id){
   foodTemplates = foodTemplates.filter(t => t.id !== id);
