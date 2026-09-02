@@ -10471,7 +10471,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.46";
+const APP_VERSION = "0.9.47";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -19139,12 +19139,17 @@ if (window.visualViewport) {
    찍어서 보여주는 HUD. 탭만 해도(드래그 없이) topBar까지 화면 밖으로 밀려나는 게 재현되므로,
    그 순간 innerHeight/visualViewport/각 락 상태가 실제로 어떤 값인지 스크린샷으로 확인하기
    위한 용도 — position:fixed인 topBar의 getBoundingClientRect().top이 0이 아니면 body/문서
-   자체가 패닝되고 있다는 확실한 증거가 됨 */
+   자체가 패닝되고 있다는 확실한 증거가 됨.
+   🔥 [수정] top 고정으로 뒀더니, HUD 자체도 position:fixed인데 화면 패닝에 같이 끌려
+   올라가서 화면 밖으로 사라져버림(이 자체도 "position:fixed조차 패닝에 끌려간다"는
+   중요한 증거) — 스크린샷을 찍으려면 일단 눈에 보여야 하니, v0.9.45에서 이미 정상적으로
+   키보드 위에 계속 보이는 것이 확인된 알약바와 똑같은 방식(bottom = keyboardHeight +
+   네이티브 툴바 높이)으로 알약바 바로 위에 오도록 고쳐서 확실히 보이게 함 */
 (function(){
   const hud = document.createElement("div");
   hud.id = "kbDebugHUD";
   hud.style.cssText = [
-    "position:fixed", "top:env(safe-area-inset-top)", "left:0", "right:0",
+    "position:fixed", "left:0", "right:0",
     "z-index:999999", "pointer-events:none",
     "background:rgba(0,0,0,0.85)", "color:#0f0",
     "font:10px/1.4 monospace", "padding:6px 8px",
@@ -19155,6 +19160,8 @@ if (window.visualViewport) {
   const isTextEntryElForHud = el => !!el && (
     el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable
   );
+
+  const HUD_MARGIN_ABOVE_BAR = 90; // 알약바(높이 약 60px) 위로 여유를 두고 뜨도록
 
   const updateHud = () => {
     if (!isTextEntryElForHud(document.activeElement)) {
@@ -19167,6 +19174,7 @@ if (window.visualViewport) {
     const topBarEl2 = document.querySelector(".topBar");
     const barEl = document.getElementById("recordFloatBarTab2");
     const kbH = vv ? Math.max(0, window.innerHeight - vv.height - vv.offsetTop) : NaN;
+    hud.style.bottom = kbH > 0 ? `${kbH + 44 + HUD_MARGIN_ABOVE_BAR}px` : `${HUD_MARGIN_ABOVE_BAR}px`;
     const lines = [
       `innerH=${window.innerHeight} vvH=${vv ? vv.height.toFixed(1) : "?"} vvOffTop=${vv ? vv.offsetTop.toFixed(1) : "?"} kbH=${kbH.toFixed ? kbH.toFixed(1) : kbH}`,
       `html.class=${document.documentElement.className}`,
@@ -19175,6 +19183,7 @@ if (window.visualViewport) {
       `.app overflowY=${appEl ? getComputedStyle(appEl).overflowY : "?"} scrollTop=${appEl ? appEl.scrollTop : "?"}`,
       `bar inlineBottom=${barEl ? JSON.stringify(barEl.style.bottom) : "?"} rectTop=${barEl ? barEl.getBoundingClientRect().top.toFixed(1) : "?"} rectBottom=${barEl ? barEl.getBoundingClientRect().bottom.toFixed(1) : "?"}`,
       `displayMode=${window.matchMedia("(display-mode: standalone)").matches ? "standalone" : "browser"}`,
+      `hud rectTop=${hud.getBoundingClientRect().top.toFixed(1)}`,
     ];
     hud.textContent = lines.join("\n");
   };
