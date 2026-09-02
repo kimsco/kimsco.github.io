@@ -10426,7 +10426,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.69";
+const APP_VERSION = "0.9.70";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -12985,6 +12985,69 @@ function applyOpacityScrollFix(input) {
   document.getElementById("deadRM"),
   document.getElementById("homeWeightQuickInput"),
 ].forEach(applyOpacityScrollFix);
+
+/* 🔥 [재도전] 알약바(.recordFloatBar) kg/회 입력창 — 화면 전체 밀림 문제(PR #514~534,
+   결국 전부 되돌림, #535)의 근본 원인도 결국 "iOS가 position:fixed 알약바 안 입력창을
+   보여주려고 페이지 전체를 네이티브로 패닝하는 판단"이었음 — 위 opacity 트릭이 막는
+   것과 같은 종류의 판단이라 시도해볼 만함.
+   ⚠️ 확인해보니 알약바 자체는 현재(전체 되돌리기 이후) 키보드에 맞춰 스스로 움직이는
+   로직이 전혀 없음(#515에서 만들었던 bottom 계산도 전체 되돌리기 때 같이 삭제됨) —
+   CSS 고정값(bottom: calc(var(--bottomTabH) + 7px))에 그대로 있어서, opacity
+   트릭만 단독으로 넣으면 iOS의 자동 스크롤/패닝 판단 자체를 막아버려서 알약바가
+   화면 밀림 없이 조용히 키보드 뒤에 숨어버릴 것(#520이 겪었던 문제와 동일 계열).
+   그래서 opacity 트릭과 함께, 키보드가 열리면 바 자체를 키보드 높이만큼 위로
+   올리는 로직(#515/#525 방식, 네이티브 숫자 키패드 툴바 44px 보정 포함)도 같이
+   넣음 — 이번엔 body/.app 잠금 없이 opacity 트릭만으로 화면 전체 밀림 자체가
+   안 생기는 게 목표. kg→회처럼 같은 바 안에서 입력창만 옮겨갈 때 바 위치가
+   깜빡이지 않도록, blur 시 한 틱 뒤에도 여전히 그 바 안의 입력창이 아니면 그때
+   position/opacity를 풀어줌(#0ec11ed 원본 로직과 동일 패턴) */
+const RECORD_BAR_TOOLBAR_COMPENSATION = 44;
+function setupPillBarKeyboardFix(bar, inputs) {
+  inputs = inputs.filter(Boolean);
+  if (!bar || !inputs.length) return;
+  let releaseTimer = null;
+  function reposition() {
+    const vv = window.visualViewport;
+    const keyboardHeight = Math.max(0, window.innerHeight - (vv ? vv.height : window.innerHeight));
+    if (keyboardHeight > 80) {
+      bar.style.bottom = (keyboardHeight + RECORD_BAR_TOOLBAR_COMPENSATION) + "px";
+      inputs.forEach(el => { el.style.opacity = ""; });
+    }
+  }
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", reposition);
+  }
+  inputs.forEach(input => {
+    input.addEventListener("touchstart", () => {
+      clearTimeout(releaseTimer);
+      input.style.opacity = "0";
+      input.focus();
+      // 혹시 visualViewport resize가 안 걸리는 경우 대비 안전망
+      releaseTimer = setTimeout(() => { input.style.opacity = ""; }, 1000);
+    });
+    input.addEventListener("blur", () => {
+      clearTimeout(releaseTimer);
+      releaseTimer = setTimeout(() => {
+        if (!inputs.includes(document.activeElement)) {
+          inputs.forEach(el => { el.style.opacity = ""; });
+          bar.style.bottom = "";
+        }
+      }, 0);
+    });
+  });
+}
+setupPillBarKeyboardFix(
+  document.getElementById("recordFloatBarTab2"),
+  [document.getElementById("recordWeight"), document.getElementById("recordReps")]
+);
+setupPillBarKeyboardFix(
+  document.getElementById("recordFloatBarAcc"),
+  [document.getElementById("acc-weight"), document.getElementById("acc-reps")]
+);
+setupPillBarKeyboardFix(
+  document.getElementById("myRoutineRevealInputBar"),
+  [document.getElementById("myRoutineRevealInputWeight"), document.getElementById("myRoutineRevealInputReps")]
+);
 
 /* ===============================
    🔥 홈 설정 — 설정 > 일반 최상단
