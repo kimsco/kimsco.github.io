@@ -10327,7 +10327,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.77";
+const APP_VERSION = "0.9.78";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -14387,6 +14387,15 @@ const myRoutineRevealScreen = document.getElementById("myRoutineRevealScreen");
 //    navDrawerOverlay 때와 같은 문제라 body 바로 밑으로 옮겨서 확실히 격리시킴.
 document.body.appendChild(myRoutineRevealOverlay);
 document.body.appendChild(myRoutineBannerOverlay);
+// 🔥 "루틴 만들기"의 저장위치 선택 팝업(myRoutineBuilderNameModal)이 이 이동 작업에서
+//    빠져있었음 — .container > .app 안에 그대로 남아있어서, 다른 myRoutine* 화면들과
+//    달리 .app에 transform이 걸려있는 동안엔 열어도 화면에 안 뜨고(위치 기준이
+//    뷰포트가 아니라 .app으로 바뀌어버려서), 그 화면을 벗어나 .app 상태가 바뀔 때가
+//    되어서야 뒤늦게 나타나는 것으로 실기기에서 확인됨(GPU 레이어 승격/touchend 전환
+//    등 다른 시도로는 안 고쳐졌던 이유 — 애초에 원인이 그게 아니었음).
+//    같은 구조의 routineSaveModal(오늘의 운동 저장 팝업)도 동일한 문제가 있어 같이 이동.
+document.body.appendChild(document.getElementById('myRoutineBuilderNameModal'));
+document.body.appendChild(document.getElementById('routineSaveModal'));
 
 function openMyRoutineRevealScreen(partKey){
   const partInfo = MY_ROUTINE_PARTS.find(p => p.key === partKey);
