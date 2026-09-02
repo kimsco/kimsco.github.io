@@ -141,6 +141,20 @@ html.keyboardOpen body {
     width: 100% !important;
     overflow: hidden !important;
 }
+/* 🔥 [실기기 영상으로 확인] 알약바 입력창에 포커스가 가는 순간 iOS가 뷰포트를
+   조정하면서 body가 잠깐(약 0.2~0.3초) 화면 거의 바닥까지 훅 내려갔다가 다시
+   위로 미끄러져 올라오는 튐 현상이 있음 — visualViewport.offsetTop이 순간적으로
+   커졌다가 저절로 0으로 돌아오는 native 전환 과정인 것으로 추정되고, 이건
+   읽기전용 값이라 JS로 직접 막을 수 없음. 대신 이 짧은 전환 구간 동안만 body를
+   투명하게 가려서, 안 보이는 곳에서 자리를 잡은 뒤 제자리에서 자연스럽게
+   나타나도록 함(자리가 안 잡힌 채로 훅 튀는 모습 자체를 안 보이게) */
+html.keyboardOpenFixedInput:not(.keyboardSettled) body {
+    opacity: 0 !important;
+}
+html.keyboardOpenFixedInput.keyboardSettled body {
+    opacity: 1;
+    transition: opacity 0.15s ease-out;
+}
 /* 🔥 [재시도] 언픽스 방식(#519~#522)이 화면 전체 밀림은 확실히 잡았지만 알약바
    자체가 키보드 뒤에 숨는 문제를 끝내 못 고쳐서, 사용자 제안으로 원래 방식
    (position:fixed 유지 + 키보드 높이만큼 bottom 직접 계산해서 화면 바닥으로
@@ -10471,7 +10485,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.50";
+const APP_VERSION = "0.9.51";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -19157,12 +19171,28 @@ if (window.visualViewport) {
     el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable
   );
   let releaseTimer = null;
+  /* 🔥 [실기기 영상으로 확인] 알약바 입력창에 처음 포커스가 가는 순간 body가 잠깐
+     화면 바닥까지 튀었다가 되돌아오는 전환 구간(약 0.2~0.3초)이 있어서, 그동안만
+     위 CSS(html.keyboardOpenFixedInput:not(.keyboardSettled) body)로 body를
+     투명하게 가려둠 — 이 타이머가 끝나면 keyboardSettled를 걸어서 자리잡은
+     채로 자연스럽게 드러나게 함. 같은 알약바 안에서 kg→회처럼 입력창만
+     옮겨갈 땐(이미 자리 다 잡은 상태) 다시 가릴 필요 없으므로, 알약바 포커스가
+     "새로" 시작될 때만(기존에 keyboardOpenFixedInput이 없었을 때만) 타이머를 검 */
+  let settleTimer = null;
   document.addEventListener("focusin", e => {
     if (!isTextEntryEl(e.target)) return;
     clearTimeout(releaseTimer);
     document.documentElement.classList.add("keyboardOpen");
     if (e.target.closest(".recordFloatBar")) {
+      const alreadyOpen = document.documentElement.classList.contains("keyboardOpenFixedInput");
       document.documentElement.classList.add("keyboardOpenFixedInput");
+      if (!alreadyOpen) {
+        document.documentElement.classList.remove("keyboardSettled");
+        clearTimeout(settleTimer);
+        settleTimer = setTimeout(() => {
+          document.documentElement.classList.add("keyboardSettled");
+        }, 320);
+      }
     }
   });
   document.addEventListener("focusout", () => {
@@ -19171,6 +19201,8 @@ if (window.visualViewport) {
       if (!isTextEntryEl(document.activeElement)) {
         document.documentElement.classList.remove("keyboardOpen");
         document.documentElement.classList.remove("keyboardOpenFixedInput");
+        document.documentElement.classList.remove("keyboardSettled");
+        clearTimeout(settleTimer);
       }
     }, 0);
   });
