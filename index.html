@@ -10471,7 +10471,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.52";
+const APP_VERSION = "0.9.53";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -19202,24 +19202,32 @@ if (window.visualViewport) {
 
   let recording = false;
   document.addEventListener("focusin", e => {
-    if (!(e.target && e.target.closest && e.target.closest(".recordFloatBar"))) return;
+    const barEl = e.target && e.target.closest && e.target.closest(".recordFloatBar");
+    if (!barEl) return;
     if (recording) return;
     recording = true;
     hud.style.display = "block";
     const vv = window.visualViewport;
     const topBarEl2 = document.querySelector(".topBar");
+    const appEl = document.querySelector(".app");
+    const bottomTabEl2 = document.querySelector(".bottomTab");
+    const benchBoxEl = document.getElementById("benchBox");
     const t0 = performance.now();
     const lines = [];
     let frameCount = 0;
     const sample = () => {
       frameCount++;
       const t = (performance.now() - t0).toFixed(0);
-      if (frameCount % 2 === 0) { // 2프레임에 1번만 기록 — 타임라인을 화면에 다 담기 위한 압축
+      if (frameCount % 3 === 0) { // 3프레임에 1번만 기록 — 필드가 늘어서 2줄씩 찍히니 압축률을 더 높임
         const tbTop = topBarEl2 ? topBarEl2.getBoundingClientRect().top.toFixed(0) : "?";
         const bodyTop = document.body.getBoundingClientRect().top.toFixed(0);
         const vvOff = vv ? vv.offsetTop.toFixed(0) : "?";
         const vvH = vv ? vv.height.toFixed(0) : "?";
-        lines.push(`t=${t}ms tb=${tbTop} body=${bodyTop} vvOff=${vvOff} vvH=${vvH} innerH=${window.innerHeight}`);
+        const appRect = appEl ? appEl.getBoundingClientRect() : null;
+        const barRect = barEl.getBoundingClientRect();
+        const btRect = bottomTabEl2 ? bottomTabEl2.getBoundingClientRect() : null;
+        lines.push(`t=${t}ms tb=${tbTop} bd=${bodyTop} vvOf=${vvOff} vvH=${vvH} iH=${window.innerHeight}`);
+        lines.push(`  app=${appRect ? appRect.top.toFixed(0)+"/"+appRect.height.toFixed(0) : "?"} bar=${barRect.top.toFixed(0)} bt=${btRect ? btRect.top.toFixed(0) : "?"} appScr=${appEl ? appEl.scrollTop : "?"} bbScr=${benchBoxEl ? benchBoxEl.scrollTop : "?"}`);
         hud.textContent = lines.join("\n");
       }
       if (Number(t) < 600) {
