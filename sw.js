@@ -1,4 +1,4 @@
-const CACHE = "mf-v22"; // 🔥 [실험] 부팅 스플래시 & apple-touch-startup-image에 로고 다시 적용(회색 번쩍임은 로고 유무와 무관한 iOS 시스템 레벨 오버레이로 최종 확인됨 — 실기기 영상에서 상태바까지 같이 밝아지는 것으로 확정) — 캐시 이름을 다시 올려서 새로 받아오게 함
+const CACHE = "mf-v23"; // 🔥 앱 로고를 새 TTT 로고로 교체(icon-192/512, apple-touch-icon, splash 전체) — 캐시 이름을 다시 올려서 새로 받아오게 함
 const ASSETS = [
   "/",
   "/index.html",
