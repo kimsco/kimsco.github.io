@@ -43,7 +43,7 @@ try {
 <link rel="apple-touch-startup-image" href="/icons/splash/750x1334.png" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
 <link rel="apple-touch-startup-image" href="/icons/splash/640x1136.png" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content"/>
 <title>TTT</title>
 <!-- 🔥 맨몸운동 페이지 제목용 명조체(나눔명조) — 시스템 폰트로는 기기마다 없을 수 있어 웹폰트로 확실히 로드 -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -118,13 +118,12 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
 }
 
-/* 🔥 [재시도 — #518 조합 그대로] 1RM 계산기 / 3대 PR 화면 입력창 포커스 시 body를
-   position:fixed로 고정 — 이 방식 자체(+ 안쪽 스크롤 div 잠금)는 예전 실기기
-   영상(#522 분석 당시, #518부터 이미 이 조합이 적용된 상태였음)에서 스프링 없이
-   잘 동작했던 걸로 재확인됨. 그때는 없었던 "스크롤 강제 리셋" 방어(#528, 나중에
-   추가됨)를 이번엔 같이 넣지 않음 — 그 방어 코드 자체가 오히려 불필요한 순간
-   보정을 일으켜 스프링처럼 보이게 했을 가능성이 있어서, 이번엔 순수하게 position:
-   fixed 잠금만으로 재시도 */
+/* 🔥 1RM 계산기 / 3대 PR 화면 입력창 포커스 시 body를 position:fixed로 고정.
+   과거 알약바 사가(#524)에서 이미 확인된 대로, position:fixed 잠금 단독으로는
+   iOS가 페이지 자체를 네이티브로 패닝하는 걸 못 막음 — viewport meta의
+   interactive-widget=resizes-content(아래 <meta name="viewport">에 추가됨)와
+   함께 있어야 키보드가 뜰 때 패닝 대신 innerHeight 자체가 줄어들어 이 잠금이
+   의미가 있어짐 */
 html.overlayKeyboardOpen body {
     position: fixed !important;
     inset: 0 !important;
@@ -10440,7 +10439,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.62";
+const APP_VERSION = "0.9.63";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -12948,9 +12947,8 @@ document.getElementById("navOneRMCalcBtn").addEventListener("click", () => {
   openOneRMCalc();
 });
 
-/* 🔥 [재시도 — #518 조합 그대로, 스크롤 강제 리셋은 뺌] 위 CSS(html.overlayKeyboardOpen
-   body)의 position:fixed 잠금과 짝을 맞춰서, 포커스가 가있는 동안 안쪽 스크롤 div도
-   같이 잠금(#516/#517의 .app/.folderContent 잠금과 동일한 역할) */
+/* 🔥 위 CSS(html.overlayKeyboardOpen body)의 position:fixed 잠금과 짝을 맞춰서,
+   포커스가 가있는 동안 안쪽 스크롤 div도 같이 잠금 */
 (function(){
   const isTextEntryEl = el => !!el && (
     el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.tagName === "SELECT"
