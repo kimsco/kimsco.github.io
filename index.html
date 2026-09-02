@@ -13007,7 +13007,14 @@ function setupPillBarKeyboardFix(bar, inputs) {
   inputs = inputs.filter(Boolean);
   if (!bar || !inputs.length) return;
   let releaseTimer = null;
+  let isActive = false; // 이 바의 입력창이 실제로 포커스 중일 때만 true
   function reposition() {
+    // 🔥 이 바와 무관한 다른 화면(1RM 계산기 등)에서 키보드가 열려도
+    // window.visualViewport resize는 전역으로 걸려서 이 함수가 호출됨 —
+    // isActive 체크 없이 그냥 실행하면, 지금 안 쓰이는 바에도 bottom이
+    // 박혀서 나중에 그 탭에 다시 들어갔을 때 알약바가 계속 떠있는 채로
+    // 보이는 문제가 생김. 이 바의 입력창이 실제로 포커스 중일 때만 반영.
+    if (!isActive) return;
     const vv = window.visualViewport;
     const keyboardHeight = Math.max(0, window.innerHeight - (vv ? vv.height : window.innerHeight));
     if (keyboardHeight > 80) {
@@ -13021,6 +13028,7 @@ function setupPillBarKeyboardFix(bar, inputs) {
   inputs.forEach(input => {
     input.addEventListener("touchstart", () => {
       clearTimeout(releaseTimer);
+      isActive = true;
       input.style.opacity = "0";
       input.focus();
       // 혹시 visualViewport resize가 안 걸리는 경우 대비 안전망
@@ -13030,6 +13038,7 @@ function setupPillBarKeyboardFix(bar, inputs) {
       clearTimeout(releaseTimer);
       releaseTimer = setTimeout(() => {
         if (!inputs.includes(document.activeElement)) {
+          isActive = false;
           inputs.forEach(el => { el.style.opacity = ""; });
           bar.style.bottom = "";
         }
