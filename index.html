@@ -10427,7 +10427,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.71";
+const APP_VERSION = "0.9.72";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -13031,8 +13031,17 @@ function setupPillBarKeyboardFix(bar, inputs) {
       isActive = true;
       input.style.opacity = "0";
       input.focus();
-      // 혹시 visualViewport resize가 안 걸리는 경우 대비 안전망
-      releaseTimer = setTimeout(() => { input.style.opacity = ""; }, 1000);
+      // 🔥 kg→회처럼 같은 바 안에서 입력창만 옮겨갈 땐 키보드 높이가 이미
+      // 그대로라 visualViewport resize 이벤트 자체가 안 걸림(reposition()이
+      // 안 불림) — 그래서 opacity 복원이 아래 1초 안전망에만 의존하게 돼서
+      // "회 버튼이 한동안 사라졌다 나타나는" 것처럼 느껴졌음. 터치 시점에
+      // 키보드가 이미 열려있는지 직접 확인해서, 이미 열려있으면 훨씬 짧은
+      // 지연으로 바로 복원 — 키보드가 새로 열리는 중일 때만 (resize
+      // 이벤트가 못 걸리는 경우를 대비한) 원래의 넉넉한 안전망을 유지.
+      const vv = window.visualViewport;
+      const currentKeyboardHeight = vv ? Math.max(0, window.innerHeight - vv.height) : 0;
+      const keyboardAlreadyOpen = currentKeyboardHeight > 80;
+      releaseTimer = setTimeout(() => { input.style.opacity = ""; }, keyboardAlreadyOpen ? 80 : 1000);
     });
     input.addEventListener("blur", () => {
       clearTimeout(releaseTimer);
