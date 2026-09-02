@@ -10471,7 +10471,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.47";
+const APP_VERSION = "0.9.48";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -19179,6 +19179,7 @@ if (window.visualViewport) {
       `innerH=${window.innerHeight} vvH=${vv ? vv.height.toFixed(1) : "?"} vvOffTop=${vv ? vv.offsetTop.toFixed(1) : "?"} kbH=${kbH.toFixed ? kbH.toFixed(1) : kbH}`,
       `html.class=${document.documentElement.className}`,
       `body pos=${getComputedStyle(document.body).position} rectTop=${document.body.getBoundingClientRect().top.toFixed(1)}`,
+      `html scrollTop=${document.documentElement.scrollTop} scrollLeft=${document.documentElement.scrollLeft} window.scrollY=${window.scrollY}`,
       `topBar rectTop=${topBarEl2 ? topBarEl2.getBoundingClientRect().top.toFixed(1) : "?"}`,
       `.app overflowY=${appEl ? getComputedStyle(appEl).overflowY : "?"} scrollTop=${appEl ? appEl.scrollTop : "?"}`,
       `bar inlineBottom=${barEl ? JSON.stringify(barEl.style.bottom) : "?"} rectTop=${barEl ? barEl.getBoundingClientRect().top.toFixed(1) : "?"} rectBottom=${barEl ? barEl.getBoundingClientRect().bottom.toFixed(1) : "?"}`,
@@ -19225,6 +19226,30 @@ if (window.visualViewport) {
       }
     }, 0);
   });
+})();
+
+/* 🔥 [임시 디버그 — 실기기 HUD 수치로 확인 후 추가] 디버그 HUD로 실제 수치를 찍어보니
+   interactive-widget=resizes-content는 정상 작동해서 window.innerHeight 자체는 키보드
+   높이만큼 줄어들었는데(예: 441), visualViewport.offsetTop이 0이 아니라 356처럼 큰 값으로
+   나왔고, position:fixed로 잠가둔 body/topBar의 getBoundingClientRect().top이 정확히
+   그만큼(-356) 화면 위로 밀려나 있었음 — 즉 html.keyboardOpen으로 overflow-y:hidden을
+   걸어놨는데도 여전히 문서 자체가 그만큼 스크롤되려는 시도가 남아있고, overflow:hidden은
+   "사용자가 손으로 스크롤하는 것"만 막을 뿐 프로그램적으로 scrollTop이 바뀌는 것 자체는
+   못 막는다는 뜻으로 추정됨(iOS가 포커스된 입력창을 보이게 하려고 여전히 html/body를
+   스크롤시키는 시도). 그 스크롤이 실제로 걸리는 순간 바로 0으로 되돌려서 방어 */
+(function(){
+  const resetScrollIfKeyboardOpen = () => {
+    if (!document.documentElement.classList.contains("keyboardOpen")) return;
+    if (document.documentElement.scrollTop !== 0 || document.documentElement.scrollLeft !== 0) {
+      document.documentElement.scrollTop = 0;
+      document.documentElement.scrollLeft = 0;
+    }
+    if (window.scrollY !== 0 || window.scrollX !== 0) {
+      window.scrollTo(0, 0);
+    }
+  };
+  document.addEventListener("scroll", resetScrollIfKeyboardOpen, true);
+  window.addEventListener("scroll", resetScrollIfKeyboardOpen, true);
 })();
 
 document.getElementById("mySpecMenuBtn").addEventListener("click", () => {
