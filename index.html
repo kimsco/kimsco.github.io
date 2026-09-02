@@ -810,7 +810,11 @@ button {
   width: auto;
   min-width: 0;
   height: 100%;
+  max-height: 100%;
   line-height: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  border-radius: 0;
   background: none;
   border: none;
   outline: none;
@@ -10371,7 +10375,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.87";
+const APP_VERSION = "0.9.88";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
