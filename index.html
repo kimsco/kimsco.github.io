@@ -118,6 +118,20 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
 }
 
+/* 🔥 [재시도 — #518 조합 그대로] 1RM 계산기 / 3대 PR 화면 입력창 포커스 시 body를
+   position:fixed로 고정 — 이 방식 자체(+ 안쪽 스크롤 div 잠금)는 예전 실기기
+   영상(#522 분석 당시, #518부터 이미 이 조합이 적용된 상태였음)에서 스프링 없이
+   잘 동작했던 걸로 재확인됨. 그때는 없었던 "스크롤 강제 리셋" 방어(#528, 나중에
+   추가됨)를 이번엔 같이 넣지 않음 — 그 방어 코드 자체가 오히려 불필요한 순간
+   보정을 일으켜 스프링처럼 보이게 했을 가능성이 있어서, 이번엔 순수하게 position:
+   fixed 잠금만으로 재시도 */
+html.overlayKeyboardOpen body {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100% !important;
+    overflow: hidden !important;
+}
+
 .app{
   width: 390px;
   height: 100vh;
@@ -10426,7 +10440,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.61";
+const APP_VERSION = "0.9.62";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -12933,6 +12947,38 @@ document.getElementById("navOneRMCalcBtn").addEventListener("click", () => {
   closeNavDrawerInstant();
   openOneRMCalc();
 });
+
+/* 🔥 [재시도 — #518 조합 그대로, 스크롤 강제 리셋은 뺌] 위 CSS(html.overlayKeyboardOpen
+   body)의 position:fixed 잠금과 짝을 맞춰서, 포커스가 가있는 동안 안쪽 스크롤 div도
+   같이 잠금(#516/#517의 .app/.folderContent 잠금과 동일한 역할) */
+(function(){
+  const isTextEntryEl = el => !!el && (
+    el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.tagName === "SELECT"
+  );
+  const LOCK_SELECTOR = "#oneRMCalcOverlay, #threeSummaryOverlay";
+  const innerBodies = [
+    document.getElementById("oneRMCalcBody"),
+    document.getElementById("threeSummaryBody"),
+  ].filter(Boolean);
+  let releaseTimer = null;
+  document.addEventListener("focusin", e => {
+    if (!isTextEntryEl(e.target)) return;
+    if (!e.target.closest(LOCK_SELECTOR)) return;
+    clearTimeout(releaseTimer);
+    document.documentElement.classList.add("overlayKeyboardOpen");
+    innerBodies.forEach(el => { el.style.overflowY = "hidden"; });
+  });
+  document.addEventListener("focusout", e => {
+    if (!e.target.closest || !e.target.closest(LOCK_SELECTOR)) return;
+    clearTimeout(releaseTimer);
+    releaseTimer = setTimeout(() => {
+      if (!document.activeElement || !document.activeElement.closest || !document.activeElement.closest(LOCK_SELECTOR)) {
+        document.documentElement.classList.remove("overlayKeyboardOpen");
+        innerBodies.forEach(el => { el.style.overflowY = "auto"; });
+      }
+    }, 0);
+  });
+})();
 
 /* ===============================
    🔥 홈 설정 — 설정 > 일반 최상단
