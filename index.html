@@ -10445,7 +10445,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.64";
+const APP_VERSION = "0.9.65";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -12953,24 +12953,28 @@ document.getElementById("navOneRMCalcBtn").addEventListener("click", () => {
   openOneRMCalc();
 });
 
-/* 🔥 위 CSS(html.overlayKeyboardOpen body)의 position:fixed 잠금과 짝을 맞춰서,
-   포커스가 가있는 동안 안쪽 스크롤 div도 같이 잠금 */
+/* 🔥 위 CSS(html.overlayKeyboardOpen / html.overlayKeyboardOpen body)의 html+body
+   잠금과 정확히 같은 조합 — 실제 pill바(#recordFloatBar) 성공 사례(당시 라이브
+   커밋 0ec11ed)를 다시 뜯어보니, .app(안쪽 스크롤 컨테이너) 자체는 전혀 잠그지
+   않고 그대로 overflow-y:auto로 남겨뒀었음. html/body만 잠가서 iOS의 "페이지
+   전체를 네이티브로 밀어버리는" 동작만 막고, 포커스된 입력창을 실제로 보여주는
+   건 그 안쪽 스크롤 컨테이너의 정상적인 자체 스크롤에 맡긴 것.
+   이전 버전(v0.9.62~64)은 여기서 #oneRMCalcBody/#threeSummaryBody까지 같이
+   overflow-y:hidden으로 잠갔는데, 그러면 iOS가 스크롤할 수 있는 대상이 하나도
+   안 남아서(html도 잠김, body도 잠김, 안쪽 div도 잠김) 오히려 CSS로 못 막는
+   네이티브 패닝으로 넘어가버렸을 가능성이 있음 — pill바 성공 조합과 똑같이
+   안쪽 div는 그대로 스크롤 가능하게 남겨둠 */
 (function(){
   const isTextEntryEl = el => !!el && (
     el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.tagName === "SELECT"
   );
   const LOCK_SELECTOR = "#oneRMCalcOverlay, #threeSummaryOverlay";
-  const innerBodies = [
-    document.getElementById("oneRMCalcBody"),
-    document.getElementById("threeSummaryBody"),
-  ].filter(Boolean);
   let releaseTimer = null;
   document.addEventListener("focusin", e => {
     if (!isTextEntryEl(e.target)) return;
     if (!e.target.closest(LOCK_SELECTOR)) return;
     clearTimeout(releaseTimer);
     document.documentElement.classList.add("overlayKeyboardOpen");
-    innerBodies.forEach(el => { el.style.overflowY = "hidden"; });
   });
   document.addEventListener("focusout", e => {
     if (!e.target.closest || !e.target.closest(LOCK_SELECTOR)) return;
@@ -12978,7 +12982,6 @@ document.getElementById("navOneRMCalcBtn").addEventListener("click", () => {
     releaseTimer = setTimeout(() => {
       if (!document.activeElement || !document.activeElement.closest || !document.activeElement.closest(LOCK_SELECTOR)) {
         document.documentElement.classList.remove("overlayKeyboardOpen");
-        innerBodies.forEach(el => { el.style.overflowY = "auto"; });
       }
     }, 0);
   });
