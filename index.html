@@ -4418,10 +4418,13 @@ html.light-mode-on .settings-row + .settings-row {
 .modal-box{
   width: 86%;
   max-width: 340px;
+  max-height: 80vh;
   background: #1a1a1a;
   border-radius: 16px;
   overflow: hidden;
   border: 1px solid rgba(255,255,255,0.08);
+  display: flex;
+  flex-direction: column;
 }
 
 .modal-title{
@@ -4429,6 +4432,7 @@ html.light-mode-on .settings-row + .settings-row {
   font-size: 16px;
   font-weight: 800;
   text-align: center;
+  flex-shrink: 0;
 }
 
 .modal-desc{
@@ -4444,6 +4448,7 @@ html.light-mode-on .settings-row + .settings-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   border-top: 1px solid rgba(255,255,255,0.08);
+  flex-shrink: 0;
 }
 
 .modal-btn{
@@ -6436,6 +6441,8 @@ html.light-mode-on .diet-food-db-search {
 /* 식단 템플릿 추가 모달 폼 */
 .food-modal-form {
   padding: 14px 16px 16px;
+  overflow-y: auto;
+  min-height: 0;
 }
 .food-modal-form input {
   width: 100%;
@@ -10426,7 +10433,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.56";
+const APP_VERSION = "0.9.57";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -12958,6 +12965,35 @@ document.getElementById("navOneRMCalcBtn").addEventListener("click", () => {
     releaseTimer = setTimeout(() => {
       if (!document.activeElement || !document.activeElement.closest || !document.activeElement.closest("#oneRMCalcOverlay")) {
         oneRMCalcBody.style.overflowY = "auto";
+      }
+    }, 0);
+  });
+})();
+
+/* 🔥 식단 탭의 "오늘 먹은 것 추가" 등 팝업(.modal)들은 .modal-box가 스크롤 컨테이너가
+   아니라 그냥 화면 중앙에 뜬 카드라서, 안쪽 입력창에 포커스가 가면 iOS가 스크롤
+   가능한 조상을 못 찾고 body까지 올라가서 배경(.app)까지 같이 스크롤시켜버림 —
+   위에서 .modal-box에 max-height+flex, .food-modal-form에 overflow-y:auto를
+   추가해서 팝업 카드 자체가 스크롤 가능한 대상이 되도록 만들어뒀으니, 포커스가
+   가있는 동안 body 쪽 스크롤만 잠가서 iOS가 그 안쪽(팝업 카드)만 쓰게 하고
+   배경은 고정되게 함 */
+(function(){
+  const isTextEntryEl = el => !!el && (
+    el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable
+  );
+  let releaseTimer = null;
+  document.addEventListener("focusin", e => {
+    if (!isTextEntryEl(e.target)) return;
+    if (!e.target.closest(".modal")) return;
+    clearTimeout(releaseTimer);
+    document.body.style.overflowY = "hidden";
+  });
+  document.addEventListener("focusout", e => {
+    if (!e.target.closest || !e.target.closest(".modal")) return;
+    clearTimeout(releaseTimer);
+    releaseTimer = setTimeout(() => {
+      if (!document.activeElement || !document.activeElement.closest || !document.activeElement.closest(".modal")) {
+        document.body.style.overflowY = "";
       }
     }, 0);
   });
