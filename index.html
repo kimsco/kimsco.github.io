@@ -10471,7 +10471,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.48";
+const APP_VERSION = "0.9.49";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -19132,6 +19132,18 @@ if (window.visualViewport) {
   };
   vv.addEventListener("resize", adjustFloatBarsForKeyboard);
   vv.addEventListener("scroll", adjustFloatBarsForKeyboard);
+  /* 🔥 [실기기 HUD로 확인] vv resize/scroll 이벤트만 믿고 있었더니, window.innerHeight
+     자체가 (예: 441 → 797로) 흔들리는 순간들이 있어서 그 이벤트가 발생한 시점에 마침
+     innerHeight가 아직 안 줄어든 상태였으면 keyboardHeight를 0으로 잘못 계산해서
+     알약바 위치가 원상복구돼버리는 문제가 있었음(HUD의 kbH는 356인데 알약바
+     inlineBottom은 빈 값으로 찍힌 게 이 불일치의 증거) — focusin 시점과 250ms
+     간격으로도 계속 재계산해서 값이 안정될 때까지 계속 따라가게 함 */
+  document.addEventListener("focusin", e => {
+    if (e.target && e.target.closest && e.target.closest(".recordFloatBar")) {
+      adjustFloatBarsForKeyboard();
+    }
+  });
+  setInterval(adjustFloatBarsForKeyboard, 250);
 }
 
 /* 🔥 [임시 디버그용 — 원인 확인되면 반드시 제거] 실기기 영상만으로는 몇 번을 다시 시도해도
