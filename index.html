@@ -43,7 +43,7 @@ try {
 <link rel="apple-touch-startup-image" href="/icons/splash/750x1334.png" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
 <link rel="apple-touch-startup-image" href="/icons/splash/640x1136.png" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content"/>
 <title>TTT</title>
 <!-- 🔥 맨몸운동 페이지 제목용 명조체(나눔명조) — 시스템 폰트로는 기기마다 없을 수 있어 웹폰트로 확실히 로드 -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -118,15 +118,17 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
 }
 
-/* 🔥 1RM 계산기 / 3대 PR 화면 입력창 포커스 시 화면 고정 — 사용자가 보내준 실기기
-   영상(당시 라이브 커밋 0ec11ed, PR #521) 코드를 직접 꺼내서 확인한 정확한 조합.
-   body만 position:fixed로 잠그는 걸로는 부족함 — html(documentElement) 자체가
-   여전히 스크롤 가능한 상태로 남아있으면(위 #362 관련 규칙 때문에 기본적으로
-   그러함), iOS가 body 대신 html을 스크롤 대상으로 찾아 밀어올림. 그 영상에서
-   실제로 스프링 없이 잘 동작했던 조합은 html/body 둘 다 잠그는 것 — html은
-   overflow-y:hidden, body는 position:fixed. interactive-widget=resizes-content나
-   스크롤 강제 리셋 방어는 그 영상 당시엔 없었고(둘 다 이후에 추가됐다가 결국
-   전부 되돌려짐), 이 html+body 조합만으로 충분했음 */
+/* 🔥 1RM 계산기 / 3대 PR 화면 입력창 포커스 시 화면 고정.
+   v0.9.65(html+body 잠금만, 안쪽 div는 자유 스크롤)는 사용자 확인 결과
+   "부드럽게 위로 쉬프트" — 네이티브 패닝/스프링은 아니고, 안쪽 스크롤 div
+   (#oneRMCalcBody/#threeSummaryBody) 자체의 정상적인 스크롤이었음. 근데 이
+   화면은 그 div가 사실상 화면 전체라 "안 움직는 기준점"이 없어서, 정상
+   스크롤이어도 사용자한텐 "화면이 움직인다"로 보임 — pill바 때 .app 스크롤이
+   눈에 안 띄었던 것과 다른 점.
+   그래서 알약바 사가에서 최종적으로 안정화됐던 전체 조합(#524+#528)을 여기도
+   적용 — html+body 잠금에 더해: 안쪽 div도 같이 잠그고(#516/#517 역할),
+   viewport meta에 interactive-widget=resizes-content 추가(#524), 포커스
+   중 스크롤이 새면 즉시 0으로 되돌리는 방어(#528)까지 같이 넣음 */
 html.overlayKeyboardOpen {
     overflow-y: hidden !important;
 }
@@ -10445,7 +10447,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.65";
+const APP_VERSION = "0.9.66";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -12953,28 +12955,39 @@ document.getElementById("navOneRMCalcBtn").addEventListener("click", () => {
   openOneRMCalc();
 });
 
-/* 🔥 위 CSS(html.overlayKeyboardOpen / html.overlayKeyboardOpen body)의 html+body
-   잠금과 정확히 같은 조합 — 실제 pill바(#recordFloatBar) 성공 사례(당시 라이브
-   커밋 0ec11ed)를 다시 뜯어보니, .app(안쪽 스크롤 컨테이너) 자체는 전혀 잠그지
-   않고 그대로 overflow-y:auto로 남겨뒀었음. html/body만 잠가서 iOS의 "페이지
-   전체를 네이티브로 밀어버리는" 동작만 막고, 포커스된 입력창을 실제로 보여주는
-   건 그 안쪽 스크롤 컨테이너의 정상적인 자체 스크롤에 맡긴 것.
-   이전 버전(v0.9.62~64)은 여기서 #oneRMCalcBody/#threeSummaryBody까지 같이
-   overflow-y:hidden으로 잠갔는데, 그러면 iOS가 스크롤할 수 있는 대상이 하나도
-   안 남아서(html도 잠김, body도 잠김, 안쪽 div도 잠김) 오히려 CSS로 못 막는
-   네이티브 패닝으로 넘어가버렸을 가능성이 있음 — pill바 성공 조합과 똑같이
-   안쪽 div는 그대로 스크롤 가능하게 남겨둠 */
+/* 🔥 1RM 계산기 / 3대 PR — v0.9.65(html+body만 잠금, 안쪽 div는 자유 스크롤)는
+   사용자 확인 결과 "부드럽게 위로 쉬프트"였음 — 네이티브 패닝이 아니라 안쪽
+   스크롤 div(#oneRMCalcBody/#threeSummaryBody) 자체의 정상 스크롤. 근데 이
+   화면들은 그 div가 사실상 화면 전체라, pill바 때(.app 스크롤이 눈에 잘 안
+   띔)와 달리 정상 스크롤이어도 사용자한텐 "화면이 움직인다"로 보임.
+   그래서 알약바 사가에서 최종 안정화됐던 전체 조합을 재적용 — 안쪽 div도
+   같이 잠그고(#516/#517), 포커스 중 스크롤이 새면 즉시 0으로 되돌리는 방어
+   (#528)까지 같이 넣음. viewport meta의 interactive-widget=resizes-content
+   (#524)와 짝을 맞춰야 함 */
 (function(){
   const isTextEntryEl = el => !!el && (
     el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.tagName === "SELECT"
   );
   const LOCK_SELECTOR = "#oneRMCalcOverlay, #threeSummaryOverlay";
+  const innerBodies = [
+    document.getElementById("oneRMCalcBody"),
+    document.getElementById("threeSummaryBody"),
+  ].filter(Boolean);
   let releaseTimer = null;
+  function resetScrollWhileLocked() {
+    if (!document.documentElement.classList.contains("overlayKeyboardOpen")) return;
+    if (document.documentElement.scrollTop) document.documentElement.scrollTop = 0;
+    if (document.documentElement.scrollLeft) document.documentElement.scrollLeft = 0;
+    if (window.scrollY) window.scrollTo(0, 0);
+  }
+  document.addEventListener("scroll", resetScrollWhileLocked, true);
+  window.addEventListener("scroll", resetScrollWhileLocked, true);
   document.addEventListener("focusin", e => {
     if (!isTextEntryEl(e.target)) return;
     if (!e.target.closest(LOCK_SELECTOR)) return;
     clearTimeout(releaseTimer);
     document.documentElement.classList.add("overlayKeyboardOpen");
+    innerBodies.forEach(el => { el.style.overflowY = "hidden"; });
   });
   document.addEventListener("focusout", e => {
     if (!e.target.closest || !e.target.closest(LOCK_SELECTOR)) return;
@@ -12982,6 +12995,7 @@ document.getElementById("navOneRMCalcBtn").addEventListener("click", () => {
     releaseTimer = setTimeout(() => {
       if (!document.activeElement || !document.activeElement.closest || !document.activeElement.closest(LOCK_SELECTOR)) {
         document.documentElement.classList.remove("overlayKeyboardOpen");
+        innerBodies.forEach(el => { el.style.overflowY = "auto"; });
       }
     }, 0);
   });
