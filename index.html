@@ -375,9 +375,14 @@ button {
   border: 1px solid rgba(255,255,255,0.14);
 
   transform-origin: center bottom;
+  /* 🔥 [수정] bottom은 더 이상 CSS transition에 맡기지 않음 — 실기기 영상
+     프레임 분석 결과 키보드가 열릴 때 visualViewport resize 이벤트가 딱
+     한 번, 그것도 키보드 애니메이션이 다 끝난 뒤에야 발생해서, 그 시점에
+     bottom을 바꿔도 CSS transition이 전혀 재생되지 않고 단 1프레임 만에
+     순간이동하는 것으로 확인됨. bottom은 이제 JS의 requestAnimationFrame
+     으로 직접 애니메이션함(아래 animateBarBottom 참고). */
   transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
-              opacity 0.28s cubic-bezier(0.22, 1, 0.36, 1),
-              bottom 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+              opacity 0.28s cubic-bezier(0.22, 1, 0.36, 1);
 }
 /* 🔥 스크롤 다운: 알약이 살짝 작아지고 옅어짐 / 스크롤 업: 원래대로 */
 .recordFloatBar.collapsed {
@@ -10427,7 +10432,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.73";
+const APP_VERSION = "0.9.74";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -13014,6 +13019,27 @@ function setupPillBarKeyboardFix(bar, inputs) {
   if (!bar || !inputs.length) return;
   let releaseTimer = null;
   let isActive = false; // 이 바의 입력창이 실제로 포커스 중일 때만 true
+  let animFrame = null;
+  // 🔥 원래 static이던 resting bottom 값 — 나중에 여기로 다시 애니메이션하며 복귀
+  const restBottomPx = parseFloat(getComputedStyle(bar).bottom) || 0;
+  function animateBottom(targetPx) {
+    if (animFrame) cancelAnimationFrame(animFrame);
+    const startPx = parseFloat(getComputedStyle(bar).bottom) || 0;
+    if (Math.abs(startPx - targetPx) < 1) {
+      bar.style.bottom = targetPx + "px";
+      animFrame = null;
+      return;
+    }
+    const duration = 280;
+    const t0 = performance.now();
+    function ease(t) { return 1 - Math.pow(1 - t, 3); } // cubic ease-out
+    function step(now) {
+      const t = Math.min(1, (now - t0) / duration);
+      bar.style.bottom = (startPx + (targetPx - startPx) * ease(t)) + "px";
+      animFrame = t < 1 ? requestAnimationFrame(step) : null;
+    }
+    animFrame = requestAnimationFrame(step);
+  }
   function reposition() {
     // 🔥 이 바와 무관한 다른 화면(1RM 계산기 등)에서 키보드가 열려도
     // window.visualViewport resize는 전역으로 걸려서 이 함수가 호출됨 —
@@ -13024,7 +13050,7 @@ function setupPillBarKeyboardFix(bar, inputs) {
     const vv = window.visualViewport;
     const keyboardHeight = Math.max(0, window.innerHeight - (vv ? vv.height : window.innerHeight));
     if (keyboardHeight > 80) {
-      bar.style.bottom = (keyboardHeight + RECORD_BAR_TOOLBAR_COMPENSATION) + "px";
+      animateBottom(keyboardHeight + RECORD_BAR_TOOLBAR_COMPENSATION);
       inputs.forEach(el => { el.style.opacity = ""; });
     }
   }
@@ -13055,7 +13081,7 @@ function setupPillBarKeyboardFix(bar, inputs) {
         if (!inputs.includes(document.activeElement)) {
           isActive = false;
           inputs.forEach(el => { el.style.opacity = ""; });
-          bar.style.bottom = "";
+          animateBottom(restBottomPx);
         }
       }, 0);
     });
