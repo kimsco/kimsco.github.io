@@ -10399,7 +10399,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.92";
+const APP_VERSION = "0.9.93";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -10954,10 +10954,8 @@ function getCalendarKeyToday(){
   return `${dt.getFullYear()}-${dt.getMonth()+1}-${dt.getDate()}`;
 }
 
-// 🔥 홈 화면 "부위별 마지막 운동" 카드 — 근육찾기(muscleFinderOverlay)의
-// 전신 하이라이트 이미지를 부위 주변으로 크롭해서 작은 썸네일로 재사용.
-// 등(back)은 아직 전용 하이라이트 이미지가 없어 하이라이트 없는 등판
-// 이미지를 임시로 씀 — 나중에 전용 이미지가 생기면 이 경로만 교체하면 됨.
+// 🔥 홈 화면 "부위별 마지막 운동" 카드 — 부위별 전신 하이라이트 이미지를
+// 해당 부위 주변으로 크롭해서 작은 썸네일로 재사용(icons/muscle/highlight/home_*.png).
 const HOME_PARTS = ["가슴", "등", "어깨", "하체", "팔"];
 const HOME_PART_IMAGES = {
   "가슴": "icons/muscle/highlight/home_chest.png?v=" + APP_VERSION,
