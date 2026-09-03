@@ -9879,7 +9879,7 @@ function buildFlatRowsHtml(rows, rowLineHtml){
     const showDate = i === 0 || rows[i - 1].date !== row.date;
     const isLastOfDate = i === rows.length - 1 || rows[i + 1].date !== row.date;
     const dividerHtml = isLastOfDate
-      ? `<div style="border-bottom:1px solid rgba(255,255,255,0.12); margin-top:10px; margin-bottom:13px;"></div>`
+      ? `<div style="border-bottom:1px solid rgba(var(--c-ink-rgb),0.12); margin-top:10px; margin-bottom:13px;"></div>`
       : '';
     return rowLineHtml(row, showDate) + dividerHtml;
   }).join('');
@@ -10449,7 +10449,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.109";
+const APP_VERSION = "0.9.110";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
