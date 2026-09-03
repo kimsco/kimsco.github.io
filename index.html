@@ -535,6 +535,33 @@ button {
     to { transform: rotate(360deg); }
 }
 
+/* 🔥 iOS 네이티브 UIActivityIndicatorView 느낌의 8칸 부채꼴 스피너(홈탭 당겨서
+   새로고침용) — 회전 애니메이션이 아니라, 8개의 짧은 막대가 한 칸씩 밀려나며
+   순서대로 밝아졌다 어두워지는 것만으로 도는 것처럼 보이게 하는 방식(실제 iOS와
+   동일한 착시 기법). rgb(var(--c-ink-rgb))라 다크/라이트 모드 양쪽 다 자동 대응 */
+.ios-spinner { position: relative; width: 22px; height: 22px; }
+.ios-spinner i {
+    position: absolute; top: 50%; left: 50%;
+    width: 2px; height: 6px;
+    margin-top: -8px; margin-left: -1px;
+    background: rgb(var(--c-ink-rgb));
+    border-radius: 1px;
+    transform-origin: 1px 8px;
+    animation: ios-spinner-fade 0.9s linear infinite;
+}
+.ios-spinner i:nth-child(1) { transform: rotate(0deg);   animation-delay: -0.788s; }
+.ios-spinner i:nth-child(2) { transform: rotate(45deg);  animation-delay: -0.675s; }
+.ios-spinner i:nth-child(3) { transform: rotate(90deg);  animation-delay: -0.563s; }
+.ios-spinner i:nth-child(4) { transform: rotate(135deg); animation-delay: -0.450s; }
+.ios-spinner i:nth-child(5) { transform: rotate(180deg); animation-delay: -0.338s; }
+.ios-spinner i:nth-child(6) { transform: rotate(225deg); animation-delay: -0.225s; }
+.ios-spinner i:nth-child(7) { transform: rotate(270deg); animation-delay: -0.113s; }
+.ios-spinner i:nth-child(8) { transform: rotate(315deg); animation-delay: 0s; }
+@keyframes ios-spinner-fade {
+    0% { opacity: 1; }
+    100% { opacity: 0.15; }
+}
+
 .folderContent.active {
     display: block;
 }
@@ -7263,7 +7290,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
 <!-- 🔥 홈탭 맨 위에서 아래로 당기면(pull-to-refresh) 이 높이가 JS로 늘어나며 스피너가
      드러남 — 평소엔 height:0으로 접혀있어 아예 안 보임 -->
 <div id="homePullRefresh" style="height:0; overflow:hidden; display:flex; align-items:center; justify-content:center;">
-  <div class="record-loading-spinner"></div>
+  <div class="ios-spinner"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
 </div>
 <!-- 🔥 진심모드 ON: 기존 홈 화면(박스/날짜/체중 등) 대신 검정 화면만 보여줌
      (나중에 이 안에 진심모드 전용 콘텐츠를 채울 예정, 지금은 빈 화면) -->
@@ -10405,7 +10432,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.104";
+const APP_VERSION = "0.9.105";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -17306,7 +17333,7 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
    불러옴(pull-to-refresh). .app 자체의 스프링 바운스는 overscroll-behavior:none으로
    막혀있어서(#109) 이 제스처는 그 네이티브 바운스와 무관하게 완전히 별도로 직접 구현함 */
 (function(){
-  const MAX_PULL = 64, COMMIT_MOVE = 8;
+  const MAX_PULL = 80, COMMIT_MOVE = 8;
   let startX = 0, startY = 0, tracking = false, dragging = false, refreshing = false;
   const pullEl = document.getElementById('homePullRefresh');
   const appEl = document.querySelector('.app');
