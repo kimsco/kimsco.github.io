@@ -536,9 +536,14 @@ button {
 }
 
 /* 🔥 iOS 네이티브 UIActivityIndicatorView 느낌의 8칸 부채꼴 스피너(홈탭 당겨서
-   새로고침용) — 회전 애니메이션이 아니라, 8개의 짧은 막대가 한 칸씩 밀려나며
-   순서대로 밝아졌다 어두워지는 것만으로 도는 것처럼 보이게 하는 방식(실제 iOS와
-   동일한 착시 기법). rgb(var(--c-ink-rgb))라 다크/라이트 모드 양쪽 다 자동 대응 */
+   새로고침용) — 두 가지 상태로 씀:
+   1) 당기는 중(.lit 클래스, JS가 직접 토글): 12시 방향부터 시계방향으로 한 칸씩
+      "미리 정해진 밝기"로 나타남 — 당긴 거리에 정확히 비례, 애니메이션 없음.
+      8칸이 전부 찰 때까지 당겼다가 놓아야 새로고침 발동, 덜 채운 채로 놓으면
+      그냥 취소(원위치). 도중에 손을 덜 당기면 다시 꺼짐(거리에 실시간 연동).
+   2) 새로고침 진행 중(.spinning 클래스): 8칸이 순서대로 밝아졌다 어두워지며
+      도는 것처럼 보이는 실제 iOS와 동일한 착시 애니메이션 재생.
+   rgb(var(--c-ink-rgb))라 다크/라이트 모드 양쪽 다 자동 대응 */
 .ios-spinner { position: relative; width: 22px; height: 22px; }
 .ios-spinner i {
     position: absolute; top: 50%; left: 50%;
@@ -547,16 +552,26 @@ button {
     background: rgb(var(--c-ink-rgb));
     border-radius: 1px;
     transform-origin: 1px 8px;
-    animation: ios-spinner-fade 0.9s linear infinite;
+    opacity: 0.15;
 }
-.ios-spinner i:nth-child(1) { transform: rotate(0deg);   animation-delay: -0.788s; }
-.ios-spinner i:nth-child(2) { transform: rotate(45deg);  animation-delay: -0.675s; }
-.ios-spinner i:nth-child(3) { transform: rotate(90deg);  animation-delay: -0.563s; }
-.ios-spinner i:nth-child(4) { transform: rotate(135deg); animation-delay: -0.450s; }
-.ios-spinner i:nth-child(5) { transform: rotate(180deg); animation-delay: -0.338s; }
-.ios-spinner i:nth-child(6) { transform: rotate(225deg); animation-delay: -0.225s; }
-.ios-spinner i:nth-child(7) { transform: rotate(270deg); animation-delay: -0.113s; }
-.ios-spinner i:nth-child(8) { transform: rotate(315deg); animation-delay: 0s; }
+.ios-spinner i:nth-child(1) { transform: rotate(0deg); }
+.ios-spinner i:nth-child(2) { transform: rotate(45deg); }
+.ios-spinner i:nth-child(3) { transform: rotate(90deg); }
+.ios-spinner i:nth-child(4) { transform: rotate(135deg); }
+.ios-spinner i:nth-child(5) { transform: rotate(180deg); }
+.ios-spinner i:nth-child(6) { transform: rotate(225deg); }
+.ios-spinner i:nth-child(7) { transform: rotate(270deg); }
+.ios-spinner i:nth-child(8) { transform: rotate(315deg); }
+.ios-spinner i.lit { opacity: 1; }
+.ios-spinner.spinning i { opacity: 1; animation: ios-spinner-fade 0.9s linear infinite; }
+.ios-spinner.spinning i:nth-child(1) { animation-delay: -0.788s; }
+.ios-spinner.spinning i:nth-child(2) { animation-delay: -0.675s; }
+.ios-spinner.spinning i:nth-child(3) { animation-delay: -0.563s; }
+.ios-spinner.spinning i:nth-child(4) { animation-delay: -0.450s; }
+.ios-spinner.spinning i:nth-child(5) { animation-delay: -0.338s; }
+.ios-spinner.spinning i:nth-child(6) { animation-delay: -0.225s; }
+.ios-spinner.spinning i:nth-child(7) { animation-delay: -0.113s; }
+.ios-spinner.spinning i:nth-child(8) { animation-delay: 0s; }
 @keyframes ios-spinner-fade {
     0% { opacity: 1; }
     100% { opacity: 0.15; }
@@ -10432,7 +10447,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.105";
+const APP_VERSION = "0.9.106";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -17329,18 +17344,32 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
 })();
 
 /* 🔥 홈탭(tab1): 맨 위(scrollTop 0)에서 아래로 당기면 손가락 따라 스피너 박스가
-   실시간으로 늘어나다가, 일정 거리 이상 당긴 채로 놓으면 홈 데이터를 한 번 다시
-   불러옴(pull-to-refresh). .app 자체의 스프링 바운스는 overscroll-behavior:none으로
-   막혀있어서(#109) 이 제스처는 그 네이티브 바운스와 무관하게 완전히 별도로 직접 구현함 */
+   늘어나면서, 12시 방향부터 시계방향으로 8칸이 당긴 거리에 정확히 비례해 한 칸씩
+   나타남(애니메이션 없이, 도중에 손을 덜 당기면 다시 꺼짐). 8칸이 전부 찬 채로
+   놓아야 홈 데이터를 한 번 다시 불러옴(pull-to-refresh) — 하나라도 덜 찬 채로
+   놓으면 그냥 취소되고 원위치. .app 자체의 스프링 바운스는 overscroll-behavior:none
+   으로 막혀있어서(#109) 이 제스처는 그 네이티브 바운스와 무관하게 완전히 별도로
+   직접 구현함 */
 (function(){
-  const MAX_PULL = 80, COMMIT_MOVE = 8;
+  const MAX_PULL = 80, COMMIT_MOVE = 8, BLADE_COUNT = 8;
   let startX = 0, startY = 0, tracking = false, dragging = false, refreshing = false;
   const pullEl = document.getElementById('homePullRefresh');
+  const spinnerEl = pullEl.querySelector('.ios-spinner');
+  const blades = Array.from(spinnerEl.children);
   const appEl = document.querySelector('.app');
 
   function isTab1Active(){
     const activeBtn = document.querySelector('.bottomTab .tabBtn.active');
     return activeBtn && activeBtn.dataset.target === 'tab1';
+  }
+
+  // 🔥 당긴 거리(pull, 0~MAX_PULL)에 맞춰 12시 방향부터 시계방향으로 몇 칸까지
+  //    밝혀졌는지 계산해서 그만큼만 .lit 클래스를 켬 — pull이 MAX_PULL과 정확히
+  //    같을 때만 8칸이 전부 채워짐
+  function setLitBlades(pull){
+    const filled = Math.min(BLADE_COUNT, Math.floor((pull / MAX_PULL) * BLADE_COUNT));
+    blades.forEach((b, i) => b.classList.toggle('lit', i < filled));
+    return filled;
   }
 
   document.addEventListener('touchstart', (e) => {
@@ -17369,6 +17398,7 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
       e.preventDefault();
       const pull = Math.min(MAX_PULL, dy * 0.5); // 🔥 고무줄처럼 절반 비율로만 따라오게 해서 저항감을 줌
       pullEl.style.height = pull + 'px';
+      setLitBlades(pull);
     }
   }, { passive: false });
 
@@ -17381,17 +17411,22 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
     const pulled = parseFloat(pullEl.style.height) || 0;
     pullEl.style.transition = 'height 0.2s ease';
 
-    if (pulled >= MAX_PULL * 0.9) {
+    if (pulled >= MAX_PULL) {
       refreshing = true;
       pullEl.style.height = MAX_PULL + 'px';
+      spinnerEl.classList.add('spinning'); // 🔥 8칸이 다 찬 순간부터는 실제로 도는 것처럼 보이는 로딩 애니메이션으로 전환
       const startAt = Date.now();
       try { await refreshHomeTab(); } catch (e) { console.error('home pull refresh err', e); }
       const elapsed = Date.now() - startAt;
       if (elapsed < 500) await new Promise(r => setTimeout(r, 500 - elapsed)); // 🔥 너무 빨리 끝나면 깜빡여 보이므로 스피너를 최소 500ms는 붙잡아둠
       pullEl.style.height = '0px';
+      spinnerEl.classList.remove('spinning');
+      blades.forEach(b => b.classList.remove('lit'));
       setTimeout(() => { pullEl.style.transition = ''; refreshing = false; }, 220);
     } else {
+      // 🔥 8칸을 다 못 채우고 놓으면 그냥 취소 — 켜져 있던 칸도 전부 원래대로 꺼짐
       pullEl.style.height = '0px';
+      blades.forEach(b => b.classList.remove('lit'));
       setTimeout(() => { pullEl.style.transition = ''; }, 220);
     }
   }
