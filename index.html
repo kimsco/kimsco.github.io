@@ -10449,7 +10449,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.108";
+const APP_VERSION = "0.9.109";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -17354,15 +17354,18 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
    비례해 서서히 옅음→진함으로 채워짐 — 한 칸이 갑자기 켜지는 게 아니라, 앞칸일수록 더
    진하고 뒷칸일수록 더 옅은 그라데이션 꼬리가 당긴 만큼 자라나는 모양(도중에 손을 덜
    당기면 그대로 옅어지며 되돌아감) — 스피너는 늘어나는 박스 안에 있지 않고 항상 같은
-   화면 위치에 고정돼 있어서 당기는 동안 같이 밀려 내려가 보이지 않음. 8칸 전부가 이
-   그라데이션으로 채워진 채(=MAX_PULL만큼 당긴 채) 놓아야 먼저 전체가 다 같이 서서히
-   제일 진하게 맞춰진 뒤 실제로 도는 로딩 애니메이션으로 넘어가며 홈 데이터를 한 번 다시
-   불러옴(pull-to-refresh) — 다 못 채운 채로 놓으면 그냥 취소되고 원위치. .app 자체의
-   스프링 바운스는 기본적으로 overscroll-behavior:none으로 막혀있어서(#109) 이 제스처는
-   그 네이티브 바운스와 무관하게 완전히 별도로 직접 구현함(홈탭에 있는 동안만 아래쪽
-   바운스를 되살리는 처리는 별도 블록 참고) */
+   화면 위치에 고정돼 있어서 당기는 동안 같이 밀려 내려가 보이지 않음.
+   8칸 전부가 이 그라데이션으로 채워진(=GRADIENT_PULL만큼 당긴) 상태는 아직 끝이
+   아니고, 거기서 더 당기면(CONVERGE_PULL 구간) 8칸 전부가 맨 앞칸(제일 진한 칸) 색과
+   같아질 때까지 다 같이 서서히 진해짐 — 이 "전부 다 같은 진한 색"이 된 채(=MAX_PULL
+   = GRADIENT_PULL + CONVERGE_PULL만큼 당긴 채) 놓아야 그 즉시 실제로 도는 로딩
+   애니메이션으로 넘어가며 홈 데이터를 한 번 다시 불러옴(pull-to-refresh) — 그 전에
+   놓으면(그라데이션이 덜 채워졌든, 다 채워졌지만 아직 다 같은 색으로 안 모였든) 그냥
+   취소되고 원위치. .app 자체의 스프링 바운스는 기본적으로 overscroll-behavior:none
+   으로 막혀있어서(#109) 이 제스처는 그 네이티브 바운스와 무관하게 완전히 별도로
+   직접 구현함(홈탭에 있는 동안만 아래쪽 바운스를 되살리는 처리는 별도 블록 참고) */
 (function(){
-  const MAX_PULL = 80, COMMIT_MOVE = 8, BLADE_COUNT = 8;
+  const GRADIENT_PULL = 80, CONVERGE_PULL = 40, MAX_PULL = GRADIENT_PULL + CONVERGE_PULL, COMMIT_MOVE = 8, BLADE_COUNT = 8;
   let startX = 0, startY = 0, tracking = false, dragging = false, refreshing = false;
   const pullEl = document.getElementById('homePullRefresh');
   const spinnerWrapEl = document.getElementById('homePullSpinner');
@@ -17381,20 +17384,29 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
   //    페이지 로드시 홈탭이 기본 활성 탭이므로 여기서 최초 1회도 맞춰줌
   appEl.style.overscrollBehaviorY = isTab1Active() ? 'contain' : 'none';
 
-  // 🔥 당긴 거리(pull, 0~MAX_PULL)를 8칸 단위의 연속값(P, 0~8)으로 바꾼 뒤, 각 칸(i번째,
-  //    0=12시, 시계방향)의 밝기 단계를 (P - i)를 0~8로 클램프한 값으로 계산함. 맨 앞칸
-  //    (0번)은 P가 늘어나는 내내 계속 진해지며 P=8(=MAX_PULL 도달)에야 완전히 진해지고,
-  //    그다음 칸들은 자기 차례(P > i)가 된 뒤부터 항상 앞칸보다 정확히 한 단계씩 옅은
-  //    채로 같이 따라 진해짐 — 그 결과 한 칸이 갑자기 켜지는 게 아니라, 앞칸일수록 더
-  //    진하고 뒷칸일수록 더 옅은 그라데이션 꼬리가 당긴 만큼 자라나며 같이 진해지는 모양
+  // 🔥 1단계(0~GRADIENT_PULL): 당긴 거리를 8칸 단위의 연속값(P, 0~8)으로 바꾼 뒤, 각
+  //    칸(i번째, 0=12시, 시계방향)의 밝기 단계를 (P - i)를 0~8로 클램프한 값으로 계산함.
+  //    맨 앞칸(0번)은 P가 늘어나는 내내 계속 진해지며 P=8(=GRADIENT_PULL 도달)에야
+  //    완전히 진해지고, 그다음 칸들은 자기 차례(P > i)가 된 뒤부터 항상 앞칸보다 정확히
+  //    한 단계씩 옅은 채로 같이 따라 진해짐 — 앞칸일수록 진하고 뒷칸일수록 옅은
+  //    그라데이션 꼬리가 당긴 만큼 자라나며 같이 진해지는 모양.
+  // 🔥 2단계(GRADIENT_PULL~MAX_PULL): 그라데이션이 다 채워진 뒤 더 당기면, 그 시점 각
+  //    칸의 밝기를 시작값 삼아 8칸 전부가 다 같이 서서히 맨 앞칸의 제일 진한 색(1.0)으로
+  //    수렴함 — MAX_PULL에 도달하면 8칸이 전부 완전히 같은 진한 색이 됨
   const MIN_OPACITY = 0.15, MAX_OPACITY = 1;
-  function setBladeGradient(pull){
-    const P = (pull / MAX_PULL) * BLADE_COUNT;
-    blades.forEach((b, i) => {
+  function bladeOpacityAt(pull, i){
+    if (pull <= GRADIENT_PULL) {
+      const P = (pull / GRADIENT_PULL) * BLADE_COUNT;
       const level = Math.max(0, Math.min(BLADE_COUNT, P - i)); // 0~8
-      b.style.opacity = (MIN_OPACITY + (level / BLADE_COUNT) * (MAX_OPACITY - MIN_OPACITY)).toFixed(3);
-    });
-    return P;
+      return MIN_OPACITY + (level / BLADE_COUNT) * (MAX_OPACITY - MIN_OPACITY);
+    }
+    const fullLevel = BLADE_COUNT - i; // i번 칸이 GRADIENT_PULL 시점에 도달해있던 밝기 단계
+    const baseOpacity = MIN_OPACITY + (fullLevel / BLADE_COUNT) * (MAX_OPACITY - MIN_OPACITY);
+    const converge = Math.max(0, Math.min(1, (pull - GRADIENT_PULL) / CONVERGE_PULL));
+    return baseOpacity + (MAX_OPACITY - baseOpacity) * converge;
+  }
+  function setBladeGradient(pull){
+    blades.forEach((b, i) => { b.style.opacity = bladeOpacityAt(pull, i).toFixed(3); });
   }
   function resetBladeGradient(){
     blades.forEach(b => { b.style.opacity = ''; }); // CSS 기본값(0.15, 꺼진 상태)으로 복귀
@@ -17443,12 +17455,8 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
     if (pulled >= MAX_PULL) {
       refreshing = true;
       pullEl.style.height = MAX_PULL + 'px';
-      // 🔥 8칸이 그라데이션 꼬리 상태(앞칸일수록 진함)로 다 채워진 순간, 바로 스핀으로
-      //    넘어가지 않고 먼저 전체가 서서히 제일 진한 상태로 다 같이 맞춰진 뒤에(모든 칸이
-      //    동시에 옅음→진함으로) 실제로 도는 것처럼 보이는 로딩 애니메이션으로 전환함
-      blades.forEach(b => { b.style.transition = 'opacity 0.18s ease'; b.style.opacity = '1'; });
-      await new Promise(r => setTimeout(r, 180));
-      blades.forEach(b => { b.style.transition = ''; });
+      // 🔥 여기 도달했다는 건 이미 2단계 수렴이 끝나 8칸 전부가 다 같은 진한 색인
+      //    상태(bladeOpacityAt(MAX_PULL, i) === 1 for all i)라, 바로 스핀으로 전환
       spinnerEl.classList.add('spinning');
       const startAt = Date.now();
       try { await refreshHomeTab(); } catch (e) { console.error('home pull refresh err', e); }
