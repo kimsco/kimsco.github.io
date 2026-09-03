@@ -7302,9 +7302,12 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
 
 <!-- 🔥 홈: 오늘 부위 / 3대·체중 알약 / 이번 주 활동 / 오늘 식단 대시보드 -->
 <div id="tab1" class="tabContent active">
-<!-- 🔥 홈탭 맨 위에서 아래로 당기면(pull-to-refresh) 이 높이가 JS로 늘어나며 스피너가
-     드러남 — 평소엔 height:0으로 접혀있어 아예 안 보임 -->
-<div id="homePullRefresh" style="height:0; overflow:hidden; display:flex; align-items:center; justify-content:center;">
+<!-- 🔥 홈탭 맨 위에서 아래로 당기면(pull-to-refresh) 이 높이가 JS로 늘어나며 아래 콘텐츠를
+     밀어냄 — 평소엔 height:0으로 접혀있어 아예 안 보임. 스피너 자체는 안에 안 넣고 바로 아래
+     #homePullSpinner를 화면 상단에 고정으로 따로 둠(이 박스가 늘어나는 만큼 스피너도 같이
+     아래로 밀려 내려가 보이는 걸 방지 — 스피너는 항상 같은 자리에 고정) -->
+<div id="homePullRefresh" style="height:0; overflow:hidden;"></div>
+<div id="homePullSpinner" style="position:fixed; left:50%; transform:translateX(-50%); top:calc(var(--topBarH) + env(safe-area-inset-top) + 18px); width:390px; max-width:100%; display:flex; align-items:center; justify-content:center; pointer-events:none; opacity:0; transition:opacity 0.15s ease; z-index:10;">
   <div class="ios-spinner"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
 </div>
 <!-- 🔥 진심모드 ON: 기존 홈 화면(박스/날짜/체중 등) 대신 검정 화면만 보여줌
@@ -10447,7 +10450,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.106";
+const APP_VERSION = "0.9.107";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -16754,6 +16757,10 @@ bottomTabBtns.forEach(btn => {
 
     document.querySelector('.app').scrollTo({ top: 0, behavior: 'auto' });
 
+    // 🔥 홈탭(스크롤 잠금 풀림, 아래쪽 스프링 바운스 살아있음)과 다른 탭들(계속
+    //    overscroll-behavior:none으로 잠금) 사이를 탭 전환 때마다 다시 맞춰줌
+    document.querySelector('.app').style.overscrollBehaviorY = (target === 'tab1') ? 'contain' : 'none';
+
     // Tip 탭 초기화
     if (target === 'tab4') {
       exerciseScreen.style.display = 'block';
@@ -17343,18 +17350,21 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
   document.addEventListener('touchcancel', endDrag, { passive: true });
 })();
 
-/* 🔥 홈탭(tab1): 맨 위(scrollTop 0)에서 아래로 당기면 손가락 따라 스피너 박스가
-   늘어나면서, 12시 방향부터 시계방향으로 8칸이 당긴 거리에 정확히 비례해 한 칸씩
-   나타남(애니메이션 없이, 도중에 손을 덜 당기면 다시 꺼짐). 8칸이 전부 찬 채로
-   놓아야 홈 데이터를 한 번 다시 불러옴(pull-to-refresh) — 하나라도 덜 찬 채로
-   놓으면 그냥 취소되고 원위치. .app 자체의 스프링 바운스는 overscroll-behavior:none
+/* 🔥 홈탭(tab1): 맨 위(scrollTop 0)에서 아래로 당기면 콘텐츠가 밀려 내려가면서,
+   화면 상단에 고정된 스피너(#homePullSpinner)의 12시 방향부터 시계방향으로 8칸이
+   당긴 거리에 정확히 비례해 한 칸씩 나타남(애니메이션 없이, 도중에 손을 덜 당기면
+   다시 꺼짐) — 스피너는 늘어나는 박스 안에 있지 않고 항상 같은 화면 위치에 고정돼
+   있어서 당기는 동안 같이 밀려 내려가 보이지 않음. 8칸이 전부 찬 채로 놓아야 홈
+   데이터를 한 번 다시 불러옴(pull-to-refresh) — 하나라도 덜 찬 채로 놓으면 그냥
+   취소되고 원위치. .app 자체의 스프링 바운스는 기본적으로 overscroll-behavior:none
    으로 막혀있어서(#109) 이 제스처는 그 네이티브 바운스와 무관하게 완전히 별도로
-   직접 구현함 */
+   직접 구현함(홈탭에 있는 동안만 아래쪽 바운스를 되살리는 처리는 별도 블록 참고) */
 (function(){
   const MAX_PULL = 80, COMMIT_MOVE = 8, BLADE_COUNT = 8;
   let startX = 0, startY = 0, tracking = false, dragging = false, refreshing = false;
   const pullEl = document.getElementById('homePullRefresh');
-  const spinnerEl = pullEl.querySelector('.ios-spinner');
+  const spinnerWrapEl = document.getElementById('homePullSpinner');
+  const spinnerEl = spinnerWrapEl.querySelector('.ios-spinner');
   const blades = Array.from(spinnerEl.children);
   const appEl = document.querySelector('.app');
 
@@ -17362,6 +17372,12 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
     const activeBtn = document.querySelector('.bottomTab .tabBtn.active');
     return activeBtn && activeBtn.dataset.target === 'tab1';
   }
+
+  // 🔥 홈탭에 있는 동안만 .app의 아래쪽 스프링(고무줄) 바운스를 되살림(다른 탭은
+  //    계속 overscroll-behavior:none 유지) — 맨 위쪽 당김은 이 IIFE가 dragging
+  //    시점부터 항상 preventDefault로 직접 가로채므로 네이티브 바운스와 안 겹침.
+  //    페이지 로드시 홈탭이 기본 활성 탭이므로 여기서 최초 1회도 맞춰줌
+  appEl.style.overscrollBehaviorY = isTab1Active() ? 'contain' : 'none';
 
   // 🔥 당긴 거리(pull, 0~MAX_PULL)에 맞춰 12시 방향부터 시계방향으로 몇 칸까지
   //    밝혀졌는지 계산해서 그만큼만 .lit 클래스를 켬 — pull이 MAX_PULL과 정확히
@@ -17396,6 +17412,7 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
 
     if (dragging) {
       e.preventDefault();
+      spinnerWrapEl.style.opacity = '1';
       const pull = Math.min(MAX_PULL, dy * 0.5); // 🔥 고무줄처럼 절반 비율로만 따라오게 해서 저항감을 줌
       pullEl.style.height = pull + 'px';
       setLitBlades(pull);
@@ -17420,12 +17437,14 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
       const elapsed = Date.now() - startAt;
       if (elapsed < 500) await new Promise(r => setTimeout(r, 500 - elapsed)); // 🔥 너무 빨리 끝나면 깜빡여 보이므로 스피너를 최소 500ms는 붙잡아둠
       pullEl.style.height = '0px';
+      spinnerWrapEl.style.opacity = '0';
       spinnerEl.classList.remove('spinning');
       blades.forEach(b => b.classList.remove('lit'));
       setTimeout(() => { pullEl.style.transition = ''; refreshing = false; }, 220);
     } else {
       // 🔥 8칸을 다 못 채우고 놓으면 그냥 취소 — 켜져 있던 칸도 전부 원래대로 꺼짐
       pullEl.style.height = '0px';
+      spinnerWrapEl.style.opacity = '0';
       blades.forEach(b => b.classList.remove('lit'));
       setTimeout(() => { pullEl.style.transition = ''; }, 220);
     }
