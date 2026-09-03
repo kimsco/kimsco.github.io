@@ -7260,6 +7260,11 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
 
 <!-- 🔥 홈: 오늘 부위 / 3대·체중 알약 / 이번 주 활동 / 오늘 식단 대시보드 -->
 <div id="tab1" class="tabContent active">
+<!-- 🔥 홈탭 맨 위에서 아래로 당기면(pull-to-refresh) 이 높이가 JS로 늘어나며 스피너가
+     드러남 — 평소엔 height:0으로 접혀있어 아예 안 보임 -->
+<div id="homePullRefresh" style="height:0; overflow:hidden; display:flex; align-items:center; justify-content:center;">
+  <div class="record-loading-spinner"></div>
+</div>
 <!-- 🔥 진심모드 ON: 기존 홈 화면(박스/날짜/체중 등) 대신 검정 화면만 보여줌
      (나중에 이 안에 진심모드 전용 콘텐츠를 채울 예정, 지금은 빈 화면) -->
 <div id="homeSeriousModeScreen" class="hidden" style="background:#000; min-height: calc(100vh - var(--topBarH) - var(--bottomTabH) - env(safe-area-inset-top));"></div>
@@ -10400,7 +10405,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.103";
+const APP_VERSION = "0.9.104";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -11114,6 +11119,28 @@ function renderHomeTab(){
       <div class="home-macro-pill"><div class="v">${Math.round(macroSum.fat)}g</div><div class="l">지방</div></div>
     `;
   }
+}
+
+// 🔥 홈탭 당겨서 새로고침(pull-to-refresh) 시 실제로 데이터를 다시 불러오는 함수 —
+//    캘린더는 월별 캐시(calLoadedMonths)가 있어 그냥 다시 부르면 캐시에 걸려 아무것도
+//    안 받아오므로, 이번 달 캐시만 지우고 강제로 재조회함. 체중/식단은 원래도 매번
+//    전체를 다시 받아와서 상태를 통째로 교체하는 함수라 그대로 재사용해도 안전함.
+async function refreshHomeTab(){
+  const user = (typeof auth !== "undefined" && auth.currentUser) ? auth.currentUser : null;
+  if (user) {
+    try {
+      const y = calCurrent.getFullYear(), m = calCurrent.getMonth() + 1;
+      calLoadedMonths.delete(`${y}-${m}`);
+      await ensureCalendarForMonth(y, m);
+      calRender();
+    } catch (e) { console.error("home pull refresh calendar err", e); }
+    try { await loadWeightFromFirestore(user.uid); } catch (e) { console.error("home pull refresh weight err", e); }
+    try { await loadMealsFromFirestore(user.uid); } catch (e) { console.error("home pull refresh meals err", e); }
+  } else {
+    loadWeightFromLocal();
+    loadMealsFromLocal();
+  }
+  renderHomeTab();
 }
 
 // 🔥 인라인 +버튼 저장 대신, 알약 전체를 누르면 현재 몸무게만 빠르게 입력하는
@@ -17268,6 +17295,77 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
         navDrawerOverlay.classList.add('hidden');
         navDrawer.style.transition = 'none';
       }, 220);
+    }
+  }
+  document.addEventListener('touchend', endDrag, { passive: true });
+  document.addEventListener('touchcancel', endDrag, { passive: true });
+})();
+
+/* 🔥 홈탭(tab1): 맨 위(scrollTop 0)에서 아래로 당기면 손가락 따라 스피너 박스가
+   실시간으로 늘어나다가, 일정 거리 이상 당긴 채로 놓으면 홈 데이터를 한 번 다시
+   불러옴(pull-to-refresh). .app 자체의 스프링 바운스는 overscroll-behavior:none으로
+   막혀있어서(#109) 이 제스처는 그 네이티브 바운스와 무관하게 완전히 별도로 직접 구현함 */
+(function(){
+  const MAX_PULL = 64, COMMIT_MOVE = 8;
+  let startX = 0, startY = 0, tracking = false, dragging = false, refreshing = false;
+  const pullEl = document.getElementById('homePullRefresh');
+  const appEl = document.querySelector('.app');
+
+  function isTab1Active(){
+    const activeBtn = document.querySelector('.bottomTab .tabBtn.active');
+    return activeBtn && activeBtn.dataset.target === 'tab1';
+  }
+
+  document.addEventListener('touchstart', (e) => {
+    if (refreshing || !isTab1Active() || !appEl || appEl.scrollTop > 0) { tracking = false; return; }
+    const t = e.touches[0];
+    startX = t.clientX; startY = t.clientY;
+    tracking = true; dragging = false;
+  }, { passive: true });
+
+  document.addEventListener('touchmove', (e) => {
+    if (!tracking) return;
+    const t = e.touches[0];
+    const dx = t.clientX - startX, dy = t.clientY - startY;
+
+    if (!dragging) {
+      // 🔥 왼쪽 끝에서 시작된 가로 스와이프(메뉴 드로어 열기 제스처)와 겹칠 수 있으므로,
+      //    세로 이동이 가로 이동보다 뚜렷하게 우세할 때만 이 제스처가 가져감
+      if (dy > COMMIT_MOVE && dy > Math.abs(dx) * 0.6) {
+        if (appEl.scrollTop > 0) { tracking = false; return; } // 그 사이 이미 스크롤됐으면 그냥 흘려보냄
+        dragging = true;
+      } else if (dy < -COMMIT_MOVE || Math.abs(dx) > COMMIT_MOVE) { tracking = false; return; }
+      else return;
+    }
+
+    if (dragging) {
+      e.preventDefault();
+      const pull = Math.min(MAX_PULL, dy * 0.5); // 🔥 고무줄처럼 절반 비율로만 따라오게 해서 저항감을 줌
+      pullEl.style.height = pull + 'px';
+    }
+  }, { passive: false });
+
+  async function endDrag(){
+    if (!tracking) return;
+    const wasDragging = dragging;
+    tracking = false; dragging = false;
+    if (!wasDragging) return;
+
+    const pulled = parseFloat(pullEl.style.height) || 0;
+    pullEl.style.transition = 'height 0.2s ease';
+
+    if (pulled >= MAX_PULL * 0.9) {
+      refreshing = true;
+      pullEl.style.height = MAX_PULL + 'px';
+      const startAt = Date.now();
+      try { await refreshHomeTab(); } catch (e) { console.error('home pull refresh err', e); }
+      const elapsed = Date.now() - startAt;
+      if (elapsed < 500) await new Promise(r => setTimeout(r, 500 - elapsed)); // 🔥 너무 빨리 끝나면 깜빡여 보이므로 스피너를 최소 500ms는 붙잡아둠
+      pullEl.style.height = '0px';
+      setTimeout(() => { pullEl.style.transition = ''; refreshing = false; }, 220);
+    } else {
+      pullEl.style.height = '0px';
+      setTimeout(() => { pullEl.style.transition = ''; }, 220);
     }
   }
   document.addEventListener('touchend', endDrag, { passive: true });
