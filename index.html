@@ -562,7 +562,6 @@ button {
 .ios-spinner i:nth-child(6) { transform: rotate(225deg); }
 .ios-spinner i:nth-child(7) { transform: rotate(270deg); }
 .ios-spinner i:nth-child(8) { transform: rotate(315deg); }
-.ios-spinner i.lit { opacity: 1; }
 .ios-spinner.spinning i { opacity: 1; animation: ios-spinner-fade 0.9s linear infinite; }
 .ios-spinner.spinning i:nth-child(1) { animation-delay: -0.788s; }
 .ios-spinner.spinning i:nth-child(2) { animation-delay: -0.675s; }
@@ -10450,7 +10449,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.107";
+const APP_VERSION = "0.9.108";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -17350,15 +17349,18 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
   document.addEventListener('touchcancel', endDrag, { passive: true });
 })();
 
-/* 🔥 홈탭(tab1): 맨 위(scrollTop 0)에서 아래로 당기면 콘텐츠가 밀려 내려가면서,
-   화면 상단에 고정된 스피너(#homePullSpinner)의 12시 방향부터 시계방향으로 8칸이
-   당긴 거리에 정확히 비례해 한 칸씩 나타남(애니메이션 없이, 도중에 손을 덜 당기면
-   다시 꺼짐) — 스피너는 늘어나는 박스 안에 있지 않고 항상 같은 화면 위치에 고정돼
-   있어서 당기는 동안 같이 밀려 내려가 보이지 않음. 8칸이 전부 찬 채로 놓아야 홈
-   데이터를 한 번 다시 불러옴(pull-to-refresh) — 하나라도 덜 찬 채로 놓으면 그냥
-   취소되고 원위치. .app 자체의 스프링 바운스는 기본적으로 overscroll-behavior:none
-   으로 막혀있어서(#109) 이 제스처는 그 네이티브 바운스와 무관하게 완전히 별도로
-   직접 구현함(홈탭에 있는 동안만 아래쪽 바운스를 되살리는 처리는 별도 블록 참고) */
+/* 🔥 홈탭(tab1): 맨 위(scrollTop 0)에서 아래로 당기면 콘텐츠가 밀려 내려가면서, 화면
+   상단에 고정된 스피너(#homePullSpinner)의 12시 방향 칸부터 시계방향으로 당긴 거리에
+   비례해 서서히 옅음→진함으로 채워짐 — 한 칸이 갑자기 켜지는 게 아니라, 앞칸일수록 더
+   진하고 뒷칸일수록 더 옅은 그라데이션 꼬리가 당긴 만큼 자라나는 모양(도중에 손을 덜
+   당기면 그대로 옅어지며 되돌아감) — 스피너는 늘어나는 박스 안에 있지 않고 항상 같은
+   화면 위치에 고정돼 있어서 당기는 동안 같이 밀려 내려가 보이지 않음. 8칸 전부가 이
+   그라데이션으로 채워진 채(=MAX_PULL만큼 당긴 채) 놓아야 먼저 전체가 다 같이 서서히
+   제일 진하게 맞춰진 뒤 실제로 도는 로딩 애니메이션으로 넘어가며 홈 데이터를 한 번 다시
+   불러옴(pull-to-refresh) — 다 못 채운 채로 놓으면 그냥 취소되고 원위치. .app 자체의
+   스프링 바운스는 기본적으로 overscroll-behavior:none으로 막혀있어서(#109) 이 제스처는
+   그 네이티브 바운스와 무관하게 완전히 별도로 직접 구현함(홈탭에 있는 동안만 아래쪽
+   바운스를 되살리는 처리는 별도 블록 참고) */
 (function(){
   const MAX_PULL = 80, COMMIT_MOVE = 8, BLADE_COUNT = 8;
   let startX = 0, startY = 0, tracking = false, dragging = false, refreshing = false;
@@ -17379,13 +17381,23 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
   //    페이지 로드시 홈탭이 기본 활성 탭이므로 여기서 최초 1회도 맞춰줌
   appEl.style.overscrollBehaviorY = isTab1Active() ? 'contain' : 'none';
 
-  // 🔥 당긴 거리(pull, 0~MAX_PULL)에 맞춰 12시 방향부터 시계방향으로 몇 칸까지
-  //    밝혀졌는지 계산해서 그만큼만 .lit 클래스를 켬 — pull이 MAX_PULL과 정확히
-  //    같을 때만 8칸이 전부 채워짐
-  function setLitBlades(pull){
-    const filled = Math.min(BLADE_COUNT, Math.floor((pull / MAX_PULL) * BLADE_COUNT));
-    blades.forEach((b, i) => b.classList.toggle('lit', i < filled));
-    return filled;
+  // 🔥 당긴 거리(pull, 0~MAX_PULL)를 8칸 단위의 연속값(P, 0~8)으로 바꾼 뒤, 각 칸(i번째,
+  //    0=12시, 시계방향)의 밝기 단계를 (P - i)를 0~8로 클램프한 값으로 계산함. 맨 앞칸
+  //    (0번)은 P가 늘어나는 내내 계속 진해지며 P=8(=MAX_PULL 도달)에야 완전히 진해지고,
+  //    그다음 칸들은 자기 차례(P > i)가 된 뒤부터 항상 앞칸보다 정확히 한 단계씩 옅은
+  //    채로 같이 따라 진해짐 — 그 결과 한 칸이 갑자기 켜지는 게 아니라, 앞칸일수록 더
+  //    진하고 뒷칸일수록 더 옅은 그라데이션 꼬리가 당긴 만큼 자라나며 같이 진해지는 모양
+  const MIN_OPACITY = 0.15, MAX_OPACITY = 1;
+  function setBladeGradient(pull){
+    const P = (pull / MAX_PULL) * BLADE_COUNT;
+    blades.forEach((b, i) => {
+      const level = Math.max(0, Math.min(BLADE_COUNT, P - i)); // 0~8
+      b.style.opacity = (MIN_OPACITY + (level / BLADE_COUNT) * (MAX_OPACITY - MIN_OPACITY)).toFixed(3);
+    });
+    return P;
+  }
+  function resetBladeGradient(){
+    blades.forEach(b => { b.style.opacity = ''; }); // CSS 기본값(0.15, 꺼진 상태)으로 복귀
   }
 
   document.addEventListener('touchstart', (e) => {
@@ -17415,7 +17427,7 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
       spinnerWrapEl.style.opacity = '1';
       const pull = Math.min(MAX_PULL, dy * 0.5); // 🔥 고무줄처럼 절반 비율로만 따라오게 해서 저항감을 줌
       pullEl.style.height = pull + 'px';
-      setLitBlades(pull);
+      setBladeGradient(pull);
     }
   }, { passive: false });
 
@@ -17431,7 +17443,13 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
     if (pulled >= MAX_PULL) {
       refreshing = true;
       pullEl.style.height = MAX_PULL + 'px';
-      spinnerEl.classList.add('spinning'); // 🔥 8칸이 다 찬 순간부터는 실제로 도는 것처럼 보이는 로딩 애니메이션으로 전환
+      // 🔥 8칸이 그라데이션 꼬리 상태(앞칸일수록 진함)로 다 채워진 순간, 바로 스핀으로
+      //    넘어가지 않고 먼저 전체가 서서히 제일 진한 상태로 다 같이 맞춰진 뒤에(모든 칸이
+      //    동시에 옅음→진함으로) 실제로 도는 것처럼 보이는 로딩 애니메이션으로 전환함
+      blades.forEach(b => { b.style.transition = 'opacity 0.18s ease'; b.style.opacity = '1'; });
+      await new Promise(r => setTimeout(r, 180));
+      blades.forEach(b => { b.style.transition = ''; });
+      spinnerEl.classList.add('spinning');
       const startAt = Date.now();
       try { await refreshHomeTab(); } catch (e) { console.error('home pull refresh err', e); }
       const elapsed = Date.now() - startAt;
@@ -17439,13 +17457,13 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
       pullEl.style.height = '0px';
       spinnerWrapEl.style.opacity = '0';
       spinnerEl.classList.remove('spinning');
-      blades.forEach(b => b.classList.remove('lit'));
+      resetBladeGradient();
       setTimeout(() => { pullEl.style.transition = ''; refreshing = false; }, 220);
     } else {
       // 🔥 8칸을 다 못 채우고 놓으면 그냥 취소 — 켜져 있던 칸도 전부 원래대로 꺼짐
       pullEl.style.height = '0px';
       spinnerWrapEl.style.opacity = '0';
-      blades.forEach(b => b.classList.remove('lit'));
+      resetBladeGradient();
       setTimeout(() => { pullEl.style.transition = ''; }, 220);
     }
   }
