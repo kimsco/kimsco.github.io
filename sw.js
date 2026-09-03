@@ -1,4 +1,4 @@
-const CACHE = "mf-v23"; // 🔥 앱 로고를 새 TTT 로고로 교체(icon-192/512, apple-touch-icon, splash 전체) — 캐시 이름을 다시 올려서 새로 받아오게 함
+const CACHE = "mf-v24"; // 🔥 스플래시 로고 크기 확대(20%→26%, splash/*.png 전체 재생성) — 캐시 이름을 다시 올려서 새로 받아오게 함
 const ASSETS = [
   "/",
   "/index.html",
