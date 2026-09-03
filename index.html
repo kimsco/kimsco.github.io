@@ -7127,6 +7127,8 @@ html.light-mode-on #weightModal .food-modal-form label {
 #tab1 .home-part-item { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 0 3px; text-align: center; }
 #tab1 .home-part-item + .home-part-item { border-left: 1px solid rgba(255,255,255,0.08); }
 #tab1 .home-part-name { font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.85); }
+#tab1 .home-part-img-slot { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; }
+#tab1 .home-part-img { width: 100%; height: 100%; object-fit: contain; }
 #tab1 .home-part-days { font-size: 16px; font-weight: 800; color: #fff; margin-top: 2px; }
 #tab1 .home-part-sub { font-size: 10px; color: rgba(255,255,255,0.4); }
 
@@ -10398,7 +10400,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.95";
+const APP_VERSION = "0.9.96";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -10953,8 +10955,12 @@ function getCalendarKeyToday(){
   return `${dt.getFullYear()}-${dt.getMonth()+1}-${dt.getDate()}`;
 }
 
-// 🔥 홈 화면 "부위별 마지막 운동" 카드
+// 🔥 홈 화면 "부위별 마지막 운동" 카드 — 부위별 하이라이트 이미지(투명 배경 PNG,
+// 해당 부위 주변으로 크롭한 240x240 썸네일). 아직 이미지가 없는 부위는 텍스트만 표시.
 const HOME_PARTS = ["가슴", "등", "어깨", "하체", "팔"];
+const HOME_PART_IMAGES = {
+  "가슴": "icons/muscle/highlight/home_chest.png?v=" + APP_VERSION,
+};
 
 // 🔥 calData(캘린더에 자동/수동으로 태그된 부위 기록)를 오늘부터 거꾸로 훑어서
 // 해당 부위가 마지막으로 찍힌 날짜까지 며칠 지났는지 계산 — 기록 없으면 null
@@ -11069,9 +11075,11 @@ function renderHomeTab(){
       const days = daysSinceLastWorkoutForMuscle(part);
       const daysLabel = days === null ? "-" : `${days}일`;
       const subLabel = days === null ? "기록 없음" : "지났습니다";
+      const imgSrc = HOME_PART_IMAGES[part];
       return `
         <div class="home-part-item">
           <div class="home-part-name">${part}</div>
+          <div class="home-part-img-slot">${imgSrc ? `<img class="home-part-img" src="${imgSrc}" alt="${part}">` : ""}</div>
           <div class="home-part-days">${daysLabel}</div>
           <div class="home-part-sub">${subLabel}</div>
         </div>
