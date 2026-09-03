@@ -10400,7 +10400,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.96";
+const APP_VERSION = "0.9.97";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -10960,6 +10960,7 @@ function getCalendarKeyToday(){
 const HOME_PARTS = ["가슴", "등", "어깨", "하체", "팔"];
 const HOME_PART_IMAGES = {
   "가슴": "icons/muscle/highlight/home_chest.png?v=" + APP_VERSION,
+  "어깨": "icons/muscle/highlight/home_shoulder.png?v=" + APP_VERSION,
 };
 
 // 🔥 calData(캘린더에 자동/수동으로 태그된 부위 기록)를 오늘부터 거꾸로 훑어서
