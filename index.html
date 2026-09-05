@@ -8800,11 +8800,11 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
 
     <div class="settings-card settings-card--flush">
       <div class="settings-item" style="justify-content:space-between; border-bottom:1px solid var(--c-border);">
-        <span class="settings-item-label">횟수 (<span id="unitRepsOptKr" class="unit-opt">회</span> / <span id="unitRepsOptEn" class="unit-opt">rep</span>)</span>
+        <span class="settings-item-label">횟수 (<span id="unitRepsOptEn" class="unit-opt">rep</span> / <span id="unitRepsOptKr" class="unit-opt">회</span>)</span>
         <div id="unitRepsToggle" class="toggle-switch"></div>
       </div>
       <div class="settings-item" style="justify-content:space-between; border-bottom:1px solid var(--c-border);">
-        <span class="settings-item-label">세트 (<span id="unitSetsOptKr" class="unit-opt">세트</span> / <span id="unitSetsOptEn" class="unit-opt">set</span>)</span>
+        <span class="settings-item-label">세트 (<span id="unitSetsOptEn" class="unit-opt">set</span> / <span id="unitSetsOptKr" class="unit-opt">세트</span>)</span>
         <div id="unitSetsToggle" class="toggle-switch"></div>
       </div>
       <div class="settings-item" style="justify-content:space-between; border-bottom:none;">
@@ -8979,16 +8979,12 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
   </button>
 </div>
 
-<!-- ✅ 카드 2: 정보(내 정보 수정/문의) -->
+<!-- ✅ 카드 2: 정보(내 정보 수정) -->
 <div class="settings-section-label">정보</div>
 <div class="settings-card settings-card--flush">
   <button id="mySpecMenuBtn" class="settings-item" style="width:100%; text-align:left; background:none; color:var(--c-text-primary); cursor:pointer; border-bottom:none;">
     <img src="icons/setting-profile.png" class="settings-item-icon" alt="">내 정보 수정
   </button>
-  <div class="settings-item" style="flex-direction:column; align-items:flex-start; justify-content:center; gap:2px; border-top:1px solid var(--c-border); border-bottom:none;">
-    <div style="display:flex; align-items:center;"><img src="icons/setting-inquiry.png" class="settings-item-icon" alt="">문의</div>
-    <div style="color:var(--c-text-secondary);">김무진한테 문의하세요</div>
-  </div>
 </div>
 
 <!-- ✅ 카드 3: 일반 -->
@@ -9009,9 +9005,13 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
   </div>
 </div>
 
-<!-- ✅ 카드 4: 기타(앱 버전) -->
+<!-- ✅ 카드 4: 기타(문의/앱 버전) -->
 <div class="settings-section-label">기타</div>
 <div class="settings-card settings-card--flush">
+  <div class="settings-item" style="flex-direction:column; align-items:flex-start; justify-content:center; gap:2px; border-bottom:1px solid var(--c-border);">
+    <div style="display:flex; align-items:center;"><img src="icons/setting-inquiry.png" class="settings-item-icon" alt="">문의</div>
+    <div style="color:var(--c-text-secondary);">김무진한테 문의하세요</div>
+  </div>
   <div class="settings-item" style="justify-content:space-between; border-bottom:none;">
     <span class="settings-item-label"><img src="icons/setting-version.png" class="settings-item-icon" alt="">앱 버전</span>
     <!-- 🔥 버전 숫자는 아래 JS(APP_VERSION)가 채움 — 예전엔 "0.1.0"이 박혀있어서
@@ -10484,7 +10484,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.122";
+const APP_VERSION = "0.9.123";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
