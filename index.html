@@ -4365,12 +4365,12 @@ html.light-mode-on .settings-panel {
 
 .settings-item-icon {
   display: inline-block;
-  width: 24px;
-  height: 24px;
+  width: 19.2px; /* 🔥 24px의 80% 크기로 축소 */
+  height: 19.2px;
   margin-right: 8px;
   object-fit: contain;
   position: relative;
-  top: -1.5px;
+  top: -1.2px; /* 🔥 아이콘 축소 비율(80%)에 맞춰 세로 정렬 보정값도 같이 축소 */
 }
 
 /* 🔥 화면모드/앱버전처럼 아이콘+라벨을 한 덩어리(flex item)로 묶어야 하는 행 —
@@ -4382,20 +4382,15 @@ html.light-mode-on .settings-panel {
 }
 
 #settingsGuestBadge {
-  margin-top: 19px;
+  margin-top: 0; /* 🔥 카드 자체의 위쪽 패딩(14px)에 맡김 — 다른 카드들과 같은 간격으로 맞춤 */
   margin-bottom: 0;
-  padding-bottom: 29px;
+  padding-bottom: 14px; /* 🔥 다른 카드의 .settings-item과 동일한 14px 리듬으로 맞춤(기존 29px는 유독 커 보였음) */
   border-bottom: 1px solid var(--c-border);
 }
 
 .settings-name {
   font-size: 16px;
   font-weight: 600;
-}
-
-/* 🔥 로그인 시 프로필 카드의 "{이름}님" — 기존 대비 1.3배 크게 */
-#settingsHeaderName {
-  font-size: 20.8px;
 }
 
 .settings-email {
@@ -10449,7 +10444,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.113";
+const APP_VERSION = "0.9.114";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
