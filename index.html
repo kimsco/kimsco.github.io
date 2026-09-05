@@ -10449,7 +10449,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.112";
+const APP_VERSION = "0.9.113";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -17378,6 +17378,26 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
     return activeBtn && activeBtn.dataset.target === 'tab1';
   }
 
+  // 🔥 좌측 메뉴 드로어나 다른 전체화면 오버레이가 홈탭 위에 떠있는 동안은 이 제스처를
+  //    완전히 비활성화 — document 레벨 터치 리스너라 드로어 딤(navDrawerDim) 위에서
+  //    손가락을 움직여도 이벤트가 document까지 버블링돼서, 드로어가 열려있는데도 뒤에
+  //    깔린 홈탭이 스크롤/당김되며 새로고침이 실행되는 버그가 있었음
+  const PULL_REFRESH_BLOCKING_OVERLAY_IDS = [
+    "exerciseDexOverlay", "dexPostDetailOverlay", "dexWriteOverlay",
+    "mySpecOverlay", "threeSummaryOverlay", "settingsOverlay",
+    "myRoutineOverlay", "myRoutinePastListOverlay", "myRoutineDetailOverlay",
+    "myRoutineBuilderOverlay", "myRoutineRevealOverlay", "dietOverlay",
+    "bodyweightOverlay", "oneRMCalcOverlay", "muscleFinderOverlay", "whoForOverlay",
+    "homeSettingsOverlay"
+  ];
+  function anyBlockingOverlayOpen(){
+    if (navDrawerOverlay && !navDrawerOverlay.classList.contains('hidden')) return true;
+    return PULL_REFRESH_BLOCKING_OVERLAY_IDS.some(id => {
+      const el = document.getElementById(id);
+      return el && !el.classList.contains('hidden');
+    });
+  }
+
   // 🔥 홈탭에 있는 동안만 .app의 아래쪽 스프링(고무줄) 바운스를 되살림(다른 탭은
   //    계속 overscroll-behavior:none 유지) — 맨 위쪽 당김은 이 IIFE가 dragging
   //    시점부터 항상 preventDefault로 직접 가로채므로 네이티브 바운스와 안 겹침.
@@ -17413,7 +17433,7 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
   }
 
   document.addEventListener('touchstart', (e) => {
-    if (refreshing || !isTab1Active() || !appEl || appEl.scrollTop > 0) { tracking = false; return; }
+    if (refreshing || !isTab1Active() || !appEl || appEl.scrollTop > 0 || anyBlockingOverlayOpen()) { tracking = false; return; }
     const t = e.touches[0];
     startX = t.clientX; startY = t.clientY;
     tracking = true; dragging = false;
