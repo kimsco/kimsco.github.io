@@ -8991,6 +8991,24 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
   </div>
 </div>
 
+<!-- ✅ 카드: 단위 표기(3대/기록탭 전용) — 회/rep, 세트/set, kg/키로 각각 독립적으로
+     전환 가능. 기본값은 지금까지와 동일(회/set/kg)이라 아무도 안 건드리면 예전과 동일 -->
+<div class="settings-section-label">단위 표기</div>
+<div class="settings-card settings-card--flush">
+  <div class="settings-item" style="justify-content:space-between; border-bottom:1px solid var(--c-border);">
+    <span class="settings-item-label">횟수 (회 / rep)</span>
+    <div id="unitRepsToggle" class="toggle-switch"></div>
+  </div>
+  <div class="settings-item" style="justify-content:space-between; border-bottom:1px solid var(--c-border);">
+    <span class="settings-item-label">세트 (세트 / set)</span>
+    <div id="unitSetsToggle" class="toggle-switch"></div>
+  </div>
+  <div class="settings-item" style="justify-content:space-between; border-bottom:none;">
+    <span class="settings-item-label">무게 (kg / 키로)</span>
+    <div id="unitWeightToggle" class="toggle-switch"></div>
+  </div>
+</div>
+
 <!-- ✅ 카드 3: 일반 -->
 <div class="settings-section-label">일반</div>
 <div class="settings-card settings-card--flush">
@@ -9523,14 +9541,32 @@ function formatKgSmart(n){
 
 function makeKey(w, r){ return `${round1(w)}__${parseInt(r,10)}`; }
 
+/* ===============================
+   ✅ 3대/기록탭 전용 단위 표기 설정(회/rep, 세트/set, kg/키로) — 설정 화면의
+   "단위 표기" 토글 3개와 연동됨. 기본값은 원래 하드코딩돼 있던 것과 동일(회/set/kg)
+   이라, 아무도 안 건드리면 지금까지와 완전히 같게 보임
+================================ */
+const LS_KEY_UNIT_PREFS = "mf_unit_prefs_v1";
+let unitPrefs = { reps: "회", sets: "set", weight: "kg" };
+try {
+  const savedUnitPrefs = JSON.parse(localStorage.getItem(LS_KEY_UNIT_PREFS) || "null");
+  if (savedUnitPrefs && typeof savedUnitPrefs === "object") unitPrefs = { ...unitPrefs, ...savedUnitPrefs };
+} catch(e) {}
+function saveUnitPrefs(){
+  try { localStorage.setItem(LS_KEY_UNIT_PREFS, JSON.stringify(unitPrefs)); } catch(e) {}
+}
+function repsUnit(){ return unitPrefs.reps === "rep" ? "rep" : "회"; }
+function setsUnit(){ return unitPrefs.sets === "세트" ? "세트" : "set"; }
+function weightUnit(){ return unitPrefs.weight === "키로" ? "키로" : "kg"; }
+
 function formatSetLine(w, r, sets){
-  const weightStr = `${formatKgSmart(w)}kg × ${parseInt(r,10)}회`;
+  const weightStr = `${formatKgSmart(w)}${weightUnit()} × ${parseInt(r,10)}${repsUnit()}`;
 
   if(sets === 1){
     return weightStr;   // ✅ 1세트는 그냥 기본 표시
   }
 
-  return `${weightStr} × ${sets}set`;
+  return `${weightStr} × ${sets}${setsUnit()}`;
 }
 
 /* 페이드 텍스트 유틸 */
@@ -10457,7 +10493,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.116";
+const APP_VERSION = "0.9.117";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -13230,6 +13266,50 @@ seriousModeToggle.addEventListener("click", () => {
   seriousModeToggle.classList.toggle("active", next);
   applySeriousMode(next);
   try { localStorage.setItem("mf_serious_mode", next ? "1" : "0"); } catch(e){}
+});
+
+/* ===============================
+   🔥 설정 > 단위 표기 토글 3개(횟수/세트/무게) — formatSetLine()이 참조하는
+   unitPrefs를 바꾸고, 지금 화면에 3대/기록탭 기록이 떠있으면 그 자리에서 바로
+   다시 그려서 새로고침 없이 즉시 반영되게 함
+================================ */
+function applyUnitPrefsToInputs(){
+  const w = weightUnit(), r = repsUnit();
+  [recordWeight, document.getElementById("acc-weight")].forEach(el => { if (el) el.placeholder = w; });
+  [recordReps, document.getElementById("acc-reps")].forEach(el => { if (el) el.placeholder = r; });
+}
+function refreshUnitDependentUI(){
+  applyUnitPrefsToInputs();
+  try { renderActiveBox(); } catch(e){}
+  try { if (currentExerciseName) renderAccessoryRecords(currentExerciseName); } catch(e){}
+}
+const unitRepsToggle = document.getElementById("unitRepsToggle");
+const unitSetsToggle = document.getElementById("unitSetsToggle");
+const unitWeightToggle = document.getElementById("unitWeightToggle");
+unitRepsToggle.classList.toggle("active", unitPrefs.reps === "rep");
+unitSetsToggle.classList.toggle("active", unitPrefs.sets === "세트");
+unitWeightToggle.classList.toggle("active", unitPrefs.weight === "키로");
+applyUnitPrefsToInputs();
+unitRepsToggle.addEventListener("click", () => {
+  const next = !unitRepsToggle.classList.contains("active");
+  unitRepsToggle.classList.toggle("active", next);
+  unitPrefs.reps = next ? "rep" : "회";
+  saveUnitPrefs();
+  refreshUnitDependentUI();
+});
+unitSetsToggle.addEventListener("click", () => {
+  const next = !unitSetsToggle.classList.contains("active");
+  unitSetsToggle.classList.toggle("active", next);
+  unitPrefs.sets = next ? "세트" : "set";
+  saveUnitPrefs();
+  refreshUnitDependentUI();
+});
+unitWeightToggle.addEventListener("click", () => {
+  const next = !unitWeightToggle.classList.contains("active");
+  unitWeightToggle.classList.toggle("active", next);
+  unitPrefs.weight = next ? "키로" : "kg";
+  saveUnitPrefs();
+  refreshUnitDependentUI();
 });
 
 /* ===============================
