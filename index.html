@@ -8955,7 +8955,6 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
     <div class="settings-body">
 
 <!-- ✅ 카드 1: 프로필/로그인 -->
-<div class="settings-section-label">계정</div>
 <div class="settings-card settings-card--flush-bottom">
   <div id="settingsGuestBadge">
     <div class="settings-name" id="settingsHeaderName">게스트</div>
@@ -8980,8 +8979,8 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
   </div>
 </div>
 
-<!-- ✅ 카드 2: 기타(내 정보 수정/문의) -->
-<div class="settings-section-label">기타</div>
+<!-- ✅ 카드 2: 계정 -->
+<div class="settings-section-label">계정</div>
 <div class="settings-card settings-card--flush">
   <button id="mySpecMenuBtn" class="settings-item" style="width:100%; text-align:left; background:none; color:var(--c-text-primary); cursor:pointer; border-bottom:none;">
     <img src="icons/setting-profile.png" class="settings-item-icon" alt="">내 정보 수정
@@ -10458,7 +10457,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.115";
+const APP_VERSION = "0.9.116";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
