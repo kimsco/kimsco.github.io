@@ -9003,10 +9003,15 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
   <button id="unitSettingsMenuBtn" class="settings-item" style="width:100%; text-align:left; background:none; color:var(--c-text-primary); cursor:pointer; border-bottom:1px solid var(--c-border); border-radius:0; appearance:none; -webkit-appearance:none;">
     <svg class="settings-item-icon" viewBox="0 0 24 24" style="display:block;"><text x="12" y="19" text-anchor="middle" font-size="20" font-weight="800" font-family="-apple-system, BlinkMacSystemFont, sans-serif" fill="rgba(255,255,255,0.8)">kg</text></svg>단위 표기
   </button>
-  <div class="settings-item" style="justify-content:space-between; border-bottom:1px solid var(--c-border);">
+  <div class="settings-item" style="justify-content:space-between; border-bottom:none;">
     <span class="settings-item-label"><img src="icons/setting-mode.png" class="settings-item-icon" alt="">화면 모드</span>
     <div id="lightModeToggle" class="toggle-switch"></div>
   </div>
+</div>
+
+<!-- ✅ 카드 4: 기타(앱 버전) -->
+<div class="settings-section-label">기타</div>
+<div class="settings-card settings-card--flush">
   <div class="settings-item" style="justify-content:space-between; border-bottom:none;">
     <span class="settings-item-label"><img src="icons/setting-version.png" class="settings-item-icon" alt="">앱 버전</span>
     <!-- 🔥 버전 숫자는 아래 JS(APP_VERSION)가 채움 — 예전엔 "0.1.0"이 박혀있어서
@@ -10479,7 +10484,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.121";
+const APP_VERSION = "0.9.122";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
