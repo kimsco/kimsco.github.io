@@ -1513,6 +1513,9 @@ html.mf-restore-settings .bottomTab {
 #homeSettingsOverlay.hidden {
   display: none;
 }
+#unitSettingsOverlay.hidden {
+  display: none;
+}
 #homeSeriousModeScreen.hidden {
   display: none;
 }
@@ -3561,7 +3564,8 @@ html.light-mode-on #threeSummaryOverlay,
 html.light-mode-on #muscleFinderOverlay,
 html.light-mode-on #oneRMCalcOverlay,
 html.light-mode-on #whoForOverlay,
-html.light-mode-on #homeSettingsOverlay {
+html.light-mode-on #homeSettingsOverlay,
+html.light-mode-on #unitSettingsOverlay {
   background: #eeeeee !important;
   color: var(--c-text-primary);
 }
@@ -8813,6 +8817,34 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
   </div>
 </div>
 
+<!-- 🔥 단위 표기 — 설정 > 일반 안의 "단위 표기" 행을 누르면 여기로 옴. 3대/기록탭
+     전용 표기(회/rep, 세트/set, kg/키로)를 각각 독립적으로 전환 -->
+<div id="unitSettingsOverlay" class="hidden" style="
+    position:fixed; inset:0; background:#000; z-index:100000;
+    overflow:hidden;
+  ">
+  <div id="unitSettingsScreen" style="height:100%; overflow-y:auto; padding: calc(16px + env(safe-area-inset-top)) 18px calc(24px + env(safe-area-inset-bottom));">
+    <div style="display:flex; align-items:center; margin-bottom:16px; cursor:pointer;" onclick="closeUnitSettings()">
+      ← <span style="margin-left:6px; font-size:15px; font-weight:600; color:var(--c-text-primary);">단위 표기</span>
+    </div>
+
+    <div class="settings-card settings-card--flush">
+      <div class="settings-item" style="justify-content:space-between; border-bottom:1px solid var(--c-border);">
+        <span class="settings-item-label">횟수 (회 / rep)</span>
+        <div id="unitRepsToggle" class="toggle-switch"></div>
+      </div>
+      <div class="settings-item" style="justify-content:space-between; border-bottom:1px solid var(--c-border);">
+        <span class="settings-item-label">세트 (세트 / set)</span>
+        <div id="unitSetsToggle" class="toggle-switch"></div>
+      </div>
+      <div class="settings-item" style="justify-content:space-between; border-bottom:none;">
+        <span class="settings-item-label">무게 (kg / 키로)</span>
+        <div id="unitWeightToggle" class="toggle-switch"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- 🔥 WHO IS TTT FOR? — 브랜드 철학 페이지(풀스크린, 세로 스크롤) -->
 <div id="whoForOverlay" class="hidden" style="
     position:fixed; inset:0; background:#000; z-index:100000;
@@ -8991,29 +9023,17 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
   </div>
 </div>
 
-<!-- ✅ 카드: 단위 표기(3대/기록탭 전용) — 회/rep, 세트/set, kg/키로 각각 독립적으로
-     전환 가능. 기본값은 지금까지와 동일(회/set/kg)이라 아무도 안 건드리면 예전과 동일 -->
-<div class="settings-section-label">단위 표기</div>
-<div class="settings-card settings-card--flush">
-  <div class="settings-item" style="justify-content:space-between; border-bottom:1px solid var(--c-border);">
-    <span class="settings-item-label">횟수 (회 / rep)</span>
-    <div id="unitRepsToggle" class="toggle-switch"></div>
-  </div>
-  <div class="settings-item" style="justify-content:space-between; border-bottom:1px solid var(--c-border);">
-    <span class="settings-item-label">세트 (세트 / set)</span>
-    <div id="unitSetsToggle" class="toggle-switch"></div>
-  </div>
-  <div class="settings-item" style="justify-content:space-between; border-bottom:none;">
-    <span class="settings-item-label">무게 (kg / 키로)</span>
-    <div id="unitWeightToggle" class="toggle-switch"></div>
-  </div>
-</div>
-
 <!-- ✅ 카드 3: 일반 -->
 <div class="settings-section-label">일반</div>
 <div class="settings-card settings-card--flush">
   <button id="homeSettingsMenuBtn" class="settings-item" style="width:100%; text-align:left; background:none; color:var(--c-text-primary); cursor:pointer; border-bottom:1px solid var(--c-border); border-radius:0; appearance:none; -webkit-appearance:none;">
     <svg class="settings-item-icon" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;"><path d="M3 11l9-8 9 8"></path><path d="M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10"></path></svg>홈 설정
+  </button>
+  <!-- 🔥 3대/기록탭 전용 단위 표기(회/rep, 세트/set, kg/키로) 설정 — 예전엔 여기 카드
+       바깥에 별도 카드로 토글 3개가 그대로 있었는데, 한 칸으로 접어서 누르면 전용
+       화면(#unitSettingsOverlay)에서 조절하도록 변경 -->
+  <button id="unitSettingsMenuBtn" class="settings-item" style="width:100%; text-align:left; background:none; color:var(--c-text-primary); cursor:pointer; border-bottom:1px solid var(--c-border); border-radius:0; appearance:none; -webkit-appearance:none;">
+    <svg class="settings-item-icon" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;"><path d="M21 10H3M16 3v4M8 3v4M7 21h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"></path></svg>단위 표기
   </button>
   <div class="settings-item" style="justify-content:space-between; border-bottom:1px solid var(--c-border);">
     <span class="settings-item-label"><img src="icons/setting-mode.png" class="settings-item-icon" alt="">화면 모드</span>
@@ -10493,7 +10513,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.117";
+const APP_VERSION = "0.9.118";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -13245,6 +13265,29 @@ function closeHomeSettings(){
 document.getElementById("homeSettingsMenuBtn").addEventListener("click", () => {
   closeSettings();
   openHomeSettings();
+});
+
+/* ===============================
+   🔥 단위 표기 — 설정 > 일반 안의 한 칸(홈 설정과 동일한 구조) — 3대/기록탭
+   전용 회/rep, 세트/set, kg/키로 토글 3개가 여기 들어있음
+================================ */
+const unitSettingsOverlay = document.getElementById("unitSettingsOverlay");
+function openUnitSettings(){
+  unitSettingsOverlay.classList.remove("hidden");
+  const unitSettingsScreenEl = document.getElementById('unitSettingsScreen');
+  if (unitSettingsScreenEl) {
+    unitSettingsScreenEl.style.transition = 'none';
+    unitSettingsScreenEl.style.transform = 'translateX(0)';
+    unitSettingsScreenEl.scrollTop = 0;
+  }
+}
+function closeUnitSettings(){
+  unitSettingsOverlay.classList.add("hidden");
+}
+
+document.getElementById("unitSettingsMenuBtn").addEventListener("click", () => {
+  closeSettings();
+  openUnitSettings();
 });
 
 const seriousModeToggle = document.getElementById("seriousModeToggle");
@@ -16604,6 +16647,79 @@ document.getElementById("dexWriteSubmitBtn").addEventListener("click", async () 
   homeSettingsScreen.addEventListener('touchcancel', endDrag, { passive: true });
 })();
 
+/* 🔥 단위 표기 화면: 홈 설정 화면과 동일하게 왼쪽 끝에서 오른쪽으로 드래그하면
+   손가락 따라 끌려가며 닫힘 */
+(function(){
+  const unitSettingsScreen = document.getElementById('unitSettingsScreen');
+  const EDGE_ZONE = 30;
+  const COMMIT_MOVE = 8;
+  const CLOSE_RATIO = 0.3;
+  let startX = 0, startY = 0, tracking = false, dragging = false;
+
+  unitSettingsScreen.addEventListener('touchstart', (e) => {
+    const t = e.touches[0];
+    if (t.clientX <= EDGE_ZONE) {
+      startX = t.clientX;
+      startY = t.clientY;
+      tracking = true;
+      dragging = false;
+      unitSettingsScreen.style.transition = 'none';
+    } else {
+      tracking = false;
+    }
+  }, { passive: true });
+
+  unitSettingsScreen.addEventListener('touchmove', (e) => {
+    if (!tracking) return;
+    const t = e.touches[0];
+    const dx = t.clientX - startX;
+    const dy = t.clientY - startY;
+
+    if (!dragging) {
+      if (dx > COMMIT_MOVE && dx > Math.abs(dy) * 0.6) {
+        dragging = true;
+      } else if (Math.abs(dy) > COMMIT_MOVE && Math.abs(dy) > dx) {
+        tracking = false;
+        return;
+      } else {
+        return;
+      }
+    }
+
+    if (dragging) {
+      e.preventDefault();
+      unitSettingsScreen.style.transform = `translateX(${Math.max(0, dx)}px)`;
+    }
+  }, { passive: false });
+
+  function endDrag(e){
+    if (!tracking) return;
+    const wasDragging = dragging;
+    tracking = false;
+    dragging = false;
+    if (!wasDragging) return;
+
+    const width = unitSettingsScreen.offsetWidth || window.innerWidth;
+    const t = e.changedTouches[0];
+    const dx = Math.max(0, t.clientX - startX);
+
+    unitSettingsScreen.style.transition = 'transform 0.22s ease';
+
+    if (dx > width * CLOSE_RATIO) {
+      unitSettingsScreen.style.transform = `translateX(${width}px)`;
+      setTimeout(() => {
+        closeUnitSettings();
+        unitSettingsScreen.style.transition = 'none';
+      }, 220);
+    } else {
+      unitSettingsScreen.style.transform = 'translateX(0)';
+    }
+  }
+
+  unitSettingsScreen.addEventListener('touchend', endDrag, { passive: true });
+  unitSettingsScreen.addEventListener('touchcancel', endDrag, { passive: true });
+})();
+
 
 
    
@@ -16731,7 +16847,7 @@ document.body.appendChild(bottomTabEl);
   'oneRMCalcOverlay', 'threeSummaryOverlay', 'bodyweightOverlay', 'muscleFinderOverlay',
   'whoForOverlay', 'myRoutineOverlay', 'myRoutinePastListOverlay', 'myRoutineBuilderOverlay',
   'myRoutineDetailOverlay', 'exerciseDexOverlay', 'dexWriteOverlay', 'dexPostDetailOverlay',
-  'graphOverlay', 'homeSettingsOverlay'
+  'graphOverlay', 'homeSettingsOverlay', 'unitSettingsOverlay'
 ].forEach(id => {
   const el = document.getElementById(id);
   if (el) document.body.appendChild(el);
@@ -17342,7 +17458,7 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
       "myRoutineOverlay", "myRoutinePastListOverlay", "myRoutineDetailOverlay",
       "myRoutineBuilderOverlay", "myRoutineRevealOverlay", "dietOverlay",
       "bodyweightOverlay", "oneRMCalcOverlay", "muscleFinderOverlay", "whoForOverlay",
-      "homeSettingsOverlay"
+      "homeSettingsOverlay", "unitSettingsOverlay"
     ];
     return overlayIds.some(id => {
       const el = document.getElementById(id);
@@ -17476,7 +17592,7 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
     "myRoutineOverlay", "myRoutinePastListOverlay", "myRoutineDetailOverlay",
     "myRoutineBuilderOverlay", "myRoutineRevealOverlay", "dietOverlay",
     "bodyweightOverlay", "oneRMCalcOverlay", "muscleFinderOverlay", "whoForOverlay",
-    "homeSettingsOverlay"
+    "homeSettingsOverlay", "unitSettingsOverlay"
   ];
   function anyBlockingOverlayOpen(){
     if (navDrawerOverlay && !navDrawerOverlay.classList.contains('hidden')) return true;
