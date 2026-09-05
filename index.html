@@ -8957,6 +8957,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
     <div class="settings-body">
 
 <!-- ✅ 카드 1: 프로필/로그인 -->
+<div class="settings-section-label">계정</div>
 <div class="settings-card settings-card--flush">
   <!-- 🔥 게스트가 기본값이라 처음엔 숨김으로 시작 — 로그인 상태로 확정되면(캐시로 즉시,
        또는 auth.onAuthStateChanged로 최종) renderSettingsIdentity()가 다시 보여줌.
@@ -8978,8 +8979,8 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
   </button>
 </div>
 
-<!-- ✅ 카드 2: 계정 -->
-<div class="settings-section-label">계정</div>
+<!-- ✅ 카드 2: 정보(내 정보 수정/문의) -->
+<div class="settings-section-label">정보</div>
 <div class="settings-card settings-card--flush">
   <button id="mySpecMenuBtn" class="settings-item" style="width:100%; text-align:left; background:none; color:var(--c-text-primary); cursor:pointer; border-bottom:none;">
     <img src="icons/setting-profile.png" class="settings-item-icon" alt="">내 정보 수정
@@ -10478,7 +10479,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.120";
+const APP_VERSION = "0.9.121";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
