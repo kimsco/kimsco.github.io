@@ -167,10 +167,11 @@ button {
 /* ===============================
    로그인 영역
 ================================ */
-  
+
 :root{
   --topBarH: 60.8px;    /* ✅ 실제 탑바 높이(패딩 포함) - 기존 76px의 4/5 */
   --bottomTabH: 88px;
+  --settings-row-h: 67px; /* 🔥 설정 화면 "{이름}님" 프로필 칸의 실측 높이 — 다른 모든 설정 행(.settings-item)의 기준 높이로 재사용 */
 }
 
 .topBar{
@@ -1006,6 +1007,14 @@ cursor: pointer;
   background: #fff;
 }
 #lightModeToggle.toggle-switch.active::after {
+  background: #414141;
+}
+
+/* 🔥 홈 설정 > 진심모드 토글: 기본 빨간색 대신 다른 토글들과 동일한 ON 색상(흰 배경 + 회색 구슬) */
+#seriousModeToggle.toggle-switch.active {
+  background: #fff;
+}
+#seriousModeToggle.toggle-switch.active::after {
   background: #414141;
 }
 
@@ -4401,6 +4410,10 @@ html.light-mode-on .settings-panel {
 .settings-item {
   display: flex;
   align-items: center;
+  height: var(--settings-row-h); /* 🔥 프로필 칸과 같은 기준 높이로 정확히 통일 — 카드 안 행이 n개면 카드 전체 높이가 정확히 n배가 됨(고정 height라 2줄짜리 행도 절대 이 값을 넘지 않음) */
+  overflow: hidden; /* 🔥 위 고정 height 때문에 혹시 내용이 살짝 넘치더라도 카드 밖으로 새어나가지 않게 함 */
+  box-sizing: border-box;
+  margin: 0; /* 🔥 일부 행이 <button>이라 브라우저 기본 마진(위아래 10px)이 붙어있던 걸 제거 — 안 그러면 카드 전체 높이가 n배를 못 맞춤 */
   padding: 14px 0;
   border-bottom: 1px solid var(--c-border);
   font-size: 14px;
@@ -8942,6 +8955,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
     <div class="settings-body">
 
 <!-- ✅ 카드 1: 프로필/로그인 -->
+<div class="settings-section-label">계정</div>
 <div class="settings-card settings-card--flush-bottom">
   <div id="settingsGuestBadge">
     <div class="settings-name" id="settingsHeaderName">게스트</div>
@@ -8966,16 +8980,16 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
   </div>
 </div>
 
-<!-- ✅ 카드 2: 계정 -->
-<div class="settings-section-label">계정</div>
+<!-- ✅ 카드 2: 기타(내 정보 수정/문의) -->
+<div class="settings-section-label">기타</div>
 <div class="settings-card settings-card--flush">
   <button id="mySpecMenuBtn" class="settings-item" style="width:100%; text-align:left; background:none; color:var(--c-text-primary); cursor:pointer; border-bottom:none;">
     <img src="icons/setting-profile.png" class="settings-item-icon" alt="">내 정보 수정
   </button>
-  <div class="settings-item" style="border-top:1px solid var(--c-border); border-bottom:none; padding-bottom:0;">
-    <img src="icons/setting-inquiry.png" class="settings-item-icon" alt="">문의
+  <div class="settings-item" style="flex-direction:column; align-items:flex-start; justify-content:center; gap:2px; border-top:1px solid var(--c-border); border-bottom:none;">
+    <div style="display:flex; align-items:center;"><img src="icons/setting-inquiry.png" class="settings-item-icon" alt="">문의</div>
+    <div style="color:var(--c-text-secondary);">김무진한테 문의하세요</div>
   </div>
-  <div class="settings-item muted" style="padding-top:2px; border-bottom:none;">김무진한테 문의하세요</div>
 </div>
 
 <!-- ✅ 카드 3: 일반 -->
@@ -10444,7 +10458,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.114";
+const APP_VERSION = "0.9.115";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
