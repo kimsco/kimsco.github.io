@@ -4379,6 +4379,11 @@ html.light-mode-on .settings-panel {
 .settings-email {
   font-size: 12px;
   color: var(--c-text-secondary);
+  /* 🔥 긴 이메일이 두 줄로 줄바꿈되면서 카드 세로 폭이 달라지는 걸 방지: 항상
+     한 줄로 고정하고 넘치면 말줄임표 처리 */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .settings-item {
@@ -4457,22 +4462,6 @@ html.light-mode-on .settings-row + .settings-row {
 .row-title{
   font-size: 15px;
   font-weight: 650;
-}
-
-.row-sub{
-  font-size: 12px;
-  color: var(--c-text-secondary);
-  /* 🔥 긴 이메일이 두 줄로 줄바꿈되면서 로그인 전/후 세로 폭이 달라지는 걸 방지:
-     항상 한 줄로 고정하고 넘치면 말줄임표 처리 */
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* 🔥 계정 행: 이름은 위 헤더로 옮기고 이메일만 표시 — row-title(15px)과
-   기존 row-sub(12px) 사이 크기로 */
-#settingsEmailSub{
-  font-size: 13.5px;
 }
 
 .row-right{
@@ -8970,10 +8959,13 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
 <!-- ✅ 카드 1: 프로필/로그인 -->
 <div class="settings-card settings-card--flush">
   <!-- 🔥 게스트가 기본값이라 처음엔 숨김으로 시작 — 로그인 상태로 확정되면(캐시로 즉시,
-       또는 auth.onAuthStateChanged로 최종) renderSettingsIdentity()가 다시 보여줌 -->
+       또는 auth.onAuthStateChanged로 최종) renderSettingsIdentity()가 다시 보여줌.
+       이름+이메일을 이 한 칸 안에 같이 넣어 최상단이 하나의 목록으로 보이게 함
+       (예전엔 이름은 여기, 이메일은 별도 settingsAccountRow 칸에 나뉘어 있어서
+       최상단이 두 개의 목록처럼 보였음) -->
   <div id="settingsGuestBadge" style="display:none;">
     <div class="settings-name" id="settingsHeaderName">게스트</div>
-    <div class="settings-email" id="settingsHeaderSub" style="display:none;">로그인하지 않음</div>
+    <div class="settings-email" id="settingsHeaderSub"></div>
   </div>
 
   <!-- 게스트일 때만 보일 "로그인 하기" — 게스트일 땐 위 settingsGuestBadge("게스트" 이름)를
@@ -8984,15 +8976,6 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
     </div>
     <div class="row-right">›</div>
   </button>
-
-  <!-- 로그인 상태일 때만 보일 "계정" — 로그인 여부 확인 전 "로그인 하기"와 잠깐 같이
-       보이지 않도록 기본값을 숨김으로 시작(onAuthStateChanged에서 확정되면 표시) -->
-  <div id="settingsAccountRow" class="settings-row static" style="display:none;">
-    <div class="row-left">
-      <div class="row-title" id="settingsNameBig">게스트</div>
-      <div class="row-sub" id="settingsEmailSub">로그인하지 않음</div>
-    </div>
-  </div>
 </div>
 
 <!-- ✅ 카드 2: 계정 -->
@@ -9017,7 +9000,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
        바깥에 별도 카드로 토글 3개가 그대로 있었는데, 한 칸으로 접어서 누르면 전용
        화면(#unitSettingsOverlay)에서 조절하도록 변경 -->
   <button id="unitSettingsMenuBtn" class="settings-item" style="width:100%; text-align:left; background:none; color:var(--c-text-primary); cursor:pointer; border-bottom:1px solid var(--c-border); border-radius:0; appearance:none; -webkit-appearance:none;">
-    <svg class="settings-item-icon" viewBox="0 0 24 24" style="display:block;"><text x="12" y="16.5" text-anchor="middle" font-size="11" font-weight="800" font-family="-apple-system, BlinkMacSystemFont, sans-serif" fill="rgba(255,255,255,0.8)">kg</text></svg>단위 표기
+    <svg class="settings-item-icon" viewBox="0 0 24 24" style="display:block;"><text x="12" y="19" text-anchor="middle" font-size="20" font-weight="800" font-family="-apple-system, BlinkMacSystemFont, sans-serif" fill="rgba(255,255,255,0.8)">kg</text></svg>단위 표기
   </button>
   <div class="settings-item" style="justify-content:space-between; border-bottom:1px solid var(--c-border);">
     <span class="settings-item-label"><img src="icons/setting-mode.png" class="settings-item-icon" alt="">화면 모드</span>
@@ -9032,7 +9015,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
 </div>
 
 <!-- ✅ 하단 로그아웃/회원탈퇴 (카드 밖, 텍스트 링크)
-     🔥 settingsAccountRow와 동일하게 기본값을 display:none으로 둠(로그인 상태
+     🔥 settingsGuestBadge와 동일하게 기본값을 display:none으로 둠(로그인 상태
      확정 전까지는 숨김) — 안 그러면 Firebase auth 확정 전(특히 화면모드 토글로
      reload된 직후) 게스트 화면에서도 잠깐 보였다가 사라지는 깜빡임이 생김 -->
 <div id="settingsLogoutText" class="settings-logout-text" style="display:none;">
@@ -9053,18 +9036,14 @@ try {
     const cachedEmail = localStorage.getItem("mf_cached_email") || "";
     const guestBadge = document.getElementById("settingsGuestBadge");
     const headerName = document.getElementById("settingsHeaderName");
-    const nameBig = document.getElementById("settingsNameBig");
+    const headerSub = document.getElementById("settingsHeaderSub");
     const loginRow = document.getElementById("settingsLoginRow");
-    const accountRow = document.getElementById("settingsAccountRow");
-    const emailSub = document.getElementById("settingsEmailSub");
     const logoutText = document.getElementById("settingsLogoutText");
     const deleteText = document.getElementById("settingsDeleteAccountText");
     if (guestBadge) guestBadge.style.display = "block";
     if (headerName) headerName.textContent = `${cachedName}님`;
-    if (nameBig) nameBig.style.display = "none";
+    if (headerSub) headerSub.textContent = cachedEmail;
     if (loginRow) loginRow.style.display = "none";
-    if (accountRow) accountRow.style.display = "flex";
-    if (emailSub) emailSub.textContent = cachedEmail;
     if (logoutText) logoutText.style.display = "block";
     if (deleteText) deleteText.style.display = "block";
   }
@@ -10499,7 +10478,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.119";
+const APP_VERSION = "0.9.120";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -10635,9 +10614,7 @@ auth.onAuthStateChanged(async user => {
 
    if (user) {
     if (settingsLoginRow) settingsLoginRow.style.display = "none";
-    if (settingsAccountRow) settingsAccountRow.style.display = "flex";
-
-    if (settingsEmailSub) settingsEmailSub.textContent = user.email || "";
+    if (settingsHeaderSub) settingsHeaderSub.textContent = user.email || "";
 
     if (settingsLogoutText) settingsLogoutText.style.display = "block";
     if (settingsDeleteAccountText) settingsDeleteAccountText.style.display = "block";
@@ -10652,7 +10629,6 @@ auth.onAuthStateChanged(async user => {
     } catch(e){}
   } else {
     if (settingsLoginRow) settingsLoginRow.style.display = "flex";
-    if (settingsAccountRow) settingsAccountRow.style.display = "none";
 
     if (settingsLogoutText) settingsLogoutText.style.display = "none";
     if (settingsDeleteAccountText) settingsDeleteAccountText.style.display = "none";
@@ -18543,9 +18519,6 @@ try {
 
 // ✅ 설정 화면용 로그인/로그아웃 요소
 const settingsLoginRow = document.getElementById("settingsLoginRow");
-const settingsAccountRow = document.getElementById("settingsAccountRow");
-const settingsNameBig = document.getElementById("settingsNameBig");
-const settingsEmailSub = document.getElementById("settingsEmailSub");
 
 // ✅ 로그아웃 모달 요소
 const logoutModal = document.getElementById("logoutModal");
@@ -19783,18 +19756,17 @@ function applySpecToUI(){
 function renderSettingsIdentity(isLoggedIn){
   // 🔥 게스트일 땐 이름 배지 자체를 아예 숨기고 "로그인 하기" 한 줄만 다른 목록들과
   //    동일한 크기로 보이게 함(카드 자체가 flush라 이 배지가 숨겨지면 로그인 행이
-  //    바로 카드 위쪽 패딩 없이 한 칸짜리 카드처럼 자연스럽게 보임)
+  //    바로 카드 위쪽 패딩 없이 한 칸짜리 카드처럼 자연스럽게 보임). 로그인 상태일
+  //    땐 이 배지 하나 안에 이름+이메일이 같이 보임(이메일 텍스트는 auth
+  //    onAuthStateChanged가 채움) — 최상단이 하나의 목록으로만 보이게 함
   if (settingsGuestBadge) settingsGuestBadge.style.display = isLoggedIn ? "block" : "none";
-  if (settingsHeaderSub) settingsHeaderSub.style.display = "none";
 
   if (isLoggedIn) {
     const displayName = (userSpec.name && userSpec.name.trim()) || "사용자명";
     if (settingsHeaderName) settingsHeaderName.textContent = `${displayName}님`;
-    if (settingsNameBig) settingsNameBig.style.display = "none"; // 계정 행엔 이메일만 남김
     try { localStorage.setItem("mf_cached_name", displayName); } catch(e){}
   } else {
     if (settingsHeaderName) settingsHeaderName.textContent = "게스트";
-    if (settingsNameBig) settingsNameBig.style.display = "";
   }
 }
 
