@@ -983,39 +983,13 @@ cursor: pointer;
   transition: transform 0.25s ease;
 }
 
-/* ON 상태 */
+/* ON 상태 — 앱 안의 모든 토글은 예외 없이 흰 배경 + 회색 구슬로 통일 */
 .toggle-switch.active {
-  background: linear-gradient(135deg, #8b0000, #400000);
+  background: #fff;
 }
-
 .toggle-switch.active::after {
+  background: #414141;
   transform: translateX(22px);
-}
-
-/* 달력 탭 토글: ON 색상만 흰색으로 */
-#calendarToggle.toggle-switch.active {
-  background: #fff;
-}
-
-/* 달력 탭 토글 ON 상태에서 구슬은 기존 회색 배경색 그대로 유지 */
-#calendarToggle.toggle-switch.active::after {
-  background: #414141;
-}
-
-/* 🔥 설정 > 화면 모드 토글: 달력 탭 토글과 동일한 ON 색상(흰 배경 + 회색 구슬) */
-#lightModeToggle.toggle-switch.active {
-  background: #fff;
-}
-#lightModeToggle.toggle-switch.active::after {
-  background: #414141;
-}
-
-/* 🔥 홈 설정 > 진심모드 토글: 기본 빨간색 대신 다른 토글들과 동일한 ON 색상(흰 배경 + 회색 구슬) */
-#seriousModeToggle.toggle-switch.active {
-  background: #fff;
-}
-#seriousModeToggle.toggle-switch.active::after {
-  background: #414141;
 }
 
 /* 종목 모드 전용 */
@@ -1511,6 +1485,9 @@ html.mf-restore-settings .bottomTab {
   display: none;
 }
 #homeSettingsOverlay.hidden {
+  display: none;
+}
+#unitSettingsOverlay.hidden {
   display: none;
 }
 #homeSeriousModeScreen.hidden {
@@ -3561,7 +3538,8 @@ html.light-mode-on #threeSummaryOverlay,
 html.light-mode-on #muscleFinderOverlay,
 html.light-mode-on #oneRMCalcOverlay,
 html.light-mode-on #whoForOverlay,
-html.light-mode-on #homeSettingsOverlay {
+html.light-mode-on #homeSettingsOverlay,
+html.light-mode-on #unitSettingsOverlay {
   background: #eeeeee !important;
   color: var(--c-text-primary);
 }
@@ -4359,12 +4337,6 @@ html.light-mode-on .settings-panel {
   padding-bottom: 0;
 }
 
-/* 🔥 카드 겉테두리 크기는 유지한 채, 안에서 구분선 위치만 아래로 옮기기 위해
-   카드 자체의 아래쪽 여백만 없앰(위쪽은 유지) */
-.settings-card--flush-bottom {
-  padding-bottom: 0;
-}
-
 .settings-section-label {
   font-size: 13px;
   font-weight: 600;
@@ -4391,8 +4363,10 @@ html.light-mode-on .settings-panel {
 }
 
 #settingsGuestBadge {
-  margin-top: 0; /* 🔥 카드 자체의 위쪽 패딩(14px)에 맡김 — 다른 카드들과 같은 간격으로 맞춤 */
+  margin-top: 0;
   margin-bottom: 0;
+  padding-top: 14px; /* 🔥 카드 자체가 이제 완전히 flush(위아래 패딩 0)라, 이 칸이 직접 위쪽 14px 간격을 가짐 —
+                          게스트일 땐 이 칸 자체가 숨겨지고 로그인 행(.settings-row)이 그 역할을 대신함 */
   padding-bottom: 14px; /* 🔥 다른 카드의 .settings-item과 동일한 14px 리듬으로 맞춤(기존 29px는 유독 커 보였음) */
   border-bottom: 1px solid var(--c-border);
 }
@@ -4405,6 +4379,11 @@ html.light-mode-on .settings-panel {
 .settings-email {
   font-size: 12px;
   color: var(--c-text-secondary);
+  /* 🔥 긴 이메일이 두 줄로 줄바꿈되면서 카드 세로 폭이 달라지는 걸 방지: 항상
+     한 줄로 고정하고 넘치면 말줄임표 처리 */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .settings-item {
@@ -4423,6 +4402,17 @@ html.light-mode-on .settings-panel {
   color: var(--c-text-secondary);
 }
 
+/* 🔥 단위 표기 화면: 회/rep, 세트/set, kg/키로 중 지금 선택된 쪽만 진하게(흰색/굵게)
+   강조 — 안 고른 쪽은 계속 흐리고 얇게 둠 */
+.unit-opt {
+  color: var(--c-text-secondary);
+  font-weight: 400;
+}
+.unit-opt.active {
+  color: var(--c-text-primary);
+  font-weight: 700;
+}
+
 
 
 /* ===== 설정 화면 리스트 느낌 ===== */
@@ -4436,7 +4426,7 @@ html.light-mode-on .settings-panel {
   -webkit-appearance: none;
   appearance: none;
   width: 100%;
-  min-height: 65px; /* 🔥 로그인 전(1줄)/후(2줄) 텍스트 줄 수가 달라도 세로 폭을 동일하게 고정 */
+  min-height: var(--settings-row-h); /* 🔥 다른 설정 행(.settings-item)과 동일한 기준 높이 — 게스트일 때 "로그인 하기" 한 줄짜리 카드가 다른 카드들과 정확히 같은 크기로 보이게 함 */
   background: transparent;
   border: none;
   color: var(--c-text-primary);
@@ -4472,22 +4462,6 @@ html.light-mode-on .settings-row + .settings-row {
 .row-title{
   font-size: 15px;
   font-weight: 650;
-}
-
-.row-sub{
-  font-size: 12px;
-  color: var(--c-text-secondary);
-  /* 🔥 긴 이메일이 두 줄로 줄바꿈되면서 로그인 전/후 세로 폭이 달라지는 걸 방지:
-     항상 한 줄로 고정하고 넘치면 말줄임표 처리 */
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* 🔥 계정 행: 이름은 위 헤더로 옮기고 이메일만 표시 — row-title(15px)과
-   기존 row-sub(12px) 사이 크기로 */
-#settingsEmailSub{
-  font-size: 13.5px;
 }
 
 .row-right{
@@ -8813,6 +8787,34 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
   </div>
 </div>
 
+<!-- 🔥 단위 표기 — 설정 > 일반 안의 "단위 표기" 행을 누르면 여기로 옴. 3대/기록탭
+     전용 표기(회/rep, 세트/set, kg/키로)를 각각 독립적으로 전환 -->
+<div id="unitSettingsOverlay" class="hidden" style="
+    position:fixed; inset:0; background:#000; z-index:100000;
+    overflow:hidden;
+  ">
+  <div id="unitSettingsScreen" style="height:100%; overflow-y:auto; padding: calc(16px + env(safe-area-inset-top)) 18px calc(24px + env(safe-area-inset-bottom));">
+    <div style="display:flex; align-items:center; margin-bottom:16px; cursor:pointer;" onclick="closeUnitSettings()">
+      ← <span style="margin-left:6px; font-size:15px; font-weight:600; color:var(--c-text-primary);">단위 표기</span>
+    </div>
+
+    <div class="settings-card settings-card--flush">
+      <div class="settings-item" style="justify-content:space-between; border-bottom:1px solid var(--c-border);">
+        <span class="settings-item-label">횟수 (<span id="unitRepsOptKr" class="unit-opt">회</span> / <span id="unitRepsOptEn" class="unit-opt">rep</span>)</span>
+        <div id="unitRepsToggle" class="toggle-switch"></div>
+      </div>
+      <div class="settings-item" style="justify-content:space-between; border-bottom:1px solid var(--c-border);">
+        <span class="settings-item-label">세트 (<span id="unitSetsOptKr" class="unit-opt">세트</span> / <span id="unitSetsOptEn" class="unit-opt">set</span>)</span>
+        <div id="unitSetsToggle" class="toggle-switch"></div>
+      </div>
+      <div class="settings-item" style="justify-content:space-between; border-bottom:none;">
+        <span class="settings-item-label">무게 (<span id="unitWeightOptKg" class="unit-opt">kg</span> / <span id="unitWeightOptKr" class="unit-opt">키로</span>)</span>
+        <div id="unitWeightToggle" class="toggle-switch"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- 🔥 WHO IS TTT FOR? — 브랜드 철학 페이지(풀스크린, 세로 스크롤) -->
 <div id="whoForOverlay" class="hidden" style="
     position:fixed; inset:0; background:#000; z-index:100000;
@@ -8955,28 +8957,25 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
     <div class="settings-body">
 
 <!-- ✅ 카드 1: 프로필/로그인 -->
-<div class="settings-card settings-card--flush-bottom">
-  <div id="settingsGuestBadge">
+<div class="settings-card settings-card--flush">
+  <!-- 🔥 게스트가 기본값이라 처음엔 숨김으로 시작 — 로그인 상태로 확정되면(캐시로 즉시,
+       또는 auth.onAuthStateChanged로 최종) renderSettingsIdentity()가 다시 보여줌.
+       이름+이메일을 이 한 칸 안에 같이 넣어 최상단이 하나의 목록으로 보이게 함
+       (예전엔 이름은 여기, 이메일은 별도 settingsAccountRow 칸에 나뉘어 있어서
+       최상단이 두 개의 목록처럼 보였음) -->
+  <div id="settingsGuestBadge" style="display:none;">
     <div class="settings-name" id="settingsHeaderName">게스트</div>
-    <div class="settings-email" id="settingsHeaderSub" style="display:none;">로그인하지 않음</div>
+    <div class="settings-email" id="settingsHeaderSub"></div>
   </div>
 
-  <!-- 게스트일 때만 보일 "로그인 하기" -->
+  <!-- 게스트일 때만 보일 "로그인 하기" — 게스트일 땐 위 settingsGuestBadge("게스트" 이름)를
+       아예 숨기고 이 한 줄만 다른 목록들과 똑같은 크기로 보이게 함(renderSettingsIdentity 참고) -->
   <button id="settingsLoginRow" class="settings-row">
     <div class="row-left">
       <div class="row-title" style="color:var(--c-login-link);">로그인 하기</div>
     </div>
     <div class="row-right">›</div>
   </button>
-
-  <!-- 로그인 상태일 때만 보일 "계정" — 로그인 여부 확인 전 "로그인 하기"와 잠깐 같이
-       보이지 않도록 기본값을 숨김으로 시작(onAuthStateChanged에서 확정되면 표시) -->
-  <div id="settingsAccountRow" class="settings-row static" style="display:none;">
-    <div class="row-left">
-      <div class="row-title" id="settingsNameBig">게스트</div>
-      <div class="row-sub" id="settingsEmailSub">로그인하지 않음</div>
-    </div>
-  </div>
 </div>
 
 <!-- ✅ 카드 2: 계정 -->
@@ -8991,29 +8990,17 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
   </div>
 </div>
 
-<!-- ✅ 카드: 단위 표기(3대/기록탭 전용) — 회/rep, 세트/set, kg/키로 각각 독립적으로
-     전환 가능. 기본값은 지금까지와 동일(회/set/kg)이라 아무도 안 건드리면 예전과 동일 -->
-<div class="settings-section-label">단위 표기</div>
-<div class="settings-card settings-card--flush">
-  <div class="settings-item" style="justify-content:space-between; border-bottom:1px solid var(--c-border);">
-    <span class="settings-item-label">횟수 (회 / rep)</span>
-    <div id="unitRepsToggle" class="toggle-switch"></div>
-  </div>
-  <div class="settings-item" style="justify-content:space-between; border-bottom:1px solid var(--c-border);">
-    <span class="settings-item-label">세트 (세트 / set)</span>
-    <div id="unitSetsToggle" class="toggle-switch"></div>
-  </div>
-  <div class="settings-item" style="justify-content:space-between; border-bottom:none;">
-    <span class="settings-item-label">무게 (kg / 키로)</span>
-    <div id="unitWeightToggle" class="toggle-switch"></div>
-  </div>
-</div>
-
 <!-- ✅ 카드 3: 일반 -->
 <div class="settings-section-label">일반</div>
 <div class="settings-card settings-card--flush">
   <button id="homeSettingsMenuBtn" class="settings-item" style="width:100%; text-align:left; background:none; color:var(--c-text-primary); cursor:pointer; border-bottom:1px solid var(--c-border); border-radius:0; appearance:none; -webkit-appearance:none;">
     <svg class="settings-item-icon" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;"><path d="M3 11l9-8 9 8"></path><path d="M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10"></path></svg>홈 설정
+  </button>
+  <!-- 🔥 3대/기록탭 전용 단위 표기(회/rep, 세트/set, kg/키로) 설정 — 예전엔 여기 카드
+       바깥에 별도 카드로 토글 3개가 그대로 있었는데, 한 칸으로 접어서 누르면 전용
+       화면(#unitSettingsOverlay)에서 조절하도록 변경 -->
+  <button id="unitSettingsMenuBtn" class="settings-item" style="width:100%; text-align:left; background:none; color:var(--c-text-primary); cursor:pointer; border-bottom:1px solid var(--c-border); border-radius:0; appearance:none; -webkit-appearance:none;">
+    <svg class="settings-item-icon" viewBox="0 0 24 24" style="display:block;"><text x="12" y="19" text-anchor="middle" font-size="20" font-weight="800" font-family="-apple-system, BlinkMacSystemFont, sans-serif" fill="rgba(255,255,255,0.8)">kg</text></svg>단위 표기
   </button>
   <div class="settings-item" style="justify-content:space-between; border-bottom:1px solid var(--c-border);">
     <span class="settings-item-label"><img src="icons/setting-mode.png" class="settings-item-icon" alt="">화면 모드</span>
@@ -9028,7 +9015,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
 </div>
 
 <!-- ✅ 하단 로그아웃/회원탈퇴 (카드 밖, 텍스트 링크)
-     🔥 settingsAccountRow와 동일하게 기본값을 display:none으로 둠(로그인 상태
+     🔥 settingsGuestBadge와 동일하게 기본값을 display:none으로 둠(로그인 상태
      확정 전까지는 숨김) — 안 그러면 Firebase auth 확정 전(특히 화면모드 토글로
      reload된 직후) 게스트 화면에서도 잠깐 보였다가 사라지는 깜빡임이 생김 -->
 <div id="settingsLogoutText" class="settings-logout-text" style="display:none;">
@@ -9047,18 +9034,16 @@ try {
   if (localStorage.getItem("mf_was_logged_in") === "1") {
     const cachedName = localStorage.getItem("mf_cached_name") || "사용자명";
     const cachedEmail = localStorage.getItem("mf_cached_email") || "";
+    const guestBadge = document.getElementById("settingsGuestBadge");
     const headerName = document.getElementById("settingsHeaderName");
-    const nameBig = document.getElementById("settingsNameBig");
+    const headerSub = document.getElementById("settingsHeaderSub");
     const loginRow = document.getElementById("settingsLoginRow");
-    const accountRow = document.getElementById("settingsAccountRow");
-    const emailSub = document.getElementById("settingsEmailSub");
     const logoutText = document.getElementById("settingsLogoutText");
     const deleteText = document.getElementById("settingsDeleteAccountText");
+    if (guestBadge) guestBadge.style.display = "block";
     if (headerName) headerName.textContent = `${cachedName}님`;
-    if (nameBig) nameBig.style.display = "none";
+    if (headerSub) headerSub.textContent = cachedEmail;
     if (loginRow) loginRow.style.display = "none";
-    if (accountRow) accountRow.style.display = "flex";
-    if (emailSub) emailSub.textContent = cachedEmail;
     if (logoutText) logoutText.style.display = "block";
     if (deleteText) deleteText.style.display = "block";
   }
@@ -10493,7 +10478,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.117";
+const APP_VERSION = "0.9.120";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -10629,9 +10614,7 @@ auth.onAuthStateChanged(async user => {
 
    if (user) {
     if (settingsLoginRow) settingsLoginRow.style.display = "none";
-    if (settingsAccountRow) settingsAccountRow.style.display = "flex";
-
-    if (settingsEmailSub) settingsEmailSub.textContent = user.email || "";
+    if (settingsHeaderSub) settingsHeaderSub.textContent = user.email || "";
 
     if (settingsLogoutText) settingsLogoutText.style.display = "block";
     if (settingsDeleteAccountText) settingsDeleteAccountText.style.display = "block";
@@ -10646,7 +10629,6 @@ auth.onAuthStateChanged(async user => {
     } catch(e){}
   } else {
     if (settingsLoginRow) settingsLoginRow.style.display = "flex";
-    if (settingsAccountRow) settingsAccountRow.style.display = "none";
 
     if (settingsLogoutText) settingsLogoutText.style.display = "none";
     if (settingsDeleteAccountText) settingsDeleteAccountText.style.display = "none";
@@ -13247,6 +13229,29 @@ document.getElementById("homeSettingsMenuBtn").addEventListener("click", () => {
   openHomeSettings();
 });
 
+/* ===============================
+   🔥 단위 표기 — 설정 > 일반 안의 한 칸(홈 설정과 동일한 구조) — 3대/기록탭
+   전용 회/rep, 세트/set, kg/키로 토글 3개가 여기 들어있음
+================================ */
+const unitSettingsOverlay = document.getElementById("unitSettingsOverlay");
+function openUnitSettings(){
+  unitSettingsOverlay.classList.remove("hidden");
+  const unitSettingsScreenEl = document.getElementById('unitSettingsScreen');
+  if (unitSettingsScreenEl) {
+    unitSettingsScreenEl.style.transition = 'none';
+    unitSettingsScreenEl.style.transform = 'translateX(0)';
+    unitSettingsScreenEl.scrollTop = 0;
+  }
+}
+function closeUnitSettings(){
+  unitSettingsOverlay.classList.add("hidden");
+}
+
+document.getElementById("unitSettingsMenuBtn").addEventListener("click", () => {
+  closeSettings();
+  openUnitSettings();
+});
+
 const seriousModeToggle = document.getElementById("seriousModeToggle");
 const homeSeriousModeScreen = document.getElementById("homeSeriousModeScreen");
 const homeNormalContent = document.getElementById("homeNormalContent");
@@ -13278,8 +13283,18 @@ function applyUnitPrefsToInputs(){
   [recordWeight, document.getElementById("acc-weight")].forEach(el => { if (el) el.placeholder = w; });
   [recordReps, document.getElementById("acc-reps")].forEach(el => { if (el) el.placeholder = r; });
 }
+// 🔥 회/rep, 세트/set, kg/키로 중 지금 선택된 쪽만 흰색+굵게 강조
+function updateUnitOptionStyles(){
+  document.getElementById("unitRepsOptKr").classList.toggle("active", unitPrefs.reps === "회");
+  document.getElementById("unitRepsOptEn").classList.toggle("active", unitPrefs.reps === "rep");
+  document.getElementById("unitSetsOptKr").classList.toggle("active", unitPrefs.sets === "세트");
+  document.getElementById("unitSetsOptEn").classList.toggle("active", unitPrefs.sets === "set");
+  document.getElementById("unitWeightOptKg").classList.toggle("active", unitPrefs.weight === "kg");
+  document.getElementById("unitWeightOptKr").classList.toggle("active", unitPrefs.weight === "키로");
+}
 function refreshUnitDependentUI(){
   applyUnitPrefsToInputs();
+  updateUnitOptionStyles();
   try { renderActiveBox(); } catch(e){}
   try { if (currentExerciseName) renderAccessoryRecords(currentExerciseName); } catch(e){}
 }
@@ -13290,6 +13305,7 @@ unitRepsToggle.classList.toggle("active", unitPrefs.reps === "rep");
 unitSetsToggle.classList.toggle("active", unitPrefs.sets === "세트");
 unitWeightToggle.classList.toggle("active", unitPrefs.weight === "키로");
 applyUnitPrefsToInputs();
+updateUnitOptionStyles();
 unitRepsToggle.addEventListener("click", () => {
   const next = !unitRepsToggle.classList.contains("active");
   unitRepsToggle.classList.toggle("active", next);
@@ -16604,6 +16620,79 @@ document.getElementById("dexWriteSubmitBtn").addEventListener("click", async () 
   homeSettingsScreen.addEventListener('touchcancel', endDrag, { passive: true });
 })();
 
+/* 🔥 단위 표기 화면: 홈 설정 화면과 동일하게 왼쪽 끝에서 오른쪽으로 드래그하면
+   손가락 따라 끌려가며 닫힘 */
+(function(){
+  const unitSettingsScreen = document.getElementById('unitSettingsScreen');
+  const EDGE_ZONE = 30;
+  const COMMIT_MOVE = 8;
+  const CLOSE_RATIO = 0.3;
+  let startX = 0, startY = 0, tracking = false, dragging = false;
+
+  unitSettingsScreen.addEventListener('touchstart', (e) => {
+    const t = e.touches[0];
+    if (t.clientX <= EDGE_ZONE) {
+      startX = t.clientX;
+      startY = t.clientY;
+      tracking = true;
+      dragging = false;
+      unitSettingsScreen.style.transition = 'none';
+    } else {
+      tracking = false;
+    }
+  }, { passive: true });
+
+  unitSettingsScreen.addEventListener('touchmove', (e) => {
+    if (!tracking) return;
+    const t = e.touches[0];
+    const dx = t.clientX - startX;
+    const dy = t.clientY - startY;
+
+    if (!dragging) {
+      if (dx > COMMIT_MOVE && dx > Math.abs(dy) * 0.6) {
+        dragging = true;
+      } else if (Math.abs(dy) > COMMIT_MOVE && Math.abs(dy) > dx) {
+        tracking = false;
+        return;
+      } else {
+        return;
+      }
+    }
+
+    if (dragging) {
+      e.preventDefault();
+      unitSettingsScreen.style.transform = `translateX(${Math.max(0, dx)}px)`;
+    }
+  }, { passive: false });
+
+  function endDrag(e){
+    if (!tracking) return;
+    const wasDragging = dragging;
+    tracking = false;
+    dragging = false;
+    if (!wasDragging) return;
+
+    const width = unitSettingsScreen.offsetWidth || window.innerWidth;
+    const t = e.changedTouches[0];
+    const dx = Math.max(0, t.clientX - startX);
+
+    unitSettingsScreen.style.transition = 'transform 0.22s ease';
+
+    if (dx > width * CLOSE_RATIO) {
+      unitSettingsScreen.style.transform = `translateX(${width}px)`;
+      setTimeout(() => {
+        closeUnitSettings();
+        unitSettingsScreen.style.transition = 'none';
+      }, 220);
+    } else {
+      unitSettingsScreen.style.transform = 'translateX(0)';
+    }
+  }
+
+  unitSettingsScreen.addEventListener('touchend', endDrag, { passive: true });
+  unitSettingsScreen.addEventListener('touchcancel', endDrag, { passive: true });
+})();
+
 
 
    
@@ -16731,7 +16820,7 @@ document.body.appendChild(bottomTabEl);
   'oneRMCalcOverlay', 'threeSummaryOverlay', 'bodyweightOverlay', 'muscleFinderOverlay',
   'whoForOverlay', 'myRoutineOverlay', 'myRoutinePastListOverlay', 'myRoutineBuilderOverlay',
   'myRoutineDetailOverlay', 'exerciseDexOverlay', 'dexWriteOverlay', 'dexPostDetailOverlay',
-  'graphOverlay', 'homeSettingsOverlay'
+  'graphOverlay', 'homeSettingsOverlay', 'unitSettingsOverlay'
 ].forEach(id => {
   const el = document.getElementById(id);
   if (el) document.body.appendChild(el);
@@ -17342,7 +17431,7 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
       "myRoutineOverlay", "myRoutinePastListOverlay", "myRoutineDetailOverlay",
       "myRoutineBuilderOverlay", "myRoutineRevealOverlay", "dietOverlay",
       "bodyweightOverlay", "oneRMCalcOverlay", "muscleFinderOverlay", "whoForOverlay",
-      "homeSettingsOverlay"
+      "homeSettingsOverlay", "unitSettingsOverlay"
     ];
     return overlayIds.some(id => {
       const el = document.getElementById(id);
@@ -17476,7 +17565,7 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
     "myRoutineOverlay", "myRoutinePastListOverlay", "myRoutineDetailOverlay",
     "myRoutineBuilderOverlay", "myRoutineRevealOverlay", "dietOverlay",
     "bodyweightOverlay", "oneRMCalcOverlay", "muscleFinderOverlay", "whoForOverlay",
-    "homeSettingsOverlay"
+    "homeSettingsOverlay", "unitSettingsOverlay"
   ];
   function anyBlockingOverlayOpen(){
     if (navDrawerOverlay && !navDrawerOverlay.classList.contains('hidden')) return true;
@@ -18430,9 +18519,6 @@ try {
 
 // ✅ 설정 화면용 로그인/로그아웃 요소
 const settingsLoginRow = document.getElementById("settingsLoginRow");
-const settingsAccountRow = document.getElementById("settingsAccountRow");
-const settingsNameBig = document.getElementById("settingsNameBig");
-const settingsEmailSub = document.getElementById("settingsEmailSub");
 
 // ✅ 로그아웃 모달 요소
 const logoutModal = document.getElementById("logoutModal");
@@ -19668,21 +19754,19 @@ function applySpecToUI(){
 /* 🔥 설정 화면 계정 행에 표시할 사용자명 갱신
    (직접 입력한 이름이 있으면 그걸, 없으면 "사용자명" 기본값 표시) */
 function renderSettingsIdentity(isLoggedIn){
-  // 🔥 헤더 배지는 이제 로그인 여부와 상관없이 항상 표시: 게스트든 로그인이든 이름
-  //    한 줄만 보이도록 통일(서브텍스트는 항상 숨김 — 게스트의 "로그인하지 않음"은
-  //    바로 아래 "로그인 하기" 행이 이미 알려주는 내용이라 중복이었고, 있고 없고에
-  //    따라 카드 세로 길이가 서로 달라 보이는 문제도 있었음)
-  if (settingsGuestBadge) settingsGuestBadge.style.display = "block";
-  if (settingsHeaderSub) settingsHeaderSub.style.display = "none";
+  // 🔥 게스트일 땐 이름 배지 자체를 아예 숨기고 "로그인 하기" 한 줄만 다른 목록들과
+  //    동일한 크기로 보이게 함(카드 자체가 flush라 이 배지가 숨겨지면 로그인 행이
+  //    바로 카드 위쪽 패딩 없이 한 칸짜리 카드처럼 자연스럽게 보임). 로그인 상태일
+  //    땐 이 배지 하나 안에 이름+이메일이 같이 보임(이메일 텍스트는 auth
+  //    onAuthStateChanged가 채움) — 최상단이 하나의 목록으로만 보이게 함
+  if (settingsGuestBadge) settingsGuestBadge.style.display = isLoggedIn ? "block" : "none";
 
   if (isLoggedIn) {
     const displayName = (userSpec.name && userSpec.name.trim()) || "사용자명";
     if (settingsHeaderName) settingsHeaderName.textContent = `${displayName}님`;
-    if (settingsNameBig) settingsNameBig.style.display = "none"; // 계정 행엔 이메일만 남김
     try { localStorage.setItem("mf_cached_name", displayName); } catch(e){}
   } else {
     if (settingsHeaderName) settingsHeaderName.textContent = "게스트";
-    if (settingsNameBig) settingsNameBig.style.display = "";
   }
 }
 
