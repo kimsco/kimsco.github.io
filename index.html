@@ -10669,7 +10669,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.138";
+const APP_VERSION = "0.9.139";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -14579,6 +14579,7 @@ function myRoutineTemplateCardHtml(template){
   return `
     <div class="my-routine-template-card" data-id="${template.id}">
       <div class="my-routine-template-ex">
+        <div class="my-routine-template-ex-box">${escapeHtml(myRoutineCardLabel(template))}</div>
         ${items.map((it, i) => `
           ${i > 0 ? `<div class="my-routine-template-ex-line"></div>` : ``}
           <div class="my-routine-template-ex-box">${escapeHtml(it.exercise)}</div>
@@ -14647,7 +14648,7 @@ function openMyRoutineDetailFromTemplate(template){
   myRoutineDetailSourceTemplate = { template };
   document.getElementById("myRoutineEditTemplateBtn").style.display = "flex";
   document.getElementById("myRoutineDeleteTemplateBtn").style.display = "flex";
-  document.getElementById("myRoutineDetailTitle").textContent = template.name;
+  document.getElementById("myRoutineDetailTitle").textContent = myRoutineCardLabel(template);
   document.getElementById("myRoutineDateBanner").innerHTML = ""; // 템플릿은 특정 날짜에 묶인 게 아니라서 날짜 배너 없음
 
   const listEl = document.getElementById("myRoutineDetailList");
@@ -15365,7 +15366,7 @@ function renderMyRoutineTemplateSection(){
       <div class="my-routine-group-box">
         <div class="my-routine-group-header">
           <div class="my-routine-part-name">${escapeHtml(name)}</div>
-          <button class="my-routine-group-edit-btn" type="button" aria-label="편집">
+          <button class="my-routine-group-edit-btn" type="button" data-group-name="${escapeHtml(name)}" aria-label="편집">
             <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="19" cy="12" r="2"></circle></svg>
           </button>
         </div>
@@ -15400,6 +15401,29 @@ function renderMyRoutineTemplateSection(){
       if (myRoutineCollapsedGroups.has(groupName)) myRoutineCollapsedGroups.delete(groupName);
       else myRoutineCollapsedGroups.add(groupName);
       saveMyRoutineCollapsedGroups();
+      renderMyRoutineTemplateSection();
+    });
+  });
+
+  // 🔥 상자(그룹) "···" 편집 버튼: 일단은 상자 이름(그룹명) 변경만 가능
+  sectionEl.querySelectorAll(".my-routine-group-edit-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const groupName = btn.dataset.groupName;
+      const next = prompt("루틴 상자 이름을 입력하세요", groupName);
+      if (next === null) return;
+      const trimmed = next.trim();
+      if (!trimmed || trimmed === groupName) return;
+
+      const affected = myRoutineTemplates.filter(t => t.name === groupName);
+      affected.forEach(t => { t.name = trimmed; });
+      saveMyRoutineTemplatesToLocal();
+      affected.forEach(t => saveMyRoutineTemplateToFirestore(t));
+
+      if (myRoutineCollapsedGroups.has(groupName)) {
+        myRoutineCollapsedGroups.delete(groupName);
+        myRoutineCollapsedGroups.add(trimmed);
+        saveMyRoutineCollapsedGroups();
+      }
       renderMyRoutineTemplateSection();
     });
   });
