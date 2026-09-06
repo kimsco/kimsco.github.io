@@ -1557,6 +1557,25 @@ html.mf-restore-settings .bottomTab {
   color: #aaa;
   cursor: pointer;
 }
+/* 🔥 iOS 설정 화면처럼 뒤로가기 버튼을 원형 배경 안에 넣음(3대/내 루틴/1RM 계산기/근육부위) */
+#threeSummaryOverlay .bw-menu-header-close,
+#myRoutineOverlay .bw-menu-header-close,
+#oneRMCalcOverlay .bw-menu-header-close,
+#muscleFinderOverlay .bw-menu-header-close {
+  width: 38px;
+  height: 38px;
+  margin-left: 6px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+  font-size: 22px;
+  color: #ddd;
+}
+html.light-mode-on #threeSummaryOverlay .bw-menu-header-close,
+html.light-mode-on #myRoutineOverlay .bw-menu-header-close,
+html.light-mode-on #oneRMCalcOverlay .bw-menu-header-close,
+html.light-mode-on #muscleFinderOverlay .bw-menu-header-close {
+  background: rgba(0,0,0,0.06);
+}
 .bw-menu-header-title {
   flex: 1;
   min-width: 0;
@@ -10788,7 +10807,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.146";
+const APP_VERSION = "0.9.147";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
