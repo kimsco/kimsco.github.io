@@ -333,30 +333,12 @@ button {
   flex-shrink: 0;
   margin-top: 7.6px;
 }
+#tab4 #exercise-screen,
 #tab4 #exercise-detail-screen {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-}
-/* 🔥 검색줄(.search-wrap)은 고정된 일반 요소로 두고, 종목 목록만 별도
-   스크롤 영역(#exercise-list-scroll)에서 스크롤되게 분리 — 이전엔
-   position:sticky 의사요소로 처리했더니 실제 기기에서 스크롤 중 sticky
-   자식 페이드 오버레이가 밀려나는 버그가 있어서 구조 자체를 분리함 */
-#tab4 #exercise-screen {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-}
-#tab4 #exercise-list-scroll {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  /* 🔥 목록 맨 위가 검색줄 밑에서 한 번에 나타나지 않고 서서히 페이드인 */
-  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 24px);
-  mask-image: linear-gradient(to bottom, transparent, #000 24px);
 }
 #tab2 .folderContent {
   flex: 1;
@@ -845,11 +827,8 @@ button {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-top: 0;
+  margin-top: 2px;
   margin-bottom: 6px;
-  flex-shrink: 0;
-  padding-top: 2px;
-  padding-bottom: 6px;
 }
 
 .exercise-search-box {
@@ -861,7 +840,7 @@ button {
   display: flex;
   align-items: center;
   gap: 6px;
-  background: transparent; /* 🔥 상단 고정 줄이 목록 위에 뜬 채로 배경 없이 투명하게 */
+  background: var(--c-bg);
   border: 1px solid var(--c-border);
   border-radius: 14px;
   padding: 0 10px;
@@ -909,15 +888,6 @@ button {
 .add-btn:active {
   background: #292929;
   transform: scale(0.96);
-}
-/* 🔥 기록탭 상단 고정 줄의 +버튼만 채우기색 없이 투명하게(검색창과 통일) */
-#add-exercise-btn {
-  background: transparent;
-  color: var(--c-text-primary);
-  border-color: var(--c-border);
-}
-#add-exercise-btn:active {
-  background: rgba(var(--c-ink-rgb), 0.08);
 }
 
 /* 🔥 종목명 수정(연필)/삭제(휴지통) 버튼: 테두리 제거 + 옆 종목명 글자보다 커 보이도록 확대 */
@@ -3211,9 +3181,6 @@ html.light-mode-on #tab4 .add-btn {
   background: var(--c-bg-elevated);
   color: var(--c-text-primary);
   border-color: var(--c-border);
-}
-html.light-mode-on #tab4 #add-exercise-btn {
-  background: transparent;
 }
 html.light-mode-on #tab4 .folderContent {
   background: #fdfdfd;
@@ -7774,9 +7741,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
   <button id="add-exercise-btn" class="add-btn">+</button>
 </div>
 
-  <div id="exercise-list-scroll">
-    <div id="exercise-list"></div>
-  </div>
+  <div id="exercise-list"></div>
 </div>
 
    <div id="exercise-detail-screen" style="display:none;">
@@ -10085,7 +10050,7 @@ document.querySelectorAll('.folderBtn4').forEach(btn => {
 
     // 🔥 상세화면이 열려있으면 닫고 목록화면으로
     detailScreen.style.display = 'none';
-    exerciseScreen.style.display = 'flex';
+    exerciseScreen.style.display = 'block';
     currentExerciseName = null;
 
     const accBarEl0 = document.getElementById('recordFloatBarAcc');
@@ -10142,7 +10107,7 @@ function openExerciseDetail(name) {
 
 function closeExerciseDetail() {
   detailScreen.style.display = 'none';
-  exerciseScreen.style.display = 'flex';
+  exerciseScreen.style.display = 'block';
   currentExerciseName = null;
 
   // 🔥 알약바도 같이 숨김
@@ -10854,7 +10819,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.155";
+const APP_VERSION = "0.9.156";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -17524,7 +17489,7 @@ bottomTabBtns.forEach(btn => {
 
     // Tip 탭 초기화
     if (target === 'tab4') {
-      exerciseScreen.style.display = 'flex';
+      exerciseScreen.style.display = 'block';
       detailScreen.style.display = 'none';
       // 🔥 로그인 직후 최초 1회 로드가 가끔 늦게 동기화되면서 기록이 비어 보이던
       //    문제 때문에, 기록 탭에 들어올 때마다 다시 불러와서 갱신
