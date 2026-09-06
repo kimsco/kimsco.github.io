@@ -1557,8 +1557,8 @@ html.mf-restore-settings .bottomTab {
   color: #aaa;
   cursor: pointer;
 }
-/* 🔥 iOS 설정 화면처럼 뒤로가기 버튼을 원형 배경 안에 넣음(3대/내 루틴/1RM 계산기/근육부위)
-   — 좌상단이 밝고 우하단이 어두운 살짝 입체적인 그라디언트 */
+/* 🔥 홈화면 메뉴 버튼(.menu-btn)과 완전히 동일한 유리 느낌으로 통일
+   (3대/내 루틴/1RM 계산기/근육부위) */
 #threeSummaryOverlay .bw-menu-header-close,
 #myRoutineOverlay .bw-menu-header-close,
 #oneRMCalcOverlay .bw-menu-header-close,
@@ -1567,8 +1567,12 @@ html.mf-restore-settings .bottomTab {
   height: 42px;
   margin-left: 6px;
   border-radius: 50%;
-  background: linear-gradient(135deg, rgba(255,255,255,0.24), rgba(255,255,255,0.06));
   color: #eee;
+  background: rgba(255,255,255,0.10);
+  -webkit-backdrop-filter: blur(14px) saturate(150%);
+  backdrop-filter: blur(14px) saturate(150%);
+  border: 1px solid rgba(255,255,255,0.14);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
 }
 #threeSummaryOverlay .bw-menu-header-close svg,
 #myRoutineOverlay .bw-menu-header-close svg,
@@ -1581,8 +1585,9 @@ html.light-mode-on #threeSummaryOverlay .bw-menu-header-close,
 html.light-mode-on #myRoutineOverlay .bw-menu-header-close,
 html.light-mode-on #oneRMCalcOverlay .bw-menu-header-close,
 html.light-mode-on #muscleFinderOverlay .bw-menu-header-close {
-  background: linear-gradient(135deg, rgba(255,255,255,1), rgba(0,0,0,0.07));
   color: #333;
+  background: rgba(0,0,0,0.06);
+  border-color: rgba(0,0,0,0.1);
 }
 .bw-menu-header-title {
   flex: 1;
@@ -10815,7 +10820,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.148";
+const APP_VERSION = "0.9.150";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
