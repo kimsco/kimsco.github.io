@@ -9772,7 +9772,8 @@ const LS_KEYS = {
   dexFolders: "mf_dex_folders_v1",       // 운동도감 폴더 (공용)
   dexPosts: "mf_dex_posts_v1",           // 운동도감 게시물 (공용)
   dexPendingIds: "mf_dex_pending_ids_v1", // 서버 동기화 아직 안 된 폴더/게시물 id 목록
-  myRoutineTemplates: "mf_my_routine_templates_v1" // 내가 만든 루틴 템플릿
+  myRoutineTemplates: "mf_my_routine_templates_v1", // 내가 만든 루틴 템플릿
+  myRoutineCollapsedGroups: "mf_my_routine_collapsed_groups_v1" // 루틴 상자 접기/펼치기 최근 사용 상태
 };
 
 function lsGet(key, fallback){
@@ -10668,7 +10669,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.136";
+const APP_VERSION = "0.9.137";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -15310,8 +15311,11 @@ function wireCarouselVerticalPassthrough(carouselEl, scrollContainerEl){
   carouselEl.addEventListener('touchcancel', endTrack, { passive: true });
 }
 
-// 🔥 그룹(루틴 이름)별 접기 상태 — 새로고침 전까지만 유지되는 화면 전용 상태
-const myRoutineCollapsedGroups = new Set();
+// 🔥 그룹(루틴 이름)별 접기 상태 — 사용자가 마지막으로 남겨둔 상태 그대로 재실행 후에도 유지됨
+const myRoutineCollapsedGroups = new Set(lsGet(LS_KEYS.myRoutineCollapsedGroups, []));
+function saveMyRoutineCollapsedGroups(){
+  lsSet(LS_KEYS.myRoutineCollapsedGroups, Array.from(myRoutineCollapsedGroups));
+}
 
 // 🔥 접힌 상태에서 카드별로 보여줄 이름: 편집(연필) 버튼으로 지정한 label이 있으면 그걸,
 //    없으면 그 루틴의 첫 종목명을 대신 보여줌
@@ -15379,6 +15383,7 @@ function renderMyRoutineTemplateSection(){
       const groupName = btn.dataset.groupName;
       if (myRoutineCollapsedGroups.has(groupName)) myRoutineCollapsedGroups.delete(groupName);
       else myRoutineCollapsedGroups.add(groupName);
+      saveMyRoutineCollapsedGroups();
       renderMyRoutineTemplateSection();
     });
   });
