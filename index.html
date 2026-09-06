@@ -10668,7 +10668,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.135";
+const APP_VERSION = "0.9.136";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -15220,13 +15220,14 @@ function wireCarouselFocus(carouselEl){
     return closest;
   }
 
+  // 🔥 손가락이 화면에 닿아있는 동안은 절대 스냅하지 않음 — 터치 중에 스냅을 걸면
+  //    네이티브 드래그 스크롤과 부드러운 스냅 애니메이션이 서로 충돌해 지지직거리는 버그가 생김
+  let isTouching = false;
   let settleTimer = null;
-  carouselEl.addEventListener("scroll", () => {
-    requestAnimationFrame(updateFocus);
-
-    // 🔥 CSS scroll-snap 대신 직접 처리: 스크롤이 멈추면 가장 가까운 카드로 부드럽게 정렬
+  function trySnap(){
     clearTimeout(settleTimer);
     settleTimer = setTimeout(() => {
+      if (isTouching) return; // 아직 손을 안 뗐으면 대기만 하고 스냅하지 않음
       const closest = updateFocus();
       if (!closest) return;
       const carRect = carouselEl.getBoundingClientRect();
@@ -15236,6 +15237,25 @@ function wireCarouselFocus(carouselEl){
         carouselEl.scrollBy({ left: delta, behavior: "smooth" });
       }
     }, 120);
+  }
+
+  carouselEl.addEventListener("touchstart", () => {
+    isTouching = true;
+    clearTimeout(settleTimer); // 이미 예약돼 있던 스냅은 취소
+  }, { passive: true });
+  carouselEl.addEventListener("touchend", () => {
+    isTouching = false;
+    trySnap(); // 손을 뗀 시점에 이미 정지해 있었다면(관성 스크롤 없음) 여기서 바로 정착 판정 시작
+  }, { passive: true });
+  carouselEl.addEventListener("touchcancel", () => {
+    isTouching = false;
+    trySnap();
+  }, { passive: true });
+
+  carouselEl.addEventListener("scroll", () => {
+    requestAnimationFrame(updateFocus);
+    // 🔥 CSS scroll-snap 대신 직접 처리: 스크롤이 멈추면 가장 가까운 카드로 부드럽게 정렬
+    trySnap();
   }, { passive: true });
 
   // 🔥 카드(가운데 있든 옆에 있든) 누르면 진행화면으로 진입
