@@ -6696,20 +6696,135 @@ html.light-mode-on #weightModal .food-modal-form label {
   letter-spacing: 0.5px;
   margin: 6px 0 4px;
 }
+.my-routine-today-card {
+  margin: 14px 0;
+  background: #000;
+  border: 1px solid #222;
+  border-radius: 16px;
+  overflow: hidden;
+}
+html.light-mode-on .my-routine-today-card {
+  background: #fdfdfd;
+  border-color: #ddd;
+}
 .my-routine-past-row {
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 16px;
-  margin: 14px 0;
-  background: #000;
-  border: 1px solid #222;
-  border-radius: 16px;
   cursor: pointer;
 }
-html.light-mode-on #myRoutinePastRow {
-  background: #fdfdfd;
-  border-color: #ddd;
+/* 🔥 오늘 기록한 종목이 있을 때: 번호 매긴 종목 리스트 + 루틴으로 저장하기 CTA를
+   같은 카드 안에 이어서 보여줌 */
+.my-routine-today-divider {
+  height: 1px;
+  background: rgba(var(--c-ink-rgb),0.1);
+  margin: 0 16px;
+}
+.my-routine-today-inline-body {
+  display: flex;
+  align-items: stretch;
+  padding: 14px 16px;
+  gap: 14px;
+}
+.my-routine-today-list {
+  flex: 1.3;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.my-routine-today-list-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(var(--c-ink-rgb),0.08);
+}
+.my-routine-today-list-row.last {
+  border-bottom: none;
+}
+.my-routine-today-list-num {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(var(--c-ink-rgb),0.1);
+  color: rgba(var(--c-ink-rgb),0.7);
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.my-routine-today-list-text {
+  min-width: 0;
+}
+.my-routine-today-list-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--c-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.my-routine-today-list-sets {
+  font-size: 11px;
+  color: rgba(var(--c-ink-rgb),0.4);
+  margin-top: 2px;
+}
+.my-routine-today-vdivider {
+  width: 1px;
+  align-self: stretch;
+  background: rgba(var(--c-ink-rgb),0.1);
+  flex-shrink: 0;
+}
+.my-routine-today-save {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 10px;
+}
+.my-routine-today-save-icon {
+  width: 20px;
+  height: 20px;
+  color: rgba(var(--c-ink-rgb),0.5);
+}
+.my-routine-today-save-text {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(var(--c-ink-rgb),0.55);
+  line-height: 1.4;
+}
+.my-routine-today-save-btn {
+  all: unset;
+  box-sizing: border-box;
+  width: 100%;
+  text-align: center;
+  padding: 10px 8px;
+  border-radius: 999px;
+  background: var(--c-text-primary);
+  color: rgba(var(--c-anti-ink-rgb),1);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+/* 🔥 "저장한 루틴" 섹션 라벨 + 개수 */
+.my-routine-section-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(var(--c-ink-rgb),0.45);
+  margin: 4px 4px 10px;
+}
+.my-routine-section-count {
+  font-weight: 600;
+  color: rgba(var(--c-ink-rgb),0.3);
 }
 .my-routine-past-row-icon {
   flex-shrink: 0;
@@ -6925,7 +7040,7 @@ html.light-mode-on #myRoutinePastRow {
    그 아래 구분선, 그 아래 기존 캐러셀 그대로 */
 .my-routine-group-box {
   position: relative;
-  background: #181818; /* 🔥 홈화면 상자(.home-card)와 동일한 색상 적용 */
+  background: #000;
   border: 1px solid #222;
   border-radius: 14px;
   width: 100%;
@@ -8247,17 +8362,24 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
       </button>
     </div>
     <div id="myRoutineBody" style="flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; padding: 0 18px calc(24px + env(safe-area-inset-bottom));">
-      <div id="myRoutinePastRow" class="my-routine-past-row">
-        <div class="my-routine-past-row-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="12" height="17" rx="2"></rect><path d="M9 3.5h6a1 1 0 0 1 1 1V6H8V4.5a1 1 0 0 1 1-1z"></path><path d="M9 12l2 2 4-4"></path></svg>
+      <div class="my-routine-today-card">
+        <div id="myRoutinePastRow" class="my-routine-past-row">
+          <div class="my-routine-past-row-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="12" height="17" rx="2"></rect><path d="M9 3.5h6a1 1 0 0 1 1 1V6H8V4.5a1 1 0 0 1 1-1z"></path><path d="M9 12l2 2 4-4"></path></svg>
+          </div>
+          <div class="my-routine-past-row-text">
+            <div class="my-routine-past-row-label">오늘의 운동</div>
+            <div class="my-routine-past-row-sub">오늘한 루틴을 바로 저장해보세요.</div>
+          </div>
+          <div class="my-routine-past-row-chevron">›</div>
         </div>
-        <div class="my-routine-past-row-text">
-          <div class="my-routine-past-row-label">오늘의 운동</div>
-          <div class="my-routine-past-row-sub">오늘한 루틴을 바로 저장해보세요.</div>
-        </div>
-        <div class="my-routine-past-row-chevron">›</div>
+        <div id="myRoutineTodayInline"></div>
       </div>
 
+      <div id="myRoutineTemplateSectionLabel" class="my-routine-section-label" style="display:none;">
+        <span>저장한 루틴</span>
+        <span id="myRoutineTemplateSectionCount" class="my-routine-section-count"></span>
+      </div>
       <div id="myRoutineTemplateSection"></div>
     </div>
   </div>
@@ -10676,7 +10798,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.140";
+const APP_VERSION = "0.9.144";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -11853,6 +11975,93 @@ function buildTodayExerciseList(){
   return list;
 }
 
+/* 🔥 "내 루틴" 목록화면 상단 카드에 오늘 종목을 번호+세트수와 함께 미리보여주기 위한 버전
+   (buildTodayExerciseList()과 동일한 데이터/순서를 쓰되 세트 수까지 같이 집계) */
+function buildTodayExerciseListWithSets(){
+  const todayStr = formatTodayYYMMDD();
+  const allSets = [];
+
+  Object.keys(accRecordsByExercise).forEach(exName => {
+    (accRecordsByExercise[exName] || []).forEach(r => {
+      if (r.date === todayStr) {
+        allSets.push({
+          type: "accessory", key: exName, displayName: r.exercise || exName,
+          partKey: MY_ROUTINE_PART_TO_BUILDER_PART[r.part] || "chest",
+          createdAt: dexTimeValue(r.createdAt),
+          setCount: r.sets || 1
+        });
+      }
+    });
+  });
+
+  Object.keys(PART_TO_LIFT).forEach(partKey => {
+    const liftKey = PART_TO_LIFT[partKey];
+    (records[liftKey] || []).forEach(r => {
+      if (r.date === todayStr) {
+        allSets.push({
+          type: "lift", key: liftKey, displayName: LIFT_DISPLAY_NAME[liftKey],
+          partKey: MY_ROUTINE_PART_TO_BUILDER_PART[partKey],
+          createdAt: dexTimeValue(r.firstAt || r.createdAt || 0),
+          setCount: r.sets || 1
+        });
+      }
+    });
+  });
+
+  allSets.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+
+  const order = [];
+  const byUid = new Map();
+  allSets.forEach(r => {
+    const uid = r.type + ":" + r.key;
+    if (!byUid.has(uid)) {
+      byUid.set(uid, { exercise: r.displayName, partKey: r.partKey, sets: 0 });
+      order.push(uid);
+    }
+    byUid.get(uid).sets += r.setCount;
+  });
+  return order.map(uid => byUid.get(uid));
+}
+
+/* 🔥 "내 루틴" 상단 카드의 "루틴으로 저장하기" 버튼(및 오늘의 운동 화면 안의 버튼)이
+   공통으로 쓰는 저장 시작 로직 */
+function startTodayRoutineSaveFlow(){
+  pendingTodayRoutineItems = buildTodayExerciseList();
+  if (!pendingTodayRoutineItems.length) return;
+  openRoutineSaveModal();
+}
+
+function renderMyRoutineTodayInline(){
+  const wrap = document.getElementById("myRoutineTodayInline");
+  if (!wrap) return;
+  const items = buildTodayExerciseListWithSets();
+  if (!items.length) { wrap.innerHTML = ""; return; }
+
+  wrap.innerHTML = `
+    <div class="my-routine-today-divider"></div>
+    <div class="my-routine-today-inline-body">
+      <div class="my-routine-today-list">
+        ${items.map((it, i) => `
+          <div class="my-routine-today-list-row${i === items.length - 1 ? " last" : ""}">
+            <div class="my-routine-today-list-num">${i + 1}</div>
+            <div class="my-routine-today-list-text">
+              <div class="my-routine-today-list-name">${escapeHtml(it.exercise)}</div>
+              <div class="my-routine-today-list-sets">${it.sets}세트</div>
+            </div>
+          </div>
+        `).join("")}
+      </div>
+      <div class="my-routine-today-vdivider"></div>
+      <div class="my-routine-today-save">
+        <svg class="my-routine-today-save-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"></line><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="17" x2="14" y2="17"></line></svg>
+        <div class="my-routine-today-save-text">오늘의 운동을<br>루틴으로 저장하기</div>
+        <button id="myRoutineTodaySaveBtn" class="my-routine-today-save-btn" type="button">루틴으로 저장하기 ›</button>
+      </div>
+    </div>
+  `;
+  document.getElementById("myRoutineTodaySaveBtn").addEventListener("click", startTodayRoutineSaveFlow);
+}
+
 function renderTodayRoutineList(){
   const listEl = document.getElementById("myRoutineList");
   const emptyEl = document.getElementById("myRoutineEmpty");
@@ -11884,6 +12093,7 @@ function openMyRoutine(){
   myRoutineOverlay.classList.remove("hidden");
   myRoutineScreen.style.transform = "translateX(0)";
   document.getElementById("myRoutineBody").scrollTop = 0;
+  renderMyRoutineTodayInline();
   renderMyRoutineTemplateSection();
 }
 function closeMyRoutine(){
@@ -13985,11 +14195,7 @@ document.getElementById("myRoutinePastRow").addEventListener("click", openMyRout
 const routineSaveModal = document.getElementById("routineSaveModal");
 let pendingTodayRoutineItems = null; // 저장 위치 선택 시점에 확정된 "오늘의 운동" 목록
 
-document.getElementById("todayRoutineSaveYesBtn").addEventListener("click", () => {
-  pendingTodayRoutineItems = buildTodayExerciseList();
-  if (!pendingTodayRoutineItems.length) return;
-  openRoutineSaveModal();
-});
+document.getElementById("todayRoutineSaveYesBtn").addEventListener("click", startTodayRoutineSaveFlow);
 
 function openRoutineSaveModal(){
   document.getElementById("routineSaveNameInput").value = "";
@@ -15349,14 +15555,18 @@ function myRoutineCardLabel(t){
 
 function renderMyRoutineTemplateSection(){
   const sectionEl = document.getElementById("myRoutineTemplateSection");
+  const labelEl = document.getElementById("myRoutineTemplateSectionLabel");
 
   // 🔥 예전(부위별) 구조로 저장된 낡은 테스트 데이터는 이름/순서 정보가 없어서 화면에서 걸러냄
   const validTemplates = myRoutineTemplates.filter(t => t.name && Array.isArray(t.orderedItems) && t.orderedItems.length);
 
   if (!validTemplates.length) {
     sectionEl.innerHTML = "";
+    labelEl.style.display = "none";
     return;
   }
+  labelEl.style.display = "flex";
+  document.getElementById("myRoutineTemplateSectionCount").textContent = `${validTemplates.length}개`;
 
   // 🔥 부위별이 아니라 "루틴 이름"별로 그룹핑 (같은 이름끼리 캐러셀로 묶임)
   const nameOrder = [];
