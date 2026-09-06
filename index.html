@@ -6812,19 +6812,12 @@ html.light-mode-on .my-routine-today-card {
   font-weight: 700;
   cursor: pointer;
 }
-/* 🔥 "저장한 루틴" 섹션 라벨 + 개수 */
+/* 🔥 "저장한 루틴" 섹션 라벨 */
 .my-routine-section-label {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 700;
   color: rgba(var(--c-ink-rgb),0.45);
-  margin: 4px 4px 10px;
-}
-.my-routine-section-count {
-  font-weight: 600;
-  color: rgba(var(--c-ink-rgb),0.3);
+  margin: 22px 4px 3px;
 }
 .my-routine-past-row-icon {
   flex-shrink: 0;
@@ -7027,7 +7020,7 @@ html.light-mode-on .my-routine-today-card {
    #myRoutineTemplateSection 자체에 상단 여백 추가 — 이 다음의 그룹 간
    간격(.my-routine-template-part의 margin-top)에는 영향 없이 첫 상자만 더 띄움 */
 #myRoutineTemplateSection {
-  margin-top: 14px;
+  margin-top: 6px;
 }
 
 /* 만든 루틴 카드 캐러셀 (부위별로 가로 스와이프) */
@@ -8376,10 +8369,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
         <div id="myRoutineTodayInline"></div>
       </div>
 
-      <div id="myRoutineTemplateSectionLabel" class="my-routine-section-label" style="display:none;">
-        <span>저장한 루틴</span>
-        <span id="myRoutineTemplateSectionCount" class="my-routine-section-count"></span>
-      </div>
+      <div id="myRoutineTemplateSectionLabel" class="my-routine-section-label" style="display:none;">저장한 루틴</div>
       <div id="myRoutineTemplateSection"></div>
     </div>
   </div>
@@ -10798,7 +10788,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.144";
+const APP_VERSION = "0.9.146";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -15565,8 +15555,7 @@ function renderMyRoutineTemplateSection(){
     labelEl.style.display = "none";
     return;
   }
-  labelEl.style.display = "flex";
-  document.getElementById("myRoutineTemplateSectionCount").textContent = `${validTemplates.length}개`;
+  labelEl.style.display = "block";
 
   // 🔥 부위별이 아니라 "루틴 이름"별로 그룹핑 (같은 이름끼리 캐러셀로 묶임)
   const nameOrder = [];
