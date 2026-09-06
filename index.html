@@ -6500,7 +6500,7 @@ html.light-mode-on #weightModal .food-modal-form label {
 .my-routine-part-name {
   font-size: 17px;
   font-weight: 700;
-  color: #fff;
+  color: var(--c-text-primary);
   margin-bottom: 10px;
 }
 .my-routine-train {
@@ -6925,11 +6925,16 @@ html.light-mode-on #myRoutinePastRow {
    그 아래 구분선, 그 아래 기존 캐러셀 그대로 */
 .my-routine-group-box {
   position: relative;
-  border: 1px solid rgba(var(--c-ink-rgb),0.16);
+  background: #181818; /* 🔥 홈화면 상자(.home-card)와 동일한 색상 적용 */
+  border: 1px solid #222;
   border-radius: 14px;
   width: 100%;
   box-sizing: border-box;
   overflow: hidden;
+}
+html.light-mode-on .my-routine-group-box {
+  background: #fdfdfd;
+  border-color: #ddd;
 }
 .my-routine-group-header {
   display: flex;
@@ -8791,7 +8796,9 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
          나중에 다시 열려면 이 버튼의 style="display:none;"만 지우면 됨 -->
     <button id="navExerciseDexBtn" class="nav-drawer-item" style="display:none;">운동도감</button>
     <button id="navMyRoutineBtn" class="nav-drawer-item">내 루틴</button>
-    <button id="navBodyweightBtn" class="nav-drawer-item">맨몸운동</button>
+    <!-- 🔥 맨몸운동 일시 숨김: 데이터/로직은 그대로 두고 메뉴 진입만 막음(안 쓰는 것 같아서 일단 중지).
+         나중에 다시 열려면 이 버튼의 style="display:none;"만 지우면 됨 -->
+    <button id="navBodyweightBtn" class="nav-drawer-item" style="display:none;">맨몸운동</button>
     <button id="navOneRMCalcBtn" class="nav-drawer-item">1RM 계산기</button>
     <button id="navMuscleFinderBtn" class="nav-drawer-item">근육부위</button>
     <button id="navWhoForBtn" class="nav-drawer-item" style="margin-top:auto;">WHO IS TTT FOR?</button>
@@ -10669,7 +10676,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.139";
+const APP_VERSION = "0.9.140";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
