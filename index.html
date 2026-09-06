@@ -1557,6 +1557,33 @@ html.mf-restore-settings .bottomTab {
   color: #aaa;
   cursor: pointer;
 }
+/* 🔥 iOS 설정 화면처럼 뒤로가기 버튼을 원형 배경 안에 넣음(3대/내 루틴/1RM 계산기/근육부위)
+   — 좌상단이 밝고 우하단이 어두운 살짝 입체적인 그라디언트 */
+#threeSummaryOverlay .bw-menu-header-close,
+#myRoutineOverlay .bw-menu-header-close,
+#oneRMCalcOverlay .bw-menu-header-close,
+#muscleFinderOverlay .bw-menu-header-close {
+  width: 42px;
+  height: 42px;
+  margin-left: 6px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(255,255,255,0.24), rgba(255,255,255,0.06));
+  color: #eee;
+}
+#threeSummaryOverlay .bw-menu-header-close svg,
+#myRoutineOverlay .bw-menu-header-close svg,
+#oneRMCalcOverlay .bw-menu-header-close svg,
+#muscleFinderOverlay .bw-menu-header-close svg {
+  width: 20px;
+  height: 20px;
+}
+html.light-mode-on #threeSummaryOverlay .bw-menu-header-close,
+html.light-mode-on #myRoutineOverlay .bw-menu-header-close,
+html.light-mode-on #oneRMCalcOverlay .bw-menu-header-close,
+html.light-mode-on #muscleFinderOverlay .bw-menu-header-close {
+  background: linear-gradient(135deg, rgba(255,255,255,1), rgba(0,0,0,0.07));
+  color: #333;
+}
 .bw-menu-header-title {
   flex: 1;
   min-width: 0;
@@ -8278,7 +8305,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
   ">
   <div id="threeSummaryScreen" style="height:100%; display:flex; flex-direction:column;">
     <div class="bw-menu-header">
-      <button onclick="closeThreeSummary()" class="bw-menu-header-close" aria-label="닫기">‹</button>
+      <button onclick="closeThreeSummary()" class="bw-menu-header-close" aria-label="닫기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg></button>
       <span class="bw-menu-header-title">3대 PR</span>
       <span class="bw-menu-header-spacer"></span>
     </div>
@@ -8348,7 +8375,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
   ">
   <div id="myRoutineScreen" style="height:100%; display:flex; flex-direction:column;">
     <div class="bw-menu-header">
-      <button onclick="closeMyRoutine()" class="bw-menu-header-close" aria-label="닫기">‹</button>
+      <button onclick="closeMyRoutine()" class="bw-menu-header-close" aria-label="닫기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg></button>
       <span class="bw-menu-header-title">내 루틴</span>
       <button id="myRoutineAddRow" class="my-routine-add-circle-btn" type="button" aria-label="루틴 추가하기">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
@@ -8927,7 +8954,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
   ">
   <div id="muscleFinderScreen" style="height:100%; display:flex; flex-direction:column;">
     <div class="bw-menu-header">
-      <button onclick="closeMuscleFinder()" class="bw-menu-header-close" aria-label="닫기">‹</button>
+      <button onclick="closeMuscleFinder()" class="bw-menu-header-close" aria-label="닫기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg></button>
       <span class="bw-menu-header-title">근육부위</span>
       <span class="bw-menu-header-spacer"></span>
     </div>
@@ -9043,7 +9070,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
   ">
   <div id="oneRMCalcScreen" style="height:100%; display:flex; flex-direction:column;">
     <div class="bw-menu-header">
-      <button onclick="closeOneRMCalc()" class="bw-menu-header-close" aria-label="닫기">‹</button>
+      <button onclick="closeOneRMCalc()" class="bw-menu-header-close" aria-label="닫기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg></button>
       <span class="bw-menu-header-title">1RM 계산기</span>
       <span class="bw-menu-header-spacer"></span>
     </div>
@@ -10788,7 +10815,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.146";
+const APP_VERSION = "0.9.148";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
