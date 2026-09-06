@@ -6699,19 +6699,51 @@ html.light-mode-on #weightModal .food-modal-form label {
 .my-routine-past-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 16px 4px;
-  border-bottom: 1px solid rgba(var(--c-ink-rgb),0.1);
+  gap: 12px;
+  padding: 16px;
+  margin: 14px 0;
+  background: #181818;
+  border: 1px solid #222;
+  border-radius: 16px;
   cursor: pointer;
+}
+html.light-mode-on #myRoutinePastRow {
+  background: #fdfdfd;
+  border-color: #ddd;
+}
+.my-routine-past-row-icon {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(var(--c-ink-rgb),0.85);
+}
+.my-routine-past-row-icon svg {
+  width: 22px;
+  height: 22px;
+}
+.my-routine-past-row-text {
+  flex: 1;
+  min-width: 0;
 }
 .my-routine-past-row-label {
   font-size: 15px;
   font-weight: 700;
   color: var(--c-text-primary);
 }
+.my-routine-past-row-sub {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(var(--c-ink-rgb),0.4);
+  margin-top: 3px;
+}
 .my-routine-past-row-chevron {
-  color: rgba(var(--c-ink-rgb),0.25);
-  font-size: 20px;
+  flex-shrink: 0;
+  color: rgba(var(--c-ink-rgb),0.5);
+  font-size: 26px;
+  font-weight: 300;
 }
 .my-routine-add-row {
   padding: 16px 4px;
@@ -6866,9 +6898,44 @@ html.light-mode-on #weightModal .food-modal-form label {
   margin-top: 6px;
   width: 100%;
 }
-.my-routine-carousel-frame {
+/* 🔥 루틴 이름(제목) + 캐러셀을 하나의 상자로 묶음: 제목 행(+편집버튼)이 상자 최상단,
+   그 아래 구분선, 그 아래 기존 캐러셀 그대로 */
+.my-routine-group-box {
   border: 1px solid rgba(var(--c-ink-rgb),0.16);
   border-radius: 14px;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+.my-routine-group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+}
+.my-routine-group-header .my-routine-part-name {
+  margin-bottom: 0;
+}
+.my-routine-group-edit-btn {
+  flex-shrink: 0;
+  width: auto; /* 🔥 전역 button{width:100%} 리셋 무력화 */
+  background: none;
+  border: none;
+  padding: 4px 8px;
+  margin: -4px -8px;
+  color: rgba(var(--c-ink-rgb),0.45);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 1px;
+  cursor: pointer;
+}
+.my-routine-group-divider {
+  height: 1px;
+  background: rgba(var(--c-ink-rgb),0.12);
+  margin: 0 16px;
+}
+.my-routine-carousel-frame {
   width: 100%;
   box-sizing: border-box;
 }
@@ -8075,7 +8142,13 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
     </div>
     <div id="myRoutineBody" style="flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; padding: 0 18px calc(24px + env(safe-area-inset-bottom));">
       <div id="myRoutinePastRow" class="my-routine-past-row">
-        <div class="my-routine-past-row-label">오늘의 운동</div>
+        <div class="my-routine-past-row-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="12" height="17" rx="2"></rect><path d="M9 3.5h6a1 1 0 0 1 1 1V6H8V4.5a1 1 0 0 1 1-1z"></path><path d="M9 12l2 2 4-4"></path></svg>
+        </div>
+        <div class="my-routine-past-row-text">
+          <div class="my-routine-past-row-label">오늘의 운동</div>
+          <div class="my-routine-past-row-sub">오늘한 루틴을 바로 저장해보세요.</div>
+        </div>
         <div class="my-routine-past-row-chevron">›</div>
       </div>
 
@@ -10486,7 +10559,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.125";
+const APP_VERSION = "0.9.126";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -15115,10 +15188,16 @@ function renderMyRoutineTemplateSection(){
 
   sectionEl.innerHTML = nameOrder.map((name, gi) => `
     <div class="my-routine-template-part">
-      <div class="my-routine-part-name">${escapeHtml(name)}</div>
-      <div class="my-routine-carousel-frame">
-        <div class="my-routine-carousel" id="myRoutineCarousel-g${gi}">
-          ${groups[name].map(t => myRoutineTemplateCardHtml(t)).join("")}
+      <div class="my-routine-group-box">
+        <div class="my-routine-group-header">
+          <div class="my-routine-part-name">${escapeHtml(name)}</div>
+          <button class="my-routine-group-edit-btn" type="button" aria-label="편집">⋯</button>
+        </div>
+        <div class="my-routine-group-divider"></div>
+        <div class="my-routine-carousel-frame">
+          <div class="my-routine-carousel" id="myRoutineCarousel-g${gi}">
+            ${groups[name].map(t => myRoutineTemplateCardHtml(t)).join("")}
+          </div>
         </div>
       </div>
     </div>
