@@ -6918,11 +6918,13 @@ html.light-mode-on #myRoutinePastRow {
 /* 만든 루틴 카드 캐러셀 (부위별로 가로 스와이프) */
 .my-routine-template-part {
   margin-top: 22px;
+  margin-bottom: 10px; /* 🔥 상자별 아래 여백을 조금 더 줌 */
   width: 100%;
 }
 /* 🔥 루틴 이름(제목) + 캐러셀을 하나의 상자로 묶음: 제목 행(+편집버튼)이 상자 최상단,
    그 아래 구분선, 그 아래 기존 캐러셀 그대로 */
 .my-routine-group-box {
+  position: relative;
   border: 1px solid rgba(var(--c-ink-rgb),0.16);
   border-radius: 14px;
   width: 100%;
@@ -6955,14 +6957,56 @@ html.light-mode-on #myRoutinePastRow {
   width: 18px;
   height: 18px;
 }
+/* 🔥 접기/펼치기 화살표 — 상자 우측 하단에 고정, 접히면 아래를 보도록 180도 회전 */
+.my-routine-group-collapse-btn {
+  all: unset;
+  box-sizing: border-box;
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(var(--c-ink-rgb),0.1);
+  color: rgba(var(--c-ink-rgb),0.6);
+  cursor: pointer;
+}
+.my-routine-group-collapse-btn svg {
+  width: 14px;
+  height: 14px;
+  transition: transform 0.2s ease;
+}
+.my-routine-group-collapse-btn.collapsed svg {
+  transform: rotate(180deg);
+}
 .my-routine-group-divider {
   height: 1px;
   background: rgba(var(--c-ink-rgb),0.12);
   margin: 0 16px;
 }
+/* 🔥 접힌 상태: 그룹 안 개별 루틴들의 이름만 칩으로 나열 */
+.my-routine-group-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 4px 44px 40px 16px; /* 🔥 우측 하단 접기 버튼과 안 겹치도록 여유 공간 확보 */
+}
+.my-routine-group-chip {
+  padding: 7px 14px;
+  border-radius: 20px;
+  background: rgba(var(--c-ink-rgb),0.08);
+  color: rgba(var(--c-ink-rgb),0.75);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
 .my-routine-carousel-frame {
   width: 100%;
   box-sizing: border-box;
+  padding-bottom: 24px; /* 🔥 우측 하단 접기 버튼과 안 겹치도록 여유 공간 확보 */
 }
 .my-routine-carousel {
   display: flex;
@@ -8680,17 +8724,25 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
       <div style="display:flex; align-items:center; cursor:pointer;" onclick="closeMyRoutineDetail()">
         ← <span id="myRoutineDetailTitle" style="margin-left:6px; font-size:15px; font-weight:600; color:var(--c-text-primary);">하체</span>
       </div>
-      <button id="myRoutineDeleteTemplateBtn" style="display:none; -webkit-appearance:none; appearance:none; width:32px; height:32px; align-items:center; justify-content:center; background:transparent; border:1px solid rgba(var(--c-ink-rgb),0.3); border-radius:8px; cursor:pointer; padding:0;" aria-label="루틴 삭제">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ff5b5b" stroke-width="1.6"
-             stroke-linecap="round" stroke-linejoin="round">
-          <path d="M9.5 4V2.5c0-.8.7-1.5 1.5-1.5h2c.8 0 1.5.7 1.5 1.5V4"></path>
-          <path d="M4 6.2c0-.7.9-1.2 2-1.2h12c1.1 0 2 .5 2 1.2s-.9 1.3-2 1.3H6c-1.1 0-2-.6-2-1.3z"></path>
-          <path d="M5.5 8l1.2 11.3c.1 1.2 1.1 2.2 2.3 2.2h5.8c1.2 0 2.2-1 2.3-2.2L18.5 8"></path>
-          <line x1="9.5" y1="11" x2="9.5" y2="18"></line>
-          <line x1="12" y1="11" x2="12" y2="18"></line>
-          <line x1="14.5" y1="11" x2="14.5" y2="18"></line>
-        </svg>
-      </button>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <button id="myRoutineEditTemplateBtn" style="display:none; -webkit-appearance:none; appearance:none; width:32px; height:32px; align-items:center; justify-content:center; background:transparent; border:1px solid rgba(var(--c-ink-rgb),0.3); border-radius:8px; cursor:pointer; padding:0; color:rgba(var(--c-ink-rgb),0.75);" aria-label="루틴 편집">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
+          </svg>
+        </button>
+        <button id="myRoutineDeleteTemplateBtn" style="display:none; -webkit-appearance:none; appearance:none; width:32px; height:32px; align-items:center; justify-content:center; background:transparent; border:1px solid rgba(var(--c-ink-rgb),0.3); border-radius:8px; cursor:pointer; padding:0;" aria-label="루틴 삭제">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ff5b5b" stroke-width="1.6"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9.5 4V2.5c0-.8.7-1.5 1.5-1.5h2c.8 0 1.5.7 1.5 1.5V4"></path>
+            <path d="M4 6.2c0-.7.9-1.2 2-1.2h12c1.1 0 2 .5 2 1.2s-.9 1.3-2 1.3H6c-1.1 0-2-.6-2-1.3z"></path>
+            <path d="M5.5 8l1.2 11.3c.1 1.2 1.1 2.2 2.3 2.2h5.8c1.2 0 2.2-1 2.3-2.2L18.5 8"></path>
+            <line x1="9.5" y1="11" x2="9.5" y2="18"></line>
+            <line x1="12" y1="11" x2="12" y2="18"></line>
+            <line x1="14.5" y1="11" x2="14.5" y2="18"></line>
+          </svg>
+        </button>
+      </div>
     </div>
 
     <div id="myRoutineDetailBody" style="flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; padding: 0 18px calc(24px + env(safe-area-inset-bottom));">
@@ -10586,7 +10638,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.130";
+const APP_VERSION = "0.9.133";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -14190,7 +14242,8 @@ function openMyRoutineDetail(partKey){
   if (!partInfo || !routine) return;
 
   myRoutineCurrentPartKey = partKey;
-  myRoutineDetailSourceTemplate = null; // 🔥 자동추론 루틴이므로 삭제 버튼 숨김
+  myRoutineDetailSourceTemplate = null; // 🔥 자동추론 루틴이므로 편집/삭제 버튼 숨김
+  document.getElementById("myRoutineEditTemplateBtn").style.display = "none";
   document.getElementById("myRoutineDeleteTemplateBtn").style.display = "none";
   document.getElementById("myRoutineDetailTitle").textContent = partInfo.label;
 
@@ -14561,6 +14614,7 @@ function openMyRoutineDetailFromTemplate(template){
   if (!items.length) return;
 
   myRoutineDetailSourceTemplate = { template };
+  document.getElementById("myRoutineEditTemplateBtn").style.display = "flex";
   document.getElementById("myRoutineDeleteTemplateBtn").style.display = "flex";
   document.getElementById("myRoutineDetailTitle").textContent = template.name;
   document.getElementById("myRoutineDateBanner").innerHTML = ""; // 템플릿은 특정 날짜에 묶인 게 아니라서 날짜 배너 없음
@@ -14641,6 +14695,18 @@ function openMyRoutineDetailFromTemplate(template){
   myRoutineDetailScreen.style.transform = "translateX(0)";
   document.getElementById("myRoutineDetailBody").scrollTop = 0;
 }
+
+/* 🔥 루틴 편집(연필) 버튼: 이 루틴 카드만의 이름(label)을 지정 — 그룹 접었을 때 칩으로 표시됨 */
+document.getElementById("myRoutineEditTemplateBtn").addEventListener("click", () => {
+  if (!myRoutineDetailSourceTemplate) return;
+  const { template } = myRoutineDetailSourceTemplate;
+  const next = prompt("이 루틴의 이름을 입력하세요 (그룹을 접었을 때 표시돼요)", template.label || "");
+  if (next === null) return;
+  template.label = next.trim();
+  saveMyRoutineTemplatesToLocal();
+  saveMyRoutineTemplateToFirestore(template);
+  renderMyRoutineTemplateSection();
+});
 
 document.getElementById("myRoutineDeleteTemplateBtn").addEventListener("click", async () => {
   if (!myRoutineDetailSourceTemplate) return;
@@ -15194,6 +15260,15 @@ function wireCarouselVerticalPassthrough(carouselEl, scrollContainerEl){
   carouselEl.addEventListener('touchcancel', endTrack, { passive: true });
 }
 
+// 🔥 그룹(루틴 이름)별 접기 상태 — 새로고침 전까지만 유지되는 화면 전용 상태
+const myRoutineCollapsedGroups = new Set();
+
+// 🔥 접힌 상태에서 카드별로 보여줄 이름: 편집(연필) 버튼으로 지정한 label이 있으면 그걸,
+//    없으면 그 루틴의 첫 종목명을 대신 보여줌
+function myRoutineCardLabel(t){
+  return (t.label && t.label.trim()) || t.orderedItems?.[0]?.exercise || "루틴";
+}
+
 function renderMyRoutineTemplateSection(){
   const sectionEl = document.getElementById("myRoutineTemplateSection");
 
@@ -15213,7 +15288,9 @@ function renderMyRoutineTemplateSection(){
     groups[t.name].push(t);
   });
 
-  sectionEl.innerHTML = nameOrder.map((name, gi) => `
+  sectionEl.innerHTML = nameOrder.map((name, gi) => {
+    const collapsed = myRoutineCollapsedGroups.has(name);
+    return `
     <div class="my-routine-template-part">
       <div class="my-routine-group-box">
         <div class="my-routine-group-header">
@@ -15222,18 +15299,38 @@ function renderMyRoutineTemplateSection(){
             <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="19" cy="12" r="2"></circle></svg>
           </button>
         </div>
+        ${collapsed ? `
+        <div class="my-routine-group-chips">
+          ${groups[name].map(t => `<span class="my-routine-group-chip">${escapeHtml(myRoutineCardLabel(t))}</span>`).join("")}
+        </div>
+        ` : `
         <div class="my-routine-group-divider"></div>
         <div class="my-routine-carousel-frame">
           <div class="my-routine-carousel" id="myRoutineCarousel-g${gi}">
             ${groups[name].map(t => myRoutineTemplateCardHtml(t)).join("")}
           </div>
         </div>
+        `}
+        <button class="my-routine-group-collapse-btn${collapsed ? " collapsed" : ""}" type="button" data-group-name="${escapeHtml(name)}" aria-label="접기/펼치기">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"></path></svg>
+        </button>
       </div>
     </div>
-  `).join("");
+  `;
+  }).join("");
+
+  sectionEl.querySelectorAll(".my-routine-group-collapse-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const groupName = btn.dataset.groupName;
+      if (myRoutineCollapsedGroups.has(groupName)) myRoutineCollapsedGroups.delete(groupName);
+      else myRoutineCollapsedGroups.add(groupName);
+      renderMyRoutineTemplateSection();
+    });
+  });
 
   const myRoutineBodyEl = document.getElementById("myRoutineBody");
   nameOrder.forEach((name, gi) => {
+    if (myRoutineCollapsedGroups.has(name)) return;
     const carouselEl = document.getElementById(`myRoutineCarousel-g${gi}`);
     if (carouselEl) {
       wireCarouselFocus(carouselEl);
