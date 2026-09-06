@@ -10669,7 +10669,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.137";
+const APP_VERSION = "0.9.138";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -15278,6 +15278,17 @@ function wireCarouselVerticalPassthrough(carouselEl, scrollContainerEl){
   const COMMIT_MOVE = 8;
   let startX = 0, startY = 0, startScrollTop = 0, tracking = false, mode = null; // mode: 'h' | 'v' | null
 
+  // 🔥 touchmove마다 scrollTop을 즉시 쓰면 매 이벤트마다 레이아웃이 밀려 버벅임 —
+  //    한 프레임에 한 번만 반영되도록 requestAnimationFrame으로 묶어서 부드럽게 처리
+  let pendingScrollTop = null, rafId = null;
+  function flushScroll(){
+    rafId = null;
+    if (pendingScrollTop !== null) {
+      scrollContainerEl.scrollTop = pendingScrollTop;
+      pendingScrollTop = null;
+    }
+  }
+
   carouselEl.addEventListener('touchstart', (e) => {
     const t = e.touches[0];
     startX = t.clientX; startY = t.clientY;
@@ -15302,11 +15313,16 @@ function wireCarouselVerticalPassthrough(carouselEl, scrollContainerEl){
 
     if (mode === 'v') {
       e.preventDefault();
-      scrollContainerEl.scrollTop = startScrollTop - dy;
+      pendingScrollTop = startScrollTop - dy;
+      if (rafId === null) rafId = requestAnimationFrame(flushScroll);
     }
   }, { passive: false });
 
-  function endTrack(){ tracking = false; mode = null; }
+  function endTrack(){
+    tracking = false; mode = null;
+    if (rafId !== null) { cancelAnimationFrame(rafId); rafId = null; }
+    pendingScrollTop = null;
+  }
   carouselEl.addEventListener('touchend', endTrack, { passive: true });
   carouselEl.addEventListener('touchcancel', endTrack, { passive: true });
 }
