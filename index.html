@@ -6982,19 +6982,49 @@ html.light-mode-on #myRoutinePastRow {
 .my-routine-group-collapse-btn.collapsed svg {
   transform: rotate(180deg);
 }
+/* 🔥 접힌 상태에서는 상자 하단에 따로 띄우지 않고, 루틴명 칩들과 같은 줄 맨 끝에 고정 */
+.my-routine-group-collapse-btn--inline {
+  position: static;
+  flex-shrink: 0;
+}
 .my-routine-group-divider {
   height: 1px;
   background: rgba(var(--c-ink-rgb),0.12);
   margin: 0 16px;
 }
-/* 🔥 접힌 상태: 그룹 안 개별 루틴들의 이름만 칩으로 나열 */
+/* 🔥 접힌 상태: 칩 줄(가로 스크롤) + 접기 버튼을 한 줄에 배치 */
+.my-routine-group-chips-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 16px 16px;
+}
+/* 🔥 그룹 안 개별 루틴들의 이름만 칩으로 나열 — 무조건 한 줄, 넘치면 가로로 당겨서
+   확인 가능(overflow-x:auto), 짤리는 끝부분은 서서히 사라지도록 마스크 페이드 처리 */
 .my-routine-group-chips {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  align-items: center;
   gap: 8px;
-  padding: 4px 44px 40px 16px; /* 🔥 우측 하단 접기 버튼과 안 겹치도록 여유 공간 확보 */
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 20px), transparent 100%);
+  mask-image: linear-gradient(to right, #000 calc(100% - 20px), transparent 100%);
 }
+.my-routine-group-chips::after {
+  /* 🔥 끝까지 스크롤했을 때 마지막 칩이 페이드 마스크에 걸려 잘려 보이지 않도록
+     여유 공간을 하나 더 확보(패딩 대신 flex 자식으로 — 스크롤 콘텐츠 폭에 포함되게) */
+  content: "";
+  flex-shrink: 0;
+  width: 20px;
+}
+.my-routine-group-chips::-webkit-scrollbar { display: none; }
 .my-routine-group-chip {
+  flex-shrink: 0;
   padding: 7px 14px;
   border-radius: 20px;
   background: rgba(var(--c-ink-rgb),0.08);
@@ -10638,7 +10668,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.133";
+const APP_VERSION = "0.9.135";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -15300,8 +15330,13 @@ function renderMyRoutineTemplateSection(){
           </button>
         </div>
         ${collapsed ? `
-        <div class="my-routine-group-chips">
-          ${groups[name].map(t => `<span class="my-routine-group-chip">${escapeHtml(myRoutineCardLabel(t))}</span>`).join("")}
+        <div class="my-routine-group-chips-line">
+          <div class="my-routine-group-chips">
+            ${groups[name].map(t => `<span class="my-routine-group-chip">${escapeHtml(myRoutineCardLabel(t))}</span>`).join("")}
+          </div>
+          <button class="my-routine-group-collapse-btn my-routine-group-collapse-btn--inline collapsed" type="button" data-group-name="${escapeHtml(name)}" aria-label="접기/펼치기">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"></path></svg>
+          </button>
         </div>
         ` : `
         <div class="my-routine-group-divider"></div>
@@ -15310,10 +15345,10 @@ function renderMyRoutineTemplateSection(){
             ${groups[name].map(t => myRoutineTemplateCardHtml(t)).join("")}
           </div>
         </div>
-        `}
-        <button class="my-routine-group-collapse-btn${collapsed ? " collapsed" : ""}" type="button" data-group-name="${escapeHtml(name)}" aria-label="접기/펼치기">
+        <button class="my-routine-group-collapse-btn" type="button" data-group-name="${escapeHtml(name)}" aria-label="접기/펼치기">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"></path></svg>
         </button>
+        `}
       </div>
     </div>
   `;
