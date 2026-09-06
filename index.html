@@ -6753,6 +6753,28 @@ html.light-mode-on #myRoutinePastRow {
   border-bottom: 1px solid rgba(var(--c-ink-rgb),0.1);
   cursor: pointer;
 }
+/* 🔥 "내 루틴" 헤더의 "+ 루틴 추가하기" 텍스트 버튼 -> 원형 + 버튼으로 교체 */
+.my-routine-add-circle-btn {
+  all: unset;
+  box-sizing: border-box;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(var(--c-ink-rgb),0.1);
+  border: 1px solid rgba(var(--c-ink-rgb),0.16);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: rgba(var(--c-ink-rgb),0.85);
+  cursor: pointer;
+}
+.my-routine-add-circle-btn svg {
+  width: 16px;
+  height: 16px;
+}
 
 /* 루틴 만들기 화면 */
 .my-routine-builder-title {
@@ -8141,7 +8163,9 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
     <div class="bw-menu-header">
       <button onclick="closeMyRoutine()" class="bw-menu-header-close" aria-label="닫기">‹</button>
       <span class="bw-menu-header-title">내 루틴</span>
-      <div id="myRoutineAddRow" style="flex-shrink:0; font-size:14px; font-weight:600; color:var(--c-text-primary); cursor:pointer; white-space:nowrap;">+ 루틴 추가하기</div>
+      <button id="myRoutineAddRow" class="my-routine-add-circle-btn" type="button" aria-label="루틴 추가하기">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+      </button>
     </div>
     <div id="myRoutineBody" style="flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; padding: 0 18px calc(24px + env(safe-area-inset-bottom));">
       <div id="myRoutinePastRow" class="my-routine-past-row">
@@ -10562,7 +10586,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.128";
+const APP_VERSION = "0.9.130";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
