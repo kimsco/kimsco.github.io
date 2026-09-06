@@ -333,12 +333,30 @@ button {
   flex-shrink: 0;
   margin-top: 7.6px;
 }
-#tab4 #exercise-screen,
 #tab4 #exercise-detail-screen {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+}
+/* 🔥 검색줄(.search-wrap)은 고정된 일반 요소로 두고, 종목 목록만 별도
+   스크롤 영역(#exercise-list-scroll)에서 스크롤되게 분리 — 이전엔
+   position:sticky 의사요소로 처리했더니 실제 기기에서 스크롤 중 sticky
+   자식 페이드 오버레이가 밀려나는 버그가 있어서 구조 자체를 분리함 */
+#tab4 #exercise-screen {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+#tab4 #exercise-list-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  /* 🔥 목록 맨 위가 검색줄 밑에서 한 번에 나타나지 않고 서서히 페이드인 */
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 24px);
+  mask-image: linear-gradient(to bottom, transparent, #000 24px);
 }
 #tab2 .folderContent {
   flex: 1;
@@ -829,25 +847,9 @@ button {
   gap: 12px;
   margin-top: 0;
   margin-bottom: 6px;
-  /* 🔥 종목검색/최신순/+버튼 줄만 고정 — 별도 배경 상자로 분리하지 않고
-     검색창/버튼 각자의 스타일 그대로, 목록만 그 뒤로 스크롤됨 */
-  position: sticky;
-  top: 0;
-  z-index: 2;
+  flex-shrink: 0;
   padding-top: 2px;
   padding-bottom: 6px;
-}
-/* 🔥 고정된 줄 바로 아래로 종목이 한 번에 나타나지 않고 서서히 페이드인 되도록,
-   줄 바로 밑에 배경색→투명 그라디언트를 살짝 겹쳐 부드럽게 지나가게 함 */
-.search-wrap::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 100%;
-  height: 22px;
-  background: linear-gradient(to bottom, var(--c-bg), transparent);
-  pointer-events: none;
 }
 
 .exercise-search-box {
@@ -7772,7 +7774,9 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
   <button id="add-exercise-btn" class="add-btn">+</button>
 </div>
 
-  <div id="exercise-list"></div>
+  <div id="exercise-list-scroll">
+    <div id="exercise-list"></div>
+  </div>
 </div>
 
    <div id="exercise-detail-screen" style="display:none;">
@@ -10081,7 +10085,7 @@ document.querySelectorAll('.folderBtn4').forEach(btn => {
 
     // 🔥 상세화면이 열려있으면 닫고 목록화면으로
     detailScreen.style.display = 'none';
-    exerciseScreen.style.display = 'block';
+    exerciseScreen.style.display = 'flex';
     currentExerciseName = null;
 
     const accBarEl0 = document.getElementById('recordFloatBarAcc');
@@ -10138,7 +10142,7 @@ function openExerciseDetail(name) {
 
 function closeExerciseDetail() {
   detailScreen.style.display = 'none';
-  exerciseScreen.style.display = 'block';
+  exerciseScreen.style.display = 'flex';
   currentExerciseName = null;
 
   // 🔥 알약바도 같이 숨김
@@ -10850,7 +10854,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.154";
+const APP_VERSION = "0.9.155";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -17520,7 +17524,7 @@ bottomTabBtns.forEach(btn => {
 
     // Tip 탭 초기화
     if (target === 'tab4') {
-      exerciseScreen.style.display = 'block';
+      exerciseScreen.style.display = 'flex';
       detailScreen.style.display = 'none';
       // 🔥 로그인 직후 최초 1회 로드가 가끔 늦게 동기화되면서 기록이 비어 보이던
       //    문제 때문에, 기록 탭에 들어올 때마다 다시 불러와서 갱신
