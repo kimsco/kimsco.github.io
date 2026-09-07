@@ -9094,6 +9094,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
   <div id="navDrawer" class="nav-drawer" onclick="event.stopPropagation()">
     <div class="nav-drawer-title">메뉴</div>
     <button id="navThreeSummaryBtn" class="nav-drawer-item">3대 PR</button>
+    <button id="navOneRMCalcBtn" class="nav-drawer-item">1RM 계산기</button>
     <!-- 🔥 운동도감 일시 폐쇄: 데이터/로직은 그대로 두고 메뉴 진입만 막음.
          나중에 다시 열려면 이 버튼의 style="display:none;"만 지우면 됨 -->
     <button id="navExerciseDexBtn" class="nav-drawer-item" style="display:none;">운동도감</button>
@@ -9101,7 +9102,6 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
     <!-- 🔥 맨몸운동 일시 숨김: 데이터/로직은 그대로 두고 메뉴 진입만 막음(안 쓰는 것 같아서 일단 중지).
          나중에 다시 열려면 이 버튼의 style="display:none;"만 지우면 됨 -->
     <button id="navBodyweightBtn" class="nav-drawer-item" style="display:none;">맨몸운동</button>
-    <button id="navOneRMCalcBtn" class="nav-drawer-item">1RM 계산기</button>
     <button id="navMuscleFinderBtn" class="nav-drawer-item">근육부위</button>
     <button id="navWhoForBtn" class="nav-drawer-item" style="margin-top:auto;">WHO IS TTT FOR?</button>
     <!-- 🔥 테스트 루틴 룸 일시 숨김: 데이터/로직은 그대로 두고 메뉴 진입만 막음.
@@ -11006,7 +11006,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.194";
+const APP_VERSION = "0.9.195";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
