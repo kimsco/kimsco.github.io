@@ -684,6 +684,7 @@ button {
   border-radius: 12px;
 
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
 
@@ -699,6 +700,14 @@ button {
      0으로 낮춰서 셀 크기가 항상 grid의 1fr 칸 폭에 고정되도록 함 */
   min-width: 0;
   overflow: hidden;
+}
+
+/* 🔥 부위 모드에서 한 날짜에 여러 부위가 태깅됐을 때 위아래 2줄까지 표시 */
+.days div .cal-day-muscle-line {
+  font-size: 10.5px;
+  line-height: 1.25;
+  font-weight: inherit;
+  white-space: nowrap;
 }
 
 /* hover (PC) */
@@ -10934,7 +10943,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.172";
+const APP_VERSION = "0.9.173";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -11383,8 +11392,13 @@ function calRender() {
 
     if (calendarMode === "date") {
       cell.textContent = d;
+    } else if (showAsMarked && entry.muscles.length) {
+      // 🔥 여러 부위가 선택되어도 위아래 2줄까지만 표시(3개째부터는 생략)
+      cell.innerHTML = entry.muscles.slice(0, 2)
+        .map(mus => `<div class="cal-day-muscle-line">${mus}</div>`)
+        .join("");
     } else {
-      cell.textContent = showAsMarked ? entry.muscles[0] : "";
+      cell.textContent = "";
     }
 
  // long press (날짜 모드에서만)
@@ -11729,49 +11743,46 @@ document.getElementById("homeQuickRoutine").addEventListener("click", () => {
   openMyRoutine();
 });
 
+   // 🔥 여러 부위를 중복 선택할 수 있도록, 탭할 때마다 팝업을 닫지 않고
+   // 토글만 함(닫기는 배경 클릭으로). 달력 칸에는 최초 2개까지만 표시됨(calRender 참고)
    async function handleMuscleSelect(btn) {
   const user = auth.currentUser;
   const m = btn.dataset.muscle;
   const alreadySelected = calSelectedMuscles.includes(m);
 
-  // ✅ 1) 팝업을 먼저 즉시 닫아서 "반응"을 빠르게
-  calPopup.classList.add("hidden");
-  calPopupOpen = false;
+  if (alreadySelected) {
+    calSelectedMuscles = calSelectedMuscles.filter(x => x !== m);
+    btn.classList.remove("active");
+  } else {
+    calSelectedMuscles = [...calSelectedMuscles, m];
+    btn.classList.add("active");
+  }
 
-  // ✅ 2) 저장/렌더 같은 무거운 작업은 다음 프레임으로 넘김
-  requestAnimationFrame(async () => {
+  if (calSelectedMuscles.length === 0) {
+    delete calData[calSelectedDate];
 
-    calMuscleBtns.forEach(b => b.classList.remove("active"));
-
-    if (alreadySelected) {
-      delete calData[calSelectedDate];
-      calSelectedMuscles = [];
-
-      if (user) {
-        await db.collection("users").doc(user.uid)
-          .collection("calendar").doc(calSelectedDate).delete();
-      }
-    } else {
-      // 🔥 과거 날짜를 수동으로 태깅하면 "실제로 했음"으로 바로 확정, 오늘/미래는
-      // 아직 계획(미확정) 상태로 저장 — 실제 기록이 생기거나(오늘) 날짜가 지나도록
-      // 기록이 없으면(과거) calRender에서 그에 맞게 다르게 표시됨
-      const confirmed = isPastDateKey(calSelectedDate);
-      calSelectedMuscles = [m];
-      btn.classList.add("active");
-      calData[calSelectedDate] = { muscles: [m], confirmed };
-
-      if (user) {
-        await db.collection("users").doc(user.uid)
-          .collection("calendar").doc(calSelectedDate)
-          .set({ muscles: [m], confirmed, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
-      }
+    if (user) {
+      await db.collection("users").doc(user.uid)
+        .collection("calendar").doc(calSelectedDate).delete();
     }
+  } else {
+    // 🔥 과거 날짜를 수동으로 태깅하면 "실제로 했음"으로 바로 확정, 오늘/미래는
+    // 아직 계획(미확정) 상태로 저장 — 실제 기록이 생기거나(오늘) 날짜가 지나도록
+    // 기록이 없으면(과거) calRender에서 그에 맞게 다르게 표시됨
+    const confirmed = isPastDateKey(calSelectedDate);
+    calData[calSelectedDate] = { muscles: calSelectedMuscles, confirmed };
 
-    // ✅ 게스트/로그인 공통 저장 + 달력 다시그리기
-    saveCalendarToLocal();
-    calRender();
-    renderHomeTab(); // 🔥 내일 등 다른 날짜를 수동 태그했을 수도 있으니 홈탭도 갱신
-  });
+    if (user) {
+      await db.collection("users").doc(user.uid)
+        .collection("calendar").doc(calSelectedDate)
+        .set({ muscles: calSelectedMuscles, confirmed, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+    }
+  }
+
+  // ✅ 게스트/로그인 공통 저장 + 달력 다시그리기 (팝업은 계속 열어둠)
+  saveCalendarToLocal();
+  calRender();
+  renderHomeTab(); // 🔥 내일 등 다른 날짜를 수동 태그했을 수도 있으니 홈탭도 갱신
 }
 
 
