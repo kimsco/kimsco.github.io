@@ -10983,7 +10983,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.191";
+const APP_VERSION = "0.9.192";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -11607,6 +11607,13 @@ function daysSinceLastWorkout(){
     if (entry && entry.confirmed !== false && (entry.muscles || []).length) return i;
   }
   return null;
+}
+
+// 🔥 지금까지 실제로 수행/기록된(confirmed) 날이 총 며칠인지(누적) 계산 —
+// 이제 막 시작한 초보자에게까지 "3일 이상 미기록" 페이지가 뜨면 오히려
+// 앱을 떠나게 만들 수 있어서, 어느 정도 꾸준히 기록해온 사람에게만 적용하기 위한 기준
+function totalConfirmedWorkoutDays(){
+  return Object.values(calData).filter(entry => entry && entry.confirmed !== false && (entry.muscles || []).length).length;
 }
 
 async function autoMarkCalendarToday(partOrLift){
@@ -13936,10 +13943,14 @@ seriousModeToggle.addEventListener("click", () => {
    - 마지막 실제 운동 기록일로부터 4일째 접속 시(즉 3일 연속 미기록 후) 노출
    - 하루 기준 최초 1회만 노출(포기하기/정상으로 향하기 중 뭘 눌러도 그날은
      다시 안 뜸) — 그 후에도 계속 기록이 없으면 다음날 접속 시 다시 1회 노출
+   - 누적 기록일이 30일 미만인 초보자에게는 아예 적용 안 함(부담 줘서
+     이탈시키지 않도록)
 ================================ */
 const inactivityOverlay = document.getElementById("inactivityOverlay");
 const INACTIVITY_OVERLAY_LAST_SHOWN_KEY = "mf_inactivity_overlay_shown_date";
+const INACTIVITY_OVERLAY_MIN_TOTAL_DAYS = 30; // 🔥 초보자 이탈 방지: 누적 기록일이 이 기준 미만이면 아예 적용 안 함
 function checkInactivityOverlay(){
+  if (totalConfirmedWorkoutDays() < INACTIVITY_OVERLAY_MIN_TOTAL_DAYS) return;
   const days = daysSinceLastWorkout();
   if (days === null || days < 4) return;
   const todayKey = getCalendarKeyToday();
