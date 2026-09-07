@@ -516,52 +516,6 @@ button {
   background: #fff;          /* ✅ 밑줄도 흰색 */
   border-radius: 2px;
 }
-/* 🔥 기록탭 "팔" 버튼: 탭이 활성화되면 "팔" 텍스트가 서서히 페이드아웃되고
-   같은 자리에 "삼두/이두"가 페이드인(한쪽은 크고 흰색=선택됨, 한쪽은 작고 흐림).
-   같은 버튼을 다시 누르면 두 라벨의 강조가 서로 바뀜(실제 종목 리스트 필터링은 아직 없음). */
-.folderBtn4-arm {
-  position: relative;
-}
-.folderBtn4-arm .arm-btn-top {
-  display: block;
-  transition: opacity 0.3s ease;
-}
-.folderBtn4-arm .arm-btn-split {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  align-items: baseline;
-  justify-content: center;
-  gap: 4px;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
-}
-.folderBtn4-arm .arm-split-item {
-  font-size: 10.5px;
-  font-weight: 600;
-  opacity: 0.55;
-  white-space: nowrap;
-  transition: font-size 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
-              opacity 0.2s ease,
-              font-weight 0.2s ease;
-}
-.folderBtn4-arm .arm-split-item.selected {
-  font-size: 13.5px;
-  font-weight: 700;
-  opacity: 1;
-}
-.folderBtn4-arm.arm-split-active .arm-btn-top {
-  opacity: 0;
-}
-.folderBtn4-arm.arm-split-active .arm-btn-split {
-  opacity: 1;
-  pointer-events: auto;
-}
-
 .folderContent {
     display: none;
     margin-top: 10px;
@@ -7819,19 +7773,15 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
     <button class="folderBtn4" data-part="back">등</button>
     <button class="folderBtn4" data-part="shoulder">어깨</button>
     <button class="folderBtn4" data-part="leg">하체</button>
-    <button class="folderBtn4 folderBtn4-arm" data-part="arm">
-      <span class="arm-btn-top">팔</span>
-      <span class="arm-btn-split">
-        <span class="arm-split-item" data-arm-split="tri">삼두</span>
-        <span class="arm-split-item" data-arm-split="bi">이두</span>
-      </span>
-    </button>
+    <!-- 🔥 팔은 실제 탭이 아니라 런처 버튼 — 누르면 오른쪽으로 스와이프되며
+         삼두/이두/코어 페이지가 나오고 삼두가 자동으로 선택됨 -->
+    <button class="folderBtn4" data-arm-launcher="true">팔</button>
   </div>
-  <!-- 🔥 우측으로 스와이프하면 나오는 두번째 페이지: 코어가 가슴 자리에 오고 나머지는 여백 -->
+  <!-- 🔥 우측으로 스와이프하면 나오는 두번째 페이지: 삼두/이두/코어, 나머지는 여백 -->
   <div class="recordFolders4">
+    <button class="folderBtn4" data-part="arm" data-arm-variant="tri">삼두</button>
+    <button class="folderBtn4" data-part="arm" data-arm-variant="bi">이두</button>
     <button class="folderBtn4" data-part="core">코어</button>
-    <div class="folderBtn4-spacer"></div>
-    <div class="folderBtn4-spacer"></div>
     <div class="folderBtn4-spacer"></div>
     <div class="folderBtn4-spacer"></div>
   </div>
@@ -10151,30 +10101,20 @@ exerciseSearchInput.addEventListener('input', (e) => {
 
 const partButtons = document.querySelectorAll('.folderBtn4');
 
-// 🔥 기록탭 "팔" 버튼의 삼두/이두 강조 토글 상태 (실제 종목 리스트 필터링은 없음, 표시만 전환)
-let armSplitSelected = null; // 'tri' | 'bi' | null(아직 한번도 선택 안 함)
-function updateArmSplitUI(btn){
-  const triEl = btn.querySelector('[data-arm-split="tri"]');
-  const biEl = btn.querySelector('[data-arm-split="bi"]');
-  if (triEl) triEl.classList.toggle('selected', armSplitSelected === 'tri');
-  if (biEl) biEl.classList.toggle('selected', armSplitSelected === 'bi');
-}
-
 document.querySelectorAll('.folderBtn4').forEach(btn => {
   btn.addEventListener('click', async ()=>{
-    const wasArmActive = btn.classList.contains('folderBtn4-arm') && btn.classList.contains('active');
+    // 🔥 팔 버튼은 실제 탭이 아니라 런처 — 누르면 오른쪽으로 스와이프해서
+    // 삼두/이두/코어 페이지를 보여주고, 삼두를 자동으로 선택된 상태로 만들어줌
+    if (btn.dataset.armLauncher === 'true') {
+      const wrap = document.getElementById('recordFolders4Wrap');
+      if (wrap) wrap.scrollTo({ left: wrap.clientWidth, behavior: 'smooth' });
+      const triBtn = document.querySelector('.folderBtn4[data-arm-variant="tri"]');
+      if (triBtn) triBtn.click();
+      return;
+    }
+
     document.querySelectorAll('.folderBtn4').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-
-    if (btn.classList.contains('folderBtn4-arm')) {
-      // 🔥 팔 탭이 이미 선택된 상태에서 다시 누르면 삼두/이두 강조를 반전, 아니면 삼두부터 시작
-      armSplitSelected = wasArmActive ? (armSplitSelected === 'tri' ? 'bi' : 'tri') : 'tri';
-      btn.classList.add('arm-split-active');
-      updateArmSplitUI(btn);
-    } else {
-      const armBtn = document.querySelector('.folderBtn4-arm');
-      if (armBtn) armBtn.classList.remove('arm-split-active');
-    }
 
     currentPart = btn.dataset.part;   // 🔥 현재 선택한 종목 저장
 
@@ -10950,7 +10890,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.166";
+const APP_VERSION = "0.9.167";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
