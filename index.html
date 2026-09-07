@@ -10194,6 +10194,7 @@ document.querySelectorAll('.folderBtn4').forEach(btn => {
 
     // Firestore에서 해당 종목 불러오기
     await loadExercises(currentPart);
+    if (currentPart === 'core') seedDefaultCoreExercisesIfNeeded();
   });
 });
 
@@ -10949,7 +10950,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.165";
+const APP_VERSION = "0.9.166";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -18718,6 +18719,33 @@ async function saveExerciseToDB(exerciseName) {
 
 
 
+
+/* 🔥 코어는 새로 추가된 부위라 기존 5부위와 달리 저장된 종목이 하나도 없음 —
+   코어 탭에 처음 들어왔을 때 바로 기록을 시작할 수 있도록 대표 종목 3개를
+   기본으로 심어줌(bodyweight의 seedDefaultBodyweightExercisesIfNeeded와 동일한 패턴) */
+const CORE_DEFAULT_EXERCISES = ["크런치", "케이블 크런치", "행잉 레그 레이즈"];
+async function seedDefaultCoreExercisesIfNeeded(){
+  const alreadySeeded = lsGet("mf_core_seeded_v1", false);
+  if (alreadySeeded) return;
+  lsSet("mf_core_seeded_v1", true);
+
+  if (currentExercises.length > 0) return; // 이미 종목이 있으면(다른 기기 등) 건드리지 않음
+
+  currentExercises = CORE_DEFAULT_EXERCISES.slice();
+  saveAccListToLocal("core", currentExercises);
+  renderExercises();
+
+  const user = auth.currentUser;
+  if (user) {
+    try {
+      await db.collection('users').doc(user.uid)
+        .collection('accessories').doc('core')
+        .set({ list: currentExercises }, { merge: true });
+    } catch (e) {
+      console.error("코어 기본 종목 저장 실패", e);
+    }
+  }
+}
 
 /* 🔥 로그인 직후 5개 부위 종목 리스트를 전부 미리 불러와 로컬 캐시에 저장
    (loadExercises의 "캐시 우선 표시" 로직이 이 캐시를 즉시 활용하게 됨) */
