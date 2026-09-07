@@ -1522,6 +1522,15 @@ html.mf-restore-settings .bottomTab {
 #unitSettingsOverlay.hidden {
   display: none;
 }
+#homeSeriousModeScreen {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  /* 🔥 내용이 화면보다 길어질 수 있으니(스크롤 가능), 맨 아래 문단이 하단
+     고정 탭바 뒤에 가려지지 않도록 탭바 높이만큼 아래쪽 여백을 넉넉히 둠 */
+  padding: 12px 28px calc(var(--bottomTabH) + 20px);
+  box-sizing: border-box;
+}
 #homeSeriousModeScreen.hidden {
   display: none;
 }
@@ -7671,9 +7680,22 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
 <div id="homePullSpinner" style="position:fixed; left:50%; transform:translateX(-50%); top:calc(var(--topBarH) + env(safe-area-inset-top) + 18px); width:390px; max-width:100%; display:flex; align-items:center; justify-content:center; pointer-events:none; opacity:0; transition:opacity 0.15s ease; z-index:10;">
   <div class="ios-spinner"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
 </div>
-<!-- 🔥 진심모드 ON: 기존 홈 화면(박스/날짜/체중 등) 대신 검정 화면만 보여줌
-     (나중에 이 안에 진심모드 전용 콘텐츠를 채울 예정, 지금은 빈 화면) -->
-<div id="homeSeriousModeScreen" class="hidden" style="background:#000; min-height: calc(100vh - var(--topBarH) - var(--bottomTabH) - env(safe-area-inset-top));"></div>
+<!-- 🔥 진심모드 ON: 기존 홈 화면(박스/날짜/체중 등) 대신 검정 화면에 각오를
+     다지는 글 하나만 보여줌 -->
+<div id="homeSeriousModeScreen" class="hidden" style="background:#000; min-height: calc(100vh - var(--topBarH) - var(--bottomTabH) - env(safe-area-inset-top));">
+  <div style="width:100%; color:#fff; font-size:17px; line-height:2; text-align:left; font-weight:600; letter-spacing:0.2px;">
+    <p style="margin:0 0 28px;">왜 운동을 시작했는지 떠올리세요.</p>
+    <p style="margin:0 0 28px;">오늘은 또 어떤 핑계를 대며 가지 않을 겁니까?</p>
+    <p style="margin:0 0 28px;">피곤해서.<br>시간이 없어서.<br>컨디션이 좋지 않아서.</p>
+    <p style="margin:0 0 28px;">핑계는 언제나 그럴듯합니다.</p>
+    <p style="margin:0 0 28px;">아무것도 하지 않은 채<br>나이만 하루씩 먹어가는 삶.</p>
+    <p style="margin:0 0 28px;">그러면서 언젠가는 달라질 거라고 기대하는 건<br>결국 좆밥 병신 호구새끼 아닐까요?</p>
+    <p style="margin:0 0 28px;">정상은 핑계를 들어주지 않습니다.</p>
+    <p style="margin:0 0 28px;">올라갈 사람만 올라갑니다.</p>
+    <p style="margin:0 0 28px;">운동이 정 힘들어 못하겠으면 이 앱을 지우고 저희들의 바닥이 되어주십시오.</p>
+    <p style="margin:0;">딱 그 수준이신겁니다.</p>
+  </div>
+</div>
 <div id="homeNormalContent">
   <div class="home-greeting" id="homeGreeting"></div>
   <div class="home-title-row">
@@ -10935,7 +10957,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.177";
+const APP_VERSION = "0.9.178";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
