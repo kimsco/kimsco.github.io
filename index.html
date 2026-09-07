@@ -7751,6 +7751,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
   <button class="folderBtn4" data-part="shoulder">어깨</button>
   <button class="folderBtn4" data-part="leg">하체</button>
   <button class="folderBtn4" data-part="arm">팔</button>
+  <button class="folderBtn4" data-part="core">코어</button>
 </div>
 
 <div id="exercise-screen">
@@ -8120,6 +8121,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
             <button data-muscle="팔">팔</button>
             <button data-muscle="하체">하체</button>
             <button data-muscle="어깨">어깨</button>
+            <button data-muscle="코어">코어</button>
         </div>
     </div>
 </div>
@@ -10844,7 +10846,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.160";
+const APP_VERSION = "0.9.161";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -11387,7 +11389,7 @@ calPopup.addEventListener("click", e => {
    - 수동 체크는 항상 우선하며, 언제든 수동으로 다시 바꿀 수 있음(기존 로직 그대로 유지)
 ================================ */
 const PART_TO_MUSCLE = {
-  chest: "가슴", back: "등", shoulder: "어깨", leg: "하체", arm: "팔",
+  chest: "가슴", back: "등", shoulder: "어깨", leg: "하체", arm: "팔", core: "코어",
   bench: "가슴", squat: "하체", dead: "등", ohp: "어깨"
 };
 
@@ -11398,7 +11400,7 @@ function getCalendarKeyToday(){
 
 // 🔥 홈 화면 "부위별 마지막 운동" 카드 — 부위별 하이라이트 이미지(투명 배경 PNG,
 // 해당 부위 주변으로 크롭한 240x240 썸네일). 아직 이미지가 없는 부위는 텍스트만 표시.
-const HOME_PARTS = ["가슴", "등", "어깨", "하체", "팔"];
+const HOME_PARTS = ["가슴", "등", "어깨", "하체", "팔", "코어"];
 const HOME_PART_IMAGES = {
   "가슴": "icons/muscle/highlight/home_chest.png?v=" + APP_VERSION,
   "등": "icons/muscle/highlight/home_back.png?v=" + APP_VERSION,
@@ -11890,7 +11892,8 @@ const MY_ROUTINE_PARTS = [
   { key: "back", label: "등" },
   { key: "shoulder", label: "어깨" },
   { key: "leg", label: "하체" },
-  { key: "arm", label: "팔" }
+  { key: "arm", label: "팔" },
+  { key: "core", label: "코어" }
 ];
 
 /* 🔥 "루틴 만들기"에서만 쓰는 부위 목록: 팔을 이두/삼두로 나눠서 보여줌.
@@ -11902,7 +11905,8 @@ const MY_ROUTINE_BUILDER_PARTS = [
   { key: "shoulder", label: "어깨", dataPart: "shoulder" },
   { key: "leg", label: "하체", dataPart: "leg" },
   { key: "biceps", label: "이두", dataPart: "arm" },
-  { key: "triceps", label: "삼두", dataPart: "arm" }
+  { key: "triceps", label: "삼두", dataPart: "arm" },
+  { key: "core", label: "코어", dataPart: "core" }
 ];
 function myRoutineBuilderPartInfo(key){
   return MY_ROUTINE_BUILDER_PARTS.find(p => p.key === key);
@@ -11978,7 +11982,7 @@ const myRoutineDetailScreen = document.getElementById("myRoutineDetailScreen");
 
 // 액세서리 부위(chest/back/shoulder/leg) 중 3대와 짝이 없는 "arm"은 루틴 저장 시
 // 빌더 파트키(이두/삼두 분리)가 필요해서 편의상 "biceps"로 취급 (기록 자체는 그대로 arm 리스트 공유)
-const MY_ROUTINE_PART_TO_BUILDER_PART = { chest: "chest", back: "back", shoulder: "shoulder", leg: "leg", arm: "biceps" };
+const MY_ROUTINE_PART_TO_BUILDER_PART = { chest: "chest", back: "back", shoulder: "shoulder", leg: "leg", arm: "biceps", core: "core" };
 
 /* 오늘 날짜에 기록된 모든 종목(3대+액세서리)을, 부위 구분 없이 처음 기록한 순서대로 하나의 목록으로 */
 function buildTodayExerciseList(){
@@ -18605,7 +18609,7 @@ async function saveExerciseToDB(exerciseName) {
 /* 🔥 로그인 직후 5개 부위 종목 리스트를 전부 미리 불러와 로컬 캐시에 저장
    (loadExercises의 "캐시 우선 표시" 로직이 이 캐시를 즉시 활용하게 됨) */
 async function prefetchAllExerciseParts(uid){
-  const parts = ['chest', 'back', 'shoulder', 'leg', 'arm', 'bodyweight'];
+  const parts = ['chest', 'back', 'shoulder', 'leg', 'arm', 'core', 'bodyweight'];
   try {
     await Promise.all(parts.map(async (part) => {
       const doc = await db
