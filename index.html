@@ -1531,6 +1531,12 @@ html.mf-restore-settings .bottomTab {
 #inactivityOverlay.hidden {
   display: none;
 }
+#inactivityGiveUpScreen.hidden {
+  display: none;
+}
+#inactivityMainContent.hidden {
+  display: none;
+}
 
 /* ===============================
    맨몸운동 「01 — 기본운동」
@@ -7602,8 +7608,8 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
      여부와 무관)을 포함해 앱 전체를 덮음. .app 바깥에 둬서 .app에 transform이
      걸려도(드로어 애니메이션 등) 영향을 안 받도록 함 -->
 <div id="inactivityOverlay" class="hidden" style="position:fixed; inset:0; z-index:500000; background:#000; overflow-y:auto; -webkit-overflow-scrolling:touch;">
-  <div style="min-height:100%; box-sizing:border-box; padding: calc(64px + env(safe-area-inset-top)) 28px calc(60px + env(safe-area-inset-bottom)); display:flex; align-items:flex-start; justify-content:center;">
-    <div style="width:100%;">
+  <div style="min-height:100%; box-sizing:border-box; padding: env(safe-area-inset-top) 28px calc(60px + env(safe-area-inset-bottom)); display:flex; align-items:flex-start; justify-content:center;">
+    <div id="inactivityMainContent" style="width:100%;">
       <p id="inactivityCaption" style="margin:0 0 24px; color:rgba(255,255,255,0.4); font-size:12px; font-weight:500; letter-spacing:0.2px; text-align:center; white-space:nowrap;">( 3일 이상 기록하지 않은 사람들에게 자동으로 열리는 페이지입니다. )</p>
       <div style="color:#fff; font-size:14.5px; line-height:1.6; text-align:left; font-weight:700; letter-spacing:0.3px; font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;">
         <p style="margin:0 0 28px;">왜 운동을 시작했는지 떠올리세요.</p>
@@ -7621,9 +7627,14 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
         <p style="margin:0 0 20px; color:#fff; font-size:15px; font-weight:700; letter-spacing:0.3px;">어떤 사람이 되시겠습니까?</p>
         <div style="display:flex; gap:12px;">
           <button id="inactivityGiveUpBtn" style="flex:1; padding:14px 0; border-radius:10px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.16); color:rgba(255,255,255,0.6); font-size:14px; font-weight:700; cursor:pointer;">포기하기</button>
-          <button id="inactivityKeepGoingBtn" style="flex:1; padding:14px 0; border-radius:10px; background:#e0203f; border:none; color:#fff; font-size:14px; font-weight:700; cursor:pointer;">정상을 향하기</button>
+          <button id="inactivityKeepGoingBtn" style="flex:1; padding:14px 0; border-radius:10px; background:#e0203f; border:none; color:#fff; font-size:14px; font-weight:700; cursor:pointer;">정상으로 향하기</button>
         </div>
       </div>
+    </div>
+    <div id="inactivityGiveUpScreen" class="hidden" style="width:100%; text-align:center; color:#fff; font-weight:700; letter-spacing:0.3px;">
+      <p style="margin:0 0 24px; font-size:17px;">정말 포기하시겠습니까?</p>
+      <p style="margin:0 0 24px; font-size:14.5px; line-height:1.6;">실망입니다.</p>
+      <p style="margin:0; font-size:14.5px; line-height:1.6;">이 앱을 종료하고 삭제해주십시오.</p>
     </div>
   </div>
 </div>
@@ -10968,7 +10979,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.183";
+const APP_VERSION = "0.9.185";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -13910,8 +13921,11 @@ document.getElementById("inactivityKeepGoingBtn").addEventListener("click", () =
   inactivityOverlay.classList.add("hidden");
 });
 /* ⚠️ window.close()는 스크립트가 직접 연 창에만 동작하는 브라우저 정책상,
-   대부분의 모바일 브라우저/PWA 탭에서는 아무 효과가 없을 수 있음(최선 시도) */
+   대부분의 모바일 브라우저/PWA 탭에서는 효과가 없어서, 그런 경우를 위해
+   "정말 포기하시겠습니까?" 화면으로 전환해 직접 앱을 종료/삭제하도록 안내 */
 document.getElementById("inactivityGiveUpBtn").addEventListener("click", () => {
+  document.getElementById("inactivityMainContent").classList.add("hidden");
+  document.getElementById("inactivityGiveUpScreen").classList.remove("hidden");
   window.close();
 });
 /* 상단 안내 문구가 화면 폭과 무관하게 항상 한 줄 안에서 끝나도록, 실제
