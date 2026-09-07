@@ -7605,7 +7605,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
   <button id="inactivityOverlayCloseBtn" aria-label="닫기" style="position:fixed; top:calc(16px + env(safe-area-inset-top)); right:16px; width:36px; height:36px; border-radius:50%; background:rgba(255,255,255,0.10); backdrop-filter:blur(14px) saturate(150%); border:1px solid rgba(255,255,255,0.14); color:#fff; font-size:16px; line-height:1; cursor:pointer;">✕</button>
   <div style="min-height:100%; box-sizing:border-box; padding: calc(64px + env(safe-area-inset-top)) 28px calc(60px + env(safe-area-inset-bottom)); display:flex; align-items:flex-start; justify-content:center;">
     <div style="width:100%;">
-      <p style="margin:0 0 24px; color:rgba(255,255,255,0.4); font-size:12px; font-weight:500; letter-spacing:0.2px; text-align:center;">( 3일 이상 기록하지 않은 사람들에게 자동으로 열리는 페이지입니다. )</p>
+      <p id="inactivityCaption" style="margin:0 0 24px; color:rgba(255,255,255,0.4); font-size:12px; font-weight:500; letter-spacing:0.2px; text-align:center; white-space:nowrap;">( 3일 이상 기록하지 않은 사람들에게 자동으로 열리는 페이지입니다. )</p>
       <div style="color:#fff; font-size:14.5px; line-height:1.6; text-align:left; font-weight:700; letter-spacing:0.3px; font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;">
         <p style="margin:0 0 28px;">왜 운동을 시작했는지 떠올리세요.</p>
         <p style="margin:0 0 28px;">오늘은 또 어떤 핑계를 대며 가지 않을 겁니까?</p>
@@ -10962,7 +10962,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.181";
+const APP_VERSION = "0.9.182";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -13903,7 +13903,27 @@ const inactivityOverlay = document.getElementById("inactivityOverlay");
 document.getElementById("inactivityOverlayCloseBtn").addEventListener("click", () => {
   inactivityOverlay.classList.add("hidden");
 });
+/* 상단 안내 문구가 화면 폭과 무관하게 항상 한 줄 안에서 끝나도록, 실제
+   렌더링된 너비를 재서 넘칠 때만 그 비율만큼 글자 크기를 줄임
+   (오버레이가 hidden 상태면 폭이 0이라 측정 불가 — 보일 때만 계산) */
+function fitInactivityCaption() {
+  const caption = document.getElementById("inactivityCaption");
+  if (!caption || inactivityOverlay.classList.contains("hidden")) return;
+  const MAX_FONT_SIZE = 12;
+  let fontSize = MAX_FONT_SIZE;
+  caption.style.fontSize = fontSize + "px";
+  const available = caption.parentElement.clientWidth;
+  if (available <= 0) return;
+  /* letter-spacing은 글자 크기에 비례해 줄어들지 않으므로 한 번의 비율
+     계산만으로는 살짝 넘칠 수 있어, 실제로 안 넘칠 때까지 반복 보정 */
+  for (let i = 0; i < 6 && caption.scrollWidth > available; i++) {
+    fontSize *= available / caption.scrollWidth;
+    caption.style.fontSize = fontSize + "px";
+  }
+}
+window.addEventListener("resize", fitInactivityCaption);
 inactivityOverlay.classList.remove("hidden"); // 🔥 확인용: 무조건 노출
+fitInactivityCaption();
 
 /* ===============================
    🔥 설정 > 단위 표기 토글 3개(횟수/세트/무게) — formatSetLine()이 참조하는
