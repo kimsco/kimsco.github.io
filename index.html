@@ -684,7 +684,6 @@ button {
   border-radius: 12px;
 
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
 
@@ -700,14 +699,6 @@ button {
      0으로 낮춰서 셀 크기가 항상 grid의 1fr 칸 폭에 고정되도록 함 */
   min-width: 0;
   overflow: hidden;
-}
-
-/* 🔥 부위 모드에서 한 날짜에 여러 부위가 태깅됐을 때 위아래 2줄까지 표시 */
-.days div .cal-day-muscle-line {
-  font-size: 10.5px;
-  line-height: 1.25;
-  font-weight: inherit;
-  white-space: nowrap;
 }
 
 /* hover (PC) */
@@ -10943,7 +10934,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.173";
+const APP_VERSION = "0.9.174";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -11393,10 +11384,9 @@ function calRender() {
     if (calendarMode === "date") {
       cell.textContent = d;
     } else if (showAsMarked && entry.muscles.length) {
-      // 🔥 여러 부위가 선택되어도 위아래 2줄까지만 표시(3개째부터는 생략)
-      cell.innerHTML = entry.muscles.slice(0, 2)
-        .map(mus => `<div class="cal-day-muscle-line">${mus}</div>`)
-        .join("");
+      // 🔥 여러 부위가 선택되어도 위아래 2줄까지만 표시(3개째부터는 생략).
+      // 기존 스타일(색/굵기 등)을 그대로 상속받도록 별도 클래스/래퍼 없이 줄바꿈만 사용
+      cell.innerHTML = entry.muscles.slice(0, 2).join("<br>");
     } else {
       cell.textContent = "";
     }
