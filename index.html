@@ -494,34 +494,29 @@ button {
   background: #fff;          /* ✅ 밑줄도 흰색 */
   border-radius: 2px;
 }
-/* 🔥 기록탭 "팔" 버튼: 탭이 활성화되면 "팔" 텍스트가 작아지며 위로 이동하고,
-   원래 위치에 "삼두/이두"가 나타남(한쪽은 크고 흰색=선택됨, 한쪽은 작고 흐림).
+/* 🔥 기록탭 "팔" 버튼: 탭이 활성화되면 "팔" 텍스트가 서서히 페이드아웃되고
+   같은 자리에 "삼두/이두"가 페이드인(한쪽은 크고 흰색=선택됨, 한쪽은 작고 흐림).
    같은 버튼을 다시 누르면 두 라벨의 강조가 서로 바뀜(실제 종목 리스트 필터링은 아직 없음). */
 .folderBtn4-arm {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0;
+  position: relative;
 }
 .folderBtn4-arm .arm-btn-top {
   display: block;
-  font-size: 13.5px;
-  font-weight: 650;
-  transition: font-size 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
-              opacity 0.25s ease,
-              margin-bottom 0.25s ease;
+  transition: opacity 0.3s ease;
 }
 .folderBtn4-arm .arm-btn-split {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
   display: flex;
   align-items: baseline;
   justify-content: center;
   gap: 4px;
-  height: 0;
   opacity: 0;
-  overflow: hidden;
-  transform: translateY(3px);
-  transition: height 0.25s ease, opacity 0.2s ease, transform 0.25s ease;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
 }
 .folderBtn4-arm .arm-split-item {
   font-size: 10.5px;
@@ -538,14 +533,11 @@ button {
   opacity: 1;
 }
 .folderBtn4-arm.arm-split-active .arm-btn-top {
-  font-size: 9px;
-  opacity: 0.5;
-  margin-bottom: 1px;
+  opacity: 0;
 }
 .folderBtn4-arm.arm-split-active .arm-btn-split {
-  height: 16px;
   opacity: 1;
-  transform: translateY(0);
+  pointer-events: auto;
 }
 
 .folderContent {
@@ -10926,7 +10918,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.163";
+const APP_VERSION = "0.9.164";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
