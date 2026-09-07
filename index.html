@@ -3117,11 +3117,6 @@ html.light-mode-on #tab1 .home-week-day .d.done {
   background: #e0203f;
   border-color: #e0203f;
 }
-/* 🔥 계획(미확정)만 해둔 날 — 라이트모드 기본(#f0f0f0)에 더 가깝게 치우친 옅은 핑크 */
-html.light-mode-on #tab1 .home-week-day .d.planned {
-  background: rgb(237,198,205);
-  border-color: rgb(237,198,205);
-}
 
 /* 🔥 나머지(3대/기록/달력 탭 등, 아직 필터 방식 유지)의 빨간 점 표시들은 기존처럼
    반전 필터를 통과했을 때 결과적으로 선명한 빨강(rgb 약 207,77,57)이 되도록
@@ -7506,8 +7501,6 @@ html.light-mode-on .my-routine-group-box {
 #tab1 .home-week-day { display: flex; flex-direction: column; align-items: center; gap: 8px; }
 #tab1 .home-week-day .d { width: 26px; height: 26px; border-radius: 50%; background: #232323; border: 1px solid #2a2a2a; box-sizing: border-box; }
 #tab1 .home-week-day .d.done { background: #e0203f; border-color: #e0203f; }
-/* 🔥 계획(미확정, 오늘/미래)만 해둔 날 — done의 빨강과 기본 회색의 중간톤(미체크 쪽에 더 가깝게) */
-#tab1 .home-week-day .d.planned { background: #4b232a; border-color: #4b232a; }
 #tab1 .home-week-day .d.today { box-shadow: 0 0 0 1.5px #fff; }
 #tab1 .home-week-day .lbl { font-size: 10px; color: rgba(255,255,255,0.4); }
 
@@ -10942,7 +10935,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.176";
+const APP_VERSION = "0.9.177";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -11588,8 +11581,8 @@ async function autoMarkCalendarToday(partOrLift){
 /* ===============================
    🔥 홈 화면(tab1) 렌더링
 ================================ */
-// 🔥 캘린더 탭과 동일한 조건으로 상태 판정: confirmed(실제 수행)면 done,
-// 계획(미확정)이면 오늘/미래만 planned, 계획했는데 지나도록 안 했으면 empty
+// 🔥 실제로 수행(confirmed)한 날만 done으로 표시. 계획(미확정)만 해둔 날과
+// 아예 기록 없는 날은 둘 다 동일하게 미표시(구분 없음)
 function computeWeekActivity(){
   const today = new Date();
   const sunday = new Date(today);
@@ -11601,17 +11594,10 @@ function computeWeekActivity(){
     d.setDate(sunday.getDate() + i);
     const key = `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
     const entry = calData[key];
-    let status = "empty"; // empty | done | planned
-    if (entry?.muscles?.length) {
-      if (entry.confirmed !== false) {
-        status = "done";
-      } else if (!isPastDateKey(key)) {
-        status = "planned";
-      }
-    }
+    const done = !!(entry?.muscles?.length && entry.confirmed !== false);
     days.push({
       label: labels[i],
-      status,
+      status: done ? "done" : "empty",
       isToday: d.toDateString() === today.toDateString(),
     });
   }
