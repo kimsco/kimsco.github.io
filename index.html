@@ -7610,6 +7610,8 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
 <div id="inactivityOverlay" class="hidden" style="position:fixed; inset:0; z-index:500000; background:#000; overflow-y:auto; -webkit-overflow-scrolling:touch;">
   <div style="min-height:100%; box-sizing:border-box; padding: env(safe-area-inset-top) 28px calc(60px + env(safe-area-inset-bottom)); display:flex; align-items:flex-start; justify-content:center;">
     <div id="inactivityMainContent" style="width:100%;">
+      <p style="margin:0; font-size:12px;">&nbsp;</p>
+      <p style="margin:0 0 24px; font-size:12px;">&nbsp;</p>
       <p id="inactivityCaption" style="margin:0 0 24px; color:rgba(255,255,255,0.4); font-size:12px; font-weight:500; letter-spacing:0.2px; text-align:center; white-space:nowrap;">( 3일 이상 기록하지 않은 사람들에게 자동으로 열리는 페이지입니다. )</p>
       <p style="margin:0 0 24px; color:#fff; font-size:20px; font-weight:800; letter-spacing:0.3px; text-align:center;">안&nbsp;내</p>
       <div style="color:#fff; font-size:14.5px; line-height:1.6; text-align:left; font-weight:700; letter-spacing:0.3px; font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;">
@@ -10981,7 +10983,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.189";
+const APP_VERSION = "0.9.190";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
