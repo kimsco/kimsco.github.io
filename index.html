@@ -720,14 +720,14 @@ button {
   font-weight: 700;
 }
 
-/* 🔥 계획만 해둔 날(오늘/미래, 아직 실제로 수행 안 함) — 흰색(.done)보다
-   기본 달력칸 색(#212121) 쪽에 더 가깝게 치우친 회색 */
+/* 🔥 계획만 해둔 날(오늘/미래, 아직 실제로 수행 안 함) — 흰색(.done)이 아니라
+   미체크 상태(기본 달력칸 색 #212121)에 훨씬 더 가깝게, 살짝만 밝은 톤 */
 .days div.planned {
-  background: #6e6e6e;
+  background: #4a4a4a;
   color: #eee;
   font-weight: 700;
 }
-.days div.planned:hover { background: #787878 !important; transform: translateY(-1px); }
+.days div.planned:hover { background: #545454 !important; transform: translateY(-1px); }
 
 /* 선택된 날짜(클릭해서 하단 운동 목록을 보고 있는 날) */
 .days div.selected {
@@ -3285,10 +3285,10 @@ html.light-mode-on #tab3 .days div.done {
   background: linear-gradient(135deg, rgb(0,0,0), rgb(54,54,54));
   color: #eee;
 }
-/* 🔥 계획만 해둔 날 — 라이트모드의 done(검정 계열)보다 기본 달력칸(rgb(218,218,218))
-   쪽에 더 가깝게 치우친 회색 */
+/* 🔥 계획만 해둔 날 — 라이트모드의 done(검정 계열)이 아니라 미체크 상태
+   (기본 달력칸 rgb(218,218,218))에 훨씬 더 가깝게, 살짝만 어두운 톤 */
 html.light-mode-on #tab3 .days div.planned {
-  background: rgb(142,142,142);
+  background: rgb(178,178,178);
   color: #111;
 }
 html.light-mode-on #tab3 .toggle-switch {
@@ -10934,7 +10934,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.171";
+const APP_VERSION = "0.9.172";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
