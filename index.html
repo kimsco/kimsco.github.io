@@ -1658,6 +1658,42 @@ html.light-mode-on #muscleFinderOverlay .bw-menu-header-close:active {
   opacity: 0.95;
 }
 .bw-menu-header-spacer { width: 56px; flex-shrink: 0; }
+/* 🔥 근육부위 화면 헤더 우측의 "?" 버튼 — 닫기 버튼(.bw-menu-header-close)과
+   완전히 동일한 유리 느낌 원형 스타일을 반대쪽에 그대로 재현 */
+#muscleFinderOverlay .muscle-finder-help-btn {
+  all: unset;
+  box-sizing: border-box;
+  width: 42px;
+  height: 42px;
+  margin-right: 8px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 18px;
+  font-weight: 800;
+  color: #eee;
+  background: rgba(255,255,255,0.10);
+  -webkit-backdrop-filter: blur(14px) saturate(150%);
+  backdrop-filter: blur(14px) saturate(150%);
+  border: 1px solid rgba(255,255,255,0.14);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+  cursor: pointer;
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.2s ease, box-shadow 0.2s ease;
+}
+#muscleFinderOverlay .muscle-finder-help-btn:active {
+  transform: scale(1.3);
+  background: rgba(255,255,255,0.24);
+}
+html.light-mode-on #muscleFinderOverlay .muscle-finder-help-btn {
+  color: #333;
+  background: rgba(0,0,0,0.06);
+  border-color: rgba(0,0,0,0.1);
+}
+html.light-mode-on #muscleFinderOverlay .muscle-finder-help-btn:active {
+  background: rgba(0,0,0,0.14);
+}
 
 /* ===============================
    🔥 WHO IS TTT FOR? — 브랜드 철학 페이지
@@ -1793,6 +1829,18 @@ html.light-mode-on #muscleFinderOverlay .bw-menu-header-close:active {
 /* ===============================
    🔥 근육부위찾기(실험용 v1) — 정면/후면 3D 회전
 ================================ */
+/* 🔥 화면 진입 시 검은 화면만 보이다가 헤더 "?" 버튼을 눌러야 아래 내용이
+   나타남 — 원래 #muscleFinderScreen의 직속 flex 자식들이었던 요소들을 이
+   래퍼로 한 겹 감쌌으므로, 레이아웃이 그대로 유지되도록 flex 컨테이너로
+   동일하게 만들어줌(하위 .muscle-finder-stage의 flex:1이 정상 동작하려면
+   부모가 flex-column이어야 함) */
+#muscleFinderBody {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+#muscleFinderBody.hidden { display: none; }
 /* 🔥 최하단 부위 선택 버튼(가슴/등/어깨/팔/하체/코어) — 목업처럼 화면 맨 아래로 이동,
    FRONT/BACK 토글과 똑같은 "알약 속 알약" 세그먼트 트랙 스타일로 통일 */
 .muscle-finder-cards {
@@ -9071,8 +9119,12 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
     <div class="bw-menu-header">
       <button onclick="closeMuscleFinder()" class="bw-menu-header-close" aria-label="닫기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg></button>
       <span class="bw-menu-header-title">근육부위</span>
-      <span class="bw-menu-header-spacer"></span>
+      <button type="button" id="muscleFinderHelpBtn" class="muscle-finder-help-btn" aria-label="근육 부위 화면 보기">?</button>
     </div>
+
+    <!-- 🔥 화면에 처음 들어오면 검은 화면만 보이고, 우측 상단 "?" 버튼을 눌러야
+         아래 정면/후면 전환+인체 이미지+부위 목록이 나타남 -->
+    <div id="muscleFinderBody" class="hidden">
 
     <!-- 🔥 정면/후면(FRONT/BACK) 전환 — 인체 이미지 바로 위 알약형 토글.
          우측의 원형 버튼은 별개 기능(추후 연결 예정)용 -->
@@ -9174,6 +9226,8 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
       <button type="button" class="muscle-finder-card" data-part="arm">팔</button>
       <button type="button" class="muscle-finder-card" data-part="lower">하체</button>
       <button type="button" class="muscle-finder-card" data-part="core">코어</button>
+    </div>
+
     </div>
   </div>
 </div>
@@ -10952,7 +11006,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.193";
+const APP_VERSION = "0.9.194";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -14152,9 +14206,16 @@ document.getElementById("navMuscleFinderBtn").addEventListener("click", () => {
   openMuscleFinder();
 });
 
+const muscleFinderBody = document.getElementById("muscleFinderBody");
 function openMuscleFinder(){
   muscleFinderOverlay.classList.remove("hidden");
-  // 🔥 hidden 상태에선 버튼 폭 측정이 0으로 나와서, 열릴 때마다 트랜지션 없이
+  // 🔥 열 때마다 항상 검은 화면부터 시작 — 헤더의 "?" 버튼을 눌러야 아래
+  //    정면/후면 전환+인체 이미지가 나타남
+  muscleFinderBody.classList.add("hidden");
+}
+function showMuscleFinderBody(){
+  muscleFinderBody.classList.remove("hidden");
+  // 🔥 hidden 상태에선 버튼 폭 측정이 0으로 나와서, 보여줄 때마다 트랜지션 없이
   //    현재 선택된 면(front/back)에 맞는 위치로 즉시 스냅시켜둠
   const indicator = document.getElementById("muscleFinderFaceIndicator");
   if (indicator) {
@@ -14164,6 +14225,7 @@ function openMuscleFinder(){
     indicator.style.transition = "";
   }
 }
+document.getElementById("muscleFinderHelpBtn").addEventListener("click", showMuscleFinderBody);
 function closeMuscleFinder(){
   muscleFinderOverlay.classList.add("hidden");
   // 🔥 회전 모드를 켠 채로 닫았어도, 다음에 다시 열 때는 항상 평소 상태로 시작
