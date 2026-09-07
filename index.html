@@ -11006,7 +11006,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.196";
+const APP_VERSION = "0.9.197";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -13899,9 +13899,21 @@ setupPillBarKeyboardFix(
    OS가 알아서 키보드를 복원하는 이 케이스는 못 막음) — 그 결과 상단 탭바가
    화면 밖으로 밀려나 상태바와 겹쳐 보이는 버그로 이어짐. 화면이 다시 보이는
    시점에 그 입력창이 여전히 포커스돼 있으면 즉시 blur시켜서, 키보드가 다시
-   뜨기 전에 이 자동 스크롤 판단 자체가 일어나지 않게 함 */
+   뜨기 전에 이 자동 스크롤 판단 자체가 일어나지 않게 함.
+   ⚠️ 단, 다른 화면(알림 확인 등) 잠깐 봤다 바로 돌아온 정도로는 이 문제가
+   재현되지 않으므로, 백그라운드에 있던 시간이 PILLBAR_BLUR_THRESHOLD_MS
+   이상일 때만 blur시켜서 짧은 전환에서 입력이 끊기지 않게 함 */
+const PILLBAR_BLUR_THRESHOLD_MS = 5000;
+let pillBarHiddenAt = null;
 document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden") {
+    pillBarHiddenAt = Date.now();
+    return;
+  }
   if (document.visibilityState !== "visible") return;
+  const hiddenDuration = pillBarHiddenAt ? Date.now() - pillBarHiddenAt : 0;
+  pillBarHiddenAt = null;
+  if (hiddenDuration < PILLBAR_BLUR_THRESHOLD_MS) return;
   const active = document.activeElement;
   const pillBarInputIds = [
     "recordWeight", "recordReps",
