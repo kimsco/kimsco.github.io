@@ -720,6 +720,15 @@ button {
   font-weight: 700;
 }
 
+/* 🔥 계획만 해둔 날(오늘/미래, 아직 실제로 수행 안 함) — 흰색(.done)과 기본
+   달력칸 색(#212121)의 정확히 중간값 */
+.days div.planned {
+  background: #909090;
+  color: #111;
+  font-weight: 700;
+}
+.days div.planned:hover { background: #9a9a9a !important; transform: translateY(-1px); }
+
 /* 선택된 날짜(클릭해서 하단 운동 목록을 보고 있는 날) */
 .days div.selected {
   border: 1px solid #e0203f;
@@ -3274,6 +3283,11 @@ html.light-mode-on #tab3 .days div.selected {
 }
 html.light-mode-on #tab3 .days div.done {
   background: linear-gradient(135deg, rgb(0,0,0), rgb(54,54,54));
+  color: #eee;
+}
+/* 🔥 계획만 해둔 날 — 라이트모드의 done(검정 계열)과 기본 달력칸(rgb(218,218,218))의 중간값 */
+html.light-mode-on #tab3 .days div.planned {
+  background: rgb(109,109,109);
   color: #eee;
 }
 html.light-mode-on #tab3 .toggle-switch {
@@ -10919,7 +10933,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.169";
+const APP_VERSION = "0.9.170";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -11346,9 +11360,19 @@ function calRender() {
       cell.classList.add("today");
     }
 
-    // 운동한 날
-    if (calData[key]?.muscles?.length) {
-      cell.classList.add("done");
+    // 운동한 날: confirmed(실제 수행)면 흰색, 계획(미확정)이면 오늘/미래만 중간색,
+    // 계획해뒀는데 날짜가 지나도록 실제로 안 했으면 미표시색 그대로(showAsMarked = false)
+    const entry = calData[key];
+    let showAsMarked = false;
+    if (entry?.muscles?.length) {
+      if (entry.confirmed !== false) {
+        // confirmed === true 이거나, confirmed 필드가 없는 기존(레거시) 데이터는 확정으로 취급
+        cell.classList.add("done");
+        showAsMarked = true;
+      } else if (!isPastDateKey(key)) {
+        cell.classList.add("planned");
+        showAsMarked = true;
+      }
     }
 
     // 🔥 하단 "날짜별 운동 목록" 패널에 표시 중인 날짜 강조
@@ -11359,11 +11383,7 @@ function calRender() {
     if (calendarMode === "date") {
       cell.textContent = d;
     } else {
-      if (calData[key]?.muscles?.length) {
-        cell.textContent = calData[key].muscles[0];
-      } else {
-        cell.textContent = "";
-      }
+      cell.textContent = showAsMarked ? entry.muscles[0] : "";
     }
 
  // long press (날짜 모드에서만)
@@ -11458,8 +11478,13 @@ calPopup.addEventListener("click", e => {
 
 /* ===============================
    🔥 기록 저장 시 오늘 날짜 부위 자동 체크
-   - 이미 체크된 날짜(수동이든, 먼저 저장된 자동이든)는 건드리지 않음
-   - 수동 체크는 항상 우선하며, 언제든 수동으로 다시 바꿀 수 있음(기존 로직 그대로 유지)
+   - calData[key] = { muscles: [...], confirmed: true/false }
+     confirmed=true  → 실제로 수행/기록된 날(흰색으로 표시)
+     confirmed=false → 아직 계획만 해둔 날(오늘/미래는 중간색, 지난 과거는 미표시색으로 표시)
+     필드가 아예 없는 기존(레거시) 데이터는 confirmed=true로 취급(하위호환)
+   - 오늘 실제로 기록이 발생하면: 계획(미확정) 상태였던 부위는 실제로 수행한
+     부위로 교체되어 확정됨. 이미 확정된 상태였다면(오늘 이미 다른 부위를 실제로
+     했음) 그 부위를 추가로 누적함
 ================================ */
 const PART_TO_MUSCLE = {
   chest: "가슴", back: "등", shoulder: "어깨", leg: "하체", arm: "팔", core: "코어",
@@ -11470,6 +11495,15 @@ const PART_TO_MUSCLE = {
 function getCalendarKeyToday(){
   const dt = new Date();
   return `${dt.getFullYear()}-${dt.getMonth()+1}-${dt.getDate()}`;
+}
+
+// 🔥 calData 키("YYYY-M-D")가 오늘보다 이전 날짜인지 판단(오늘/미래는 false)
+function isPastDateKey(key){
+  const [ky, km, kd] = key.split("-").map(Number);
+  const keyDate = new Date(ky, km - 1, kd);
+  const todayDate = new Date();
+  todayDate.setHours(0, 0, 0, 0);
+  return keyDate < todayDate;
 }
 
 // 🔥 홈 화면 "부위별 마지막 운동" 카드 — 부위별 하이라이트 이미지(투명 배경 PNG,
@@ -11510,11 +11544,18 @@ async function autoMarkCalendarToday(partOrLift){
   if (!muscle) return;
 
   const key = getCalendarKeyToday();
+  const existing = calData[key];
 
-  // 이미 뭔가 체크되어 있으면(수동 or 먼저 저장된 자동) 건드리지 않음
-  if (calData[key]?.muscles?.length) return;
+  let muscles;
+  if (existing?.confirmed) {
+    // 오늘 이미 실제로 확정된 부위가 있으면(다른 부위여도) 추가로 누적
+    muscles = existing.muscles.includes(muscle) ? existing.muscles : [...existing.muscles, muscle];
+  } else {
+    // 계획(미확정)만 해둔 상태였거나 아무것도 없었으면, 실제로 수행한 부위로 교체하며 확정
+    muscles = [muscle];
+  }
 
-  calData[key] = { muscles: [muscle] };
+  calData[key] = { muscles, confirmed: true };
   saveCalendarToLocal();
   calRender();
   renderHomeTab();
@@ -11524,7 +11565,7 @@ async function autoMarkCalendarToday(partOrLift){
     try {
       await db.collection("users").doc(user.uid)
         .collection("calendar").doc(key)
-        .set({ muscles: [muscle], updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+        .set({ muscles, confirmed: true, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
     } catch (e) {
       console.error("auto calendar mark err", e);
     }
@@ -11710,14 +11751,18 @@ document.getElementById("homeQuickRoutine").addEventListener("click", () => {
           .collection("calendar").doc(calSelectedDate).delete();
       }
     } else {
+      // 🔥 과거 날짜를 수동으로 태깅하면 "실제로 했음"으로 바로 확정, 오늘/미래는
+      // 아직 계획(미확정) 상태로 저장 — 실제 기록이 생기거나(오늘) 날짜가 지나도록
+      // 기록이 없으면(과거) calRender에서 그에 맞게 다르게 표시됨
+      const confirmed = isPastDateKey(calSelectedDate);
       calSelectedMuscles = [m];
       btn.classList.add("active");
-      calData[calSelectedDate] = { muscles: [m] };
+      calData[calSelectedDate] = { muscles: [m], confirmed };
 
       if (user) {
         await db.collection("users").doc(user.uid)
           .collection("calendar").doc(calSelectedDate)
-          .set({ muscles: [m], updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+          .set({ muscles: [m], confirmed, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
       }
     }
 
