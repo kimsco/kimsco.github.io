@@ -11020,7 +11020,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.202";
+const APP_VERSION = "0.9.203";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -11604,6 +11604,31 @@ function isPastDateKey(key){
   return keyDate < todayDate;
 }
 
+// 🔥 calData 키("YYYY-M-D")를 records/accRecordsByExercise가 쓰는 날짜 형식
+// ("YY.MM.DD")으로 변환
+function calKeyToYYMMDD(key){
+  const [ky, km, kd] = key.split("-").map(Number);
+  const yy = String(ky).slice(2);
+  const mm = String(km).padStart(2, "0");
+  const dd = String(kd).padStart(2, "0");
+  return `${yy}.${mm}.${dd}`;
+}
+
+// 🔥 calData(캘린더 태그)와 별개로, 그 날짜에 실제로 저장된 운동 기록(3대+액세서리)이
+// 있는지 직접 확인 — 캘린더 팝업에서 부위를 전부 뺐다가(항목 삭제) 다시 체크할 때,
+// 실제 기록은 그대로 남아있는데도 confirmed 기억이 같이 사라져서 계획(회색)으로
+// 잘못 표시되는 문제를 막기 위해 사용
+function hasRealWorkoutOnDateKey(key){
+  const dateStr = calKeyToYYMMDD(key);
+  for (const liftKey of ["bench", "squat", "dead", "ohp"]) {
+    if ((records[liftKey] || []).some(r => r.date === dateStr)) return true;
+  }
+  for (const exName of Object.keys(accRecordsByExercise)) {
+    if ((accRecordsByExercise[exName] || []).some(r => r.date === dateStr)) return true;
+  }
+  return false;
+}
+
 // 🔥 홈 화면 "부위별 마지막 운동" 카드 — 부위별 하이라이트 이미지(투명 배경 PNG,
 // 해당 부위 주변으로 크롭한 240x240 썸네일). 아직 이미지가 없는 부위는 텍스트만 표시.
 // "팔"은 이두/삼두 두 칸으로 표시하되, 캘린더에는 "팔" 하나로만 기록되므로
@@ -11879,9 +11904,12 @@ document.getElementById("homeQuickRoutine").addEventListener("click", () => {
     // 기록이 없으면(과거) calRender에서 그에 맞게 다르게 표시됨.
     // ⚠️ 단, 오늘 이미 실제 운동 기록으로 confirmed:true가 찍혀있는 상태에서
     // 팝업으로 부위만 추가/수정하는 경우까지 이걸 다시 미확정(계획)으로
-    // 되돌리면 안 됨 — 이미 확정돼있었다면 그 확정 상태는 그대로 유지
+    // 되돌리면 안 됨 — 이미 확정돼있었다면 그 확정 상태는 그대로 유지.
+    // 부위를 전부 뺐다가(항목 삭제) 다시 체크하면 이 confirmed 기억 자체가
+    // 사라지므로, 그 경우에도 실제 기록(records/accRecordsByExercise)이 그
+    // 날짜에 남아있으면 다시 확정으로 인식함
     const wasConfirmed = calData[calSelectedDate]?.confirmed === true;
-    const confirmed = wasConfirmed || isPastDateKey(calSelectedDate);
+    const confirmed = wasConfirmed || isPastDateKey(calSelectedDate) || hasRealWorkoutOnDateKey(calSelectedDate);
     calData[calSelectedDate] = { muscles: calSelectedMuscles, confirmed };
 
     if (user) {
