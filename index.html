@@ -11020,7 +11020,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.199";
+const APP_VERSION = "0.9.200";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -13917,7 +13917,7 @@ setupPillBarKeyboardFix(
    ⚠️ 단, 다른 화면(알림 확인 등) 잠깐 봤다 바로 돌아온 정도로는 이 문제가
    재현되지 않으므로, 백그라운드에 있던 시간이 PILLBAR_BLUR_THRESHOLD_MS
    이상일 때만 blur시켜서 짧은 전환에서 입력이 끊기지 않게 함 */
-const PILLBAR_BLUR_THRESHOLD_MS = 5000;
+const PILLBAR_BLUR_THRESHOLD_MS = 2000;
 let pillBarHiddenAt = null;
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "hidden") {
