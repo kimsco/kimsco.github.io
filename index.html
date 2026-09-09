@@ -11020,7 +11020,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.200";
+const APP_VERSION = "0.9.201";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -11579,9 +11579,14 @@ calPopup.addEventListener("click", e => {
      부위로 교체되어 확정됨. 이미 확정된 상태였다면(오늘 이미 다른 부위를 실제로
      했음) 그 부위를 추가로 누적함
 ================================ */
+// 🔥 "팔"은 캘린더 수동 태깅 팝업 전용(사용자가 직접 체크하라고 만든 것) —
+// 자동 기록 경로에서는 절대 "팔"로 찍히면 안 되고, 삼두/이두를 각각 구분해서
+// 찍어야 함. 아래 맵에 "arm" 키를 아예 안 둬서(예전엔 "팔"이었음), 혹시라도
+// 어딘가에서 "arm"이 partOrLift로 들어와도 muscle이 undefined가 되어
+// autoMarkCalendarToday()가 조용히 아무것도 안 찍고 넘어가게 함
 const PART_TO_MUSCLE = {
-  chest: "가슴", back: "등", shoulder: "어깨", leg: "하체", arm: "팔", core: "코어",
-  arm_tri: "팔", arm_bi: "팔",
+  chest: "가슴", back: "등", shoulder: "어깨", leg: "하체", core: "코어",
+  arm_tri: "삼두", arm_bi: "이두",
   bench: "가슴", squat: "하체", dead: "등", ohp: "어깨"
 };
 
@@ -11608,8 +11613,8 @@ const HOME_PARTS = [
   { label: "등", muscle: "등" },
   { label: "어깨", muscle: "어깨" },
   { label: "하체", muscle: "하체" },
-  { label: "이두", muscle: "팔" },
-  { label: "삼두", muscle: "팔" },
+  { label: "이두", muscle: "이두" },
+  { label: "삼두", muscle: "삼두" },
 ];
 const HOME_PART_IMAGES = {
   "가슴": "icons/muscle/highlight/home_chest.png?v=" + APP_VERSION,
