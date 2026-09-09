@@ -11020,7 +11020,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.201";
+const APP_VERSION = "0.9.202";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -11876,8 +11876,12 @@ document.getElementById("homeQuickRoutine").addEventListener("click", () => {
   } else {
     // 🔥 과거 날짜를 수동으로 태깅하면 "실제로 했음"으로 바로 확정, 오늘/미래는
     // 아직 계획(미확정) 상태로 저장 — 실제 기록이 생기거나(오늘) 날짜가 지나도록
-    // 기록이 없으면(과거) calRender에서 그에 맞게 다르게 표시됨
-    const confirmed = isPastDateKey(calSelectedDate);
+    // 기록이 없으면(과거) calRender에서 그에 맞게 다르게 표시됨.
+    // ⚠️ 단, 오늘 이미 실제 운동 기록으로 confirmed:true가 찍혀있는 상태에서
+    // 팝업으로 부위만 추가/수정하는 경우까지 이걸 다시 미확정(계획)으로
+    // 되돌리면 안 됨 — 이미 확정돼있었다면 그 확정 상태는 그대로 유지
+    const wasConfirmed = calData[calSelectedDate]?.confirmed === true;
+    const confirmed = wasConfirmed || isPastDateKey(calSelectedDate);
     calData[calSelectedDate] = { muscles: calSelectedMuscles, confirmed };
 
     if (user) {
