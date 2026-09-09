@@ -7863,7 +7863,9 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
   </div>
   <!-- 🔥 우측으로 스와이프하면 나오는 두번째 페이지: 뒤로가기/삼두/이두/코어, 나머지는 여백 -->
   <div class="recordFolders4">
-    <button class="folderBtn4" data-arm-back="true" aria-label="이전 페이지로">&lt;</button>
+    <button class="folderBtn4" data-arm-back="true" aria-label="이전 페이지로">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="display:block; margin:0 auto;"><path d="M15 18l-6-6 6-6"></path></svg>
+    </button>
     <button class="folderBtn4" data-part="arm_tri" data-arm-variant="tri">삼두</button>
     <button class="folderBtn4" data-part="arm_bi" data-arm-variant="bi">이두</button>
     <button class="folderBtn4" data-part="core">코어</button>
@@ -11018,7 +11020,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.198";
+const APP_VERSION = "0.9.199";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
