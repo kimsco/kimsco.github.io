@@ -7861,12 +7861,14 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
          삼두/이두/코어 페이지가 나오고 삼두가 자동으로 선택됨 -->
     <button class="folderBtn4" data-arm-launcher="true">팔</button>
   </div>
-  <!-- 🔥 우측으로 스와이프하면 나오는 두번째 페이지: 삼두/이두/코어, 나머지는 여백 -->
+  <!-- 🔥 우측으로 스와이프하면 나오는 두번째 페이지: 뒤로가기/삼두/이두/코어, 나머지는 여백 -->
   <div class="recordFolders4">
+    <button class="folderBtn4" data-arm-back="true" aria-label="이전 페이지로">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="display:block; margin:0 auto;"><path d="M15 18l-6-6 6-6"></path></svg>
+    </button>
     <button class="folderBtn4" data-part="arm_tri" data-arm-variant="tri">삼두</button>
     <button class="folderBtn4" data-part="arm_bi" data-arm-variant="bi">이두</button>
     <button class="folderBtn4" data-part="core">코어</button>
-    <div class="folderBtn4-spacer"></div>
     <div class="folderBtn4-spacer"></div>
   </div>
 </div>
@@ -10221,6 +10223,18 @@ document.querySelectorAll('.folderBtn4').forEach(btn => {
       return;
     }
 
+    // 🔥 "<" 버튼도 실제 탭이 아니라 런처 — 위 팔 버튼의 반대 방향: 누르면
+    // 왼쪽으로 스와이프해서 첫번째 페이지(가슴/등/어깨/하체/팔)로 돌아가고,
+    // 가슴을 자동으로 선택된 상태로 만들어줌(손으로 직접 스와이프해도 동일하게
+    // 이동 가능 — .recordFolders4-wrap이 원래 scroll-snap 컨테이너라 지원됨)
+    if (btn.dataset.armBack === 'true') {
+      const wrap = document.getElementById('recordFolders4Wrap');
+      if (wrap) wrap.scrollTo({ left: 0, behavior: 'smooth' });
+      const chestBtn = document.querySelector('.folderBtn4[data-part="chest"]');
+      if (chestBtn) chestBtn.click();
+      return;
+    }
+
     document.querySelectorAll('.folderBtn4').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
 
@@ -11006,7 +11020,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.197";
+const APP_VERSION = "0.9.199";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
