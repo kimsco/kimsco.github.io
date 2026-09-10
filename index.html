@@ -6361,6 +6361,28 @@ html.light-mode-on .diet-food-db-search {
   color: #FFD700;
   font-weight: 700;
 }
+.diet-cal-detail-macros {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  margin: -2px 0 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.diet-cal-detail-macro-item {
+  font-size: 13px;
+  font-weight: 600;
+  color: #ddd;
+  text-align: center;
+}
+.diet-cal-detail-macro-divider {
+  width: 1px;
+  height: 12px;
+  background: rgba(255,255,255,0.15);
+}
+html.light-mode-on .diet-cal-detail-macros { border-bottom-color: rgba(0,0,0,0.1); }
+html.light-mode-on .diet-cal-detail-macro-item { color: #333; }
+html.light-mode-on .diet-cal-detail-macro-divider { background: rgba(0,0,0,0.15); }
 
 /* ===============================
    ✅ 식단 > 통계 탭: 오늘 요약 차트 + 부족 영양소 추천
@@ -8094,6 +8116,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
         <span id="dietCalDetailDate">날짜를 선택하세요</span>
         <span id="dietCalDetailKcal" class="diet-cal-detail-kcal">0 kcal</span>
       </div>
+      <div id="dietCalDetailMacros" class="diet-cal-detail-macros" style="display:none;"></div>
       <div id="dietCalDetailList" class="today-meal-box empty">
         <div style="color:#777; font-size:13px;">달력에서 날짜를 눌러 그날 먹은 걸 확인하세요</div>
       </div>
@@ -11020,7 +11043,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.205";
+const APP_VERSION = "0.9.206";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -21134,21 +21157,45 @@ function dietCalRender(){
   }
 }
 
+const WEEKDAY_KO = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
+
 function renderDietCalDetail(key, dateObj){
   const dateEl = document.getElementById('dietCalDetailDate');
   const kcalEl = document.getElementById('dietCalDetailKcal');
+  const macrosEl = document.getElementById('dietCalDetailMacros');
   const listEl = document.getElementById('dietCalDetailList');
 
-  dateEl.textContent = `${dateObj.getMonth() + 1}월 ${dateObj.getDate()}일`;
+  dateEl.textContent = `${dateObj.getMonth() + 1}월 ${dateObj.getDate()}일 ${WEEKDAY_KO[dateObj.getDay()]}`;
 
   const dayMeals = mealsAll.filter(m => m.date === key).slice().sort((a,b) => (b.createdAt||0) - (a.createdAt||0));
   kcalEl.textContent = `${kcalOfMeals(dayMeals)} kcal`;
 
   if (!dayMeals.length) {
+    macrosEl.style.display = "none";
+    macrosEl.innerHTML = "";
     listEl.classList.add("empty");
     listEl.innerHTML = `<div style="color:#777; font-size:13px;">이 날은 기록이 없어요</div>`;
     return;
   }
+
+  // 🔥 그날 먹은 것 전체의 탄/단/지 합계 — "오늘" 탭 요약(renderMacroSummary)과 동일한
+  // 계산식(count 반영) + round1()로 부동소수점 무한소수 방지
+  const macroSum = dayMeals.reduce((acc, m) => {
+    const c = m.count || 1;
+    acc.carb += (Number(m.carb) || 0) * c;
+    acc.protein += (Number(m.protein) || 0) * c;
+    acc.fat += (Number(m.fat) || 0) * c;
+    return acc;
+  }, { carb: 0, protein: 0, fat: 0 });
+  macrosEl.style.display = "flex";
+  macrosEl.innerHTML = `
+    <div class="diet-cal-detail-macro-item">탄 ${round1(macroSum.carb)}g</div>
+    <div class="diet-cal-detail-macro-divider"></div>
+    <div class="diet-cal-detail-macro-item">단 ${round1(macroSum.protein)}g</div>
+    <div class="diet-cal-detail-macro-divider"></div>
+    <div class="diet-cal-detail-macro-item">지 ${round1(macroSum.fat)}g</div>
+  `;
+
   listEl.classList.remove("empty");
   listEl.innerHTML = "";
   dayMeals.forEach(m => {
