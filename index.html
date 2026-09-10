@@ -11020,7 +11020,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.203";
+const APP_VERSION = "0.9.204";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -21008,6 +21008,12 @@ function renderMealHighlight(){
   positionHighlight("fatBarHighlight", macroAmount(meal, "fat"), before.reduce((s,m) => s + macroAmount(m,"fat"), 0), targets.fatTarget);
 }
 
+// 🔥 부동소수점 합산 오차(예: 76.89999999999999)로 무한소수가 표시되는 것을 막기 위해
+// 소수 둘째자리에서 반올림(소수 첫째자리까지 표시)
+function round1(n){
+  return Math.round(n * 10) / 10;
+}
+
 function renderMacroSummary(){
   const targets = calcTargets(userSpec);
   const todayMeals = getTodayMeals();
@@ -21039,9 +21045,9 @@ function renderMacroSummary(){
     carbBarEl.style.width = "0%";
     proteinBarEl.style.width = "0%";
     fatBarEl.style.width = "0%";
-    carbNumEl.textContent = `${sum.carb}/0`;
-    proteinNumEl.textContent = `${sum.protein}/0`;
-    fatNumEl.textContent = `${sum.fat}/0`;
+    carbNumEl.textContent = `${round1(sum.carb)}/0`;
+    proteinNumEl.textContent = `${round1(sum.protein)}/0`;
+    fatNumEl.textContent = `${round1(sum.fat)}/0`;
     renderMealHighlight();
     return;
   }
@@ -21059,9 +21065,9 @@ function renderMacroSummary(){
   proteinBarEl.style.width = proteinPct + "%";
   fatBarEl.style.width = fatPct + "%";
 
-  carbNumEl.textContent = `${sum.carb}/${targets.carbTarget}`;
-  proteinNumEl.textContent = `${sum.protein}/${targets.proteinTarget}`;
-  fatNumEl.textContent = `${sum.fat}/${targets.fatTarget}`;
+  carbNumEl.textContent = `${round1(sum.carb)}/${targets.carbTarget}`;
+  proteinNumEl.textContent = `${round1(sum.protein)}/${targets.proteinTarget}`;
+  fatNumEl.textContent = `${round1(sum.fat)}/${targets.fatTarget}`;
 
   renderMealHighlight();
 }
