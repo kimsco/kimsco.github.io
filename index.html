@@ -11020,7 +11020,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.204";
+const APP_VERSION = "0.9.205";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -21583,13 +21583,79 @@ function renderDietTrendChart(){
     const d = new Date(today.getFullYear(), today.getMonth(), today.getDate() - i);
     const key = formatTodayYYMMDD(d);
     labels.push(`${d.getMonth() + 1}/${d.getDate()}`);
-    kcalValues.push(kcalOfMeals(mealsAll.filter(m => m.date === key)));
+    const dayMeals = mealsAll.filter(m => m.date === key);
+    // 🔥 그날 식단 기록이 아예 없으면(0kcal 섭취가 아니라 "기록 자체가 없음") null로 —
+    // 막대를 안 그리고 "미기록"으로 따로 표시하기 위함
+    kcalValues.push(dayMeals.length ? kcalOfMeals(dayMeals) : null);
   }
+
+  // 🔥 목표칼로리 점선 — 정보(키/몸무게/나이 등) 미입력 시 targets가 null이라 점선도 생략됨
+  const targets = calcTargets(userSpec);
+  const goalCalories = targets ? targets.targetCalories : null;
 
   // 🔥 #dietPanel-stats는 필터를 안 받는 화면이라, 골드(#FFD700)는 다크/라이트 공통으로
   // 그대로 두고, 흰색 계열만 라이트모드에서 검정 계열로 직접 분기
   const isLight = document.documentElement.classList.contains('light-mode-on');
   const colors = labels.map((_, idx) => idx === labels.length - 1 ? '#FFD700' : (isLight ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.35)'));
+
+  const numberColor = isLight ? 'rgba(0,0,0,0.75)' : 'rgba(255,255,255,0.85)';
+  const noRecordColor = isLight ? 'rgba(0,0,0,0.35)' : 'rgba(255,255,255,0.4)';
+  const goalColor = isLight ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.55)';
+  const fontFamily = '-apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif';
+
+  // 🔥 막대 위 kcal 숫자 / "미기록" 표시 / 목표칼로리 점선을 Chart.js 기본 기능만으로는
+  // 그릴 수 없어서, 이 차트 인스턴스 전용 플러그인으로 직접 그림(전역 등록 아님)
+  const barLabelsPlugin = {
+    id: 'dietTrendBarLabels',
+    afterDatasetsDraw(chart) {
+      const { ctx: c, chartArea, scales } = chart;
+      const meta = chart.getDatasetMeta(0);
+      c.save();
+      c.textAlign = 'center';
+
+      meta.data.forEach((el, i) => {
+        const value = kcalValues[i];
+        if (value == null) {
+          c.fillStyle = noRecordColor;
+          c.font = `10px ${fontFamily}`;
+          c.textBaseline = 'middle';
+          const midY = chartArea.top + chartArea.height * 0.55;
+          c.fillText('미기록', el.x, midY);
+          c.fillText('-', el.x, midY + 13);
+        } else {
+          c.fillStyle = numberColor;
+          c.font = `bold 11px ${fontFamily}`;
+          c.textBaseline = 'bottom';
+          c.fillText(value.toLocaleString('ko-KR'), el.x, el.y - 6);
+        }
+      });
+
+      if (goalCalories != null) {
+        const y = scales.y.getPixelForValue(goalCalories);
+        if (y >= chartArea.top && y <= chartArea.bottom) {
+          c.setLineDash([4, 3]);
+          c.strokeStyle = goalColor;
+          c.lineWidth = 1;
+          c.beginPath();
+          c.moveTo(chartArea.left, y);
+          c.lineTo(chartArea.right, y);
+          c.stroke();
+          c.setLineDash([]);
+
+          c.textAlign = 'right';
+          c.textBaseline = 'bottom';
+          c.font = `10px ${fontFamily}`;
+          c.fillStyle = goalColor;
+          c.fillText(`목표 ${goalCalories.toLocaleString('ko-KR')}`, chartArea.right, y - 4);
+        }
+      }
+      c.restore();
+    }
+  };
+
+  const maxVal = Math.max(0, ...kcalValues.filter(v => v != null));
+  const ceilingBase = Math.max(maxVal, goalCalories || 0);
+  const suggestedMax = ceilingBase > 0 ? Math.ceil(ceilingBase * 1.25) : undefined;
 
   dietTrendChartInstance = new Chart(ctx, {
     type: 'bar',
@@ -21602,20 +21668,22 @@ function renderDietTrendChart(){
         maxBarThickness: 22,
       }]
     },
+    plugins: [barLabelsPlugin],
     options: {
       responsive: false,
       maintainAspectRatio: false,
+      layout: { padding: { top: 26 } },
       // 🔥 칼로리가 적은 날은 막대가 짧아서 터치 판정 범위도 좁아지는 문제 —
       //    intersect:false로 세로 위치와 무관하게, mode:'index'로 인접 막대와의
       //    중간 지점까지 가로로 넓게 반응하게 함(툴팁이 뜨는 위치는 그대로).
       interaction: { mode: 'index', intersect: false },
       plugins: {
         legend: { display: false },
-        tooltip: { callbacks: { label: (ctx) => ` ${ctx.parsed.y} kcal` } },
+        tooltip: { callbacks: { label: (ctx) => ctx.parsed.y == null ? ' 미기록' : ` ${ctx.parsed.y.toLocaleString('ko-KR')} kcal` } },
       },
       scales: {
         x: { grid: { display: false }, ticks: { color: isLight ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.5)', font: { size: 10 } } },
-        y: { display: false, beginAtZero: true }
+        y: { display: false, beginAtZero: true, suggestedMax }
       }
     }
   });
