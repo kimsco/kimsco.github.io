@@ -11043,7 +11043,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.206";
+const APP_VERSION = "0.9.207";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -21700,9 +21700,12 @@ function renderDietTrendChart(){
     }
   };
 
+  // 🔥 suggestedMax는 Chart.js가 내부적으로 "보기 좋은 눈금 값"으로 반올림하면서
+  // 우리가 의도한 것보다 훨씬 위로(예: 3434 -> 5000) 튀어버려서 막대 위에 빈 공간이
+  // 과하게 남는 문제가 있었음 — max로 정확한 상한을 못박아서 그 문제를 없앰
   const maxVal = Math.max(0, ...kcalValues.filter(v => v != null));
   const ceilingBase = Math.max(maxVal, goalCalories || 0);
-  const suggestedMax = ceilingBase > 0 ? Math.ceil(ceilingBase * 1.25) : undefined;
+  const yMax = ceilingBase > 0 ? Math.ceil(ceilingBase * 1.25) : undefined;
 
   dietTrendChartInstance = new Chart(ctx, {
     type: 'bar',
@@ -21730,7 +21733,7 @@ function renderDietTrendChart(){
       },
       scales: {
         x: { grid: { display: false }, ticks: { color: isLight ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.5)', font: { size: 10 } } },
-        y: { display: false, beginAtZero: true, suggestedMax }
+        y: { display: false, beginAtZero: true, max: yMax }
       }
     }
   });
