@@ -412,7 +412,7 @@ button {
   transform: scale(0.8);
   opacity: 0.55;
 }
-.recordFloatBar input[type="number"] {
+.recordFloatBar input[type="text"] {
   flex: 1;
   min-width: 0;
   height: 44px;
@@ -424,7 +424,7 @@ button {
   text-align: center;
   font-size: 18px;
 }
-.recordFloatBar input[type="number"]::placeholder {
+.recordFloatBar input[type="text"]::placeholder {
   color: rgba(255,255,255,0.4);
 }
 .recordFloatBar button {
@@ -3616,11 +3616,11 @@ html.light-mode-on #myRoutineRevealInputBar {
   background: rgba(255,255,255,0.75);
   border-color: rgba(0,0,0,0.08);
 }
-html.light-mode-on #myRoutineRevealInputBar input[type="number"] {
+html.light-mode-on #myRoutineRevealInputBar input[type="text"] {
   background: rgba(0,0,0,0.06);
   color: #1a1a1a;
 }
-html.light-mode-on #myRoutineRevealInputBar input[type="number"]::placeholder {
+html.light-mode-on #myRoutineRevealInputBar input[type="text"]::placeholder {
   color: rgba(0,0,0,0.35);
 }
 html.light-mode-on #myRoutineRevealInputBar button {
@@ -4194,13 +4194,13 @@ html.light-mode-on #recordFloatBarAcc {
   background: rgba(255,255,255,0.75);
   border-color: rgba(0,0,0,0.08);
 }
-html.light-mode-on #recordFloatBarTab2 input[type="number"],
-html.light-mode-on #recordFloatBarAcc input[type="number"] {
+html.light-mode-on #recordFloatBarTab2 input[type="text"],
+html.light-mode-on #recordFloatBarAcc input[type="text"] {
   background: rgba(0,0,0,0.06);
   color: #1a1a1a;
 }
-html.light-mode-on #recordFloatBarTab2 input[type="number"]::placeholder,
-html.light-mode-on #recordFloatBarAcc input[type="number"]::placeholder {
+html.light-mode-on #recordFloatBarTab2 input[type="text"]::placeholder,
+html.light-mode-on #recordFloatBarAcc input[type="text"]::placeholder {
   color: rgba(0,0,0,0.35);
 }
 html.light-mode-on #recordFloatBarTab2 button,
@@ -11059,7 +11059,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.209";
+const APP_VERSION = "0.9.210";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -22326,7 +22326,7 @@ function wireFloatingSaveBar(bar, scrollEls){
   });
 
   // 🔥 작아진 상태에서 kg/회 입력칸을 누르면(포커스) 부드럽게 원래 크기로 복귀
-  bar.querySelectorAll('input[type="number"]').forEach(input => {
+  bar.querySelectorAll('input[type="text"]').forEach(input => {
     input.addEventListener('focus', () => {
       collapseAmount = 0;
       render(true);
