@@ -7860,7 +7860,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
 
   <div id="recordFloatBarTab2" class="recordFloatBar">
     <input type="hidden" id="recordDate">
-    <input id="recordWeight" type="number" placeholder="kg" autocomplete="off">
+    <input id="recordWeight" type="number" inputmode="decimal" placeholder="kg" autocomplete="off">
     <input id="recordReps" type="number" placeholder="회" autocomplete="off">
     <button id="recordAdd">저장</button>
   </div>
@@ -7947,7 +7947,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
 <!-- 🔥 detailScreen 바깥에 둠: 스와이프 뒤로가기 애니메이션(transform)이
      이 알약바의 position:fixed 기준점을 깨뜨리지 않도록 하기 위함 -->
 <div id="recordFloatBarAcc" class="recordFloatBar" style="display:none;">
-  <input id="acc-weight" type="number" placeholder="kg" autocomplete="off">
+  <input id="acc-weight" type="number" inputmode="decimal" placeholder="kg" autocomplete="off">
   <input id="acc-reps" type="number" placeholder="회" autocomplete="off">
   <button id="acc-add4" onclick="addAccessorySet()">저장</button>
 </div>
@@ -8970,7 +8970,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
       opacity:0; pointer-events:none;
       transition: opacity 0.3s ease;
     ">
-    <input type="number" id="myRoutineRevealInputWeight" placeholder="kg" autocomplete="off">
+    <input type="number" id="myRoutineRevealInputWeight" inputmode="decimal" placeholder="kg" autocomplete="off">
     <input type="number" id="myRoutineRevealInputReps" placeholder="회" autocomplete="off">
     <button type="button" id="myRoutineRevealInputSaveBtn">저장</button>
   </div>
@@ -10057,6 +10057,17 @@ function formatKgSmart(n){
   return s.endsWith(".0") ? s.slice(0, -2) : s;  // 필요할 때만 소수점
 }
 
+// 🔥 무게 입력값은 정수 또는 정확히 ".5" 단위만 허용 — 사용자가 9.5처럼 정확히 반칸을
+// 입력하면 그대로 살리고, 9.3/9.8처럼 그 외 소수를 입력하면 반올림하지 않고 정수부만
+// 저장(버림). round1로 부동소수점 오차(예: 9.4999999999)부터 먼저 보정한 뒤 판단.
+function roundWeightHalfStep(n){
+  const x = round1(n);
+  if(!Number.isFinite(x)) return NaN;
+  const floor = Math.floor(x);
+  const frac = round1(x - floor);
+  return frac === 0.5 ? floor + 0.5 : floor;
+}
+
 function makeKey(w, r){ return `${round1(w)}__${parseInt(r,10)}`; }
 
 /* ===============================
@@ -10965,7 +10976,7 @@ recordAdd.addEventListener('click', async ()=>{
 
   const weightRaw = parseFloat(recordWeight.value);
   const reps = parseInt(recordReps.value, 10);
-  const weight = round1(weightRaw);
+  const weight = roundWeightHalfStep(weightRaw);
 
   if(!Number.isFinite(weight) || !reps){
     fadeTempMsg(recordMessage, '무게와 횟수를 입력하세요', 900, 600);
@@ -11043,7 +11054,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.207";
+const APP_VERSION = "0.9.208";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -14990,7 +15001,7 @@ function openMyRoutineDetail(partKey){
           </div>
         </div>
         <div class="my-routine-input-row">
-          <input type="number" placeholder="kg" class="my-routine-input" id="myRoutineWeight-${idx}">
+          <input type="number" inputmode="decimal" placeholder="kg" class="my-routine-input" id="myRoutineWeight-${idx}">
           <input type="number" placeholder="회" class="my-routine-input" id="myRoutineReps-${idx}">
           <button type="button" class="my-routine-save-btn" data-idx="${idx}">저장</button>
         </div>
@@ -15007,7 +15018,7 @@ function openMyRoutineDetail(partKey){
 
       const weightEl = document.getElementById(`myRoutineWeight-${idx}`);
       const repsEl = document.getElementById(`myRoutineReps-${idx}`);
-      const weight = round1(parseFloat(weightEl.value));
+      const weight = roundWeightHalfStep(parseFloat(weightEl.value));
       const reps = parseInt(repsEl.value, 10);
 
       if (!Number.isFinite(weight) || !reps) {
@@ -15330,7 +15341,7 @@ function openMyRoutineDetailFromTemplate(template){
           </div>
         </div>
         <div class="my-routine-input-row">
-          <input type="number" placeholder="kg" class="my-routine-input" id="myRoutineWeight-${idx}">
+          <input type="number" inputmode="decimal" placeholder="kg" class="my-routine-input" id="myRoutineWeight-${idx}">
           <input type="number" placeholder="회" class="my-routine-input" id="myRoutineReps-${idx}">
           <button type="button" class="my-routine-save-btn" data-idx="${idx}">저장</button>
         </div>
@@ -15365,7 +15376,7 @@ function openMyRoutineDetailFromTemplate(template){
 
       const weightEl = document.getElementById(`myRoutineWeight-${idx}`);
       const repsEl = document.getElementById(`myRoutineReps-${idx}`);
-      const weight = round1(parseFloat(weightEl.value));
+      const weight = roundWeightHalfStep(parseFloat(weightEl.value));
       const reps = parseInt(repsEl.value, 10);
       if (!Number.isFinite(weight) || !reps) { weightEl.focus(); return; }
 
@@ -15765,7 +15776,7 @@ document.getElementById("myRoutineRevealInputSaveBtn").addEventListener("click",
 
   const weightEl = document.getElementById("myRoutineRevealInputWeight");
   const repsEl = document.getElementById("myRoutineRevealInputReps");
-  const weight = round1(parseFloat(weightEl.value));
+  const weight = roundWeightHalfStep(parseFloat(weightEl.value));
   const reps = parseInt(repsEl.value, 10);
   if (!Number.isFinite(weight) || !reps) { weightEl.focus(); return; }
 
@@ -19189,7 +19200,8 @@ async function addAccessorySet(opts) {
   if (!currentExerciseName) return alert("종목을 먼저 선택하세요.");
 
   // 🔥 무게는 선택(맨몸운동처럼 무게 없이 횟수만 기록하는 경우 지원), 횟수는 필수
-  const w = parseFloat(document.getElementById(weightElId).value) || 0;
+  const wRaw = parseFloat(document.getElementById(weightElId).value);
+  const w = Number.isFinite(wRaw) ? roundWeightHalfStep(wRaw) : 0;
   const r = parseInt(document.getElementById(repsElId).value, 10);
   if (!r) return alert("회를 입력하세요.");
 
@@ -21029,12 +21041,6 @@ function renderMealHighlight(){
   positionHighlight("carbBarHighlight", macroAmount(meal, "carb"), before.reduce((s,m) => s + macroAmount(m,"carb"), 0), targets.carbTarget);
   positionHighlight("proteinBarHighlight", macroAmount(meal, "protein"), before.reduce((s,m) => s + macroAmount(m,"protein"), 0), targets.proteinTarget);
   positionHighlight("fatBarHighlight", macroAmount(meal, "fat"), before.reduce((s,m) => s + macroAmount(m,"fat"), 0), targets.fatTarget);
-}
-
-// 🔥 부동소수점 합산 오차(예: 76.89999999999999)로 무한소수가 표시되는 것을 막기 위해
-// 소수 둘째자리에서 반올림(소수 첫째자리까지 표시)
-function round1(n){
-  return Math.round(n * 10) / 10;
 }
 
 function renderMacroSummary(){
