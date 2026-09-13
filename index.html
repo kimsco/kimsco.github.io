@@ -10075,6 +10075,23 @@ const formatCountSmart = formatKgSmart;
 
 function makeKey(w, r){ return `${round1(w)}__${roundIntOrHalf(r)}`; }
 
+// 🔥 무게(kg)/횟수(회) 입력창을 type="text"(일반 키보드)로 바꾸면서 숫자 외의
+// 아무 문자나 입력 가능해진 문제 — 타이핑되는 즉시 숫자와 마침표(.)만 남기고
+// 나머지는 잘라냄(마침표는 첫 번째 것만 유효, 나머지는 제거해서 "9..5" 같은
+// 파싱 불가능한 값이 만들어지는 것도 방지)
+function restrictToDecimalInput(el){
+  if (!el || el.dataset.decimalOnlyBound) return;
+  el.dataset.decimalOnlyBound = "1";
+  el.addEventListener('input', () => {
+    let v = el.value.replace(/[^0-9.]/g, "");
+    const firstDot = v.indexOf(".");
+    if (firstDot !== -1) {
+      v = v.slice(0, firstDot + 1) + v.slice(firstDot + 1).replace(/\./g, "");
+    }
+    if (v !== el.value) el.value = v;
+  });
+}
+
 /* ===============================
    ✅ 3대/기록탭 전용 단위 표기 설정(회/rep, 세트/set, kg/키로) — 설정 화면의
    "단위 표기" 토글 3개와 연동됨. 기본값은 원래 하드코딩돼 있던 것과 동일(회/set/kg)
@@ -11059,7 +11076,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.210";
+const APP_VERSION = "0.9.211";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -14013,6 +14030,10 @@ document.addEventListener("visibilitychange", () => {
   if (active && pillBarInputIds.includes(active.id)) active.blur();
 });
 
+// 🔥 알약바 kg/회 입력창(위와 동일한 6개)에 숫자·마침표 외 입력 차단 적용
+["recordWeight", "recordReps", "acc-weight", "acc-reps", "myRoutineRevealInputWeight", "myRoutineRevealInputReps"]
+  .forEach(id => restrictToDecimalInput(document.getElementById(id)));
+
 /* ===============================
    🔥 홈 설정 — 설정 > 일반 최상단
 ================================ */
@@ -15014,6 +15035,8 @@ function openMyRoutineDetail(partKey){
     `;
   }).join("");
 
+  listEl.querySelectorAll(".my-routine-input").forEach(el => restrictToDecimalInput(el));
+
   listEl.querySelectorAll(".my-routine-save-btn").forEach(btn => {
     btn.addEventListener("click", async () => {
       const idx = btn.dataset.idx;
@@ -15371,6 +15394,8 @@ function openMyRoutineDetailFromTemplate(template){
       `;
     });
   });
+
+  listEl.querySelectorAll(".my-routine-input").forEach(el => restrictToDecimalInput(el));
 
   listEl.querySelectorAll(".my-routine-save-btn").forEach(btn => {
     btn.addEventListener("click", async () => {
