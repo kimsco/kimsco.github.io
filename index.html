@@ -10806,6 +10806,25 @@ function formatTodayYYMMDD(d = new Date()){
     return `${yy}.${mm}.${dd}`;
 }
 
+// 🔥 자정을 걸쳐 이어지는 운동을 하루 앞선 날짜로 계속 묶기 위한 전역 상태 —
+// 3대/액세서리/내 루틴 등 그날 기록한 어떤 운동이든(종목 구분 없이) 마지막 저장
+// 시각과 그때 실제로 쓰인 날짜를 기억해뒀다가, 30분 안에 다음 세트를 저장하면
+// (자정을 넘겼어도) 그 이전 날짜를 그대로 이어서 씀. 30분이 넘어가면 완전히
+// 새 세션으로 보고 그 시점의 진짜 오늘 날짜를 씀.
+const WORKOUT_SESSION_GAP_MS = 30 * 60 * 1000;
+let lastWorkoutSaveAt = null;
+let lastWorkoutSaveDate = null;
+
+function resolveWorkoutDate(){
+  const now = Date.now();
+  const date = (lastWorkoutSaveAt != null && (now - lastWorkoutSaveAt) <= WORKOUT_SESSION_GAP_MS)
+    ? lastWorkoutSaveDate
+    : formatTodayYYMMDD();
+  lastWorkoutSaveAt = now;
+  lastWorkoutSaveDate = date;
+  return date;
+}
+
 // 🔥 Firestore 읽기량 최적화: 로그인 시 최근 N개월치만 가져오고, 그 이전 데이터는
 //    해당 화면(그래프/루틴 상세/식단 달력)에 진입할 때만 별도로 온디맨드 조회한다.
 const RECENT_READ_WINDOW_MONTHS = 3;
@@ -11005,7 +11024,7 @@ recordAdd.addEventListener('click', async ()=>{
     return;
   }
 
-  const date = formatTodayYYMMDD();
+  const date = resolveWorkoutDate();
 
   const activeBtn = document.querySelector('.folderBtn.active');
   const target = activeBtn ? activeBtn.dataset.target : 'benchBox';
@@ -11042,7 +11061,7 @@ recordAdd.addEventListener('click', async ()=>{
   saveRecordsToLocal();
 
   // 🔥 오늘 이 부위(lift) 운동했다는 걸 달력에 자동 체크
-  autoMarkCalendarToday(lift);
+  autoMarkCalendarToday(lift, date);
 
   // ✅ (B) 로그인 상태면 Firestore에도 "항상 새 문서 add()"
   const user = auth.currentUser;
@@ -11076,7 +11095,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.211";
+const APP_VERSION = "0.9.212";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -11670,6 +11689,14 @@ function calKeyToYYMMDD(key){
   return `${yy}.${mm}.${dd}`;
 }
 
+// 🔥 위와 반대 방향 — records/accRecordsByExercise가 쓰는 날짜 형식("YY.MM.DD")을
+// calData 키("YYYY-M-D")로 변환. 자정을 넘겨 이어진 운동 세션을 하루 앞선 날짜로
+// 저장할 때(resolveWorkoutDate), 달력 체크 표시도 같은 날짜를 보도록 맞추는 데 사용
+function yymmddToCalKey(dateStr){
+  const [yy, mm, dd] = dateStr.split(".").map(Number);
+  return `${2000 + yy}-${mm}-${dd}`;
+}
+
 // 🔥 calData(캘린더 태그)와 별개로, 그 날짜에 실제로 저장된 운동 기록(3대+액세서리)이
 // 있는지 직접 확인 — 캘린더 팝업에서 부위를 전부 뺐다가(항목 삭제) 다시 체크할 때,
 // 실제 기록은 그대로 남아있는데도 confirmed 기억이 같이 사라져서 계획(회색)으로
@@ -11739,11 +11766,14 @@ function totalConfirmedWorkoutDays(){
   return Object.values(calData).filter(entry => entry && entry.confirmed !== false && (entry.muscles || []).length).length;
 }
 
-async function autoMarkCalendarToday(partOrLift){
+// 🔥 workoutDateOverride: resolveWorkoutDate()가 돌려준 "YY.MM.DD" 날짜를 넘기면
+// (자정을 넘겨도 30분 이내면 이전 날짜를 이어씀) 캘린더 체크도 진짜 오늘이 아니라
+// 그 날짜에 찍음 — 기록 탭과 달력 탭이 서로 다른 날짜를 보여주지 않도록 맞춤
+async function autoMarkCalendarToday(partOrLift, workoutDateOverride){
   const muscle = PART_TO_MUSCLE[partOrLift];
   if (!muscle) return;
 
-  const key = getCalendarKeyToday();
+  const key = workoutDateOverride ? yymmddToCalKey(workoutDateOverride) : getCalendarKeyToday();
   const existing = calData[key];
 
   let muscles;
@@ -14857,7 +14887,7 @@ document.getElementById("myRoutineBuilderNameConfirmBtn").addEventListener("clic
    - 새 컬렉션 없음: records[liftKey] / accRecordsByExercise[name]에 그대로 들어감
 ================================ */
 async function myRoutineSaveLiftSet(liftKey, weight, reps){
-  const date = formatTodayYYMMDD();
+  const date = resolveWorkoutDate();
   const nowMs = Date.now();
   const newItem = {
     firestoreId: null,
@@ -14869,7 +14899,7 @@ async function myRoutineSaveLiftSet(liftKey, weight, reps){
   const arr = records[liftKey] || (records[liftKey] = []);
   arr.unshift(newItem);
   saveRecordsToLocal();
-  autoMarkCalendarToday(liftKey);
+  autoMarkCalendarToday(liftKey, date);
   renderActiveBox(); // 3대탭이 열려있었다면 거기도 같이 갱신됨
 
   const user = auth.currentUser;
@@ -14887,23 +14917,24 @@ async function myRoutineSaveLiftSet(liftKey, weight, reps){
 }
 
 async function myRoutineSaveAccessorySet(exerciseName, partKey, weight, reps){
+  const date = resolveWorkoutDate();
   const localItem = {
     id: "local_" + Date.now() + "_" + Math.random(),
     exercise: exerciseName, part: partKey || "",
-    weight, reps, date: formatTodayYYMMDD(), createdAt: Date.now()
+    weight, reps, date, createdAt: Date.now()
   };
 
   if (!accRecordsByExercise[exerciseName]) accRecordsByExercise[exerciseName] = [];
   accRecordsByExercise[exerciseName].push(localItem);
   saveAccRecordsToLocal();
-  autoMarkCalendarToday(partKey);
+  autoMarkCalendarToday(partKey, date);
 
   const user = auth.currentUser;
   if (user) {
     try {
       const docRef = await db.collection("users").doc(user.uid).collection("accessoryRecords").add({
         exercise: exerciseName, part: partKey || "", weight, reps,
-        date: formatTodayYYMMDD(),
+        date,
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
       });
       localItem.id = docRef.id;
@@ -19236,6 +19267,7 @@ async function addAccessorySet(opts) {
   if (!r) return alert("회를 입력하세요.");
 
   const user = auth.currentUser;
+  const date = resolveWorkoutDate();
 
   // ✅ 게스트/로그인 공통으로 로컬에 먼저 반영할 아이템
   const localItem = {
@@ -19244,7 +19276,7 @@ async function addAccessorySet(opts) {
     part: currentPart || "",
     weight: w,
     reps: r,
-    date: formatTodayYYMMDD(),
+    date,
     createdAt: Date.now()
   };
 
@@ -19254,8 +19286,9 @@ async function addAccessorySet(opts) {
   accRecordsByExercise[currentExerciseName].push(localItem);
   saveAccRecordsToLocal(); // ✅ 게스트도 저장됨
 
-  // 🔥 오늘 이 부위(currentPart) 운동했다는 걸 달력에 자동 체크
-  autoMarkCalendarToday(currentPart);
+  // 🔥 이 부위(currentPart) 운동했다는 걸 달력에 자동 체크(자정을 넘겨 이어진
+  // 세션이면 resolveWorkoutDate가 돌려준 이전 날짜에 찍힘)
+  autoMarkCalendarToday(currentPart, date);
 
   // ✅ 로그인 상태면 Firestore에도 저장 + id를 firestore id로 업데이트
   if (user) {
@@ -19264,7 +19297,7 @@ async function addAccessorySet(opts) {
       part: currentPart || "",
       weight: w,
       reps: r,
-      date: formatTodayYYMMDD(),
+      date,
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     };
 
