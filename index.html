@@ -7628,6 +7628,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
     var wait = Math.max(0, MIN_MS - elapsed);
     setTimeout(function(){
       el.style.opacity = '0';
+      el.style.pointerEvents = 'none'; // 🔥 페이드 중에도 명시적으로 터치 차단(방어적 조치)
       setTimeout(function(){ el.remove(); resolveBootSplashDone(); }, 400);
     }, wait);
   });
@@ -11095,7 +11096,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.212";
+const APP_VERSION = "0.9.213";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -18315,6 +18316,12 @@ function setAppPushTransition(css){
 }
 
 function openNavDrawer(){
+  // 🔥 극초반 부팅 스플래시(#bootSplash)가 아직 안 사라진 상태에서 드로어가 열리면,
+  // 스플래시가 사라지는 타이밍과 드로어 슬라이드인 애니메이션이 겹쳐서 드로어가
+  // 중간 위치에서 멈춘 채 고정되는 버그가 있었음 — 스플래시가 완전히 사라진
+  // 뒤에만 열리도록 방어
+  if (document.getElementById('bootSplash')) return;
+
   // 현재 활성 탭에 맞춰 드로어 항목 하이라이트
   const activeTarget = document.querySelector('.bottomTab .tabBtn.active')?.dataset.target;
   document.querySelectorAll(".nav-drawer-item").forEach(item => {
