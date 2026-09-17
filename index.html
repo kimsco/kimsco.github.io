@@ -4518,6 +4518,25 @@ html.light-mode-on .settings-panel {
   align-items: center;
 }
 
+/* 🔥 "사이트 주소" 행 오른쪽의 복사 버튼 — 사이트에서 흔히 보는 작은 원형 복사
+   아이콘 버튼(클립보드 두 겹 사각형). all:unset 후 flex로 다시 중앙 정렬 */
+.settings-copy-btn {
+  all: unset;
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--c-text-secondary);
+  background: rgba(var(--c-ink-rgb), 0.08);
+}
+.settings-copy-btn:active {
+  background: rgba(var(--c-ink-rgb), 0.16);
+}
+
 #settingsGuestBadge {
   margin-top: 0;
   margin-bottom: 0;
@@ -9537,6 +9556,24 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
     <div style="display:flex; align-items:center;"><img src="icons/setting-inquiry.png" class="settings-item-icon" alt="">문의</div>
     <div style="color:var(--c-text-secondary);">김무진한테 문의하세요</div>
   </div>
+  <div class="settings-item" style="justify-content:space-between; border-bottom:1px solid var(--c-border); position:relative; overflow:visible;">
+    <div style="display:flex; flex-direction:column; align-items:flex-start; gap:2px; min-width:0;">
+      <div style="display:flex; align-items:center;">
+        <svg class="settings-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+        </svg>
+        사이트 주소
+      </div>
+      <div style="color:var(--c-text-secondary); font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">https://kimsco.github.io</div>
+    </div>
+    <button id="copySiteUrlBtn" class="settings-copy-btn" aria-label="사이트 주소 복사">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="9" y="9" width="13" height="13" rx="2"></rect>
+        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+      </svg>
+    </button>
+  </div>
   <div class="settings-item" style="justify-content:space-between; border-bottom:none;">
     <span class="settings-item-label"><img src="icons/setting-version.png" class="settings-item-icon" alt="">앱 버전</span>
     <!-- 🔥 버전 숫자는 아래 JS(APP_VERSION)가 채움 — 예전엔 "0.1.0"이 박혀있어서
@@ -11096,7 +11133,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.213";
+const APP_VERSION = "0.9.214";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -11107,6 +11144,35 @@ if (appVersionDisplay) {
 document.querySelectorAll("img.settings-item-icon").forEach(img => {
   img.src = img.src + (img.src.includes("?") ? "&" : "?") + "v=" + APP_VERSION;
 });
+
+// 🔥 설정 > 기타 > "사이트 주소" 복사 버튼 — navigator.clipboard가 안 되는 구형
+// 웹뷰/비보안 컨텍스트 대비 execCommand("copy") 폴백까지 준비
+const SITE_URL = "https://kimsco.github.io";
+const copySiteUrlBtn = document.getElementById("copySiteUrlBtn");
+if (copySiteUrlBtn) {
+  copySiteUrlBtn.addEventListener("click", async () => {
+    let copied = false;
+    try {
+      await navigator.clipboard.writeText(SITE_URL);
+      copied = true;
+    } catch (e) {
+      try {
+        const ta = document.createElement("textarea");
+        ta.value = SITE_URL;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        copied = document.execCommand("copy");
+        ta.remove();
+      } catch (e2) { copied = false; }
+    }
+    if (copied) {
+      showAddedToast(copySiteUrlBtn.closest(".settings-item"), "사이트 주소가 복사되었습니다");
+    }
+  });
+}
 
 /* 로그인 (구글) — 실제 로그인 버튼(설정 화면)이 쓰는 doGoogleLogin()과 동일 로직 재사용 */
 googleLoginBtn.addEventListener('click', () => doGoogleLogin());
