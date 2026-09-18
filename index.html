@@ -1609,7 +1609,8 @@ html.mf-restore-settings .bottomTab {
 #muscleFinderOverlay .bw-menu-header-close,
 #mySpecOverlay .bw-menu-header-close,
 #homeSettingsOverlay .bw-menu-header-close,
-#unitSettingsOverlay .bw-menu-header-close {
+#unitSettingsOverlay .bw-menu-header-close,
+#installGuideOverlay .bw-menu-header-close {
   width: 42px;
   height: 42px;
   margin-left: 6px;
@@ -1629,7 +1630,8 @@ html.mf-restore-settings .bottomTab {
 #muscleFinderOverlay .bw-menu-header-close:active,
 #mySpecOverlay .bw-menu-header-close:active,
 #homeSettingsOverlay .bw-menu-header-close:active,
-#unitSettingsOverlay .bw-menu-header-close:active {
+#unitSettingsOverlay .bw-menu-header-close:active,
+#installGuideOverlay .bw-menu-header-close:active {
   transform: scale(1.3);
   background: rgba(255,255,255,0.24);
 }
@@ -1639,7 +1641,8 @@ html.mf-restore-settings .bottomTab {
 #muscleFinderOverlay .bw-menu-header-close svg,
 #mySpecOverlay .bw-menu-header-close svg,
 #homeSettingsOverlay .bw-menu-header-close svg,
-#unitSettingsOverlay .bw-menu-header-close svg {
+#unitSettingsOverlay .bw-menu-header-close svg,
+#installGuideOverlay .bw-menu-header-close svg {
   width: 20px;
   height: 20px;
 }
@@ -1649,7 +1652,8 @@ html.light-mode-on #oneRMCalcOverlay .bw-menu-header-close,
 html.light-mode-on #muscleFinderOverlay .bw-menu-header-close,
 html.light-mode-on #mySpecOverlay .bw-menu-header-close,
 html.light-mode-on #homeSettingsOverlay .bw-menu-header-close,
-html.light-mode-on #unitSettingsOverlay .bw-menu-header-close {
+html.light-mode-on #unitSettingsOverlay .bw-menu-header-close,
+html.light-mode-on #installGuideOverlay .bw-menu-header-close {
   color: #333;
   background: rgba(0,0,0,0.06);
   border-color: rgba(0,0,0,0.1);
@@ -1660,8 +1664,13 @@ html.light-mode-on #oneRMCalcOverlay .bw-menu-header-close:active,
 html.light-mode-on #muscleFinderOverlay .bw-menu-header-close:active,
 html.light-mode-on #mySpecOverlay .bw-menu-header-close:active,
 html.light-mode-on #homeSettingsOverlay .bw-menu-header-close:active,
-html.light-mode-on #unitSettingsOverlay .bw-menu-header-close:active {
+html.light-mode-on #unitSettingsOverlay .bw-menu-header-close:active,
+html.light-mode-on #installGuideOverlay .bw-menu-header-close:active {
   background: rgba(0,0,0,0.14);
+}
+/* 🔥 "앱 설치 방법" 헤더 — 뒤로가기 버튼과 제목 사이 간격을 다른 메뉴 화면보다 살짝 더 띄움 */
+#installGuideOverlay .bw-menu-header-close {
+  margin-right: 6px;
 }
 .bw-menu-header-title {
   flex: 1;
@@ -11255,7 +11264,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.226";
+const APP_VERSION = "0.9.227";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
