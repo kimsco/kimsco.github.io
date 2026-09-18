@@ -6721,10 +6721,7 @@ html.light-mode-on #weightModal .food-modal-form label {
   -webkit-overflow-scrolling: touch;
 }
 
-/* 🔥 내 정보 수정 화면: 아래쪽은 원래 스프링(바운스) 되돌리고, 위쪽만 JS로 막음
-   (아래 IIFE의 touchmove 핸들러 참고) */
 #mySpecScreen {
-  overscroll-behavior-y: contain;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -11262,7 +11259,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.229";
+const APP_VERSION = "0.9.230";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -21256,25 +21253,6 @@ document.getElementById("saveSpecBtn").addEventListener("click", () => {
   }
   mySpecScreen.addEventListener('touchend', endDrag, { passive: true });
   mySpecScreen.addEventListener('touchcancel', endDrag, { passive: true });
-})();
-
-/* 🔥 내 정보 수정 화면: 아래쪽은 스프링(바운스) 스크롤 그대로 두고, 위쪽 pull(맨 위에서 더
-   아래로 당기는 동작)만 막음 — 위 CSS에서 overscroll-behavior-y:contain으로 바운스 자체는
-   살려두고, 여기서 "맨 위 + 아래 방향 드래그"일 때만 preventDefault로 튕김을 차단 */
-(function(){
-  let lastY = 0;
-  mySpecScreen.addEventListener('touchstart', (e) => {
-    lastY = e.touches[0].clientY;
-  }, { passive: true });
-
-  mySpecScreen.addEventListener('touchmove', (e) => {
-    const y = e.touches[0].clientY;
-    const dy = y - lastY; // 양수면 손가락이 아래로 이동(=맨 위에서 더 당기면 위쪽 바운스 발생)
-    lastY = y;
-    if (mySpecScreen.scrollTop <= 0 && dy > 0) {
-      e.preventDefault();
-    }
-  }, { passive: false });
 })();
 
 /* ---------- 예정 탭: 오늘의 목표 요약 ---------- */
