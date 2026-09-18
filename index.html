@@ -1516,6 +1516,9 @@ html.mf-restore-settings .bottomTab {
 #oneRMCalcOverlay.hidden {
   display: none;
 }
+#installGuideOverlay.hidden {
+  display: none;
+}
 #homeSettingsOverlay.hidden {
   display: none;
 }
@@ -3690,7 +3693,8 @@ html.light-mode-on #muscleFinderOverlay,
 html.light-mode-on #oneRMCalcOverlay,
 html.light-mode-on #whoForOverlay,
 html.light-mode-on #homeSettingsOverlay,
-html.light-mode-on #unitSettingsOverlay {
+html.light-mode-on #unitSettingsOverlay,
+html.light-mode-on #installGuideOverlay {
   background: #eeeeee !important;
   color: var(--c-text-primary);
 }
@@ -4535,6 +4539,61 @@ html.light-mode-on .settings-panel {
 }
 .settings-copy-btn:active {
   background: rgba(var(--c-ink-rgb), 0.16);
+}
+
+/* 🔥 "앱 설치 방법" 화면 — 플랫폼별 스크린샷을 스와이프로 넘겨보는 캐러셀.
+   커스텀 터치 로직 없이 순수 CSS scroll-snap만으로 부드럽게 넘어가게 함 */
+.install-guide-platform-label {
+  font-size: 15px;
+  font-weight: 700;
+  margin: 10px 18px 12px;
+}
+.install-guide-carousel {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  gap: 12px;
+  padding: 0 18px 4px;
+  scrollbar-width: none;
+}
+.install-guide-carousel::-webkit-scrollbar { display: none; }
+.install-guide-slide {
+  flex: 0 0 auto;
+  width: 78%;
+  max-width: 320px;
+  scroll-snap-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.install-guide-slide img {
+  width: 100%;
+  border-radius: 16px;
+  border: 1px solid var(--c-border);
+  display: block;
+}
+.install-guide-caption {
+  font-size: 13px;
+  color: var(--c-text-secondary);
+  text-align: center;
+}
+.install-guide-dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin: 12px 0 28px;
+}
+.install-guide-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(var(--c-ink-rgb), 0.2);
+  transition: background 0.2s ease;
+}
+.install-guide-dot.active {
+  background: rgba(var(--c-ink-rgb), 0.7);
 }
 
 #settingsGuestBadge {
@@ -9312,6 +9371,35 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
   </div>
 </div>
 
+<!-- 🔥 설정 > 기타 > "앱 설치 방법" — 아이폰/갤럭시에서 홈 화면에 추가하는 방법을
+     실제 캡처 사진으로 안내(스와이프로 넘겨보는 캐러셀). 플랫폼별 섹션을 세로로
+     쌓아두는 구조라, 나중에 다른 플랫폼(예: 아이폰-크롬, 갤럭시-크롬)을 추가할 때
+     같은 패턴(제목 + install-guide-carousel + install-guide-dots)만 반복하면 됨 -->
+<div id="installGuideOverlay" class="hidden" style="
+    position:fixed; inset:0; background:#000; z-index:100001;
+    overflow:hidden;
+  ">
+  <div id="installGuideScreen" style="height:100%; display:flex; flex-direction:column;">
+    <div class="bw-menu-header">
+      <button onclick="closeInstallGuide()" class="bw-menu-header-close" aria-label="닫기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg></button>
+      <span class="bw-menu-header-title">앱 설치 방법</span>
+      <span class="bw-menu-header-spacer"></span>
+    </div>
+
+    <div id="installGuideBody" style="flex:1; overflow-y:auto; padding-top:6px; padding-bottom:calc(24px + env(safe-area-inset-bottom));">
+      <div class="install-guide-platform-label">📱 아이폰 (Safari)</div>
+      <div class="install-guide-carousel" id="installGuideCarouselIphoneSafari">
+        <div class="install-guide-slide"><img src="icons/install-guide/iphone-safari-1.jpg" alt=""><div class="install-guide-caption">1. Safari에서 사이트 접속</div></div>
+        <div class="install-guide-slide"><img src="icons/install-guide/iphone-safari-2.jpg" alt=""><div class="install-guide-caption">2. 하단 공유 버튼 탭</div></div>
+        <div class="install-guide-slide"><img src="icons/install-guide/iphone-safari-3.jpg" alt=""><div class="install-guide-caption">3. 공유 시트에서 아래로 스크롤</div></div>
+        <div class="install-guide-slide"><img src="icons/install-guide/iphone-safari-4.jpg" alt=""><div class="install-guide-caption">4. "홈 화면에 추가" 탭</div></div>
+        <div class="install-guide-slide"><img src="icons/install-guide/iphone-safari-5.jpg" alt=""><div class="install-guide-caption">5. 이름 확인 후 "추가" 탭</div></div>
+      </div>
+      <div class="install-guide-dots" data-for="installGuideCarouselIphoneSafari"></div>
+    </div>
+  </div>
+</div>
+
 <!-- 🔥 홈 설정 — 설정 > 일반 최상단에서 진입 -->
 <div id="homeSettingsOverlay" class="hidden" style="
     position:fixed; inset:0; background:#000; z-index:100000;
@@ -9574,6 +9662,13 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
       </svg>
     </button>
   </div>
+  <button id="installGuideMenuBtn" class="settings-item" style="width:100%; text-align:left; background:none; color:var(--c-text-primary); cursor:pointer; border-bottom:1px solid var(--c-border);" onclick="openInstallGuide()">
+    <svg class="settings-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="6" y="2" width="12" height="20" rx="2"></rect>
+      <line x1="12" y1="18" x2="12.01" y2="18"></line>
+    </svg>
+    앱 설치 방법
+  </button>
   <div class="settings-item" style="justify-content:space-between; border-bottom:none;">
     <span class="settings-item-label"><img src="icons/setting-version.png" class="settings-item-icon" alt="">앱 버전</span>
     <!-- 🔥 버전 숫자는 아래 JS(APP_VERSION)가 채움 — 예전엔 "0.1.0"이 박혀있어서
@@ -11133,7 +11228,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.214";
+const APP_VERSION = "0.9.215";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -13932,6 +14027,40 @@ function openOneRMCalc(){
 function closeOneRMCalc(){
   oneRMCalcOverlay.classList.add("hidden");
 }
+
+/* 🔥 설정 > 기타 > "앱 설치 방법" */
+function openInstallGuide(){
+  document.getElementById("installGuideOverlay").classList.remove("hidden");
+}
+function closeInstallGuide(){
+  document.getElementById("installGuideOverlay").classList.add("hidden");
+}
+// 🔥 캐러셀을 스와이프하는 동안 현재 몇 번째 사진인지 하단 점(dot)으로 표시.
+// 커스텀 드래그 로직 없이 순수 scroll 이벤트로 가장 가까운 슬라이드를 찾음
+function wireInstallGuideDots(carouselId){
+  const carousel = document.getElementById(carouselId);
+  const dotsEl = document.querySelector(`.install-guide-dots[data-for="${carouselId}"]`);
+  if (!carousel || !dotsEl) return;
+  const slides = carousel.querySelectorAll(".install-guide-slide");
+  dotsEl.innerHTML = Array.from(slides).map((_, i) => `<div class="install-guide-dot${i === 0 ? " active" : ""}"></div>`).join("");
+  const dots = dotsEl.querySelectorAll(".install-guide-dot");
+  let ticking = false;
+  carousel.addEventListener("scroll", () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => {
+      const center = carousel.scrollLeft + carousel.clientWidth / 2;
+      let closest = 0, closestDist = Infinity;
+      slides.forEach((slide, i) => {
+        const dist = Math.abs((slide.offsetLeft + slide.offsetWidth / 2) - center);
+        if (dist < closestDist) { closestDist = dist; closest = i; }
+      });
+      dots.forEach((d, i) => d.classList.toggle("active", i === closest));
+      ticking = false;
+    });
+  }, { passive: true });
+}
+wireInstallGuideDots("installGuideCarouselIphoneSafari");
 
 document.getElementById("navOneRMCalcBtn").addEventListener("click", () => {
   closeNavDrawerInstant();
@@ -17934,7 +18063,7 @@ document.body.appendChild(bottomTabEl);
   'oneRMCalcOverlay', 'threeSummaryOverlay', 'bodyweightOverlay', 'muscleFinderOverlay',
   'whoForOverlay', 'myRoutineOverlay', 'myRoutinePastListOverlay', 'myRoutineBuilderOverlay',
   'myRoutineDetailOverlay', 'exerciseDexOverlay', 'dexWriteOverlay', 'dexPostDetailOverlay',
-  'graphOverlay', 'homeSettingsOverlay', 'unitSettingsOverlay'
+  'graphOverlay', 'homeSettingsOverlay', 'unitSettingsOverlay', 'installGuideOverlay'
 ].forEach(id => {
   const el = document.getElementById(id);
   if (el) document.body.appendChild(el);
