@@ -4579,6 +4579,14 @@ html.light-mode-on .settings-panel {
   color: var(--c-text-secondary);
   text-align: center;
 }
+/* 🔥 기기/iOS 버전에 따라 공유 시트 아이콘 순서가 달라서 "홈 화면에 추가"가
+   바로 안 보일 수 있음 — 캡션 아래 작은 보조 안내문구용 */
+.install-guide-hint {
+  font-size: 11.5px;
+  color: var(--c-text-tertiary);
+  text-align: center;
+  margin-top: 2px;
+}
 .install-guide-dots {
   display: flex;
   justify-content: center;
@@ -9391,10 +9399,19 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
       <div class="install-guide-carousel" id="installGuideCarouselIphoneSafari">
         <div class="install-guide-slide"><img src="icons/install-guide/iphone-safari-1.jpg" alt=""><div class="install-guide-caption">1. Safari에서 사이트 접속 후 우측 하단 "•••" 탭</div></div>
         <div class="install-guide-slide"><img src="icons/install-guide/iphone-safari-2.jpg" alt=""><div class="install-guide-caption">2. 메뉴에서 "공유" 탭</div></div>
-        <div class="install-guide-slide"><img src="icons/install-guide/iphone-safari-3.jpg" alt=""><div class="install-guide-caption">3. 공유 시트에서 "홈 화면에 추가" 탭</div></div>
+        <div class="install-guide-slide"><img src="icons/install-guide/iphone-safari-3.jpg" alt=""><div class="install-guide-caption">3. 공유 시트에서 "홈 화면에 추가" 탭</div><div class="install-guide-hint">이 위치에 안 보이면 "더보기"를 눌러 목록에서 찾아보세요</div></div>
         <div class="install-guide-slide"><img src="icons/install-guide/iphone-safari-4.jpg" alt=""><div class="install-guide-caption">4. 이름 확인 후 "추가" 탭</div></div>
       </div>
       <div class="install-guide-dots" data-for="installGuideCarouselIphoneSafari"></div>
+
+      <div class="install-guide-platform-label">📱 아이폰 (Chrome)</div>
+      <div class="install-guide-carousel" id="installGuideCarouselIphoneChrome">
+        <div class="install-guide-slide"><img src="icons/install-guide/iphone-chrome-1.jpg" alt=""><div class="install-guide-caption">1. Chrome에서 사이트 접속 후 주소창 옆 공유 아이콘 탭</div></div>
+        <div class="install-guide-slide"><img src="icons/install-guide/iphone-chrome-2.jpg" alt=""><div class="install-guide-caption">2. 공유 시트에서 "더보기" 탭</div></div>
+        <div class="install-guide-slide"><img src="icons/install-guide/iphone-chrome-3.jpg" alt=""><div class="install-guide-caption">3. 목록에서 "홈 화면에 추가" 탭</div></div>
+        <div class="install-guide-slide"><img src="icons/install-guide/iphone-chrome-4.jpg" alt=""><div class="install-guide-caption">4. 이름 확인 후 "추가" 탭</div></div>
+      </div>
+      <div class="install-guide-dots" data-for="installGuideCarouselIphoneChrome"></div>
     </div>
   </div>
 </div>
@@ -11227,7 +11244,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.216";
+const APP_VERSION = "0.9.218";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -14060,6 +14077,7 @@ function wireInstallGuideDots(carouselId){
   }, { passive: true });
 }
 wireInstallGuideDots("installGuideCarouselIphoneSafari");
+wireInstallGuideDots("installGuideCarouselIphoneChrome");
 
 document.getElementById("navOneRMCalcBtn").addEventListener("click", () => {
   closeNavDrawerInstant();
