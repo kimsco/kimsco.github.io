@@ -11260,7 +11260,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.232";
+const APP_VERSION = "0.9.233";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -18892,7 +18892,7 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
   }
 
   document.addEventListener('touchstart', (e) => {
-    if (refreshing || !isTab1Active() || !appEl || appEl.scrollTop > 0 || anyBlockingOverlayOpen()) { tracking = false; return; }
+    if (refreshing || !isTab1Active() || !appEl || appEl.scrollTop > 0 || anyBlockingOverlayOpen() || !homeSeriousModeScreen.classList.contains('hidden')) { tracking = false; return; }
     const t = e.touches[0];
     startX = t.clientX; startY = t.clientY;
     tracking = true; dragging = false;
