@@ -1525,6 +1525,13 @@ html.mf-restore-settings .bottomTab {
 #unitSettingsOverlay.hidden {
   display: none;
 }
+#homeSeriousModeScreen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 32px;
+  box-sizing: border-box;
+}
 #homeSeriousModeScreen.hidden {
   display: none;
 }
@@ -7854,7 +7861,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
   <div class="ios-spinner"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
 </div>
 <!-- 🔥 진심모드 ON: 기존 홈 화면(박스/날짜/체중 등) 대신 검정 화면에 문구 하나만 표시 -->
-<div id="homeSeriousModeScreen" class="hidden" style="background:#000; min-height: calc(100vh - var(--topBarH) - var(--bottomTabH) - env(safe-area-inset-top)); display:flex; align-items:center; justify-content:center; padding:40px 32px; box-sizing:border-box;">
+<div id="homeSeriousModeScreen" class="hidden" style="background:#000; min-height: calc(100vh - var(--topBarH) - var(--bottomTabH) - env(safe-area-inset-top));">
   <div style="font-family:'Nanum Myeongjo','AppleMyungjo','Batang',serif; font-size:21px; font-weight:700; line-height:1.7; text-align:center; color:#eee;">두려우면 하지 말고,<br>하게되면 두려워하지 마라</div>
 </div>
 <div id="homeNormalContent">
@@ -11260,7 +11267,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.239";
+const APP_VERSION = "0.9.240";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
