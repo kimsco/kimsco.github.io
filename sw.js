@@ -1,4 +1,4 @@
-const CACHE = "mf-v24"; // 🔥 스플래시 로고 크기 확대(20%→26%, splash/*.png 전체 재생성) — 캐시 이름을 다시 올려서 새로 받아오게 함
+const CACHE = "mf-v25"; // 🔥 iOS 자체 스플래시(apple-touch-startup-image) 제거 — splash/*.png 프리캐시 목록에서 뺌
 const ASSETS = [
   "/",
   "/index.html",
@@ -7,17 +7,7 @@ const ASSETS = [
   "/food-db-full.json",
   "/icons/icon-192.png",
   "/icons/icon-512.png",
-  "/icons/apple-touch-icon.png",
-  "/icons/splash/1290x2796.png",
-  "/icons/splash/1206x2622.png",
-  "/icons/splash/1179x2556.png",
-  "/icons/splash/1284x2778.png",
-  "/icons/splash/1170x2532.png",
-  "/icons/splash/1125x2436.png",
-  "/icons/splash/1242x2688.png",
-  "/icons/splash/828x1792.png",
-  "/icons/splash/750x1334.png",
-  "/icons/splash/640x1136.png"
+  "/icons/apple-touch-icon.png"
 ];
 
 self.addEventListener("install", e => {
