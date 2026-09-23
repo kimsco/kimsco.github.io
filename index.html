@@ -7706,7 +7706,7 @@ html.light-mode-on .my-routine-group-box {
      이동해버림. 파일 맨 아래(mf_version_checked)의 자동 리로드가 이 스플래시 페이드
      도중에 끼어들면 안 되므로, 그 fetch 자체가 window.__bootSplashDonePromise(이
      스플래시가 완전히 사라진 뒤)에야 시작되도록 순서를 고정함 -->
-<div id="bootSplash" style="position:fixed; inset:0; z-index:1000000; background:#000; display:flex; align-items:center; justify-content:center; transition:opacity .35s ease;">
+<div id="bootSplash" style="position:fixed; inset:0; z-index:1000000; background:#000; display:flex; align-items:center; justify-content:center; transition:opacity .525s ease;">
   <img src="/icons/icon-512.png" alt="" style="width:26vw; height:26vw;">
 </div>
 <script>
@@ -7726,7 +7726,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
     setTimeout(function(){
       el.style.opacity = '0';
       el.style.pointerEvents = 'none'; // 🔥 페이드 중에도 명시적으로 터치 차단(방어적 조치)
-      setTimeout(function(){ el.remove(); resolveBootSplashDone(); }, 400);
+      setTimeout(function(){ el.remove(); resolveBootSplashDone(); }, 600);
     }, wait);
   });
 });
@@ -11260,7 +11260,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.238";
+const APP_VERSION = "0.9.239";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
