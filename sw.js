@@ -1,4 +1,4 @@
-const CACHE = "mf-v25"; // 🔥 iOS 자체 런치 스크린(splash/*.png)에서 로고 빼고 순수 검정으로 재생성 — 캐시 이름을 다시 올려서 새로 받아오게 함
+const CACHE = "mf-v24"; // 🔥 스플래시 로고 크기 확대(20%→26%, splash/*.png 전체 재생성) — 캐시 이름을 다시 올려서 새로 받아오게 함
 const ASSETS = [
   "/",
   "/index.html",
