@@ -3480,7 +3480,7 @@ html.light-mode-on #calPopup .muscles button.active {
      필터가 이제 사라졌으니 이 보정용 필터를 꺼줘야 사진이 반전 없이 정상적으로 보임 */
 html.light-mode-on #exerciseDexOverlay,
 html.light-mode-on #dexPostDetailOverlay {
-  background: #eeeeee !important;
+  background: #ffffff !important;
   color: var(--c-text-primary);
 }
 html.light-mode-on #dexWriteOverlay {
@@ -3617,7 +3617,7 @@ html.light-mode-on #myRoutineOverlay,
 html.light-mode-on #myRoutinePastListOverlay,
 html.light-mode-on #myRoutineDetailOverlay,
 html.light-mode-on #myRoutineRevealOverlay {
-  background: #eeeeee !important;
+  background: #ffffff !important;
   color: var(--c-text-primary);
 }
 html.light-mode-on #myRoutineBuilderOverlay {
@@ -3726,7 +3726,7 @@ html.light-mode-on #whoForOverlay,
 html.light-mode-on #homeSettingsOverlay,
 html.light-mode-on #unitSettingsOverlay,
 html.light-mode-on #installGuideOverlay {
-  background: #eeeeee !important;
+  background: #ffffff !important;
   color: var(--c-text-primary);
 }
 html.light-mode-on #total3 {
@@ -3866,7 +3866,7 @@ html.light-mode-on #oneRMCalcDisclaimer p.emphasis {
 html.light-mode-on .who-hero,
 html.light-mode-on .who-chapter,
 html.light-mode-on .who-cta {
-  background: #eeeeee !important;
+  background: #ffffff !important;
 }
 html.light-mode-on .who-hero-mark {
   color: rgba(0,0,0,0.4);
@@ -4132,14 +4132,12 @@ html.light-mode-on .bw-add-set-btn {
 }
 
 /* 🔥 홈 탭(#tab1) 라이트모드: 필터를 전혀 안 받는 화면이라, "반전 후 결과"를 역산하는 게
-   아니라 실제로 화면에 보일 색을 직접(literal) 지정함. 배경은 흰색, 카드/상자류는 테두리
-   없이 흰색 바탕에 은은한 그림자로 떠 있는 형태(참고: Shopify 프로필 화면 카드 스타일) —
-   텍스트는 다크모드의 흰색 계열(rgba(255,255,255,X))을 대칭적인 검정 계열(rgba(0,0,0,X))로 치환 */
+   아니라 실제로 화면에 보일 색을 직접(literal) 지정함. 배경은 body/.app이 이미 흰색이라
+   따로 지정할 필요 없음 — 카드/상자류만 테두리 없이 흰색 바탕에 은은한 그림자로 떠 있는
+   형태(참고: Shopify 프로필 화면 카드 스타일) — 텍스트는 다크모드의 흰색 계열
+   (rgba(255,255,255,X))을 대칭적인 검정 계열(rgba(0,0,0,X))로 치환 */
 html.light-mode-on #tab1 {
   color: #1a1a1a;
-  background: #ffffff;
-  min-height: calc(100vh - var(--topBarH) - var(--bottomTabH) - env(safe-area-inset-top));
-  box-sizing: border-box;
 }
 html.light-mode-on #tab1 .home-card,
 html.light-mode-on #tab1 .home-quick-btn,
@@ -4262,23 +4260,23 @@ html.light-mode-on #recordFloatBarAcc button {
    (기존 스왑 결과였던 rgb(238,238,238)과 동일한 값으로 시각적 연속성 유지) */
 html.light-mode-on body,
 html.light-mode-on .app {
-  background: #eeeeee;
+  background: #ffffff;
 }
 /* 🔥 dietOverlay도 통계 서브탭(#dietPanel-stats)이 자식이라 필터 대상에서 뺐으므로,
    자기 자신의 배경도 실제 값을 직접 지정(인라인 style이라 !important 필요) */
 html.light-mode-on #dietOverlay {
-  background: #eeeeee !important;
+  background: #ffffff !important;
   color: var(--c-text-primary);
 }
 
 /* 바깥(화면 전체) — 인라인 style로 지정된 풀스크린 오버레이들(우선순위 위해 !important 필요) */
 /* 🔥 [14단계] 맨몸운동(#bodyweightOverlay)도 필터 목록에서 빼고 실제 색상 직접 지정 */
 html.light-mode-on #bodyweightOverlay {
-  background: #eeeeee !important;
+  background: #ffffff !important;
   color: var(--c-text-primary);
 }
 html.light-mode-on #mySpecOverlay {
-  background: #eeeeee !important;
+  background: #ffffff !important;
   color: var(--c-text-primary);
 }
 
@@ -4449,7 +4447,7 @@ html.light-mode-on #mySpecOverlay {
   animation: slideInLeft 0.25s ease forwards;
 }
 html.light-mode-on .nav-drawer {
-  background: #eeeeee;
+  background: #ffffff;
 }
 
 @keyframes slideInLeft {
@@ -4491,7 +4489,7 @@ html.light-mode-on .nav-drawer {
   transform: translateX(100%);
 }
 html.light-mode-on .settings-panel {
-  background: #eeeeee;
+  background: #ffffff;
   color: var(--c-text-primary);
 }
 
@@ -11286,7 +11284,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.246";
+const APP_VERSION = "0.9.247";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -19833,9 +19831,9 @@ function applyLightMode(on){
   document.documentElement.classList.toggle("light-mode-on", on); // 🔥 사진 요소 반전 상쇄용 스코프 클래스
   lightModeToggle.classList.toggle("active", on);
   // 🔥 상태바 아이콘 색: iOS가 theme-color 밝기를 보고 자동으로 흰/검 아이콘을 고름
-  // (반전 필터로 실제 밝아지는 배경값 rgb(238,238,238)=#eeeeee 에 맞춤)
+  // (실제 배경이 흰색(#ffffff)으로 바뀐 것에 맞춤)
   const themeColorMeta = document.querySelector('meta[name="theme-color"]');
-  if (themeColorMeta) themeColorMeta.setAttribute("content", on ? "#eeeeee" : "#000000");
+  if (themeColorMeta) themeColorMeta.setAttribute("content", on ? "#ffffff" : "#000000");
   try { localStorage.setItem("mf_light_mode", on ? "1" : "0"); } catch(e){}
   // 🔥 식단 통계 탭 차트(캔버스)는 CSS가 아니라 JS에서 직접 색을 정하므로, 테마 전환 시
   // 다시 그려줘야 즉시 반영됨 — 페이지 로드 시 최초 호출 때는 아직 정의 안 된 전역들이
