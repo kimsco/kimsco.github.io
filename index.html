@@ -3228,7 +3228,7 @@ html.light-mode-on #recordMessage {
    항상 떠있는 전역 UI라 필터 목록에서 완전히 뺐고, 실제로 보일 색을 직접 지정.
    CSS 변수 팔레트(1단계에서 정의) 사용 시작 */
 html.light-mode-on .topBar {
-  background: #eeeeee; /* 🔥 본문(body/.app) 배경과 완전히 동일한 색으로 맞춤 — 흰색으로 바꿔봤다가(v0.9.111) 사용자가 원래 쪽이 낫다고 해서 되돌림 */
+  background: #ffffff; /* 🔥 홈 화면이 흰 배경+그림자 카드 스타일(v0.9.245)로 바뀌면서 상단바도 흰색으로 맞춤 */
   backdrop-filter: none; /* 🔥 완전 불투명 단색이라 블러가 의미 없어서 같이 끔 */
   border-bottom-color: rgba(0,0,0,0.06);
 }
@@ -3247,7 +3247,7 @@ html.light-mode-on .menu-btn:active {
   background: rgba(0,0,0,0.14);
 }
 html.light-mode-on #bottomTab {
-  background: #eeeeee; /* 🔥 본문(body/.app) 배경과 완전히 동일한 색으로 맞춤 — 흰색으로 바꿔봤다가(v0.9.111) 사용자가 원래 쪽이 낫다고 해서 되돌림 */
+  background: #ffffff; /* 🔥 홈 화면이 흰 배경+그림자 카드 스타일(v0.9.245)로 바뀌면서 하단탭도 흰색으로 맞춤 */
   backdrop-filter: none; /* 🔥 완전 불투명 단색이라 블러가 의미 없어서 같이 끔 */
   border-top-color: rgba(0,0,0,0.08);
 }
@@ -11286,7 +11286,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.245";
+const APP_VERSION = "0.9.246";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
