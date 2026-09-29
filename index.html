@@ -4081,7 +4081,11 @@ html.light-mode-on #quickAddMealModal .food-modal-form input {
    (사진이 아니라 단순 아이콘이라 조상 필터를 그대로 받아 반전되는 게 의도),
    조상 필터가 사라진 지금은 자기 자신에게 직접 필터를 걸어 같은 결과를 재현함.
    토글 스위치는 5단계(#tab3 #calendarToggle)와 완전히 동일한 값 재사용 */
-html.light-mode-on .settings-item-icon {
+/* 🔥 PNG 아이콘(<img>)만 반전 필터로 보정 — 인라인 SVG 아이콘들은 전부 currentColor를
+   써서 라이트/다크 각각 실제 색을 직접 상속하므로 필터가 필요 없고, 오히려 걸리면
+   이미 올바르게(어둡게) 계산된 색을 다시 반전시켜 흐릿하게 만들어버림(#앱 설치 방법
+   아이콘이 색이 안 바뀐 것처럼 흐리게 보이던 원인) */
+html.light-mode-on img.settings-item-icon {
   filter: invert(1) hue-rotate(180deg);
 }
 html.light-mode-on #settingsOverlay .toggle-switch {
@@ -4645,7 +4649,12 @@ html.light-mode-on .settings-card {
   padding-top: 14px; /* 🔥 카드 자체가 이제 완전히 flush(위아래 패딩 0)라, 이 칸이 직접 위쪽 14px 간격을 가짐 —
                           게스트일 땐 이 칸 자체가 숨겨지고 로그인 행(.settings-row)이 그 역할을 대신함 */
   padding-bottom: 14px; /* 🔥 다른 카드의 .settings-item과 동일한 14px 리듬으로 맞춤(기존 29px는 유독 커 보였음) */
-  border-bottom: 1px solid var(--c-border);
+  /* 🔥 이 칸이 "계정" 카드 안의 유일한 행이라(아래에 또 다른 행이 없음) 눈에 보이는
+     구분선은 필요 없지만, border-bottom 자체를 없애면 이 칸의 실측 높이가 1px
+     줄어들어(패딩만으로는 다른 단독 행 카드들의 기준 높이 --settings-row-h(67px)에서
+     1px 모자람) 카드 간 높이가 미묘하게 안 맞게 됨 — 투명 테두리로 바꿔 박스모델의
+     1px 몫은 그대로 차지하되 선만 안 보이게 함 */
+  border-bottom: 1px solid transparent;
 }
 
 .settings-name {
@@ -9676,13 +9685,13 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
 <div class="settings-section-label">일반</div>
 <div class="settings-card settings-card--flush">
   <button id="homeSettingsMenuBtn" class="settings-item" style="width:100%; text-align:left; background:none; color:var(--c-text-primary); cursor:pointer; border-bottom:1px solid var(--c-border); border-radius:0; appearance:none; -webkit-appearance:none;">
-    <svg class="settings-item-icon" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;"><path d="M3 11l9-8 9 8"></path><path d="M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10"></path></svg>홈 설정
+    <svg class="settings-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;"><path d="M3 11l9-8 9 8"></path><path d="M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10"></path></svg>홈 설정
   </button>
   <!-- 🔥 3대/기록탭 전용 단위 표기(회/rep, 세트/set, kg/키로) 설정 — 예전엔 여기 카드
        바깥에 별도 카드로 토글 3개가 그대로 있었는데, 한 칸으로 접어서 누르면 전용
        화면(#unitSettingsOverlay)에서 조절하도록 변경 -->
   <button id="unitSettingsMenuBtn" class="settings-item" style="width:100%; text-align:left; background:none; color:var(--c-text-primary); cursor:pointer; border-bottom:1px solid var(--c-border); border-radius:0; appearance:none; -webkit-appearance:none;">
-    <svg class="settings-item-icon" viewBox="0 0 24 24" style="display:block;"><text x="12" y="19" text-anchor="middle" font-size="20" font-weight="800" font-family="-apple-system, BlinkMacSystemFont, sans-serif" fill="rgba(255,255,255,0.8)">kg</text></svg>단위 표기
+    <svg class="settings-item-icon" viewBox="0 0 24 24" style="display:block;"><text x="12" y="19" text-anchor="middle" font-size="20" font-weight="800" font-family="-apple-system, BlinkMacSystemFont, sans-serif" fill="currentColor">kg</text></svg>단위 표기
   </button>
   <div class="settings-item" style="justify-content:space-between; border-bottom:none;">
     <span class="settings-item-label"><img src="icons/setting-mode.png" class="settings-item-icon" alt="">화면 모드</span>
@@ -11294,7 +11303,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.252";
+const APP_VERSION = "0.9.253";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
