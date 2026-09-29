@@ -11303,7 +11303,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.253";
+const APP_VERSION = "0.9.254";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -12022,7 +12022,15 @@ async function autoMarkCalendarToday(partOrLift, workoutDateOverride){
     muscles = [muscle];
   }
 
-  calData[key] = { muscles, confirmed: true };
+  // 🔥 [운동 시간 데이터 수집 - 표시 기능 없이 일단 기록만] 그날(resolveWorkoutDate가
+  // 정해준, 자정을 넘겨도 이어지는 세션 기준) 첫 세트~마지막 세트 시각을 운동 시간으로
+  // 보고 firstAt/lastAt에 쌓아둠. firstAt은 그날 처음 한 번만 찍히고, lastAt은 세트를
+  // 저장할 때마다 계속 지금 시각으로 갱신됨. 나중에 "운동 총 시간" 표시에 사용 예정.
+  const now = Date.now();
+  const firstAt = existing?.confirmed && existing.firstAt ? existing.firstAt : now;
+  const lastAt = now;
+
+  calData[key] = { muscles, confirmed: true, firstAt, lastAt };
   saveCalendarToLocal();
   calRender();
   renderHomeTab();
@@ -12032,7 +12040,7 @@ async function autoMarkCalendarToday(partOrLift, workoutDateOverride){
     try {
       await db.collection("users").doc(user.uid)
         .collection("calendar").doc(key)
-        .set({ muscles, confirmed: true, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+        .set({ muscles, confirmed: true, firstAt, lastAt, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
     } catch (e) {
       console.error("auto calendar mark err", e);
     }
