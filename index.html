@@ -11291,7 +11291,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.249";
+const APP_VERSION = "0.9.250";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -19372,11 +19372,35 @@ async function seedDefaultCoreExercisesIfNeeded(){
    옮겨진 기존 종목들은 "미분류" 상태로 남아서, 사용자가 그 종목을 처음 열
    때 팝업으로 삼두/이두 중 어디인지 직접 확인받음(아래 openArmClassifyModal). */
 async function migrateArmSplitIfNeeded(){
-  const alreadyMigrated = lsGet("mf_arm_split_migrated_v1", false);
+  // 🔥 v1 → v2: v1은 기기 로컬 캐시에 "arm" 목록이 없으면(새 기기/캐시 초기화/재설치 등)
+  //    실제로는 Firestore에 예전 종목이 남아있는데도 빈 목록으로 잘못 확정 저장해버려서,
+  //    사용자의 삼두/이두 종목이 통째로 사라져 보이는 데이터 유실 버그가 있었음.
+  //    v2는 로컬에 없으면 Firestore의 예전 accessories/arm 문서를 직접 확인해서 복구함 —
+  //    이미 v1으로 잘못 마이그레이션된 사용자도 v2 플래그가 새로 없으므로 자동으로 재시도됨.
+  const alreadyMigrated = lsGet("mf_arm_split_migrated_v2", false);
   if (alreadyMigrated) return;
-  lsSet("mf_arm_split_migrated_v1", true);
+  lsSet("mf_arm_split_migrated_v2", true);
 
-  const oldArmList = loadAccListFromLocal("arm").filter(x => typeof x === "string" && x.trim());
+  let oldArmList = loadAccListFromLocal("arm").filter(x => typeof x === "string" && x.trim());
+
+  const user = auth.currentUser;
+  if (user && !oldArmList.length) {
+    try {
+      const oldDoc = await db.collection('users').doc(user.uid).collection('accessories').doc('arm').get();
+      if (oldDoc.exists) {
+        oldArmList = (oldDoc.data().list || []).filter(x => typeof x === "string" && x.trim());
+      }
+    } catch (e) {
+      console.error("팔 마이그레이션 중 예전(Firestore) 목록 조회 실패", e);
+    }
+  }
+
+  // 🔥 이미 v1 마이그레이션으로 arm_tri/arm_bi에 뭔가 저장돼 있다면(정상적으로 옮겨진
+  // 경우) 그 값을 덮어쓰지 않고 그대로 존중 — 복구는 "완전히 비어있던" 경우에만 수행
+  const currentTri = loadAccListFromLocal("arm_tri").filter(x => typeof x === "string" && x.trim());
+  const currentBi = loadAccListFromLocal("arm_bi").filter(x => typeof x === "string" && x.trim());
+  if (currentTri.length || currentBi.length) return;
+
   saveAccListToLocal("arm_tri", oldArmList);
   saveAccListToLocal("arm_bi", []);
   lsSet("mf_arm_pending_classification", oldArmList);
@@ -19384,7 +19408,6 @@ async function migrateArmSplitIfNeeded(){
   if (currentPart === 'arm_tri') { currentExercises = oldArmList.slice(); renderExercises(); }
   else if (currentPart === 'arm_bi') { currentExercises = []; renderExercises(); }
 
-  const user = auth.currentUser;
   if (user) {
     try {
       await db.collection('users').doc(user.uid).collection('accessories').doc('arm_tri').set({ list: oldArmList }, { merge: true });
