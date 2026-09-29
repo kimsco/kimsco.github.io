@@ -714,9 +714,10 @@ button {
   color: #e0203f;
 }
 
-/* 운동한 날 */
+/* 운동한 날 — 순백색이 어두운 배경에서 너무 쨍하게 튀어서 눈이 부시다는 피드백으로
+   따뜻한 톤(크림색)으로 낮춤 */
 .days div.done {
-  background: linear-gradient(135deg, #ffffff, #c9c9c9);
+  background: linear-gradient(135deg, #e8e4d8, #cbc6b8);
   color: #111;
   font-weight: 700;
 }
@@ -836,7 +837,7 @@ button {
   color: #aaa;
   padding: 0;
 }
-.days div.done:hover { background: linear-gradient(135deg, #ffffff, #c9c9c9) !important; transform: translateY(-1px); }
+.days div.done:hover { background: linear-gradient(135deg, #e8e4d8, #cbc6b8) !important; transform: translateY(-1px); }
 
 /* 🔒 모바일 long press 텍스트 선택 방지 */
 .days div,
@@ -11290,7 +11291,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.248";
+const APP_VERSION = "0.9.249";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
