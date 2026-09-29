@@ -4132,21 +4132,31 @@ html.light-mode-on .bw-add-set-btn {
 }
 
 /* 🔥 홈 탭(#tab1) 라이트모드: 필터를 전혀 안 받는 화면이라, "반전 후 결과"를 역산하는 게
-   아니라 실제로 화면에 보일 색을 직접(literal) 지정함. 카드/상자류는 기존에 확정했던
-   시각적 결과(#fdfdfd, 거의 흰색)를 그대로 유지하고, 텍스트/테두리는 다크모드의
-   흰색 계열(rgba(255,255,255,X))을 대칭적인 검정 계열(rgba(0,0,0,X))로 치환 */
+   아니라 실제로 화면에 보일 색을 직접(literal) 지정함. 배경은 흰색, 카드/상자류는 테두리
+   없이 흰색 바탕에 은은한 그림자로 떠 있는 형태(참고: Shopify 프로필 화면 카드 스타일) —
+   텍스트는 다크모드의 흰색 계열(rgba(255,255,255,X))을 대칭적인 검정 계열(rgba(0,0,0,X))로 치환 */
 html.light-mode-on #tab1 {
   color: #1a1a1a;
+  background: #ffffff;
+  min-height: calc(100vh - var(--topBarH) - var(--bottomTabH) - env(safe-area-inset-top));
+  box-sizing: border-box;
 }
 html.light-mode-on #tab1 .home-card,
 html.light-mode-on #tab1 .home-quick-btn,
 html.light-mode-on #tab1 .home-big3-badge,
-html.light-mode-on #tab1 .home-weight-pill,
+html.light-mode-on #tab1 .home-weight-pill {
+  background: #ffffff;
+  border-color: transparent;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.05);
+}
+/* 🔥 카드 안에 중첩되는 요소(매크로 알약/식단 입력창/주간 활동 원)는 카드와 같은 흰색이면
+   구분이 안 되므로 옅은 회색 채움으로 한 단 낮춤 */
 html.light-mode-on #tab1 .home-macro-pill,
 html.light-mode-on #tab1 .home-diet-input-row input {
-  background: #fdfdfd;
-  border-color: #ddd;
+  background: #f5f5f5;
+  border-color: transparent;
 }
+html.light-mode-on #tab1 .home-week-day .d { background: #f5f5f5; border-color: transparent; }
 html.light-mode-on #tab1 .home-greeting { color: rgba(0,0,0,0.45); }
 html.light-mode-on #tab1 .home-greeting b { color: rgba(0,0,0,0.75); }
 html.light-mode-on #tab1 .home-big3-badge { color: rgba(0,0,0,0.6); }
@@ -4158,7 +4168,6 @@ html.light-mode-on #tab1 .home-card-label { color: rgba(0,0,0,0.4); }
 html.light-mode-on #tab1 .home-today-sub { color: rgba(0,0,0,0.4); }
 html.light-mode-on #tab1 .home-tomorrow-label { color: rgba(0,0,0,0.4); }
 html.light-mode-on #tab1 .home-tomorrow-muscle { color: #1a1a1a; }
-html.light-mode-on #tab1 .home-week-day .d { background: #f0f0f0; border-color: #ddd; }
 html.light-mode-on #tab1 .home-week-day .lbl { color: rgba(0,0,0,0.4); }
 html.light-mode-on #tab1 .home-parts-head-sub { color: rgba(0,0,0,0.35); }
 html.light-mode-on #tab1 .home-part-name { color: rgba(0,0,0,0.85); }
@@ -11277,7 +11286,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.244";
+const APP_VERSION = "0.9.245";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
