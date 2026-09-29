@@ -10782,7 +10782,12 @@ function renderAccessoryRecords(exerciseName, opts) {
   const flatRows = buildFlatAccessoryRows(exerciseName);
 
   if (!flatRows.length) {
-    el.innerHTML = `<div style="color:var(--c-text-secondary);font-size:13px;">기록이 여기에 쌓입니다</div>`;
+    // 🔥 최근 창(로컬 캐시) 안에 기록이 없어도 과거에 기록이 있을 수 있어(ensureExerciseHistory가
+    //    자동으로 확인함) — 그 확인이 끝나기 전엔 "기록이 여기에 쌓입니다"(진짜로 없다는 뜻)를
+    //    띄우지 않고, 로딩 스피너(아래 setupRecordInfiniteScroll이 붙여줌)만 보여줌.
+    el.innerHTML = exerciseHistoryFullyLoaded.has(exerciseName)
+      ? `<div style="color:var(--c-text-secondary);font-size:13px;">기록이 여기에 쌓입니다</div>`
+      : '';
     setupRecordInfiniteScroll(el, 0, 0, !exerciseHistoryFullyLoaded.has(exerciseName),
       () => {},
       async () => { await ensureExerciseHistory(exerciseName); renderAccessoryRecords(exerciseName, opts); }
@@ -11132,7 +11137,12 @@ function renderActiveBox(){
     const flatRows = buildFlatLiftRows(liftKey);
 
     if (!flatRows.length){
-        boxEl.innerHTML = `<div style="color:var(--c-text-secondary);font-size:13px;">기록이 여기에 쌓입니다</div>`;
+        // 🔥 최근 30일 안에 기록이 없어도 과거에 기록이 있을 수 있어(ensureFullLiftHistory가
+        //    자동으로 확인함) — 그 확인이 끝나기 전엔 "기록이 여기에 쌓입니다"(진짜로 없다는 뜻)를
+        //    띄우지 않고, 로딩 스피너(아래 setupRecordInfiniteScroll이 붙여줌)만 보여줌.
+        boxEl.innerHTML = liftFullHistoryLoaded[liftKey]
+            ? `<div style="color:var(--c-text-secondary);font-size:13px;">기록이 여기에 쌓입니다</div>`
+            : '';
         setupRecordInfiniteScroll(boxEl, 0, 0, !liftFullHistoryLoaded[liftKey],
             () => {},
             async () => { await ensureFullLiftHistory(liftKey); renderActiveBox(); }
@@ -11267,7 +11277,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.241";
+const APP_VERSION = "0.9.242";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
