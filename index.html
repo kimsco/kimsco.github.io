@@ -975,17 +975,27 @@ cursor: pointer;
      왼쪽은 각지게 해서, 스와이프시 수직으로 깔끔하게 잘리도록 함 */
   border-radius: 0 14px 14px 0;
   overflow: hidden;
+  /* 🔥 .app의 좌우 패딩(7px)이 래퍼의 클리핑 경계를 화면 진짜 끝보다 7px
+     안쪽으로 당겨놔서, 카드가 스와이프로 아무리 왼쪽으로 움직여도 거기서
+     바로 잘려버려 화면 끝까지 닿지 못했음 — 왼쪽으로 정확히 7px만큼
+     경계를 넓혀서 화면 진짜 끝까지 닿도록 함(평소 모습엔 영향 없도록
+     카드 쪽에서 반대로 7px 보정) */
+  margin-left: -7px;
+  width: calc(100% + 7px);
 }
 .exercise-row-wrap .exercise-card {
   margin-bottom: 0;
   touch-action: pan-y;
+  /* 🔥 래퍼를 왼쪽으로 7px 넓힌 만큼, 카드는 반대로 오른쪽으로 7px 밀어서
+     평소 보이는 위치/폭은 기존과 완전히 동일하게 유지 */
+  margin-left: 7px;
   /* 🔥 가만히 있을 때도 우측 둥근 모서리 쪽에서 뒤에 숨은 참고 버튼 색이 실선처럼
      살짝 비치던 문제 — 카드와 래퍼(.exercise-row-wrap)가 똑같은 radius로 각자
      따로 anti-alias되면서 생기는 미세한 틈이 원인. 카드를 1px 더 넓게 그려서
      래퍼의 overflow:hidden이 그 틈까지 포함해 완전히 덮도록 함(잘려나가는 1px은
      어차피 안 보임) */
   box-sizing: border-box;
-  width: calc(100% + 1px);
+  width: calc(100% - 7px + 1px);
 }
 /* 🔥 [임시 테스트용] 카드/래퍼와 무관하게, 진짜 화면(뷰포트) 맨 왼쪽부터
    맨 오른쪽까지를 기준으로 삼는 고정 빨간 선 — .app 박스의 폭과 실제
@@ -11678,7 +11688,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.272";
+const APP_VERSION = "0.9.273";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
