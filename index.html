@@ -969,7 +969,6 @@ cursor: pointer;
   margin-bottom: 10px;
   border-radius: 14px;
   overflow: hidden;
-  transition: box-shadow 0.15s ease;
   /* 🔥 카드가 쉬고 있는 위치랑 클리핑 경계(overflow:hidden)가 똑같은 자리에
      있다보니, 카드가 왼쪽으로 조금만 움직여도 그 즉시 클리핑 경계 밖으로
      나가서 "전혀 안 움직이는 것처럼" 보이던 문제 — 클리핑 경계를 왼쪽으로
@@ -977,19 +976,6 @@ cursor: pointer;
      움직이는 모습이 화면 안에서 보이도록 함(평소 모습엔 영향 없음) */
   margin-left: -22px;
   width: calc(100% + 22px);
-}
-/* 🔥 카드 자체가 꽉 찬 단색이라 가로로 밀려도 "전체가 움직인다"는 느낌이 잘 안
-   보이던 문제 — 손을 대고 있는 동안 래퍼에 그림자를 줘서 카드가 살짝 들린 채로
-   끌려다니는 느낌을 줌(그림자는 래퍼 자신의 것이라 overflow:hidden에 안 잘림) */
-.exercise-row-wrap.dragging {
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
-}
-/* 🔥 손을 떼는 순간 그림자가 바로 사라지면 "열려있는 상태"를 스크린샷이나
-   잠깐 보는 걸로는 그림자 효과를 거의 체감할 수 없었음 — 참고 버튼이 열려서
-   보이는 동안은 계속 그림자가 남아있도록 함(카드가 평소 자리에서 떠서
-   앞으로 나와있는 느낌을 유지) */
-.exercise-row-wrap:has(.exercise-card.swiped) {
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
 }
 .exercise-row-wrap .exercise-card {
   margin-bottom: 0;
@@ -11680,7 +11666,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.267";
+const APP_VERSION = "0.9.268";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -19620,12 +19606,10 @@ function setupExerciseSwipe(card){
       isHorizontal = Math.abs(dx) > Math.abs(dy);
       decided = true;
       // 🔥 가로 스와이프로 확정되는 즉시 참고 버튼에 색을 입힘(그 전까진 투명이라
-      // 카드 모서리 틈으로 비칠 색 자체가 없음) + 카드가 들린 채로 끌려다니는
-      // 느낌을 주는 그림자도 같이 켬
+      // 카드 모서리 틈으로 비칠 색 자체가 없음)
       if (isHorizontal) {
         const refBtn = getExerciseRefActionEl(card);
         if (refBtn) refBtn.classList.add('revealed');
-        card.parentElement.classList.add('dragging');
       }
     }
     if (!isHorizontal) return; // 세로 스크롤은 그대로 통과시킴
@@ -19640,7 +19624,6 @@ function setupExerciseSwipe(card){
     if (!dragging) return;
     dragging = false;
     card.style.transition = '';
-    card.parentElement.classList.remove('dragging');
     if (!isHorizontal) { card.style.transform = card.classList.contains('swiped') ? `translateX(-${EXERCISE_SWIPE_WIDTH}px)` : ''; return; }
 
     const current = card.style.transform.match(/-?\d+(\.\d+)?/);
