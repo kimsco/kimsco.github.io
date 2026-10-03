@@ -981,11 +981,18 @@ cursor: pointer;
   box-sizing: border-box;
   width: calc(100% + 1px);
 }
-/* 🔥 [임시 테스트용] 맨 위 카드 상단에 굵은 빨간 선 — 스와이프할 때 카드가
-   실제로 어디까지 움직이고 어디서 잘리는지 기준선으로 눈으로 확인하기 위함.
-   카드 자신의 border라서 카드가 움직이면 선도 끊김없이 같이 움직임 */
-#exercise-list .exercise-row-wrap:first-child .exercise-card {
-  border-top: 6px solid red;
+/* 🔥 [임시 테스트용] 카드/래퍼와 무관하게, 진짜 화면(뷰포트) 맨 왼쪽부터
+   맨 오른쪽까지를 기준으로 삼는 고정 빨간 선 — .app 박스의 폭과 실제
+   기기 화면 폭이 다른지 확인하기 위함 */
+#debugFullWidthLine {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 240px;
+  height: 6px;
+  background: red;
+  z-index: 999999;
+  pointer-events: none;
 }
 /* 🔥 뒤에 숨은 참고 버튼이 카드의 :active 축소 애니메이션 때 테두리 틈으로
    살짝 비쳐 보이던 문제 — 스와이프 카드는 눌러도 축소 효과를 끔 */
@@ -7959,6 +7966,9 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
      손을 뗄 때까지, 투명하게 화면 전체를 덮어 다른 터치를 전부 무시시킴 -->
 <div id="swipeTouchGuard" style="position:fixed; inset:0; z-index:999999; pointer-events:none;"></div>
 
+<!-- 🔥 [임시 테스트용] 실제 기기 화면 폭 확인용 고정 빨간 선 -->
+<div id="debugFullWidthLine"></div>
+
 <!-- 🔥 3일 이상 기록하지 않은 사용자에게 전면에 뜨는 페이지 — 홈 화면(진심모드
      여부와 무관)을 포함해 앱 전체를 덮음. .app 바깥에 둬서 .app에 transform이
      걸려도(드로어 애니메이션 등) 영향을 안 받도록 함 -->
@@ -11662,7 +11672,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.270";
+const APP_VERSION = "0.9.271";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
