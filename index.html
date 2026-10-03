@@ -981,6 +981,12 @@ cursor: pointer;
   box-sizing: border-box;
   width: calc(100% + 1px);
 }
+/* 🔥 [임시 테스트용] 맨 위 카드 상단에 굵은 빨간 선 — 스와이프할 때 카드가
+   실제로 어디까지 움직이고 어디서 잘리는지 기준선으로 눈으로 확인하기 위함.
+   카드 자신의 border라서 카드가 움직이면 선도 끊김없이 같이 움직임 */
+#exercise-list .exercise-row-wrap:first-child .exercise-card {
+  border-top: 6px solid red;
+}
 /* 🔥 뒤에 숨은 참고 버튼이 카드의 :active 축소 애니메이션 때 테두리 틈으로
    살짝 비쳐 보이던 문제 — 스와이프 카드는 눌러도 축소 효과를 끔 */
 .exercise-row-wrap .exercise-card:active {
@@ -11656,7 +11662,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.269";
+const APP_VERSION = "0.9.270";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
