@@ -977,6 +977,13 @@ cursor: pointer;
 .exercise-row-wrap.dragging {
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
 }
+/* 🔥 손을 떼는 순간 그림자가 바로 사라지면 "열려있는 상태"를 스크린샷이나
+   잠깐 보는 걸로는 그림자 효과를 거의 체감할 수 없었음 — 참고 버튼이 열려서
+   보이는 동안은 계속 그림자가 남아있도록 함(카드가 평소 자리에서 떠서
+   앞으로 나와있는 느낌을 유지) */
+.exercise-row-wrap:has(.exercise-card.swiped) {
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
+}
 .exercise-row-wrap .exercise-card {
   margin-bottom: 0;
   touch-action: pan-y;
@@ -11663,7 +11670,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.265";
+const APP_VERSION = "0.9.266";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
