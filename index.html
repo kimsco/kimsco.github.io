@@ -991,7 +991,12 @@ cursor: pointer;
   top: 0;
   right: 0;
   bottom: 0;
-  width: 72px;
+  /* 🔥 실제로 드러나는 폭(72px)보다 왼쪽으로 더 길게(+40px) 깔아둬서, 카드 우측의
+     둥근 모서리가 말려들어가는 구간에서도 뒤가 항상 파란색으로 끊김없이 채워지도록
+     여유분을 확보 — 이 여유분은 카드가 항상 최소 72px는 덮고 있어서 실제로는
+     절대 눈에 보이지 않음(글자는 padding-left로 원래 72px 안에서 중앙 정렬 유지) */
+  width: 112px;
+  padding-left: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -11644,7 +11649,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.262";
+const APP_VERSION = "0.9.263";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
