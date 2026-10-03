@@ -969,6 +969,13 @@ cursor: pointer;
   margin-bottom: 10px;
   border-radius: 14px;
   overflow: hidden;
+  transition: box-shadow 0.15s ease;
+}
+/* 🔥 카드 자체가 꽉 찬 단색이라 가로로 밀려도 "전체가 움직인다"는 느낌이 잘 안
+   보이던 문제 — 손을 대고 있는 동안 래퍼에 그림자를 줘서 카드가 살짝 들린 채로
+   끌려다니는 느낌을 줌(그림자는 래퍼 자신의 것이라 overflow:hidden에 안 잘림) */
+.exercise-row-wrap.dragging {
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
 }
 .exercise-row-wrap .exercise-card {
   margin-bottom: 0;
@@ -11656,7 +11663,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.264";
+const APP_VERSION = "0.9.265";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -19596,10 +19603,12 @@ function setupExerciseSwipe(card){
       isHorizontal = Math.abs(dx) > Math.abs(dy);
       decided = true;
       // 🔥 가로 스와이프로 확정되는 즉시 참고 버튼에 색을 입힘(그 전까진 투명이라
-      // 카드 모서리 틈으로 비칠 색 자체가 없음)
+      // 카드 모서리 틈으로 비칠 색 자체가 없음) + 카드가 들린 채로 끌려다니는
+      // 느낌을 주는 그림자도 같이 켬
       if (isHorizontal) {
         const refBtn = getExerciseRefActionEl(card);
         if (refBtn) refBtn.classList.add('revealed');
+        card.parentElement.classList.add('dragging');
       }
     }
     if (!isHorizontal) return; // 세로 스크롤은 그대로 통과시킴
@@ -19614,6 +19623,7 @@ function setupExerciseSwipe(card){
     if (!dragging) return;
     dragging = false;
     card.style.transition = '';
+    card.parentElement.classList.remove('dragging');
     if (!isHorizontal) { card.style.transform = card.classList.contains('swiped') ? `translateX(-${EXERCISE_SWIPE_WIDTH}px)` : ''; return; }
 
     const current = card.style.transform.match(/-?\d+(\.\d+)?/);
