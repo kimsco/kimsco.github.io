@@ -995,11 +995,18 @@ cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--c-login-link);
+  /* 🔥 대기 중엔 투명 처리 — 카드와 래퍼 모서리가 아무리 딱 맞아도 결국 아주
+     살짝 비쳐 보이는 기기가 있어서, 아예 평소엔 색을 없애고 스와이프가 시작되는
+     순간(.revealed)에만 색을 칠해서 원천 차단 */
+  background: transparent;
   color: #fff;
   font-size: 14px;
   font-weight: 700;
   cursor: pointer;
+  transition: background 0.1s ease;
+}
+.exercise-ref-action.revealed {
+  background: var(--c-login-link);
 }
 
 .exercise-name {
@@ -11637,7 +11644,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.261";
+const APP_VERSION = "0.9.262";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -19539,9 +19546,15 @@ function renderExercises(opts) {
 const EXERCISE_SWIPE_WIDTH = 72;
 let openedExerciseSwipeCard = null;
 
+function getExerciseRefActionEl(card){
+  return card.parentElement && card.parentElement.querySelector('.exercise-ref-action');
+}
+
 function closeExerciseSwipe(card){
   card.classList.remove('swiped');
   card.style.transform = '';
+  const refBtn = getExerciseRefActionEl(card);
+  if (refBtn) refBtn.classList.remove('revealed');
   if (openedExerciseSwipeCard === card) openedExerciseSwipeCard = null;
 }
 
@@ -19570,6 +19583,12 @@ function setupExerciseSwipe(card){
       if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return; // 아직 판단하기엔 너무 작은 움직임
       isHorizontal = Math.abs(dx) > Math.abs(dy);
       decided = true;
+      // 🔥 가로 스와이프로 확정되는 즉시 참고 버튼에 색을 입힘(그 전까진 투명이라
+      // 카드 모서리 틈으로 비칠 색 자체가 없음)
+      if (isHorizontal) {
+        const refBtn = getExerciseRefActionEl(card);
+        if (refBtn) refBtn.classList.add('revealed');
+      }
     }
     if (!isHorizontal) return; // 세로 스크롤은 그대로 통과시킴
 
