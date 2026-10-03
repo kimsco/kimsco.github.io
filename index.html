@@ -973,20 +973,18 @@ cursor: pointer;
 .exercise-row-wrap .exercise-card {
   margin-bottom: 0;
   touch-action: pan-y;
-  will-change: transform; /* 🔥 스와이프 중 배경과 텍스트가 서로 다른 레이어로 따로 움직이는
-    것처럼 보이던 문제 — GPU 레이어로 미리 승격시켜 카드 전체(배경+글자)가 항상 한 덩어리로
-    같이 움직이도록 보장 */
+  /* 🔥 가만히 있을 때도 우측 둥근 모서리 쪽에서 뒤에 숨은 참고 버튼 색이 실선처럼
+     살짝 비치던 문제 — 카드와 래퍼(.exercise-row-wrap)가 똑같은 radius로 각자
+     따로 anti-alias되면서 생기는 미세한 틈이 원인. 카드를 1px 더 넓게 그려서
+     래퍼의 overflow:hidden이 그 틈까지 포함해 완전히 덮도록 함(잘려나가는 1px은
+     어차피 안 보임) */
+  box-sizing: border-box;
+  width: calc(100% + 1px);
 }
-/* 🔥 뒤에 숨은 빨간(참고) 버튼이 카드의 :active 축소 애니메이션 때 테두리 틈으로
+/* 🔥 뒤에 숨은 참고 버튼이 카드의 :active 축소 애니메이션 때 테두리 틈으로
    살짝 비쳐 보이던 문제 — 스와이프 카드는 눌러도 축소 효과를 끔 */
 .exercise-row-wrap .exercise-card:active {
   transform: none;
-}
-/* 🔥 스와이프로 열렸을 때 카드 우측의 둥근 모서리가 참고 버튼의 각진 모서리와
-   어긋나 보이던 문제 — 열린 상태에서는 카드 우측 모서리를 각지게 맞춤 */
-.exercise-row-wrap .exercise-card.swiped {
-  border-top-right-radius: 0;
-  border-bottom-right-radius: 0;
 }
 .exercise-ref-action {
   position: absolute;
@@ -11639,7 +11637,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.260";
+const APP_VERSION = "0.9.261";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
