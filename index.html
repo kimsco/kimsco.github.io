@@ -963,6 +963,36 @@ cursor: pointer;
   transform: scale(0.985);
 }
 
+/* 🔥 종목 카드 왼쪽 스와이프 — 뒤에 숨어있는 "참고" 버튼을 드래그로 꺼내 보여줌 */
+.exercise-row-wrap {
+  position: relative;
+  margin-bottom: 10px;
+  border-radius: 14px;
+  overflow: hidden;
+}
+.exercise-row-wrap .exercise-card {
+  margin-bottom: 0;
+  touch-action: pan-y;
+}
+.exercise-ref-action {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e0203f;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+html.light-mode-on .exercise-ref-action {
+  background: #d03e39;
+}
+
 .exercise-name {
   font-size: 16px;
   font-weight: 600;
@@ -4783,6 +4813,124 @@ html.light-mode-on .settings-row + .settings-row {
   border-radius: 16px;
   overflow: hidden;
   border: 1px solid rgba(255,255,255,0.08);
+}
+
+/* 🔥 종목 참고 링크 패널 — 화면의 80% 크기, 70% 불투명도의 둥근 사각형(메모장 느낌) */
+.exercise-ref-modal-box {
+  width: 80%;
+  height: 80%;
+  max-width: 420px;
+  background: rgba(33,33,33,0.7);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  border-radius: 24px;
+  border: 1px solid rgba(255,255,255,0.12);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+html.light-mode-on .exercise-ref-modal-box {
+  background: rgba(250,250,250,0.7);
+  border-color: rgba(0,0,0,0.1);
+}
+.exercise-ref-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 18px 12px;
+  flex-shrink: 0;
+}
+.exercise-ref-modal-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--c-text-primary);
+}
+.exercise-ref-modal-close {
+  background: none;
+  border: none;
+  width: auto;
+  padding: 4px;
+  margin: 0;
+  color: var(--c-text-secondary);
+  cursor: pointer;
+  display: flex;
+}
+.exercise-ref-modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 18px;
+  -webkit-overflow-scrolling: touch;
+}
+.exercise-ref-empty {
+  color: var(--c-text-secondary);
+  font-size: 13px;
+  padding: 10px 0;
+}
+.exercise-ref-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(var(--c-ink-rgb),0.08);
+}
+.exercise-ref-row-link {
+  flex: 1;
+  min-width: 0;
+  color: var(--c-login-link);
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-decoration: none;
+  cursor: pointer;
+}
+.exercise-ref-row-btn {
+  background: none;
+  border: none;
+  width: auto;
+  padding: 4px;
+  margin: 0;
+  color: var(--c-text-secondary);
+  cursor: pointer;
+  display: flex;
+  flex-shrink: 0;
+}
+.exercise-ref-modal-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 18px;
+  flex-shrink: 0;
+  border-top: 1px solid rgba(var(--c-ink-rgb),0.08);
+}
+.exercise-ref-url-input {
+  flex: 1;
+  width: auto;
+  margin: 0;
+  background: rgba(var(--c-ink-rgb),0.06);
+  border: 1px solid rgba(var(--c-ink-rgb),0.12);
+  border-radius: 10px;
+  padding: 10px 12px;
+  color: var(--c-text-primary);
+  font-size: 13px;
+  box-sizing: border-box;
+}
+.exercise-ref-url-input::placeholder {
+  color: var(--c-text-tertiary);
+}
+.exercise-ref-add-btn {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  margin: 0;
+  background: #fff;
+  color: #000;
+  border: none;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
 }
 
 .modal-title{
@@ -9160,6 +9308,26 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
   </div>
 </div>
 
+<!-- 🔥 종목 카드 왼쪽 스와이프 → "참고" 버튼으로 여는 참고 링크(유튜브 등) 패널 —
+     여러 개 등록 가능, 클릭해서 열기/수정/삭제 -->
+<div id="exerciseRefModal" class="modal hidden">
+  <div class="exercise-ref-modal-box">
+    <div class="exercise-ref-modal-header">
+      <div class="exercise-ref-modal-title" id="exerciseRefModalTitle"></div>
+      <button id="exerciseRefModalCloseBtn" class="exercise-ref-modal-close" aria-label="닫기">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
+    <div class="exercise-ref-modal-body" id="exerciseRefList"></div>
+    <div class="exercise-ref-modal-footer">
+      <input type="url" id="exerciseRefUrlInput" class="exercise-ref-url-input" placeholder="링크 붙여넣기(유튜브 등)" inputmode="url">
+      <button id="exerciseRefAddBtn" class="exercise-ref-add-btn" aria-label="링크 추가">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- 루틴 만들기(+루틴 추가하기): 저장 위치 선택 — 오늘의 운동 저장 팝업과 동일한 구조 -->
 <div id="myRoutineBuilderNameModal" class="modal hidden">
   <div class="modal-box">
@@ -10344,7 +10512,8 @@ const LS_KEYS = {
   dexPosts: "mf_dex_posts_v1",           // 운동도감 게시물 (공용)
   dexPendingIds: "mf_dex_pending_ids_v1", // 서버 동기화 아직 안 된 폴더/게시물 id 목록
   myRoutineTemplates: "mf_my_routine_templates_v1", // 내가 만든 루틴 템플릿
-  myRoutineCollapsedGroups: "mf_my_routine_collapsed_groups_v1" // 루틴 상자 접기/펼치기 최근 사용 상태
+  myRoutineCollapsedGroups: "mf_my_routine_collapsed_groups_v1", // 루틴 상자 접기/펼치기 최근 사용 상태
+  exerciseRefLinks: "mf_exercise_ref_links_v1" // 종목별 참고 링크(유튜브 등) 목록
 };
 
 function lsGet(key, fallback){
@@ -10429,6 +10598,148 @@ function saveAccListToLocal(part, list){
 function loadAccListFromLocal(part){
   return lsGet(LS_KEYS.accessoriesList(part), []);
 }
+
+/* ===============================
+   🔥 종목별 참고 링크(유튜브 등) — 종목 카드를 왼쪽으로 스와이프하면 나오는
+   "참고" 버튼으로 열리는 패널에서 등록/수정/삭제. 여러 개 등록 가능.
+================================ */
+let exerciseRefLinks = lsGet(LS_KEYS.exerciseRefLinks, {}); // { [종목명]: [{ id, url, createdAt }] }
+let exerciseRefLinksSyncedFromServer = false; // 로그인 사용자 기준 서버에서 한 번 받아왔는지
+
+function saveExerciseRefLinksToLocal(){
+  lsSet(LS_KEYS.exerciseRefLinks, exerciseRefLinks);
+}
+
+// 🔥 종목별로 문서를 따로 두면 문서 수가 너무 많아지고 링크 데이터 자체가 가벼워서,
+// 로그인 사용자는 전체를 문서 하나(meta/exerciseRefLinks)에 모아 저장
+async function ensureExerciseRefLinksSynced(){
+  if (exerciseRefLinksSyncedFromServer) return;
+  const user = auth.currentUser;
+  if (!user) { exerciseRefLinksSyncedFromServer = true; return; }
+  try {
+    const doc = await db.collection('users').doc(user.uid).collection('meta').doc('exerciseRefLinks').get();
+    if (doc.exists) {
+      exerciseRefLinks = doc.data().links || {};
+      saveExerciseRefLinksToLocal();
+    }
+  } catch (e) {
+    console.error("종목 참고 링크 동기화 실패", e);
+  }
+  exerciseRefLinksSyncedFromServer = true;
+}
+
+async function saveExerciseRefLinksToServer(){
+  const user = auth.currentUser;
+  if (!user) return;
+  try {
+    await db.collection('users').doc(user.uid).collection('meta').doc('exerciseRefLinks')
+      .set({ links: exerciseRefLinks }, { merge: true });
+  } catch (e) {
+    console.error("종목 참고 링크 저장 실패", e);
+  }
+}
+
+function getExerciseRefLinks(name){
+  return exerciseRefLinks[name] || [];
+}
+
+function addExerciseRefLink(name, url){
+  if (!exerciseRefLinks[name]) exerciseRefLinks[name] = [];
+  exerciseRefLinks[name].push({ id: "ref_" + Date.now() + "_" + Math.random(), url, createdAt: Date.now() });
+  saveExerciseRefLinksToLocal();
+  saveExerciseRefLinksToServer();
+}
+
+function updateExerciseRefLink(name, id, newUrl){
+  const item = (exerciseRefLinks[name] || []).find(x => x.id === id);
+  if (!item) return;
+  item.url = newUrl;
+  saveExerciseRefLinksToLocal();
+  saveExerciseRefLinksToServer();
+}
+
+function deleteExerciseRefLink(name, id){
+  exerciseRefLinks[name] = (exerciseRefLinks[name] || []).filter(x => x.id !== id);
+  saveExerciseRefLinksToLocal();
+  saveExerciseRefLinksToServer();
+}
+
+// --- 참고 링크 패널 UI ---
+let exerciseRefModalCurrentName = null;
+const exerciseRefModal = document.getElementById('exerciseRefModal');
+const exerciseRefModalTitle = document.getElementById('exerciseRefModalTitle');
+const exerciseRefList = document.getElementById('exerciseRefList');
+const exerciseRefUrlInput = document.getElementById('exerciseRefUrlInput');
+
+function renderExerciseRefList(){
+  const links = getExerciseRefLinks(exerciseRefModalCurrentName);
+  if (!links.length) {
+    exerciseRefList.innerHTML = `<div class="exercise-ref-empty">아직 등록된 참고 링크가 없어요</div>`;
+    return;
+  }
+  exerciseRefList.innerHTML = links.map(item => `
+    <div class="exercise-ref-row" data-id="${item.id}">
+      <a class="exercise-ref-row-link" href="${item.url}" target="_blank" rel="noopener noreferrer">${item.url}</a>
+      <button class="exercise-ref-row-btn exercise-ref-edit-btn" aria-label="수정">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path></svg>
+      </button>
+      <button class="exercise-ref-row-btn exercise-ref-delete-btn" aria-label="삭제">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6M14 11v6"></path></svg>
+      </button>
+    </div>
+  `).join('');
+
+  exerciseRefList.querySelectorAll('.exercise-ref-edit-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.closest('.exercise-ref-row').dataset.id;
+      const item = getExerciseRefLinks(exerciseRefModalCurrentName).find(x => x.id === id);
+      if (!item) return;
+      const next = prompt('링크를 수정하세요', item.url);
+      if (next == null) return;
+      const trimmed = next.trim();
+      if (!trimmed) return;
+      updateExerciseRefLink(exerciseRefModalCurrentName, id, trimmed);
+      renderExerciseRefList();
+    });
+  });
+  exerciseRefList.querySelectorAll('.exercise-ref-delete-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.closest('.exercise-ref-row').dataset.id;
+      deleteExerciseRefLink(exerciseRefModalCurrentName, id);
+      renderExerciseRefList();
+    });
+  });
+}
+
+async function openExerciseRefModal(name){
+  exerciseRefModalCurrentName = name;
+  exerciseRefModalTitle.textContent = name;
+  exerciseRefUrlInput.value = '';
+  exerciseRefModal.classList.remove('hidden');
+  renderExerciseRefList();
+  await ensureExerciseRefLinksSynced();
+  if (exerciseRefModalCurrentName === name) renderExerciseRefList();
+}
+
+function closeExerciseRefModal(){
+  exerciseRefModal.classList.add('hidden');
+  exerciseRefModalCurrentName = null;
+}
+
+document.getElementById('exerciseRefModalCloseBtn').addEventListener('click', closeExerciseRefModal);
+exerciseRefModal.addEventListener('click', (e) => {
+  if (e.target === exerciseRefModal) closeExerciseRefModal();
+});
+document.getElementById('exerciseRefAddBtn').addEventListener('click', () => {
+  const url = exerciseRefUrlInput.value.trim();
+  if (!url) return;
+  addExerciseRefLink(exerciseRefModalCurrentName, url);
+  exerciseRefUrlInput.value = '';
+  renderExerciseRefList();
+});
+exerciseRefUrlInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') document.getElementById('exerciseRefAddBtn').click();
+});
 
 /* ===============================
    🔥 보조운동(4번째 탭) 로직
@@ -11303,7 +11614,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.258";
+const APP_VERSION = "0.9.259";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -19170,9 +19481,96 @@ function renderExercises(opts) {
       <div class="exercise-name">${name}</div>
     `;
 
-    card.addEventListener('click', () => onOpenDetail(name));
+    card.addEventListener('click', () => {
+      // 🔥 스와이프로 "참고" 버튼이 열려있는 상태에서의 탭은 상세화면으로 들어가지
+      // 않고 그냥 닫기만 함(열린 채로 다른 종목을 누르면 상세가 바로 열리던 혼란 방지)
+      if (card.classList.contains('swiped')) { closeExerciseSwipe(card); return; }
+      onOpenDetail(name);
+    });
 
-    targetEl.appendChild(card);
+    // 🔥 검색창 있는 기본 목록(기록탭)에서만 참고 링크 스와이프 지원 — 루틴 빌더
+    // 종목 선택 화면 등 재사용되는 다른 화면에서는 선택 동작과 겹치지 않게 뺌
+    if (!opts.listElId) {
+      const wrap = document.createElement('div');
+      wrap.className = 'exercise-row-wrap';
+      const refBtn = document.createElement('div');
+      refBtn.className = 'exercise-ref-action';
+      refBtn.textContent = '참고';
+      refBtn.addEventListener('click', () => {
+        closeExerciseSwipe(card);
+        openExerciseRefModal(name);
+      });
+      wrap.appendChild(refBtn);
+      wrap.appendChild(card);
+      setupExerciseSwipe(card);
+      targetEl.appendChild(wrap);
+    } else {
+      targetEl.appendChild(card);
+    }
+  });
+}
+
+// 🔥 종목 카드 왼쪽 스와이프 — 뒤에 숨어있는 "참고" 버튼(72px)을 끌어서 보여줌.
+// 한 번에 하나의 카드만 열려있도록, 새로 스와이프를 시작하면 기존에 열려있던
+// 카드는 자동으로 닫음.
+const EXERCISE_SWIPE_WIDTH = 72;
+let openedExerciseSwipeCard = null;
+
+function closeExerciseSwipe(card){
+  card.classList.remove('swiped');
+  card.style.transform = '';
+  if (openedExerciseSwipeCard === card) openedExerciseSwipeCard = null;
+}
+
+function setupExerciseSwipe(card){
+  let startX = 0, startY = 0, startTranslate = 0, dragging = false, decided = false, isHorizontal = false;
+
+  card.addEventListener('touchstart', (e) => {
+    if (openedExerciseSwipeCard && openedExerciseSwipeCard !== card) closeExerciseSwipe(openedExerciseSwipeCard);
+    const t = e.touches[0];
+    startX = t.clientX;
+    startY = t.clientY;
+    startTranslate = card.classList.contains('swiped') ? -EXERCISE_SWIPE_WIDTH : 0;
+    dragging = true;
+    decided = false;
+    isHorizontal = false;
+    card.style.transition = 'none';
+  }, { passive: true });
+
+  card.addEventListener('touchmove', (e) => {
+    if (!dragging) return;
+    const t = e.touches[0];
+    const dx = t.clientX - startX;
+    const dy = t.clientY - startY;
+
+    if (!decided) {
+      if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return; // 아직 판단하기엔 너무 작은 움직임
+      isHorizontal = Math.abs(dx) > Math.abs(dy);
+      decided = true;
+    }
+    if (!isHorizontal) return; // 세로 스크롤은 그대로 통과시킴
+
+    e.preventDefault();
+    let next = startTranslate + dx;
+    next = Math.max(-EXERCISE_SWIPE_WIDTH, Math.min(0, next));
+    card.style.transform = `translateX(${next}px)`;
+  }, { passive: false });
+
+  card.addEventListener('touchend', () => {
+    if (!dragging) return;
+    dragging = false;
+    card.style.transition = '';
+    if (!isHorizontal) { card.style.transform = card.classList.contains('swiped') ? `translateX(-${EXERCISE_SWIPE_WIDTH}px)` : ''; return; }
+
+    const current = card.style.transform.match(/-?\d+(\.\d+)?/);
+    const currentX = current ? parseFloat(current[0]) : 0;
+    if (currentX <= -EXERCISE_SWIPE_WIDTH / 2) {
+      card.classList.add('swiped');
+      card.style.transform = `translateX(-${EXERCISE_SWIPE_WIDTH}px)`;
+      openedExerciseSwipeCard = card;
+    } else {
+      closeExerciseSwipe(card);
+    }
   });
 }
 
