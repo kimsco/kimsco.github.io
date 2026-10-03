@@ -994,12 +994,15 @@ cursor: pointer;
   /* 🔥 실제로 드러나는 폭(72px)보다 왼쪽으로 더 길게(+40px) 깔아둬서, 카드 우측의
      둥근 모서리가 말려들어가는 구간에서도 뒤가 항상 파란색으로 끊김없이 채워지도록
      여유분을 확보 — 이 여유분은 카드가 항상 최소 72px는 덮고 있어서 실제로는
-     절대 눈에 보이지 않음(글자는 padding-left로 원래 72px 안에서 중앙 정렬 유지) */
+     절대 눈에 보이지 않음 */
   width: 112px;
-  padding-left: 40px;
   display: flex;
   align-items: center;
-  justify-content: center;
+  /* 🔥 글자는 왼쪽 여유분(40px) 크기와 무관하게 항상 오른쪽 기준(실제 보이는
+     72px 안)에서 정확히 가운데 오도록, 안쪽 라벨에 고정폭을 주고 우측(flex-end)에
+     붙임 — padding-left로 가운데 정렬을 흉내내면 기기별 실제 드러나는 폭이
+     살짝 달라질 때 글자가 한쪽으로 치우쳐 보이는 문제가 있었음 */
+  justify-content: flex-end;
   /* 🔥 대기 중엔 투명 처리 — 카드와 래퍼 모서리가 아무리 딱 맞아도 결국 아주
      살짝 비쳐 보이는 기기가 있어서, 아예 평소엔 색을 없애고 스와이프가 시작되는
      순간(.revealed)에만 색을 칠해서 원천 차단 */
@@ -1012,6 +1015,10 @@ cursor: pointer;
 }
 .exercise-ref-action.revealed {
   background: var(--c-login-link);
+}
+.exercise-ref-action-label {
+  width: 72px;
+  text-align: center;
 }
 
 .exercise-name {
@@ -11649,7 +11656,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.263";
+const APP_VERSION = "0.9.264";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -19530,7 +19537,7 @@ function renderExercises(opts) {
       wrap.className = 'exercise-row-wrap';
       const refBtn = document.createElement('div');
       refBtn.className = 'exercise-ref-action';
-      refBtn.textContent = '참고';
+      refBtn.innerHTML = '<span class="exercise-ref-action-label">참고</span>';
       refBtn.addEventListener('click', () => {
         closeExerciseSwipe(card);
         openExerciseRefModal(name);
