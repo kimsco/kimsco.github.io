@@ -970,6 +970,13 @@ cursor: pointer;
   border-radius: 14px;
   overflow: hidden;
   transition: box-shadow 0.15s ease;
+  /* 🔥 카드가 쉬고 있는 위치랑 클리핑 경계(overflow:hidden)가 똑같은 자리에
+     있다보니, 카드가 왼쪽으로 조금만 움직여도 그 즉시 클리핑 경계 밖으로
+     나가서 "전혀 안 움직이는 것처럼" 보이던 문제 — 클리핑 경계를 왼쪽으로
+     22px 더 넓혀서, 스와이프를 시작하면 그 22px 구간만큼은 카드가 실제로
+     움직이는 모습이 화면 안에서 보이도록 함(평소 모습엔 영향 없음) */
+  margin-left: -22px;
+  width: calc(100% + 22px);
 }
 /* 🔥 카드 자체가 꽉 찬 단색이라 가로로 밀려도 "전체가 움직인다"는 느낌이 잘 안
    보이던 문제 — 손을 대고 있는 동안 래퍼에 그림자를 줘서 카드가 살짝 들린 채로
@@ -987,13 +994,16 @@ cursor: pointer;
 .exercise-row-wrap .exercise-card {
   margin-bottom: 0;
   touch-action: pan-y;
+  /* 🔥 래퍼를 왼쪽으로 22px 넓힌 만큼, 카드는 반대로 오른쪽으로 22px 밀어서
+     평소 보이는 위치/폭은 기존과 완전히 똑같이 유지 */
+  margin-left: 22px;
   /* 🔥 가만히 있을 때도 우측 둥근 모서리 쪽에서 뒤에 숨은 참고 버튼 색이 실선처럼
      살짝 비치던 문제 — 카드와 래퍼(.exercise-row-wrap)가 똑같은 radius로 각자
      따로 anti-alias되면서 생기는 미세한 틈이 원인. 카드를 1px 더 넓게 그려서
      래퍼의 overflow:hidden이 그 틈까지 포함해 완전히 덮도록 함(잘려나가는 1px은
      어차피 안 보임) */
   box-sizing: border-box;
-  width: calc(100% + 1px);
+  width: calc(100% - 22px + 1px);
 }
 /* 🔥 뒤에 숨은 참고 버튼이 카드의 :active 축소 애니메이션 때 테두리 틈으로
    살짝 비쳐 보이던 문제 — 스와이프 카드는 눌러도 축소 효과를 끔 */
@@ -11670,7 +11680,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.266";
+const APP_VERSION = "0.9.267";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
