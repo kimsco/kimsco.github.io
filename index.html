@@ -206,7 +206,13 @@ button {
 
 
 .topText{
-  flex: 1;              /* ✅ 남는 공간 다 먹고 */
+  /* 🔥 버튼들 사이 남는 공간 기준이 아니라, topBar 전체 폭 기준 정가운데에
+     오도록 flex 흐름에서 빼서 절대 위치로 배치(좌/우 버튼 개수가
+     비대칭이어도 글자는 항상 바 전체의 중앙에 옴) */
+  position: absolute;
+  left: 0;
+  right: 0;
+  pointer-events: none;
   min-width: 0;         /* ✅ iOS에서 줄바꿈/밀림 방지 핵심 */
   color: white;
   font-family: Georgia, "Times New Roman", serif;
@@ -232,13 +238,18 @@ button {
 
 /* 🔥 설정 버튼 왼쪽에 놓이는 공지사항(종 모양) 버튼 — 설정 버튼과 동일한
    크기/색/여백 규칙을 그대로 따름 */
+.topBar-right{
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
 .announcement-btn{
   flex: 0 0 auto;
   all: unset;
   position: relative;
   width: 24px;
   height: 24px;
-  margin-right: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -8074,6 +8085,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
     <div>To the Top</div>
   </div>
 
+  <div class="topBar-right">
   <button id="openAnnouncementBtn" class="announcement-btn" aria-label="공지사항">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
          stroke-linecap="round" stroke-linejoin="round">
@@ -8122,6 +8134,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
     </path>
   </svg>
 </button>
+  </div>
 
 </div>
 
@@ -11816,7 +11829,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.291";
+const APP_VERSION = "0.9.292";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
