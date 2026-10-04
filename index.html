@@ -10852,7 +10852,19 @@ function setupModalKeyboardFix(modalBox, inputs) {
     const vv = window.visualViewport;
     const keyboardHeight = Math.max(0, window.innerHeight - (vv ? vv.height : window.innerHeight));
     if (keyboardHeight > 80) {
-      animateTranslateY(keyboardHeight / 2);
+      // 🔥 단순히 위로 옮기기만 하면, 모달 박스 자체 높이(CSS 80%)는 그대로라
+      // 키보드 위 남는 공간보다 커서 제목/헤더가 화면 위로 밀려 나가버림
+      // (입력창 바로 위쪽 살짝만 보이는 현상) — 그래서 위로 옮기는 것과 함께
+      // 키보드 위 남는 공간에 맞춰 높이 자체도 줄임. 본문(.exercise-ref-modal-body)이
+      // flex:1 + overflow-y:auto라서, 높이를 줄여도 헤더/입력창은 그대로 유지되고
+      // 링크 목록 영역만 줄어듦
+      const margin = 16;
+      const availableHeight = Math.max(240, window.innerHeight - keyboardHeight - margin * 2);
+      const defaultHeight = Math.min(window.innerHeight * 0.8, availableHeight);
+      modalBox.style.maxHeight = defaultHeight + 'px';
+      const currentBottom = (window.innerHeight + defaultHeight) / 2;
+      const targetBottom = window.innerHeight - keyboardHeight - margin;
+      animateTranslateY(Math.max(0, currentBottom - targetBottom));
       inputs.forEach(el => { el.style.opacity = ''; });
     }
   }
@@ -10876,6 +10888,7 @@ function setupModalKeyboardFix(modalBox, inputs) {
         if (!inputs.includes(document.activeElement)) {
           isActive = false;
           inputs.forEach(el => { el.style.opacity = ''; });
+          modalBox.style.maxHeight = '';
           animateTranslateY(0);
         }
       }, 0);
@@ -11757,7 +11770,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.289";
+const APP_VERSION = "0.9.290";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
