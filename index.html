@@ -964,9 +964,19 @@ cursor: pointer;
 }
 
 /* 🔥 종목 카드 왼쪽 스와이프 — 뒤에 숨어있는 "참고" 버튼을 드래그로 꺼내 보여줌 */
+/* 🔥 .app의 좌우 패딩(7px)이 클리핑 경계를 화면 진짜 끝보다 7px 안쪽으로
+   당겨놔서, 카드가 스와이프로 아무리 왼쪽으로 움직여도 거기서 바로
+   잘려버려 화면 끝까지 닿지 못했음 — 이 음수 마진은 overflow:hidden을
+   가진 .exercise-row-wrap이 아니라 바깥의 별도 shell에 줌(같은 요소에
+   음수 마진+overflow:hidden을 같이 주면 일부 사파리에서 레이아웃 좌표는
+   맞는데 실제 그려지는 픽셀이 못 따라가는 현상이 있었음) */
+.exercise-row-shell {
+  margin-left: -7px;
+  width: calc(100% + 7px);
+  margin-bottom: 10px;
+}
 .exercise-row-wrap {
   position: relative;
-  margin-bottom: 10px;
   /* 🔥 래퍼(클리핑 틀) 자체는 스와이프해도 움직이지 않고 항상 제자리에
      고정돼있는데, 왼쪽 모서리까지 둥글게(border-radius) 깎아놨더니 —
      스와이프된 카드의 단색 몸통이 그 둥근 틀 안을 계속 채우면서 "둥근
@@ -975,13 +985,6 @@ cursor: pointer;
      왼쪽은 각지게 해서, 스와이프시 수직으로 깔끔하게 잘리도록 함 */
   border-radius: 0 14px 14px 0;
   overflow: hidden;
-  /* 🔥 .app의 좌우 패딩(7px)이 래퍼의 클리핑 경계를 화면 진짜 끝보다 7px
-     안쪽으로 당겨놔서, 카드가 스와이프로 아무리 왼쪽으로 움직여도 거기서
-     바로 잘려버려 화면 끝까지 닿지 못했음 — 왼쪽으로 정확히 7px만큼
-     경계를 넓혀서 화면 진짜 끝까지 닿도록 함(평소 모습엔 영향 없도록
-     카드 쪽에서 반대로 7px 보정) */
-  margin-left: -7px;
-  width: calc(100% + 7px);
 }
 .exercise-row-wrap .exercise-card {
   margin-bottom: 0;
@@ -11690,7 +11693,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.274";
+const APP_VERSION = "0.9.275";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -19567,6 +19570,13 @@ function renderExercises(opts) {
     // 🔥 검색창 있는 기본 목록(기록탭)에서만 참고 링크 스와이프 지원 — 루틴 빌더
     // 종목 선택 화면 등 재사용되는 다른 화면에서는 선택 동작과 겹치지 않게 뺌
     if (!opts.listElId) {
+      // 🔥 음수 마진(화면 진짜 끝까지 클리핑 경계를 넓히는 용도)과
+      // overflow:hidden을 같은 요소에 같이 주면 일부 사파리에서 레이아웃
+      // 좌표는 맞는데 실제 그려지는(paint) 픽셀이 그 경계를 못 따라가는
+      // 현상이 있어서, 음수 마진은 바깥 shell에, overflow:hidden은 안쪽
+      // wrap에 따로 나눠서 줌
+      const shell = document.createElement('div');
+      shell.className = 'exercise-row-shell';
       const wrap = document.createElement('div');
       wrap.className = 'exercise-row-wrap';
       const refBtn = document.createElement('div');
@@ -19578,8 +19588,9 @@ function renderExercises(opts) {
       });
       wrap.appendChild(refBtn);
       wrap.appendChild(card);
+      shell.appendChild(wrap);
       setupExerciseSwipe(card);
-      targetEl.appendChild(wrap);
+      targetEl.appendChild(shell);
     } else {
       targetEl.appendChild(card);
     }
