@@ -964,19 +964,9 @@ cursor: pointer;
 }
 
 /* 🔥 종목 카드 왼쪽 스와이프 — 뒤에 숨어있는 "참고" 버튼을 드래그로 꺼내 보여줌 */
-/* 🔥 .app의 좌우 패딩(7px)이 클리핑 경계를 화면 진짜 끝보다 7px 안쪽으로
-   당겨놔서, 카드가 스와이프로 아무리 왼쪽으로 움직여도 거기서 바로
-   잘려버려 화면 끝까지 닿지 못했음 — 이 음수 마진은 overflow:hidden을
-   가진 .exercise-row-wrap이 아니라 바깥의 별도 shell에 줌(같은 요소에
-   음수 마진+overflow:hidden을 같이 주면 일부 사파리에서 레이아웃 좌표는
-   맞는데 실제 그려지는 픽셀이 못 따라가는 현상이 있었음) */
-.exercise-row-shell {
-  margin-left: -7px;
-  width: calc(100% + 7px);
-  margin-bottom: 10px;
-}
 .exercise-row-wrap {
   position: relative;
+  margin-bottom: 10px;
   /* 🔥 래퍼(클리핑 틀) 자체는 스와이프해도 움직이지 않고 항상 제자리에
      고정돼있는데, 왼쪽 모서리까지 둥글게(border-radius) 깎아놨더니 —
      스와이프된 카드의 단색 몸통이 그 둥근 틀 안을 계속 채우면서 "둥근
@@ -989,29 +979,13 @@ cursor: pointer;
 .exercise-row-wrap .exercise-card {
   margin-bottom: 0;
   touch-action: pan-y;
-  /* 🔥 래퍼를 왼쪽으로 7px 넓힌 만큼, 카드는 반대로 오른쪽으로 7px 밀어서
-     평소 보이는 위치/폭은 기존과 완전히 동일하게 유지 */
-  margin-left: 7px;
   /* 🔥 가만히 있을 때도 우측 둥근 모서리 쪽에서 뒤에 숨은 참고 버튼 색이 실선처럼
      살짝 비치던 문제 — 카드와 래퍼(.exercise-row-wrap)가 똑같은 radius로 각자
      따로 anti-alias되면서 생기는 미세한 틈이 원인. 카드를 1px 더 넓게 그려서
      래퍼의 overflow:hidden이 그 틈까지 포함해 완전히 덮도록 함(잘려나가는 1px은
      어차피 안 보임) */
   box-sizing: border-box;
-  width: calc(100% - 7px + 1px);
-}
-/* 🔥 [임시 테스트용] 카드/래퍼와 무관하게, 진짜 화면(뷰포트) 맨 왼쪽부터
-   맨 오른쪽까지를 기준으로 삼는 고정 빨간 선 — .app 박스의 폭과 실제
-   기기 화면 폭이 다른지 확인하기 위함 */
-#debugFullWidthLine {
-  position: fixed;
-  left: 0;
-  right: 0;
-  top: 240px;
-  height: 6px;
-  background: red;
-  z-index: 999999;
-  pointer-events: none;
+  width: calc(100% + 1px);
 }
 /* 🔥 뒤에 숨은 참고 버튼이 카드의 :active 축소 애니메이션 때 테두리 틈으로
    살짝 비쳐 보이던 문제 — 스와이프 카드는 눌러도 축소 효과를 끔 */
@@ -7985,11 +7959,6 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
      손을 뗄 때까지, 투명하게 화면 전체를 덮어 다른 터치를 전부 무시시킴 -->
 <div id="swipeTouchGuard" style="position:fixed; inset:0; z-index:999999; pointer-events:none;"></div>
 
-<!-- 🔥 [임시 테스트용] 실제 기기 화면 폭 확인용 고정 빨간 선 -->
-<div id="debugFullWidthLine"></div>
-<!-- 🔥 [임시 테스트용] 스와이프 후 카드 왼쪽 끝 ~ 화면 끝 간격을 숫자로 표시 -->
-<div id="debugGapReadout" style="display:none; position:fixed; left:0; right:0; top:250px; z-index:999999; background:red; color:#fff; font-size:16px; font-weight:700; text-align:center; padding:6px 0; pointer-events:none;"></div>
-
 <!-- 🔥 3일 이상 기록하지 않은 사용자에게 전면에 뜨는 페이지 — 홈 화면(진심모드
      여부와 무관)을 포함해 앱 전체를 덮음. .app 바깥에 둬서 .app에 transform이
      걸려도(드로어 애니메이션 등) 영향을 안 받도록 함 -->
@@ -11693,7 +11662,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.275";
+const APP_VERSION = "0.9.276";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -19570,13 +19539,6 @@ function renderExercises(opts) {
     // 🔥 검색창 있는 기본 목록(기록탭)에서만 참고 링크 스와이프 지원 — 루틴 빌더
     // 종목 선택 화면 등 재사용되는 다른 화면에서는 선택 동작과 겹치지 않게 뺌
     if (!opts.listElId) {
-      // 🔥 음수 마진(화면 진짜 끝까지 클리핑 경계를 넓히는 용도)과
-      // overflow:hidden을 같은 요소에 같이 주면 일부 사파리에서 레이아웃
-      // 좌표는 맞는데 실제 그려지는(paint) 픽셀이 그 경계를 못 따라가는
-      // 현상이 있어서, 음수 마진은 바깥 shell에, overflow:hidden은 안쪽
-      // wrap에 따로 나눠서 줌
-      const shell = document.createElement('div');
-      shell.className = 'exercise-row-shell';
       const wrap = document.createElement('div');
       wrap.className = 'exercise-row-wrap';
       const refBtn = document.createElement('div');
@@ -19588,9 +19550,8 @@ function renderExercises(opts) {
       });
       wrap.appendChild(refBtn);
       wrap.appendChild(card);
-      shell.appendChild(wrap);
       setupExerciseSwipe(card);
-      targetEl.appendChild(shell);
+      targetEl.appendChild(wrap);
     } else {
       targetEl.appendChild(card);
     }
@@ -19670,21 +19631,6 @@ function setupExerciseSwipe(card){
     } else {
       closeExerciseSwipe(card);
     }
-    // 🔥 [임시 테스트용] 스와이프가 끝난 직후, 실제로 "눈에 보이는"(클리핑 반영)
-    // 카드 왼쪽 끝이 화면 진짜 끝(x=0)에서 몇 px 떨어져 있는지 화면에 직접 숫자로
-    // 표시 — getBoundingClientRect()는 클리핑 전 카드 자신의 좌표라서, 래퍼의
-    // overflow:hidden 경계랑 화면 끝(0) 중 제일 큰 값을 직접 계산해야 "실제
-    // 보이는" 위치가 나옴. 사진으로 눈대중하지 않고 정확한 값을 바로 확인하기 위함
-    requestAnimationFrame(() => {
-      const cardLeft = card.getBoundingClientRect().left;
-      const wrapLeft = card.parentElement.getBoundingClientRect().left;
-      const visibleLeft = Math.max(cardLeft, wrapLeft, 0);
-      const readout = document.getElementById('debugGapReadout');
-      if (readout) {
-        readout.textContent = `실제 보이는 카드 왼쪽 끝: 화면 끝에서 ${visibleLeft.toFixed(1)}px (카드 실좌표 ${cardLeft.toFixed(1)}, 래퍼 ${wrapLeft.toFixed(1)})`;
-        readout.style.display = 'block';
-      }
-    });
   });
 }
 
