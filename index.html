@@ -7984,6 +7984,8 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
 
 <!-- 🔥 [임시 테스트용] 실제 기기 화면 폭 확인용 고정 빨간 선 -->
 <div id="debugFullWidthLine"></div>
+<!-- 🔥 [임시 테스트용] 스와이프 후 카드 왼쪽 끝 ~ 화면 끝 간격을 숫자로 표시 -->
+<div id="debugGapReadout" style="display:none; position:fixed; left:0; right:0; top:250px; z-index:999999; background:red; color:#fff; font-size:16px; font-weight:700; text-align:center; padding:6px 0; pointer-events:none;"></div>
 
 <!-- 🔥 3일 이상 기록하지 않은 사용자에게 전면에 뜨는 페이지 — 홈 화면(진심모드
      여부와 무관)을 포함해 앱 전체를 덮음. .app 바깥에 둬서 .app에 transform이
@@ -11688,7 +11690,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.273";
+const APP_VERSION = "0.9.274";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -19657,6 +19659,21 @@ function setupExerciseSwipe(card){
     } else {
       closeExerciseSwipe(card);
     }
+    // 🔥 [임시 테스트용] 스와이프가 끝난 직후, 실제로 "눈에 보이는"(클리핑 반영)
+    // 카드 왼쪽 끝이 화면 진짜 끝(x=0)에서 몇 px 떨어져 있는지 화면에 직접 숫자로
+    // 표시 — getBoundingClientRect()는 클리핑 전 카드 자신의 좌표라서, 래퍼의
+    // overflow:hidden 경계랑 화면 끝(0) 중 제일 큰 값을 직접 계산해야 "실제
+    // 보이는" 위치가 나옴. 사진으로 눈대중하지 않고 정확한 값을 바로 확인하기 위함
+    requestAnimationFrame(() => {
+      const cardLeft = card.getBoundingClientRect().left;
+      const wrapLeft = card.parentElement.getBoundingClientRect().left;
+      const visibleLeft = Math.max(cardLeft, wrapLeft, 0);
+      const readout = document.getElementById('debugGapReadout');
+      if (readout) {
+        readout.textContent = `실제 보이는 카드 왼쪽 끝: 화면 끝에서 ${visibleLeft.toFixed(1)}px (카드 실좌표 ${cardLeft.toFixed(1)}, 래퍼 ${wrapLeft.toFixed(1)})`;
+        readout.style.display = 'block';
+      }
+    });
   });
 }
 
