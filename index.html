@@ -10811,6 +10811,79 @@ exerciseRefUrlInput.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') document.getElementById('exerciseRefAddBtn').click();
 });
 
+// 🔥 참고 링크 입력창 키보드 대응 — 알약바(setupPillBarKeyboardFix, #514~535
+// 전부 되돌렸다 재도전해서 검증된 방식)와 똑같은 트릭을 재사용. 뒷화면 스크롤을
+// 잠그는(맞서 싸우는) 방식 대신, 터치 즉시 입력창을 opacity:0으로 숨긴 뒤
+// focus()해서 iOS가 "포커스된 입력창을 보여주려고" 페이지를 패닝하는 판단
+// 자체가 애초에 발동하지 않게 막음 — 뒷화면 고정은 이 트릭만으로 저절로 됨.
+// 키보드가 실제로 열린 게 visualViewport로 확인되면 그때 모달 박스를 키보드
+// 위로 올리고(bottom 대신 transform) opacity를 복원함.
+function setupModalKeyboardFix(modalBox, inputs) {
+  inputs = inputs.filter(Boolean);
+  if (!modalBox || !inputs.length) return;
+  let releaseTimer = null;
+  let isActive = false;
+  let animFrame = null;
+  let currentPx = 0;
+  function animateTranslateY(targetPx) {
+    if (animFrame) cancelAnimationFrame(animFrame);
+    const startPx = currentPx;
+    if (Math.abs(startPx - targetPx) < 1) {
+      currentPx = targetPx;
+      modalBox.style.transform = targetPx > 0 ? `translateY(-${targetPx}px)` : '';
+      animFrame = null;
+      return;
+    }
+    const duration = 280;
+    const t0 = performance.now();
+    function ease(t) { return 1 - Math.pow(1 - t, 3); }
+    function step(now) {
+      const t = Math.min(1, (now - t0) / duration);
+      currentPx = startPx + (targetPx - startPx) * ease(t);
+      modalBox.style.transform = currentPx > 0.5 ? `translateY(-${currentPx}px)` : '';
+      animFrame = t < 1 ? requestAnimationFrame(step) : null;
+    }
+    animFrame = requestAnimationFrame(step);
+  }
+  function reposition() {
+    // 🔥 이 모달과 무관하게 열려도 visualViewport resize는 전역으로 걸리므로,
+    // 이 모달의 입력창이 실제로 포커스 중일 때만 반영(알약바와 동일 패턴)
+    if (!isActive) return;
+    const vv = window.visualViewport;
+    const keyboardHeight = Math.max(0, window.innerHeight - (vv ? vv.height : window.innerHeight));
+    if (keyboardHeight > 80) {
+      animateTranslateY(keyboardHeight / 2);
+      inputs.forEach(el => { el.style.opacity = ''; });
+    }
+  }
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', reposition);
+  }
+  inputs.forEach(input => {
+    input.addEventListener('touchstart', () => {
+      clearTimeout(releaseTimer);
+      isActive = true;
+      input.style.opacity = '0';
+      input.focus();
+      const vv = window.visualViewport;
+      const currentKeyboardHeight = vv ? Math.max(0, window.innerHeight - vv.height) : 0;
+      const keyboardAlreadyOpen = currentKeyboardHeight > 80;
+      releaseTimer = setTimeout(() => { input.style.opacity = ''; }, keyboardAlreadyOpen ? 80 : 1000);
+    });
+    input.addEventListener('blur', () => {
+      clearTimeout(releaseTimer);
+      releaseTimer = setTimeout(() => {
+        if (!inputs.includes(document.activeElement)) {
+          isActive = false;
+          inputs.forEach(el => { el.style.opacity = ''; });
+          animateTranslateY(0);
+        }
+      }, 0);
+    });
+  });
+}
+setupModalKeyboardFix(document.querySelector('.exercise-ref-modal-box'), [exerciseRefUrlInput]);
+
 /* ===============================
    🔥 보조운동(4번째 탭) 로직
 ================================ */
@@ -11684,7 +11757,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.288";
+const APP_VERSION = "0.9.289";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -14717,6 +14790,7 @@ document.addEventListener("visibilitychange", () => {
     "recordWeight", "recordReps",
     "acc-weight", "acc-reps",
     "myRoutineRevealInputWeight", "myRoutineRevealInputReps",
+    "exerciseRefUrlInput", // 🔥 참고 링크 모달 입력창도 같은 보호 대상에 포함
   ];
   if (active && pillBarInputIds.includes(active.id)) active.blur();
 });
