@@ -4865,8 +4865,6 @@ html.light-mode-on .settings-row + .settings-row {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  /* 🔥 입력창 포커스 시 키보드를 피해 위로 떠오르는 애니메이션 */
-  transition: transform 0.25s ease;
 }
 html.light-mode-on .exercise-ref-modal-box {
   background: rgba(250,250,250,0.7);
@@ -10785,46 +10783,6 @@ exerciseRefUrlInput.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') document.getElementById('exerciseRefAddBtn').click();
 });
 
-// 🔥 입력창에 포커스되면 키보드가 열리면서 사파리가 "포커스된 입력창을 보여주려고"
-// 뒷화면(.app)까지 같이 스크롤시켜버리는 문제 — 뒷화면은 그대로 고정하고
-// 팝업(참고 링크 메모장)만 키보드 위로 올라오도록 함
-let exerciseRefModalScrollLock = null;
-let exerciseRefModalWindowScrollLock = null;
-exerciseRefUrlInput.addEventListener('focus', () => {
-  const appEl = document.querySelector('.app');
-  const lockedTop = appEl.scrollTop;
-  exerciseRefModalScrollLock = () => { appEl.scrollTop = lockedTop; };
-  appEl.addEventListener('scroll', exerciseRefModalScrollLock);
-
-  // 🔥 body/html은 iOS 상태바 이슈 때문에 overflow:hidden을 안 걸어뒀으므로,
-  // 사파리가 입력창을 보여주려고 .app이 아니라 문서(window) 자체를 스크롤시킬 수도 있음 — 같이 잠금
-  const lockedX = window.scrollX;
-  const lockedY = window.scrollY;
-  exerciseRefModalWindowScrollLock = () => { window.scrollTo(lockedX, lockedY); };
-  window.addEventListener('scroll', exerciseRefModalWindowScrollLock);
-
-  const modalBox = document.querySelector('.exercise-ref-modal-box');
-  const reposition = () => {
-    const vv = window.visualViewport;
-    const keyboardHeight = vv ? Math.max(0, window.innerHeight - vv.height - vv.offsetTop) : 0;
-    modalBox.style.transform = keyboardHeight > 80 ? `translateY(-${(keyboardHeight / 2).toFixed(0)}px)` : '';
-  };
-  reposition();
-  if (window.visualViewport) window.visualViewport.addEventListener('resize', reposition);
-  exerciseRefUrlInput._repositionHandler = reposition;
-});
-exerciseRefUrlInput.addEventListener('blur', () => {
-  const appEl = document.querySelector('.app');
-  if (exerciseRefModalScrollLock) appEl.removeEventListener('scroll', exerciseRefModalScrollLock);
-  exerciseRefModalScrollLock = null;
-  if (exerciseRefModalWindowScrollLock) window.removeEventListener('scroll', exerciseRefModalWindowScrollLock);
-  exerciseRefModalWindowScrollLock = null;
-  if (window.visualViewport && exerciseRefUrlInput._repositionHandler) {
-    window.visualViewport.removeEventListener('resize', exerciseRefUrlInput._repositionHandler);
-  }
-  document.querySelector('.exercise-ref-modal-box').style.transform = '';
-});
-
 /* ===============================
    🔥 보조운동(4번째 탭) 로직
 ================================ */
@@ -11698,7 +11656,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.278";
+const APP_VERSION = "0.9.279";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
