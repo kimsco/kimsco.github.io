@@ -967,13 +967,7 @@ cursor: pointer;
 .exercise-row-wrap {
   position: relative;
   margin-bottom: 10px;
-  /* 🔥 래퍼(클리핑 틀) 자체는 스와이프해도 움직이지 않고 항상 제자리에
-     고정돼있는데, 왼쪽 모서리까지 둥글게(border-radius) 깎아놨더니 —
-     스와이프된 카드의 단색 몸통이 그 둥근 틀 안을 계속 채우면서 "둥근
-     모서리가 화면 가장자리에서 살짝 뜬 채로 고정돼있는" 것처럼 보이는
-     문제가 있었음. 오른쪽(카드 자신의 모서리/참고 버튼)만 둥글게 남기고
-     왼쪽은 각지게 해서, 스와이프시 수직으로 깔끔하게 잘리도록 함 */
-  border-radius: 0 14px 14px 0;
+  border-radius: 14px;
   overflow: hidden;
 }
 .exercise-row-wrap .exercise-card {
@@ -11662,7 +11656,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.276";
+const APP_VERSION = "0.9.277";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
