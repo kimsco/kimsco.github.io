@@ -11608,10 +11608,18 @@ let addExerciseModalOpts = undefined;
 function renderAddExerciseSuggestions() {
   const pool = EXERCISE_SUGGESTIONS[currentPart] || [];
   const query = addExerciseInput.value.trim();
-  const filtered = query ? pool.filter(name => name.includes(query)) : pool;
+
+  // 🔥 모달을 열자마자 전체 목록을 다 보여주지 않고, 글자를 입력하기 시작해야
+  // 그때부터 연관 검색어가 뜨도록 함
+  if (!query) {
+    addExerciseSuggestions.innerHTML = '';
+    return;
+  }
+
+  const filtered = pool.filter(name => name.includes(query));
 
   if (!filtered.length) {
-    addExerciseSuggestions.innerHTML = `<div class="add-exercise-empty">${query ? '일치하는 추천 종목이 없어요. 직접 입력한 이름으로 추가할 수 있어요.' : '추천 종목이 없어요.'}</div>`;
+    addExerciseSuggestions.innerHTML = `<div class="add-exercise-empty">일치하는 추천 종목이 없어요. 직접 입력한 이름으로 추가할 수 있어요.</div>`;
     return;
   }
 
@@ -12059,7 +12067,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.296";
+const APP_VERSION = "0.9.297";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
