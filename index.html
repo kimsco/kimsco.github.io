@@ -5048,6 +5048,108 @@ html.light-mode-on .exercise-ref-modal-box {
   cursor: pointer;
 }
 
+/* 🔥 종목 "+" 추가 모달 — 참고 링크 패널(.exercise-ref-modal-box)과 동일한 틀을
+   재사용하되, 입력창이 위(헤더 바로 아래)에 오고 추천 목록이 그 아래 스크롤 영역 */
+.add-exercise-modal-box {
+  width: 80%;
+  height: 80%;
+  max-width: 420px;
+  background: rgba(33,33,33,0.5);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  border-radius: 24px;
+  border: 1px solid rgba(255,255,255,0.12);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+html.light-mode-on .add-exercise-modal-box {
+  background: rgba(250,250,250,0.5);
+  border-color: rgba(0,0,0,0.1);
+}
+.add-exercise-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 18px 12px;
+  flex-shrink: 0;
+}
+.add-exercise-modal-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--c-text-primary);
+}
+.add-exercise-modal-close {
+  background: none;
+  border: none;
+  width: auto;
+  padding: 4px;
+  margin: 0;
+  color: var(--c-text-secondary);
+  cursor: pointer;
+  display: flex;
+}
+.add-exercise-modal-input-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 18px 12px;
+  flex-shrink: 0;
+}
+.add-exercise-input {
+  flex: 1;
+  width: auto;
+  margin: 0;
+  background: rgba(var(--c-ink-rgb),0.06);
+  border: 1px solid rgba(var(--c-ink-rgb),0.12);
+  border-radius: 10px;
+  padding: 10px 12px;
+  color: var(--c-text-primary);
+  font-size: 13px;
+  box-sizing: border-box;
+}
+.add-exercise-input::placeholder {
+  color: var(--c-text-tertiary);
+}
+.add-exercise-confirm-btn {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  margin: 0;
+  background: #fff;
+  color: #000;
+  border: none;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.add-exercise-modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 18px 18px;
+  -webkit-overflow-scrolling: touch;
+  border-top: 1px solid rgba(var(--c-ink-rgb),0.08);
+}
+.add-exercise-empty {
+  color: var(--c-text-secondary);
+  font-size: 13px;
+  padding: 14px 0;
+}
+.add-exercise-suggestion-row {
+  display: flex;
+  align-items: center;
+  padding: 12px 2px;
+  border-bottom: 1px solid rgba(var(--c-ink-rgb),0.08);
+  color: var(--c-text-primary);
+  font-size: 14px;
+  cursor: pointer;
+}
+.add-exercise-suggestion-row:active {
+  background: rgba(var(--c-ink-rgb),0.06);
+}
+
 .modal-title{
   padding: 16px 16px 8px;
   font-size: 16px;
@@ -9454,6 +9556,25 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
   </div>
 </div>
 
+<!-- 🔥 종목 "+" 추가 시 뜨는 모달 — 부위별 추천 종목을 입력과 동시에 필터링해서 보여줌 -->
+<div id="addExerciseModal" class="modal hidden">
+  <div class="add-exercise-modal-box">
+    <div class="add-exercise-modal-header">
+      <div class="add-exercise-modal-title">운동 종목 추가</div>
+      <button id="addExerciseModalCloseBtn" class="add-exercise-modal-close" aria-label="닫기">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
+    <div class="add-exercise-modal-input-row">
+      <input type="text" id="addExerciseInput" class="add-exercise-input" placeholder="운동 종목을 입력하세요" autocomplete="off">
+      <button id="addExerciseConfirmBtn" class="add-exercise-confirm-btn" aria-label="추가">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+      </button>
+    </div>
+    <div class="add-exercise-modal-body" id="addExerciseSuggestions"></div>
+  </div>
+</div>
+
 <!-- 루틴 만들기(+루틴 추가하기): 저장 위치 선택 — 오늘의 운동 저장 팝업과 동일한 구조 -->
 <div id="myRoutineBuilderNameModal" class="modal hidden">
   <div class="modal-box">
@@ -11393,13 +11514,54 @@ function renderAccessoryRecords(exerciseName, opts) {
 
 let exercisesByPart = {}; // 🔥 종목 목록 전용
 
-async function addExercise(opts) {
-  if (!currentPart) return alert("먼저 부위를 선택하세요.");
+// 🔥 부위별 종목 추천 DB — "+"로 종목 추가할 때 입력과 동시에 이름 연관성으로
+// 걸러서 보여줌. 맨몸운동 화면(currentPart === "bodyweight")처럼 여기 없는
+// currentPart는 이 DB가 없으니 addExercise()가 자동으로 기존 prompt() 방식으로 동작함.
+const EXERCISE_SUGGESTIONS = {
+  chest: [
+    "벤치프레스", "인클라인 벤치프레스", "디클라인 벤치프레스", "덤벨 벤치프레스",
+    "인클라인 덤벨프레스", "디클라인 덤벨프레스", "스미스 머신 벤치프레스",
+    "체스트프레스 머신", "인클라인 체스트프레스 머신", "펙덱플라이",
+    "케이블 크로스오버 펙덱플라이", "덤벨 플라이", "인클라인 덤벨 플라이",
+    "덤벨 풀오버", "딥스", "어시스트 딥스", "딥스머신", "푸시업",
+  ],
+  back: [
+    "데드리프트", "루마니안 데드리프트", "바벨로우", "펜들레이로우", "티바로우",
+    "랫풀다운", "언더그립 랫풀다운", "와이드그립 랫풀다운", "풀업", "친업",
+    "어시스트 풀업", "시티드 케이블로우", "원암 덤벨로우", "백익스텐션",
+    "하이퍼익스텐션", "케이블 풀오버", "스트레이트암 풀다운", "인버티드로우", "굿모닝",
+  ],
+  shoulder: [
+    "밀리터리프레스", "바벨 숄더프레스", "덤벨 숄더프레스", "스미스 머신 숄더프레스",
+    "사이드 레터럴레이즈", "케이블 레터럴레이즈", "프론트레이즈", "리어델트 플라이",
+    "페이스풀", "업라이트로우", "아놀드프레스", "쉬러그", "머신 숄더프레스", "머신 레터럴레이즈",
+  ],
+  leg: [
+    "스쿼트", "프론트스쿼트", "레그프레스", "런지", "불가리안 스플릿스쿼트",
+    "레그익스텐션", "레그컬", "루마니안 데드리프트", "스티프레그 데드리프트",
+    "힙쓰러스트", "스미스 머신 스쿼트", "핵스쿼트", "카프레이즈", "시티드 카프레이즈",
+    "어덕터 머신", "어브덕터 머신", "글루트브릿지", "워킹런지",
+  ],
+  arm_tri: [
+    "케이블 푸시다운", "라잉 트라이셉스 익스텐션", "오버헤드 트라이셉스 익스텐션",
+    "덤벨 킥백", "클로즈그립 벤치프레스", "딥스", "트라이셉스 머신", "로프 푸시다운",
+    "스컬크러셔", "벤치딥스",
+  ],
+  arm_bi: [
+    "바벨컬", "덤벨컬", "해머컬", "컨센트레이션컬", "프리처컬", "케이블컬",
+    "이지바컬", "인클라인 덤벨컬", "21컬", "머신컬",
+  ],
+  core: [
+    "크런치", "플랭크", "레그레이즈", "행잉 레그레이즈", "러시안 트위스트",
+    "사이드 플랭크", "케이블 크런치", "마운틴클라이머", "바이시클 크런치",
+    "앱롤아웃", "데드버그", "V업",
+  ],
+};
 
-  const name = prompt("운동 종목을 입력하시오");
-  if (!name) return;
-
-  const clean = name.trim();
+// 🔥 실제로 목록에 넣고 저장하는 로직 — prompt 방식과 모달 방식이 공유함
+async function commitAddExercise(rawName, opts) {
+  if (!rawName) return;
+  const clean = rawName.trim();
   if (!clean) return;
 
   // ✅ 핵심: 현재 화면의 목록(currentExercises)에 추가
@@ -11425,6 +11587,72 @@ saveAccListToLocal(currentPart, currentExercises);
       .set({ list: currentExercises }, { merge: true });
   }
 }
+
+async function addExercise(opts) {
+  if (!currentPart) return alert("먼저 부위를 선택하세요.");
+
+  if (EXERCISE_SUGGESTIONS[currentPart]) {
+    openAddExerciseModal(opts);
+    return;
+  }
+
+  const name = prompt("운동 종목을 입력하시오");
+  await commitAddExercise(name, opts);
+}
+
+const addExerciseModal = document.getElementById('addExerciseModal');
+const addExerciseInput = document.getElementById('addExerciseInput');
+const addExerciseSuggestions = document.getElementById('addExerciseSuggestions');
+let addExerciseModalOpts = undefined;
+
+function renderAddExerciseSuggestions() {
+  const pool = EXERCISE_SUGGESTIONS[currentPart] || [];
+  const query = addExerciseInput.value.trim();
+  const filtered = query ? pool.filter(name => name.includes(query)) : pool;
+
+  if (!filtered.length) {
+    addExerciseSuggestions.innerHTML = `<div class="add-exercise-empty">${query ? '일치하는 추천 종목이 없어요. 직접 입력한 이름으로 추가할 수 있어요.' : '추천 종목이 없어요.'}</div>`;
+    return;
+  }
+
+  addExerciseSuggestions.innerHTML = filtered.map(name =>
+    `<div class="add-exercise-suggestion-row" data-name="${escapeHtml(name)}">${escapeHtml(name)}</div>`
+  ).join('');
+
+  addExerciseSuggestions.querySelectorAll('.add-exercise-suggestion-row').forEach(row => {
+    row.addEventListener('click', async () => {
+      await commitAddExercise(row.dataset.name, addExerciseModalOpts);
+      closeAddExerciseModal();
+    });
+  });
+}
+
+function openAddExerciseModal(opts) {
+  addExerciseModalOpts = opts;
+  addExerciseInput.value = '';
+  renderAddExerciseSuggestions();
+  addExerciseModal.classList.remove('hidden');
+  addExerciseInput.focus();
+}
+function closeAddExerciseModal() {
+  addExerciseModal.classList.add('hidden');
+  addExerciseModalOpts = undefined;
+}
+addExerciseInput.addEventListener('input', renderAddExerciseSuggestions);
+addExerciseInput.addEventListener('keydown', async (e) => {
+  if (e.key === 'Enter') {
+    await commitAddExercise(addExerciseInput.value, addExerciseModalOpts);
+    closeAddExerciseModal();
+  }
+});
+document.getElementById('addExerciseConfirmBtn').addEventListener('click', async () => {
+  await commitAddExercise(addExerciseInput.value, addExerciseModalOpts);
+  closeAddExerciseModal();
+});
+document.getElementById('addExerciseModalCloseBtn').addEventListener('click', closeAddExerciseModal);
+addExerciseModal.addEventListener('click', (e) => {
+  if (e.target === addExerciseModal) closeAddExerciseModal();
+});
 
 
 
@@ -11831,7 +12059,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.295";
+const APP_VERSION = "0.9.296";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
