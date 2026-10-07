@@ -8134,7 +8134,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
      손을 뗄 때까지, 투명하게 화면 전체를 덮어 다른 터치를 전부 무시시킴 -->
 <div id="swipeTouchGuard" style="position:fixed; inset:0; z-index:999999; pointer-events:none;"></div>
 
-<!-- 🔥 3일 이상 기록하지 않은 사용자에게 전면에 뜨는 페이지 — 홈 화면(진심모드
+<!-- 🔥 4일 이상 기록하지 않은 사용자에게 전면에 뜨는 페이지 — 홈 화면(진심모드
      여부와 무관)을 포함해 앱 전체를 덮음. .app 바깥에 둬서 .app에 transform이
      걸려도(드로어 애니메이션 등) 영향을 안 받도록 함 -->
 <div id="inactivityOverlay" class="hidden" style="position:fixed; inset:0; z-index:500000; background:#000; overflow-y:auto; -webkit-overflow-scrolling:touch;">
@@ -12073,7 +12073,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.298";
+const APP_VERSION = "0.9.299";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
