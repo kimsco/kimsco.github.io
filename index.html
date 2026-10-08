@@ -12073,7 +12073,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.303";
+const APP_VERSION = "0.9.304";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -12217,15 +12217,6 @@ if (consentCloseBtn) {
     document.getElementById('consentModal').classList.add('hidden');
   });
 }
-
-// 🔥 signInWithRedirect로 구글 로그인 페이지에 갔다가 돌아왔을 때의 결과 확인.
-// 로그인 성공 시 화면 갱신은 바로 아래 auth.onAuthStateChanged가 알아서 처리하므로,
-// 여기서는 리다이렉트 도중 에러(예: 사용자가 구글 쪽에서 취소함)만 잡아서 안내함
-auth.getRedirectResult().catch(e => {
-  if (e && e.code && e.code !== 'auth/no-current-user') {
-    alert("로그인 실패: " + e.message);
-  }
-});
 
 auth.onAuthStateChanged(async user => {
 
@@ -20938,17 +20929,10 @@ document.body.appendChild(logoutModal);
 
 // ✅ 구글 로그인 함수 (게스트에서도 동작)
 // 로그인 시 개인정보처리방침/이용약관에 동의한 것으로 간주(로그인 버튼 아래 안내 문구 참고)
-// 🔥 signInWithPopup -> signInWithRedirect로 변경. 홈 화면에 추가한 PWA(iOS standalone)
-// 안에서는 팝업 창과 원래 화면 사이의 인증 결과 전달 통신이 깨져서, 구글 쪽 로그인은
-// 실제로 성공하는데(그래서 "새 로그인 감지" 보안 메일이 옴) 앱은 그 결과를 영영
-// 못 받아 화면이 멈춘 것처럼 보이는 문제가 있었음. 같은 창에서 구글로 이동했다
-// 돌아오는 리다이렉트 방식은 창 간 통신에 의존하지 않아 PWA/웹뷰에서 안정적임
-// (Firebase 공식 권장 방식) — 로그인 성공 시 UI 갱신은 기존 auth.onAuthStateChanged가
-// 그대로 처리하므로 추가 변경 없이 재사용됨
 async function doGoogleLogin(){
   try {
     const provider = new firebase.auth.GoogleAuthProvider();
-    await auth.signInWithRedirect(provider);
+    await auth.signInWithPopup(provider);
   } catch (e) {
     alert("로그인 실패: " + e.message);
   }
