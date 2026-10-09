@@ -10118,10 +10118,10 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
 <!-- ✅ 카드 4: 기타(문의/앱 버전) -->
 <div class="settings-section-label">기타</div>
 <div class="settings-card settings-card--flush">
-  <div class="settings-item" style="flex-direction:column; align-items:flex-start; justify-content:center; gap:2px; border-bottom:1px solid var(--c-border);">
+  <a href="mailto:anwls_0222@naver.com" class="settings-item" style="width:100%; text-align:left; text-decoration:none; color:var(--c-text-primary); flex-direction:column; align-items:flex-start; justify-content:center; gap:2px; border-bottom:1px solid var(--c-border); cursor:pointer;">
     <div style="display:flex; align-items:center;"><img src="icons/setting-inquiry.png" class="settings-item-icon" alt="">문의</div>
-    <div style="color:var(--c-text-secondary);">김무진한테 문의하세요</div>
-  </div>
+    <div style="color:var(--c-text-secondary);">anwls_0222@naver.com</div>
+  </a>
   <div class="settings-item" style="justify-content:space-between; border-bottom:1px solid var(--c-border); position:relative; overflow:visible;">
     <div style="display:flex; flex-direction:column; align-items:flex-start; gap:2px; min-width:0;">
       <div style="display:flex; align-items:center;">
@@ -12073,7 +12073,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.305";
+const APP_VERSION = "0.9.306";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
