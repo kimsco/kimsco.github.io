@@ -246,6 +246,21 @@ button {
   transform: translateY(-10px);
   opacity: 0;
 }
+/* 🔥 [실험] "중앙으로 뭉쳤다가 좌우로 펼쳐지며 생성" 버전 — 알약바와 같은 중심점에서
+   아주 작게 쪼그라든 상태로 시작해서, 클래스를 떼면 transform:scale(1)(기본값)로
+   트랜지션되며 중앙에서 좌우로 펼쳐지는 것처럼 보임(transform-origin 기본값이
+   center라 scale은 항상 중심 기준으로 커짐) */
+.rest-timer-card-bg.rtimer-card-enter-center{
+  transform: scale(0.04);
+  opacity: 0;
+}
+/* 🔥 [실험] 제목이 사라질 때도 위로 슉 빠지는 대신, 가로세로 둘 다 중앙 한 점으로
+   쪼그라들며(스케일) 사라지는 "젤리가 뭉치는" 느낌의 더 빠르고 탄력 있는 이징 */
+.topText.rtimer-collapse-center{
+  transform: translateX(8px) scale(0.05);
+  opacity: 0;
+  transition: transform 0.22s cubic-bezier(.55,0,1,.45), opacity 0.22s ease-in;
+}
 html.light-mode-on .rest-timer-card-bg{
   background: rgba(255,255,255,0.92);
   box-shadow: 0 6px 20px rgba(0,0,0,0.12);
@@ -12224,7 +12239,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.325";
+const APP_VERSION = "0.9.326";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -21148,45 +21163,69 @@ function syncRestTimerUI(){
   }
 }
 
-// 🔥 세트를 "처음" 저장해서 타이머 모드로 들어가는 순간에만 호출 — 기존 타이틀은
-// 위로 슉 올라가며 페이드아웃, 타이머는 아래서 슉 올라오며 페이드인
+// 🔥 [실험] 세트를 "처음" 저장해서 타이머 모드로 들어가는 순간에만 호출.
+// 1단계: 제목이 가로세로 둘 다 알약바 중앙의 한 점으로 쪼그라들며 사라짐(젤리가
+// 뭉치는 느낌). 2단계: 그 중앙 점에서 카드가 좌우로 펼쳐지며 알약이 생성되고,
+// 펼쳐지는 후반부에 숫자/일시정지 버튼이 서서히 나타남.
+// 안 좋으면 이전 버전(위로 슉/아래서 슉, git 이력 참고)으로 되돌릴 수 있음.
 function playRestTimerEntranceAnimation(){
+  const COLLAPSE_MS = 220; // 1단계: 제목이 중앙 점으로 수축하는 시간
+  const EXPAND_MS = 300;   // 2단계: 카드가 그 점에서 알약 모양으로 펼쳐지는 시간
+  const CONTENT_FADE_DELAY = 120; // 2단계 시작 후 숫자/버튼이 나타나기 시작할 때까지 지연
+
+  // 1단계: 제목 중앙 수축
   topTitleText.classList.remove('hidden');
-  topTitleText.classList.add('rtimer-exit-up');
+  topTitleText.classList.add('rtimer-collapse-center');
+
   setTimeout(() => {
     topTitleText.classList.add('hidden');
-    topTitleText.classList.remove('rtimer-exit-up');
-  }, 360);
+    topTitleText.classList.remove('rtimer-collapse-center');
 
-  // 🔥 먼저 "enter-from-below" 없이(=최종 휴식 위치 그대로) 보이게 해서 모든 위치
-  // 계산(positionRestTimerCard, 버튼/숫자 세로 중심 보정)을 최종 상태 기준으로
-  // 정확히 끝낸 뒤에야 시작 위치 클래스를 붙여 애니메이션을 시작함 — 순서를 반대로
-  // 하면(시작 위치부터 찍고 측정) positionRestTimerCard가 과도기 transform을 보고
-  // 계산해버려서 숫자가 엉뚱한 위치로 튀는 버그가 있었음
-  restTimerDisplay.classList.remove('hidden');
+    // 🔥 숫자/일시정지 버튼을 먼저 "투명하지만 레이아웃엔 존재"하는 상태로 깔아둬야
+    // positionRestTimerCard()가 정확한 최종 위치를 측정할 수 있음(과도기 transform
+    // 없는 settled 상태에서 측정 — 이전에 겪었던 "숫자가 엉뚱한 곳으로 튀는" 버그 방지)
+    restTimerDisplay.classList.remove('hidden');
+    restTimerDisplay.style.transition = 'none';
+    restTimerDisplay.style.opacity = '0';
 
-  restTimerPauseBtn.classList.remove('hidden');
-  restTimerPauseIcon.classList.remove('hidden');
-  restTimerPlayIcon.classList.add('hidden');
+    restTimerPauseBtn.classList.remove('hidden');
+    restTimerPauseIcon.classList.remove('hidden');
+    restTimerPlayIcon.classList.add('hidden');
+    restTimerPauseBtn.style.transition = 'none';
+    restTimerPauseBtn.style.opacity = '0';
+    void restTimerPauseBtn.offsetHeight; // 강제 리플로우
 
-  topBarEl.classList.add('rtimer-card-active');
-  restTimerCardBg.classList.remove('hidden');
-  positionRestTimerCard(); // 🔥 전부 최종 위치로 "보이는" 상태에서 계산
+    topBarEl.classList.add('rtimer-card-active');
+    // 🔥 unhide와 동시에(사이에 어떤 reflow도 안 끼게) 작은 점 상태 클래스부터 붙임.
+    // positionRestTimerCard() 안에서 getBoundingClientRect()를 여러 번 호출하는데,
+    // 이게 매번 강제 리플로우를 일으켜서 — 만약 "일단 기본 크기로 unhide → 위치
+    // 계산 → 그 다음에 작은 크기로" 순서였다면, 위치 계산 과정의 reflow들이 중간에
+    // "기본 크기(scale 1)"를 먼저 커밋해버려서, 정작 "작은 점 → 기본 크기" 트랜지션이
+    // 시작도 못 해보고(비교 대상이 이미 scale 1이라) 그냥 순간적으로 나타나버리는
+    // 버그가 있었음(실측: transform이 작은 점 상태를 한 번도 안 거치고 곧장 identity로
+    // 찍힘). 작은 상태를 먼저 박아두면 이후의 reflow들은 전부 "작은 상태"를 그대로
+    // 재확인할 뿐이라 안전함
+    restTimerCardBg.classList.remove('hidden');
+    restTimerCardBg.classList.add('rtimer-card-enter-center');
+    positionRestTimerCard(); // 🔥 전부 settled 상태로 "보이는"(단, 카드는 작게) 동안 계산
 
-  // 이제서야 시작 위치(아래+투명)로 찍고, 다음 프레임에 클래스를 떼서 방금 계산해둔
-  // 최종 위치(translateX(8px) 등)로 트랜지션되게 함
-  restTimerDisplay.classList.add('rtimer-enter-from-below');
-  void restTimerDisplay.offsetHeight; // 강제 리플로우(시작 위치가 실제로 적용되게)
-  requestAnimationFrame(() => {
-    restTimerDisplay.classList.remove('rtimer-enter-from-below');
-  });
+    // 2단계: 다음 프레임에 클래스를 떼서 기본 transform(scale(1))으로 트랜지션되게
+    // 함 — 중앙 기준으로 커지므로 자연스럽게 "중앙에서 좌우로 펼쳐지는" 모양이 됨
+    // (transform-origin 기본값=center)
+    void restTimerCardBg.offsetHeight; // 강제 리플로우(작은 상태를 확실히 커밋)
+    requestAnimationFrame(() => {
+      restTimerCardBg.classList.remove('rtimer-card-enter-center');
 
-  // 🔥 iOS 알림 배너 같은 둥근 카드 배경도 타이머와 같은 타이밍으로 "스르르" 슬라이드인
-  restTimerCardBg.classList.add('rtimer-card-enter');
-  void restTimerCardBg.offsetHeight; // 강제 리플로우
-  requestAnimationFrame(() => {
-    restTimerCardBg.classList.remove('rtimer-card-enter');
-  });
+      // 카드가 펼쳐지기 시작한 지 CONTENT_FADE_DELAY만큼 지난 뒤, 숫자/버튼을
+      // 서서히 페이드인(카드가 어느정도 펼쳐진 뒤에야 내용물이 보이도록)
+      setTimeout(() => {
+        restTimerDisplay.style.transition = 'opacity 0.2s ease';
+        restTimerPauseBtn.style.transition = 'opacity 0.2s ease';
+        restTimerDisplay.style.opacity = '';
+        restTimerPauseBtn.style.opacity = '';
+      }, CONTENT_FADE_DELAY);
+    });
+  }, COLLAPSE_MS);
 
   renderRestTimerValue();
   startRestTimerTick();
