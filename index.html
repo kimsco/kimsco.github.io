@@ -255,57 +255,20 @@ html.light-mode-on .topBar.rtimer-card-active .rest-timer-pause-btn:active{
   border-radius: 9999px; /* 🔥 완전한 알약(pill) 모양 — 높이의 절반보다 큰 값을 줘서 위아래가 반원으로 */
   /* 🔥 iOS 알림 배너 참고 이미지를 픽셀 단위로 실측한 결과, 테두리 밝기가 전체에
      균일한 게 아니라 "왼쪽위/오른쪽아래는 밝고, 오른쪽위/왼쪽아래는 어두운" 대각선
-     패턴이었음(실측값: 왼쪽위 ~66, 오른쪽아래 ~69, 오른쪽위 ~36, 왼쪽아래 ~38,
-     위/아래 직선 구간은 그 중간인 ~59). 알약이 세로로 짧고 가로로 매우 길어서,
-     conic-gradient를 카드 전체 박스 중심 하나에 걸면 각도 변화가 전부 중앙 부근에
-     몰려버리고(가로세로 비율 때문에) 정작 양 끝 둥근 부분에서는 거의 안 바뀌는
-     반대 결과가 나옴 — 그래서 양쪽 둥근 끝(반지름=카드 높이)에 각각 독립된
-     conic-gradient 패치를 따로 두고(왼쪽/오른쪽 center에 카드 높이 크기로 배치),
-     같은 그라데이션 정의를 그대로 재사용해도 왼쪽 패치의 NW(왼쪽위)=밝음/
-     SW(왼쪽아래)=어두움, 오른쪽 패치의 NE(오른쪽위)=어두움/SE(오른쪽아래)=밝음이
-     각각 그 위치의 실제 모서리와 맞아떨어짐(로컬 박스 기준이라 자동으로 들어맞음).
-     중간 직선 구간은 두 패치 사이에서 비어있으므로 그 밑에 평평한 중간톤
-     레이어를 깔아 이어줌(실측에서 직선 구간이 밝음/어두움의 중간값이었던 것과 일치) */
-  --rtimer-card-h: 55px;
-  /* 🔥 레이어 순서 중요 — 배경 레이어는 "먼저 적은 게 위"로 그려짐. 채움색(fill)이
-     맨 위(padding-box, 테두리 두께만큼은 안 덮음)여야 아래 테두리용 레이어들이
-     정확히 테두리 두께 띠에서만 보임.
-     🔥 직선 구간을 평평한 중간톤 한 가지 색으로 깔았더니, 양 끝 patch가 그 경계에서
-     이미 밝음(0.32)/어두움(0.08) 극값으로 끝나는데 거기서 평평한 중간값(0.20)으로
-     뚝 끊겨서 "곡선-직선-곡선 세 조각"처럼 보이는 문제가 있었음. 곡선(양 끝 patch)은
-     그대로 두고, 직선 위/아래 선만 각각 양 끝에서 만나는 patch의 실제 경계값과
-     정확히 이어지는 그라데이션으로 교체 — 위쪽 선: 왼쪽(어두움 0.08, 왼쪽patch
-     top-right 모서리값)→오른쪽(밝음 0.32, 오른쪽patch top-left 모서리값),
-     아래쪽 선: 왼쪽(밝음 0.32, 왼쪽patch bottom-right 모서리값)→오른쪽(어두움 0.08,
-     오른쪽patch bottom-left 모서리값) — 서로 반대 방향이라 위/아래를 각각 띠 하나씩
-     별도 레이어로 분리(두께는 border와 동일 1.5px, 폭은 양 끝 patch 사이 구간만).
-     🔥 그래도 "양쪽이 가운데랑 색이 달라 보인다"는 재지적을 받고 직접 픽셀을 찍어
-     확인해보니, 채움색(fill)이 완전 불투명이 아니라 0.92 알파였던 탓에 그 아래 깔린
-     양 끝 conic-gradient patch(테두리 두께 안쪽까지 카드 높이만큼 넓게 깔려있음)가
-     8%만큼 그대로 비쳐서 새어나오고 있었음(실측: 중간 구간 평평한 rgb(41,41,43) vs
-     양 끝 patch 구간 rgb(45~47,...) — patch를 완전 투명 단색으로 바꾸니 전체가
-     rgb(41,41,42)로 완벽히 균일해지는 것으로 원인 확정). fill을 완전 불투명(알파 1)으로
-     바꿔서 patch가 테두리 두께(1.5px) 바깥으로는 전혀 안 비치게 함 */
+     패턴이었음. 처음엔 이걸 정확히 재현하려고 양 끝 둥근 부분엔 conic-gradient
+     패치, 가운데 직선 구간엔 별도의 linear-gradient 띠를 이어붙이는 방식으로
+     만들었는데 — 두 레이어가 만나는 경계에서 "색상 값"은 정확히 일치시켰음에도
+     브라우저가 서로 다른 종류의 그라데이션을 각각 따로 렌더링/안티앨리어싱하다보니
+     그 접합부에서 선 두께/선명도가 미세하게 달라져 "끊겼다 다시 이어지는" 느낌의
+     이음새가 남는 문제가 있었음(값은 연속인데 렌더링은 불연속). 레이어를 이어붙이는
+     구조 자체를 버리고, 테두리 전체를 처음부터 끝까지 레이어 경계가 전혀 없는
+     linear-gradient 하나로 단순화 — 원리상 이음새가 생길 수 있는 지점이 아예
+     없어짐. 대신 대각선 X자 패턴(오른쪽위/왼쪽아래만 따로 어두움)까지 완벽히
+     재현하진 못하고, 왼쪽위→오른쪽아래로 갈수록 점점 어두워지는 단순한 대각선
+     밝기로 근사함(그래도 "오른쪽위/왼쪽아래가 상대적으로 더 어둡다"는 느낌은 유지됨) */
   background:
     linear-gradient(rgb(44,44,46), rgb(44,44,46)) padding-box, /* 채움색(맨 위, 완전 불투명) */
-    conic-gradient(from 315deg at 50% 50%,
-      rgba(255,255,255,0.32) 0deg,   /* 왼쪽위(NW) — 밝음 */
-      rgba(255,255,255,0.08) 90deg,  /* 오른쪽위(NE) — 어두움 */
-      rgba(255,255,255,0.32) 180deg, /* 오른쪽아래(SE) — 밝음 */
-      rgba(255,255,255,0.08) 270deg, /* 왼쪽아래(SW) — 어두움 */
-      rgba(255,255,255,0.32) 360deg  /* 다시 왼쪽위(NW) */
-    ) no-repeat left center / var(--rtimer-card-h) var(--rtimer-card-h) border-box,
-    conic-gradient(from 315deg at 50% 50%,
-      rgba(255,255,255,0.32) 0deg,
-      rgba(255,255,255,0.08) 90deg,
-      rgba(255,255,255,0.32) 180deg,
-      rgba(255,255,255,0.08) 270deg,
-      rgba(255,255,255,0.32) 360deg
-    ) no-repeat right center / var(--rtimer-card-h) var(--rtimer-card-h) border-box,
-    linear-gradient(to right, rgba(255,255,255,0.08), rgba(255,255,255,0.32))
-      no-repeat top center / calc(100% - 2 * var(--rtimer-card-h)) 1.5px border-box,    /* 위쪽 선 */
-    linear-gradient(to right, rgba(255,255,255,0.32), rgba(255,255,255,0.08))
-      no-repeat bottom center / calc(100% - 2 * var(--rtimer-card-h)) 1.5px border-box; /* 아래쪽 선 */
+    linear-gradient(135deg, rgba(255,255,255,0.32), rgba(255,255,255,0.08)) border-box; /* 테두리(단일 연속 그라데이션) */
   border: 1.5px solid transparent;
   backdrop-filter: blur(20px);
   box-shadow: 0 6px 20px rgba(0,0,0,0.35);
@@ -358,24 +321,7 @@ html.light-mode-on .topText.rtimer-color-to-pill{
 html.light-mode-on .rest-timer-card-bg{
   background:
     linear-gradient(rgb(255,255,255), rgb(255,255,255)) padding-box, /* 완전 불투명 */
-    conic-gradient(from 315deg at 50% 50%,
-      rgba(0,0,0,0.16) 0deg,
-      rgba(0,0,0,0.04) 90deg,
-      rgba(0,0,0,0.16) 180deg,
-      rgba(0,0,0,0.04) 270deg,
-      rgba(0,0,0,0.16) 360deg
-    ) no-repeat left center / var(--rtimer-card-h) var(--rtimer-card-h) border-box,
-    conic-gradient(from 315deg at 50% 50%,
-      rgba(0,0,0,0.16) 0deg,
-      rgba(0,0,0,0.04) 90deg,
-      rgba(0,0,0,0.16) 180deg,
-      rgba(0,0,0,0.04) 270deg,
-      rgba(0,0,0,0.16) 360deg
-    ) no-repeat right center / var(--rtimer-card-h) var(--rtimer-card-h) border-box,
-    linear-gradient(to right, rgba(0,0,0,0.04), rgba(0,0,0,0.16))
-      no-repeat top center / calc(100% - 2 * var(--rtimer-card-h)) 1.5px border-box,
-    linear-gradient(to right, rgba(0,0,0,0.16), rgba(0,0,0,0.04))
-      no-repeat bottom center / calc(100% - 2 * var(--rtimer-card-h)) 1.5px border-box;
+    linear-gradient(135deg, rgba(0,0,0,0.16), rgba(0,0,0,0.04)) border-box;
   box-shadow: 0 6px 20px rgba(0,0,0,0.12);
 }
 
@@ -12352,7 +12298,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.335";
+const APP_VERSION = "0.9.336";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
