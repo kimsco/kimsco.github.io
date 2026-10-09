@@ -238,7 +238,11 @@ button {
   box-shadow: 0 6px 20px rgba(0,0,0,0.35);
   z-index: 0;
   pointer-events: none; /* 🔥 장식용 배경일 뿐이라 터치를 가로채면 안 됨(햄버거/버튼 클릭 방해 방지) */
-  transition: transform 0.35s ease, opacity 0.35s ease;
+  transition: transform 0.35s ease, opacity 0.35s ease, clip-path 0.35s ease-out;
+  /* 🔥 [실험 v3] 기본(완전히 드러난) 상태 — circle 반지름이 알약을 넉넉히 덮는 크기.
+     %가 아니라 px 고정값을 쓴 건, circle()의 % 기준점(최근접/최원접 변 등)이
+     헷갈리기 쉬워서 알약 어떤 크기든 안전하게 다 덮을 만큼 넉넉한 값으로 고정 */
+  clip-path: circle(400px at 50% 50%);
 }
 /* 🔥 "스르르 나오면서" — 시작 위치(살짝 위+투명)를 찍어둔 뒤 이 클래스를 떼면 기본 위치로
    트랜지션됨(타이머 본문 입장 애니메이션과 동일한 기법, playRestTimerEntranceAnimation 참고) */
@@ -260,6 +264,22 @@ button {
   transform: translateX(8px) scale(0.05);
   opacity: 0;
   transition: transform 0.22s cubic-bezier(.55,0,1,.45), opacity 0.22s ease-in;
+}
+/* 🔥 [실험 v3] "글자가 알약 색으로 물든 뒤, 그 자리에서 색이 번져 알약이 됨" 버전.
+   1단계: 글자 색만 배경과 같은(=알약과 같은) 색으로 서서히 전환 — 모양/위치는 그대로,
+   색이 배경에 묻히며 자연스럽게 안 보이게 됨(아래 light-mode 보정은 알약의 라이트모드
+   배경색 rgba(255,255,255,0.92)과 맞춤) */
+.topText.rtimer-color-to-pill{
+  color: #2c2c2e;
+  transition: color 0.2s ease;
+}
+html.light-mode-on .topText.rtimer-color-to-pill{
+  color: #fafafa;
+}
+/* 🔥 [실험 v3] 2단계: 글자가 있던 중심점에서 알약 색이 원 모양으로 번져나가며 알약이
+   생성되는 시작 상태(반지름 0) — 기본 상태(clip-path: circle(400px...))로 트랜지션됨 */
+.rest-timer-card-bg.rtimer-card-bleed-in{
+  clip-path: circle(0px at 50% 50%);
 }
 html.light-mode-on .rest-timer-card-bg{
   background: rgba(255,255,255,0.92);
@@ -12239,7 +12259,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.326";
+const APP_VERSION = "0.9.327";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -21163,23 +21183,22 @@ function syncRestTimerUI(){
   }
 }
 
-// 🔥 [실험] 세트를 "처음" 저장해서 타이머 모드로 들어가는 순간에만 호출.
-// 1단계: 제목이 가로세로 둘 다 알약바 중앙의 한 점으로 쪼그라들며 사라짐(젤리가
-// 뭉치는 느낌). 2단계: 그 중앙 점에서 카드가 좌우로 펼쳐지며 알약이 생성되고,
-// 펼쳐지는 후반부에 숫자/일시정지 버튼이 서서히 나타남.
-// 안 좋으면 이전 버전(위로 슉/아래서 슉, git 이력 참고)으로 되돌릴 수 있음.
+// 🔥 [실험 v3] 세트를 "처음" 저장해서 타이머 모드로 들어가는 순간에만 호출.
+// 1단계: 제목 글자색이 배경과 같은(=알약과 같은) 색으로 서서히 물들며 묻혀 사라짐.
+// 2단계: 그 글자가 있던 중심점에서 알약 색이 원형으로 번져나가며(clip-path circle)
+// 알약이 생성되고, 번짐 후반부에 숫자/일시정지 버튼이 서서히 나타남.
+// 이전 버전들: v1(위로 슉/아래서 슉), v2(중앙 수축→좌우 확장) — git 이력으로 되돌릴 수 있음.
 function playRestTimerEntranceAnimation(){
-  const COLLAPSE_MS = 220; // 1단계: 제목이 중앙 점으로 수축하는 시간
-  const EXPAND_MS = 300;   // 2단계: 카드가 그 점에서 알약 모양으로 펼쳐지는 시간
-  const CONTENT_FADE_DELAY = 120; // 2단계 시작 후 숫자/버튼이 나타나기 시작할 때까지 지연
+  const COLOR_MS = 200;    // 1단계: 글자가 알약 색으로 물드는 시간
+  const BLEED_MS = 350;    // 2단계: 그 자리에서 알약 색이 원형으로 번지는 시간
+  const CONTENT_FADE_DELAY = 150; // 2단계 시작 후 숫자/버튼이 나타나기 시작할 때까지 지연
 
-  // 1단계: 제목 중앙 수축
-  topTitleText.classList.remove('hidden');
-  topTitleText.classList.add('rtimer-collapse-center');
+  // 1단계: 제목 글자색이 배경(=알약) 색으로 전환
+  topTitleText.classList.add('rtimer-color-to-pill');
 
   setTimeout(() => {
     topTitleText.classList.add('hidden');
-    topTitleText.classList.remove('rtimer-collapse-center');
+    topTitleText.classList.remove('rtimer-color-to-pill'); // 다음 활성화 때 흰색부터 다시 시작하도록 원복
 
     // 🔥 숫자/일시정지 버튼을 먼저 "투명하지만 레이아웃엔 존재"하는 상태로 깔아둬야
     // positionRestTimerCard()가 정확한 최종 위치를 측정할 수 있음(과도기 transform
@@ -21196,28 +21215,24 @@ function playRestTimerEntranceAnimation(){
     void restTimerPauseBtn.offsetHeight; // 강제 리플로우
 
     topBarEl.classList.add('rtimer-card-active');
-    // 🔥 unhide와 동시에(사이에 어떤 reflow도 안 끼게) 작은 점 상태 클래스부터 붙임.
-    // positionRestTimerCard() 안에서 getBoundingClientRect()를 여러 번 호출하는데,
-    // 이게 매번 강제 리플로우를 일으켜서 — 만약 "일단 기본 크기로 unhide → 위치
-    // 계산 → 그 다음에 작은 크기로" 순서였다면, 위치 계산 과정의 reflow들이 중간에
-    // "기본 크기(scale 1)"를 먼저 커밋해버려서, 정작 "작은 점 → 기본 크기" 트랜지션이
-    // 시작도 못 해보고(비교 대상이 이미 scale 1이라) 그냥 순간적으로 나타나버리는
-    // 버그가 있었음(실측: transform이 작은 점 상태를 한 번도 안 거치고 곧장 identity로
-    // 찍힘). 작은 상태를 먼저 박아두면 이후의 reflow들은 전부 "작은 상태"를 그대로
-    // 재확인할 뿐이라 안전함
+    // 🔥 unhide와 동시에(사이에 어떤 reflow도 안 끼게) 반지름 0인 시작 상태 클래스부터
+    // 붙임 — positionRestTimerCard() 안의 getBoundingClientRect() 호출들이 강제
+    // 리플로우를 일으키는데, 순서가 반대면(먼저 기본 상태로 unhide → 위치 계산 →
+    // 그 다음에 반지름 0으로) 그 reflow들이 "다 드러난 상태"를 먼저 커밋해버려서
+    // 트랜지션이 비교할 "시작 상태"를 잃어버리고 순간적으로 '뿅' 나타나는 버그가
+    // 있었음(v2에서 겪었던 것과 동일한 원인) — 작은 상태를 먼저 박아두면 안전함
     restTimerCardBg.classList.remove('hidden');
-    restTimerCardBg.classList.add('rtimer-card-enter-center');
-    positionRestTimerCard(); // 🔥 전부 settled 상태로 "보이는"(단, 카드는 작게) 동안 계산
+    restTimerCardBg.classList.add('rtimer-card-bleed-in');
+    positionRestTimerCard(); // 🔥 전부 settled 상태로 "보이는"(단, 카드는 반지름 0) 동안 계산
 
-    // 2단계: 다음 프레임에 클래스를 떼서 기본 transform(scale(1))으로 트랜지션되게
-    // 함 — 중앙 기준으로 커지므로 자연스럽게 "중앙에서 좌우로 펼쳐지는" 모양이 됨
-    // (transform-origin 기본값=center)
-    void restTimerCardBg.offsetHeight; // 강제 리플로우(작은 상태를 확실히 커밋)
+    // 2단계: 다음 프레임에 클래스를 떼서 기본 clip-path(반지름 400px, 사실상 전체
+    // 노출)로 트랜지션되게 함 — 중심점 기준으로 커지므로 "그 자리에서 번져나가는" 모양
+    void restTimerCardBg.offsetHeight; // 강제 리플로우(반지름 0 상태를 확실히 커밋)
     requestAnimationFrame(() => {
-      restTimerCardBg.classList.remove('rtimer-card-enter-center');
+      restTimerCardBg.classList.remove('rtimer-card-bleed-in');
 
-      // 카드가 펼쳐지기 시작한 지 CONTENT_FADE_DELAY만큼 지난 뒤, 숫자/버튼을
-      // 서서히 페이드인(카드가 어느정도 펼쳐진 뒤에야 내용물이 보이도록)
+      // 알약이 번지기 시작한 지 CONTENT_FADE_DELAY만큼 지난 뒤, 숫자/버튼을
+      // 서서히 페이드인(알약이 어느정도 번진 뒤에야 내용물이 보이도록)
       setTimeout(() => {
         restTimerDisplay.style.transition = 'opacity 0.2s ease';
         restTimerPauseBtn.style.transition = 'opacity 0.2s ease';
@@ -21225,7 +21240,7 @@ function playRestTimerEntranceAnimation(){
         restTimerPauseBtn.style.opacity = '';
       }, CONTENT_FADE_DELAY);
     });
-  }, COLLAPSE_MS);
+  }, COLOR_MS);
 
   renderRestTimerValue();
   startRestTimerTick();
