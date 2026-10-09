@@ -12199,7 +12199,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.320";
+const APP_VERSION = "0.9.321";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -21043,10 +21043,22 @@ function positionRestTimerCard(){
 
   // 🔥 일시정지 버튼이 햄버거 메뉴 버튼과 정확히 같은 세로 중심선에 오도록 보정
   // (.menu-btn엔 원래부터 있던 top:3px 보정 때문에 그냥 두면 버튼 둘의 중심이
-  // 어긋나 카드 안에서 위아래 여백이 서로 달라 보임)
+  // 어긋나 카드 안에서 위아래 여백이 서로 달라 보임). 추가로 카드 오른쪽 가장자리
+  // 기준으로는 그대로(위 right 계산은 이 transform 적용 "전" pauseRect로 고정 계산됨)
+  // 두되, 버튼 자체는 PAUSE_BTN_LEFT_SHIFT만큼 왼쪽으로 더 당겨서 배치
   const menuCenterY = menuRect.top + menuRect.height / 2;
   const pauseCenterY = pauseRect.top + pauseRect.height / 2;
-  restTimerPauseBtn.style.transform = `translateY(${(menuCenterY - pauseCenterY).toFixed(2)}px)`;
+  const PAUSE_BTN_LEFT_SHIFT = 8;
+  restTimerPauseBtn.style.transform =
+    `translate(${-PAUSE_BTN_LEFT_SHIFT}px, ${(menuCenterY - pauseCenterY).toFixed(2)}px)`;
+
+  // 🔥 타이머 숫자("0:00")도 같은 방식으로 버튼들과 같은 세로 중심선에 오도록 보정
+  // (restTimerDisplay 자신의 transform은 입장 애니메이션/8px 수평 보정에 이미 쓰이고
+  // 있어서 건드리지 않고, 안쪽 숫자 엘리먼트에만 별도로 translateY 적용)
+  restTimerValueEl.style.transform = '';
+  const valueRect = restTimerValueEl.getBoundingClientRect();
+  const valueCenterY = valueRect.top + valueRect.height / 2;
+  restTimerValueEl.style.transform = `translateY(${(menuCenterY - valueCenterY).toFixed(2)}px)`;
 }
 
 let restTimerEnabled = false;
@@ -21123,24 +21135,30 @@ function playRestTimerEntranceAnimation(){
     topTitleText.classList.remove('rtimer-exit-up');
   }, 360);
 
-  // 시작 위치(아래+투명)를 먼저 찍고, 다음 프레임에 클래스를 떼서 기본 transform
-  // (translateX(8px)만 남은 상태)으로 트랜지션되게 함
+  // 🔥 먼저 "enter-from-below" 없이(=최종 휴식 위치 그대로) 보이게 해서 모든 위치
+  // 계산(positionRestTimerCard, 버튼/숫자 세로 중심 보정)을 최종 상태 기준으로
+  // 정확히 끝낸 뒤에야 시작 위치 클래스를 붙여 애니메이션을 시작함 — 순서를 반대로
+  // 하면(시작 위치부터 찍고 측정) positionRestTimerCard가 과도기 transform을 보고
+  // 계산해버려서 숫자가 엉뚱한 위치로 튀는 버그가 있었음
   restTimerDisplay.classList.remove('hidden');
+
+  restTimerPauseBtn.classList.remove('hidden');
+  restTimerPauseIcon.classList.remove('hidden');
+  restTimerPlayIcon.classList.add('hidden');
+
+  topBarEl.classList.add('rtimer-card-active');
+  restTimerCardBg.classList.remove('hidden');
+  positionRestTimerCard(); // 🔥 전부 최종 위치로 "보이는" 상태에서 계산
+
+  // 이제서야 시작 위치(아래+투명)로 찍고, 다음 프레임에 클래스를 떼서 방금 계산해둔
+  // 최종 위치(translateX(8px) 등)로 트랜지션되게 함
   restTimerDisplay.classList.add('rtimer-enter-from-below');
   void restTimerDisplay.offsetHeight; // 강제 리플로우(시작 위치가 실제로 적용되게)
   requestAnimationFrame(() => {
     restTimerDisplay.classList.remove('rtimer-enter-from-below');
   });
 
-  restTimerPauseBtn.classList.remove('hidden');
-  restTimerPauseIcon.classList.remove('hidden');
-  restTimerPlayIcon.classList.add('hidden');
-
-  // 🔥 iOS 알림 배너 같은 둥근 카드 배경도 타이머와 같은 타이밍으로 "스르르" 슬라이드인.
-  // 일시정지 버튼이 이미 보이는 상태가 된 뒤에 위치를 계산해야 정확함(위에서 먼저 unhide)
-  topBarEl.classList.add('rtimer-card-active');
-  restTimerCardBg.classList.remove('hidden');
-  positionRestTimerCard();
+  // 🔥 iOS 알림 배너 같은 둥근 카드 배경도 타이머와 같은 타이밍으로 "스르르" 슬라이드인
   restTimerCardBg.classList.add('rtimer-card-enter');
   void restTimerCardBg.offsetHeight; // 강제 리플로우
   requestAnimationFrame(() => {
