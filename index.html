@@ -215,9 +215,15 @@ button {
    명시적으로 쌓임 순서를 올려둠 — 카드 쪽(z-index:0, DOM상으로도 제일 먼저)이 항상
    뒤에 깔리게 보장 */
 .topBar > .menu-btn,
-.topBar > .topText,
 .topBar > .topBar-right{
   position: relative;
+  z-index: 1;
+}
+/* 🔥 .topText는 이미 position:absolute라(전체 바 폭 기준 정중앙 트릭, 위 .topText 참고)
+   여기서 position:relative로 다시 덮어쓰면 그 중앙정렬 트릭 자체가 깨짐(left:0;right:0;이
+   relative에서는 다른 의미가 됨) — absolute는 그 자체로 쌓임 맥락을 만들어 position을
+   건드릴 필요 없이 z-index만 줘도 카드 위에 그려짐 */
+.topBar > .topText{
   z-index: 1;
 }
 .rest-timer-card-bg{
@@ -12199,7 +12205,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.321";
+const APP_VERSION = "0.9.322";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
