@@ -203,6 +203,48 @@ button {
     미리 승격시켜두는 힌트를 줘야 트랜지션이 정상적으로 보간됨 */
 }
 
+/* 🔥 휴식 타이머가 활성화되면 topBar 자체의 평소 flush 배경(위 background/backdrop-filter/
+   border-bottom)은 숨기고, 대신 아래 .rest-timer-card-bg가 여백을 두고 둥글게 떠있는
+   카드로 그 역할을 대신함(iOS 알림 배너 느낌) */
+.topBar.rtimer-card-active{
+  background: transparent;
+  backdrop-filter: none;
+  border-bottom-color: transparent;
+}
+/* 🔥 topBar의 실제 내용(햄버거/타이틀·타이머/우측 버튼)은 전부 카드 "위"에 그려지도록
+   명시적으로 쌓임 순서를 올려둠 — 카드 쪽(z-index:0, DOM상으로도 제일 먼저)이 항상
+   뒤에 깔리게 보장 */
+.topBar > .menu-btn,
+.topBar > .topText,
+.topBar > .topBar-right{
+  position: relative;
+  z-index: 1;
+}
+.rest-timer-card-bg{
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  top: calc(6px + env(safe-area-inset-top));
+  bottom: 6px;
+  border-radius: 20px;
+  background: rgba(44,44,46,0.92);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+  z-index: 0;
+  pointer-events: none; /* 🔥 장식용 배경일 뿐이라 터치를 가로채면 안 됨(햄버거/버튼 클릭 방해 방지) */
+  transition: transform 0.35s ease, opacity 0.35s ease;
+}
+/* 🔥 "스르르 나오면서" — 시작 위치(살짝 위+투명)를 찍어둔 뒤 이 클래스를 떼면 기본 위치로
+   트랜지션됨(타이머 본문 입장 애니메이션과 동일한 기법, playRestTimerEntranceAnimation 참고) */
+.rest-timer-card-bg.rtimer-card-enter{
+  transform: translateY(-10px);
+  opacity: 0;
+}
+html.light-mode-on .rest-timer-card-bg{
+  background: rgba(255,255,255,0.92);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+}
+
 
 
 .topText{
@@ -3430,7 +3472,8 @@ html.light-mode-on .rest-timer-pause-btn {
 #restTimerDisplay.hidden,
 #restTimerPauseBtn.hidden,
 #restTimerPauseIcon.hidden,
-#restTimerPlayIcon.hidden {
+#restTimerPlayIcon.hidden,
+#restTimerCardBg.hidden {
   display: none;
 }
 html.light-mode-on .menu-btn {
@@ -8225,6 +8268,11 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
    
     
 <div class="topBar">
+  <!-- 🔥 휴식 타이머 활성화 시(3대/기록 탭) iOS 알림 배너 같은 둥근 카드 배경을 topBar
+       전체 뒤에 깔아줌 — 맨 앞(DOM 순서상 제일 먼저)에 둬서 햄버거/타이머/일시정지
+       버튼이 전부 이 카드 "위"에 자연스럽게 올라앉도록 함(아래 z-index 보강도 참고) -->
+  <div class="rest-timer-card-bg hidden" id="restTimerCardBg"></div>
+
   <button id="openNavDrawerBtn" class="menu-btn" aria-label="메뉴">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
          stroke-linecap="round" stroke-linejoin="round">
@@ -12151,7 +12199,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.316";
+const APP_VERSION = "0.9.317";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -20971,6 +21019,8 @@ const restTimerValueEl = document.getElementById("restTimerValue");
 const restTimerPauseBtn = document.getElementById("restTimerPauseBtn");
 const restTimerPauseIcon = document.getElementById("restTimerPauseIcon");
 const restTimerPlayIcon = document.getElementById("restTimerPlayIcon");
+const restTimerCardBg = document.getElementById("restTimerCardBg");
+// 🔥 topBarEl은 이미 위에서(메뉴/설정 드로어 push용) 선언돼있어 재사용
 
 let restTimerEnabled = false;
 let restTimerActive = false;       // 세트를 1번 이상 저장해서 "타이머 모드"로 들어갔는지
@@ -21021,12 +21071,16 @@ function syncRestTimerUI(){
     restTimerPauseBtn.classList.remove('hidden');
     restTimerPauseIcon.classList.toggle('hidden', !!restTimerPausedAt);
     restTimerPlayIcon.classList.toggle('hidden', !restTimerPausedAt);
+    topBarEl.classList.add('rtimer-card-active');
+    restTimerCardBg.classList.remove('hidden', 'rtimer-card-enter');
     renderRestTimerValue();
     if (!restTimerPausedAt) startRestTimerTick(); else stopRestTimerTick();
   } else {
     topTitleText.classList.remove('hidden', 'rtimer-exit-up');
     restTimerDisplay.classList.add('hidden');
     restTimerPauseBtn.classList.add('hidden');
+    topBarEl.classList.remove('rtimer-card-active');
+    restTimerCardBg.classList.add('hidden');
     stopRestTimerTick();
   }
 }
@@ -21048,6 +21102,15 @@ function playRestTimerEntranceAnimation(){
   void restTimerDisplay.offsetHeight; // 강제 리플로우(시작 위치가 실제로 적용되게)
   requestAnimationFrame(() => {
     restTimerDisplay.classList.remove('rtimer-enter-from-below');
+  });
+
+  // 🔥 iOS 알림 배너 같은 둥근 카드 배경도 타이머와 같은 타이밍으로 "스르르" 슬라이드인
+  topBarEl.classList.add('rtimer-card-active');
+  restTimerCardBg.classList.remove('hidden');
+  restTimerCardBg.classList.add('rtimer-card-enter');
+  void restTimerCardBg.offsetHeight; // 강제 리플로우
+  requestAnimationFrame(() => {
+    restTimerCardBg.classList.remove('rtimer-card-enter');
   });
 
   restTimerPauseBtn.classList.remove('hidden');
