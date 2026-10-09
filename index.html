@@ -265,16 +265,26 @@ button {
   opacity: 0;
   transition: transform 0.22s cubic-bezier(.55,0,1,.45), opacity 0.22s ease-in;
 }
-/* 🔥 [실험 v3] "글자가 알약 색으로 물든 뒤, 그 자리에서 색이 번져 알약이 됨" 버전.
-   1단계: 글자 색만 배경과 같은(=알약과 같은) 색으로 서서히 전환 — 모양/위치는 그대로,
-   색이 배경에 묻히며 자연스럽게 안 보이게 됨(아래 light-mode 보정은 알약의 라이트모드
-   배경색 rgba(255,255,255,0.92)과 맞춤) */
+/* 🔥 [실험 v3] "글자가 알약 색을 거쳐 배경색으로 묻히며 사라짐" 버전.
+   1단계: 글자 색이 (원래색) -> 알약 색(분명히 보이는 경유지) -> 배경색(거의 검정/흰색,
+   여기서 배경에 묻혀 안 보이게 됨) 순서로 전환 — 중간에 "알약 색"을 또렷이 거쳐가게
+   해서 "알약 색으로 바뀌는 중"이라는 게 눈에 보이도록 함(바로 검정/흰색으로만 가면
+   알약 색 자체가 배경과 비슷해서 그냥 사라지는 것처럼만 보였음) */
+@keyframes rtimer-title-color-dark{
+  0%   { color: #ffffff; }
+  50%  { color: #2c2c2e; } /* 알약 색(다크모드) — 또렷이 보이는 경유지 */
+  100% { color: #000000; } /* topBar 배경(거의 검정)과 같아지며 사라짐 */
+}
+@keyframes rtimer-title-color-light{
+  0%   { color: var(--c-text-primary); }
+  50%  { color: #fafafa; } /* 알약 색(라이트모드) — 또렷이 보이는 경유지 */
+  100% { color: #ffffff; } /* topBar 배경(흰색)과 같아지며 사라짐 */
+}
 .topText.rtimer-color-to-pill{
-  color: #2c2c2e;
-  transition: color 0.2s ease;
+  animation: rtimer-title-color-dark 0.32s ease-in forwards;
 }
 html.light-mode-on .topText.rtimer-color-to-pill{
-  color: #fafafa;
+  animation-name: rtimer-title-color-light;
 }
 /* 🔥 [실험 v3] 2단계: 글자가 있던 중심점에서 알약 색이 원 모양으로 번져나가며 알약이
    생성되는 시작 상태(반지름 0) — 기본 상태(clip-path: circle(400px...))로 트랜지션됨 */
@@ -12259,7 +12269,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.327";
+const APP_VERSION = "0.9.328";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -21189,7 +21199,7 @@ function syncRestTimerUI(){
 // 알약이 생성되고, 번짐 후반부에 숫자/일시정지 버튼이 서서히 나타남.
 // 이전 버전들: v1(위로 슉/아래서 슉), v2(중앙 수축→좌우 확장) — git 이력으로 되돌릴 수 있음.
 function playRestTimerEntranceAnimation(){
-  const COLOR_MS = 200;    // 1단계: 글자가 알약 색으로 물드는 시간
+  const COLOR_MS = 320;    // 1단계: 글자가 알약 색을 거쳐 배경색으로 물드는 시간(CSS 키프레임 0.32s와 일치)
   const BLEED_MS = 350;    // 2단계: 그 자리에서 알약 색이 원형으로 번지는 시간
   const CONTENT_FADE_DELAY = 150; // 2단계 시작 후 숫자/버튼이 나타나기 시작할 때까지 지연
 
