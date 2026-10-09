@@ -224,8 +224,8 @@ button {
   position: absolute;
   left: 8px;
   right: 8px;
-  top: calc(6px + env(safe-area-inset-top));
-  bottom: 6px;
+  top: calc(2px + env(safe-area-inset-top));
+  bottom: 2px;
   border-radius: 20px;
   background: rgba(44,44,46,0.92);
   backdrop-filter: blur(20px);
@@ -12199,7 +12199,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.317";
+const APP_VERSION = "0.9.318";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
