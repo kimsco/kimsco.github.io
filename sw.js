@@ -1,10 +1,16 @@
-const CACHE = "mf-v28"; // 🔥 로고 디자인을 3D 리본 느낌의 "TTT" 3글자 로고로 교체 — 아이콘/스플래시 전부 재생성해서 캐시 이름을 다시 올려 새로 받아오게 함
+const CACHE = "mf-v29"; // 🔥 아래 food-db-full.json 삭제 + 로고 이미지가 그동안 세 차례 더
+                         // 교체(#764/#765/#768)됐지만 이 캐시 이름을 안 올려서 새 서비스워커가
+                         // 설치되지 않고 있었음(바로 아래 참고) — 올려서 처음부터 다시 받아오게 함
 const ASSETS = [
   "/",
   "/index.html",
   "/manifest.json",
   "/sw.js",
-  "/food-db-full.json",
+  // 🔥 "/food-db-full.json"은 실제로 존재한 적 없는(index.html 어디서도 안 쓰이는) 죽은
+  // 참조였음 — cache.addAll()은 목록 중 하나라도 404면 전체가 실패하는 all-or-nothing
+  // 방식이라, 이 한 줄 때문에 install 이벤트가 매번 조용히 실패해서 서비스워커가 한 번도
+  // 제대로 갱신되지 못하고 있었음(= CACHE 이름을 아무리 올려도 무의미했던 진짜 원인).
+  // 삭제해서 install이 정상적으로 끝까지 완료되도록 함
   "/icons/icon-192.png",
   "/icons/icon-512.png",
   "/icons/apple-touch-icon.png",
