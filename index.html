@@ -10998,7 +10998,11 @@ function setsUnit(){ return unitPrefs.sets === "세트" ? "세트" : "set"; }
 function weightUnit(){ return unitPrefs.weight === "키로" ? "키로" : "kg"; }
 
 function formatSetLine(w, r, sets){
-  const weightStr = `${formatKgSmart(w)}${weightUnit()} × ${formatCountSmart(r)}${repsUnit()}`;
+  const repsStr = `${formatCountSmart(r)}${repsUnit()}`;
+  // 🔥 푸쉬업/풀업처럼 무게 없이 하는 맨몸운동은 0kg으로 기록되는데, "0kg × 10회"는
+  // 무게를 쓰는 종목과 똑같이 보여도 사실상 "10회"와 다를 게 없어서 군더더기였음 —
+  // 무게가 0이면 무게 표시 자체를 생략하고 횟수만 보여줌
+  const weightStr = (round1(w) === 0) ? repsStr : `${formatKgSmart(w)}${weightUnit()} × ${repsStr}`;
 
   if(sets === 1){
     return weightStr;   // ✅ 1세트는 그냥 기본 표시
@@ -12352,7 +12356,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.338";
+const APP_VERSION = "0.9.339";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -21713,9 +21717,10 @@ function dateAgendaLineLabel(group, line){
     return `총 ${line.sets || 0}세트 · ${line.reps || 0}회`;
   }
   const w = Number(line.weight);
+  // 🔥 무게 0(맨몸운동)이면 "체중 × N회"도 군더더기라 그냥 횟수만 표시(위 formatSetLine과 동일 기준)
   const base = (line.weight !== null && line.weight !== undefined && line.weight !== "" && w > 0)
     ? `${line.weight}kg × ${line.reps}회`
-    : `체중 × ${line.reps}회`;
+    : `${line.reps}회`;
   // 🔥 1세트는 굳이 세트 수를 안 붙이고, 2세트 이상일 때만 뒤에 "× N세트"를 붙임
   return (line.sets && line.sets >= 2) ? `${base} × ${line.sets}세트` : base;
 }
