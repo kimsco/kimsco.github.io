@@ -12260,7 +12260,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.329";
+const APP_VERSION = "0.9.330";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -21201,8 +21201,10 @@ function playRestTimerEntranceAnimation(){
   topTitleText.classList.add('rtimer-color-to-pill');
 
   setTimeout(() => {
-    topTitleText.classList.add('hidden');
-    topTitleText.classList.remove('rtimer-color-to-pill'); // 다음 활성화 때 흰색부터 다시 시작하도록 원복
+    // 🔥 글자를 여기서 바로 숨기지 않음 — 색 전환이 끝난 시점엔 글자색 == 알약색이라
+    // 계속 보여도 배경과 구분이 안 됨. 번짐 애니메이션 내내 그대로 뒀다가, 가운데
+    // 숫자가 나타나기 직전(아래 CONTENT_FADE_DELAY 시점)에만 숨김 — 그래야 끊김이
+    // 전혀 없이 "글자가 알약이 되는" 느낌이 유지됨
 
     // 🔥 숫자/일시정지 버튼을 먼저 "투명하지만 레이아웃엔 존재"하는 상태로 깔아둬야
     // positionRestTimerCard()가 정확한 최종 위치를 측정할 수 있음(과도기 transform
@@ -21235,9 +21237,13 @@ function playRestTimerEntranceAnimation(){
     requestAnimationFrame(() => {
       restTimerCardBg.classList.remove('rtimer-card-bleed-in');
 
-      // 알약이 번지기 시작한 지 CONTENT_FADE_DELAY만큼 지난 뒤, 숫자/버튼을
+      // 알약이 번지기 시작한 지 CONTENT_FADE_DELAY만큼 지난 뒤, "To the Top" 글자를
+      // 숨기고(다음 활성화 때 흰색부터 다시 시작하도록 색도 원복) 숫자/버튼을
       // 서서히 페이드인(알약이 어느정도 번진 뒤에야 내용물이 보이도록)
       setTimeout(() => {
+        topTitleText.classList.add('hidden');
+        topTitleText.classList.remove('rtimer-color-to-pill');
+
         restTimerDisplay.style.transition = 'opacity 0.2s ease';
         restTimerPauseBtn.style.transition = 'opacity 0.2s ease';
         restTimerDisplay.style.opacity = '';
