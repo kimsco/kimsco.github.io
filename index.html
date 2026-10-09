@@ -298,14 +298,32 @@ html.light-mode-on .rest-timer-card-bg{
 .rest-timer-pause-btn{
   flex: 0 0 auto;
   all: unset;
+  position: relative;
   /* 🔥 타이머 숫자가 1.2em -> 1.7em으로 커진 비율(약 1.42배)에 맞춰 24px -> 34px로 확대 */
   width: 34px;
   height: 34px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: #ddd;
+  color: #eee;
+  /* 🔥 햄버거 메뉴 버튼(.menu-btn)과 같은 반투명 유리(Acrylic/Glassmorphism) 재질 */
+  background: rgba(255,255,255,0.10);
+  -webkit-backdrop-filter: blur(14px) saturate(150%);
+  backdrop-filter: blur(14px) saturate(150%);
+  border: 1px solid rgba(255,255,255,0.14);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+}
+.rest-timer-pause-btn:active{
+  background: rgba(255,255,255,0.24);
+}
+html.light-mode-on .rest-timer-pause-btn{
+  background: rgba(0,0,0,0.06);
+  border-color: rgba(0,0,0,0.1);
+}
+html.light-mode-on .rest-timer-pause-btn:active{
+  background: rgba(0,0,0,0.14);
 }
 
 .settings-btn{
@@ -12205,7 +12223,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.322";
+const APP_VERSION = "0.9.323";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
