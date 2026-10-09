@@ -290,9 +290,9 @@ html.light-mode-on .topBar.rtimer-card-active .rest-timer-pause-btn:active{
     linear-gradient(rgb(44,44,46), rgb(44,44,46)) padding-box, /* 채움색(맨 위, 완전 불투명) */
     conic-gradient(from 315deg at 50% 50%,
       rgba(255,255,255,0.32) 0deg,   /* 왼쪽위(NW) — 밝음 */
-      rgba(255,255,255,0.08) 90deg,  /* 오른쪽위(NE) — 어두움 */
+      rgba(255,255,255,0.32) 90deg,  /* 오른쪽위(NE, 직선과 만나는 지점) — 밝게로 수정, 위쪽 직선과 이어지는 부분이 어두워 끊겨보이던 것 해결 */
       rgba(255,255,255,0.32) 180deg, /* 오른쪽아래(SE) — 밝음 */
-      rgba(255,255,255,0.08) 270deg, /* 왼쪽아래(SW) — 어두움 */
+      rgba(255,255,255,0.08) 270deg, /* 왼쪽아래(SW) — 어두움 유지 */
       rgba(255,255,255,0.32) 360deg  /* 다시 왼쪽위(NW) */
     ) no-repeat left center / var(--rtimer-card-h) var(--rtimer-card-h) border-box,
     conic-gradient(from 315deg at 50% 50%,
@@ -302,8 +302,8 @@ html.light-mode-on .topBar.rtimer-card-active .rest-timer-pause-btn:active{
       rgba(255,255,255,0.32) 270deg,  /* 오른쪽아래(SW, 직선과 만나는 지점) — 밝게로 수정, 직선과 이어지는 부분이 어두워 끊겨보이던 것 해결 */
       rgba(255,255,255,0.32) 360deg
     ) no-repeat right center / var(--rtimer-card-h) var(--rtimer-card-h) border-box,
-    linear-gradient(to right, rgba(255,255,255,0.08), rgba(255,255,255,0.32))
-      no-repeat top center / calc(100% - 2 * var(--rtimer-card-h)) 1.5px border-box,    /* 위쪽 선 */
+    linear-gradient(to right, rgba(255,255,255,0.32), rgba(255,255,255,0.32))
+      no-repeat top center / calc(100% - 2 * var(--rtimer-card-h)) 1.5px border-box,    /* 위쪽 선 — 아래쪽과 동일하게 두껍고 밝은 선으로 고정 */
     linear-gradient(to right, rgba(255,255,255,0.32), rgba(255,255,255,0.32))
       no-repeat bottom center / calc(100% - 2 * var(--rtimer-card-h)) 1.5px border-box; /* 아래쪽 선 — 양 끝 곡선처럼 두껍고 밝은 선으로 고정(어두워지는 구간 없앰) */
   border: 1.5px solid transparent;
@@ -360,7 +360,7 @@ html.light-mode-on .rest-timer-card-bg{
     linear-gradient(rgb(255,255,255), rgb(255,255,255)) padding-box, /* 완전 불투명 */
     conic-gradient(from 315deg at 50% 50%,
       rgba(0,0,0,0.16) 0deg,
-      rgba(0,0,0,0.04) 90deg,
+      rgba(0,0,0,0.16) 90deg,
       rgba(0,0,0,0.16) 180deg,
       rgba(0,0,0,0.04) 270deg,
       rgba(0,0,0,0.16) 360deg
@@ -372,9 +372,9 @@ html.light-mode-on .rest-timer-card-bg{
       rgba(0,0,0,0.16) 270deg,
       rgba(0,0,0,0.16) 360deg
     ) no-repeat right center / var(--rtimer-card-h) var(--rtimer-card-h) border-box,
-    linear-gradient(to right, rgba(0,0,0,0.04), rgba(0,0,0,0.16))
+    linear-gradient(to right, rgba(0,0,0,0.16), rgba(0,0,0,0.16))
       no-repeat top center / calc(100% - 2 * var(--rtimer-card-h)) 1.5px border-box,
-    linear-gradient(to right, rgba(0,0,0,0.16), rgba(0,0,0,0.04))
+    linear-gradient(to right, rgba(0,0,0,0.16), rgba(0,0,0,0.16))
       no-repeat bottom center / calc(100% - 2 * var(--rtimer-card-h)) 1.5px border-box;
   box-shadow: 0 6px 20px rgba(0,0,0,0.12);
 }
@@ -12352,7 +12352,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.337";
+const APP_VERSION = "0.9.338";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
