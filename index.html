@@ -12199,7 +12199,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.318";
+const APP_VERSION = "0.9.319";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -21020,7 +21020,24 @@ const restTimerPauseBtn = document.getElementById("restTimerPauseBtn");
 const restTimerPauseIcon = document.getElementById("restTimerPauseIcon");
 const restTimerPlayIcon = document.getElementById("restTimerPlayIcon");
 const restTimerCardBg = document.getElementById("restTimerCardBg");
+const restTimerMenuBtnEl = document.getElementById("openNavDrawerBtn");
 // 🔥 topBarEl은 이미 위에서(메뉴/설정 드로어 push용) 선언돼있어 재사용
+
+// 🔥 카드 배경의 상하좌우 여백을 CSS 고정값이 아니라, 실제로 렌더링된 햄버거 메뉴
+// 버튼(왼쪽 기준)·일시정지 버튼(오른쪽 기준)의 위치를 읽어서 "버튼 테두리로부터
+// 똑같은 간격"이 되도록 매번 계산해서 inline style로 꽂아줌 — 기기별 safe-area,
+// 폰트 렌더링 차이에 상관없이 항상 정확히 균등한 여백이 나옴
+const REST_TIMER_CARD_GAP = 7;
+function positionRestTimerCard(){
+  const barRect = topBarEl.getBoundingClientRect();
+  const menuRect = restTimerMenuBtnEl.getBoundingClientRect();
+  const pauseRect = restTimerPauseBtn.getBoundingClientRect();
+  const g = REST_TIMER_CARD_GAP;
+  restTimerCardBg.style.left = (menuRect.left - barRect.left - g) + 'px';
+  restTimerCardBg.style.top = (menuRect.top - barRect.top - g) + 'px';
+  restTimerCardBg.style.bottom = (barRect.bottom - menuRect.bottom - g) + 'px';
+  restTimerCardBg.style.right = (barRect.right - pauseRect.right - g) + 'px';
+}
 
 let restTimerEnabled = false;
 let restTimerActive = false;       // 세트를 1번 이상 저장해서 "타이머 모드"로 들어갔는지
@@ -21073,6 +21090,7 @@ function syncRestTimerUI(){
     restTimerPlayIcon.classList.toggle('hidden', !restTimerPausedAt);
     topBarEl.classList.add('rtimer-card-active');
     restTimerCardBg.classList.remove('hidden', 'rtimer-card-enter');
+    positionRestTimerCard(); // 🔥 버튼들이 보이는 상태가 된 뒤에 호출해야 정확한 위치가 나옴
     renderRestTimerValue();
     if (!restTimerPausedAt) startRestTimerTick(); else stopRestTimerTick();
   } else {
@@ -21104,18 +21122,21 @@ function playRestTimerEntranceAnimation(){
     restTimerDisplay.classList.remove('rtimer-enter-from-below');
   });
 
-  // 🔥 iOS 알림 배너 같은 둥근 카드 배경도 타이머와 같은 타이밍으로 "스르르" 슬라이드인
+  restTimerPauseBtn.classList.remove('hidden');
+  restTimerPauseIcon.classList.remove('hidden');
+  restTimerPlayIcon.classList.add('hidden');
+
+  // 🔥 iOS 알림 배너 같은 둥근 카드 배경도 타이머와 같은 타이밍으로 "스르르" 슬라이드인.
+  // 일시정지 버튼이 이미 보이는 상태가 된 뒤에 위치를 계산해야 정확함(위에서 먼저 unhide)
   topBarEl.classList.add('rtimer-card-active');
   restTimerCardBg.classList.remove('hidden');
+  positionRestTimerCard();
   restTimerCardBg.classList.add('rtimer-card-enter');
   void restTimerCardBg.offsetHeight; // 강제 리플로우
   requestAnimationFrame(() => {
     restTimerCardBg.classList.remove('rtimer-card-enter');
   });
 
-  restTimerPauseBtn.classList.remove('hidden');
-  restTimerPauseIcon.classList.remove('hidden');
-  restTimerPlayIcon.classList.add('hidden');
   renderRestTimerValue();
   startRestTimerTick();
 }
