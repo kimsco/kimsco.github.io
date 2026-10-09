@@ -304,8 +304,8 @@ html.light-mode-on .topBar.rtimer-card-active .rest-timer-pause-btn:active{
     ) no-repeat right center / var(--rtimer-card-h) var(--rtimer-card-h) border-box,
     linear-gradient(to right, rgba(255,255,255,0.08), rgba(255,255,255,0.32))
       no-repeat top center / calc(100% - 2 * var(--rtimer-card-h)) 1.5px border-box,    /* 위쪽 선 */
-    linear-gradient(to right, rgba(255,255,255,0.32), rgba(255,255,255,0.08))
-      no-repeat bottom center / calc(100% - 2 * var(--rtimer-card-h)) 1.5px border-box; /* 아래쪽 선 */
+    linear-gradient(to right, rgba(255,255,255,0.32), rgba(255,255,255,0.32))
+      no-repeat bottom center / calc(100% - 2 * var(--rtimer-card-h)) 1.5px border-box; /* 아래쪽 선 — 양 끝 곡선처럼 두껍고 밝은 선으로 고정(어두워지는 구간 없앰) */
   border: 1.5px solid transparent;
   backdrop-filter: blur(20px);
   box-shadow: 0 6px 20px rgba(0,0,0,0.35);
@@ -12352,7 +12352,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.335";
+const APP_VERSION = "0.9.336";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
