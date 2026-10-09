@@ -222,6 +222,11 @@ button {
   line-height: 1.4;
   opacity: 0.95;
   text-align: center;
+  /* 🔥 수학적으론 바 전체의 정중앙이지만(검증 완료), 왼쪽엔 항상 햄버거 메뉴가 있고
+     오른쪽은 탭에 따라 비어있을 수도 있어서(3대/기록/달력) 눈으로 보면 살짝 왼쪽으로
+     쏠려 보이는 착시가 있었음 — 모든 탭에서 동일하게 8px만 오른쪽으로 보정(탭 전환
+     시 제목 위치가 안 흔들리도록 탭 구분 없이 항상 적용) */
+  transform: translateX(8px);
 }
 
 .settings-btn{
@@ -12073,7 +12078,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.312";
+const APP_VERSION = "0.9.313";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
