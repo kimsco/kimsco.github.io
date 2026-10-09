@@ -226,7 +226,7 @@ button {
   right: 8px;
   top: calc(2px + env(safe-area-inset-top));
   bottom: 2px;
-  border-radius: 20px;
+  border-radius: 9999px; /* 🔥 완전한 알약(pill) 모양 — 높이의 절반보다 큰 값을 줘서 위아래가 반원으로 */
   background: rgba(44,44,46,0.92);
   backdrop-filter: blur(20px);
   box-shadow: 0 6px 20px rgba(0,0,0,0.35);
@@ -12199,7 +12199,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.319";
+const APP_VERSION = "0.9.320";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -21031,12 +21031,22 @@ const REST_TIMER_CARD_GAP = 7;
 function positionRestTimerCard(){
   const barRect = topBarEl.getBoundingClientRect();
   const menuRect = restTimerMenuBtnEl.getBoundingClientRect();
+  // 🔥 일시정지 버튼 자체의 세로 위치를 먼저 원점(0)으로 리셋한 뒤 다시 측정 —
+  // translateY를 누적 적용한 상태로 또 측정하면 보정값이 매번 더해져 계속 어긋남
+  restTimerPauseBtn.style.transform = '';
   const pauseRect = restTimerPauseBtn.getBoundingClientRect();
   const g = REST_TIMER_CARD_GAP;
   restTimerCardBg.style.left = (menuRect.left - barRect.left - g) + 'px';
   restTimerCardBg.style.top = (menuRect.top - barRect.top - g) + 'px';
   restTimerCardBg.style.bottom = (barRect.bottom - menuRect.bottom - g) + 'px';
   restTimerCardBg.style.right = (barRect.right - pauseRect.right - g) + 'px';
+
+  // 🔥 일시정지 버튼이 햄버거 메뉴 버튼과 정확히 같은 세로 중심선에 오도록 보정
+  // (.menu-btn엔 원래부터 있던 top:3px 보정 때문에 그냥 두면 버튼 둘의 중심이
+  // 어긋나 카드 안에서 위아래 여백이 서로 달라 보임)
+  const menuCenterY = menuRect.top + menuRect.height / 2;
+  const pauseCenterY = pauseRect.top + pauseRect.height / 2;
+  restTimerPauseBtn.style.transform = `translateY(${(menuCenterY - pauseCenterY).toFixed(2)}px)`;
 }
 
 let restTimerEnabled = false;
