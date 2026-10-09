@@ -299,9 +299,9 @@ html.light-mode-on .rest-timer-card-bg{
   flex: 0 0 auto;
   all: unset;
   position: relative;
-  /* 🔥 타이머 숫자가 1.2em -> 1.7em으로 커진 비율(약 1.42배)에 맞춰 24px -> 34px로 확대 */
-  width: 34px;
-  height: 34px;
+  /* 🔥 햄버거 메뉴 버튼(.menu-btn)과 대칭되는 모양이라 크기도 완전히 동일하게(42px) */
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -314,6 +314,7 @@ html.light-mode-on .rest-timer-card-bg{
   backdrop-filter: blur(14px) saturate(150%);
   border: 1px solid rgba(255,255,255,0.14);
   box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+  box-sizing: border-box; /* 🔥 .menu-btn과 동일(all:unset 이후 border 포함 실제 42px로) */
 }
 .rest-timer-pause-btn:active{
   background: rgba(255,255,255,0.24);
@@ -8320,11 +8321,11 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
   <!-- 🔥 휴식 타이머가 활성화된 동안 설정 톱니 자리를 대신 차지하는 일시정지/재생 버튼
        (3대/기록 탭에서만, 설정에서 "휴식 타이머"를 켰고 세트를 1번 이상 저장한 뒤부터 보임) -->
   <button id="restTimerPauseBtn" class="rest-timer-pause-btn hidden" aria-label="휴식 타이머 일시정지">
-    <svg id="restTimerPauseIcon" width="23" height="23" viewBox="0 0 24 24" fill="currentColor">
+    <svg id="restTimerPauseIcon" width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
       <rect x="6" y="4" width="4" height="16" rx="1"></rect>
       <rect x="14" y="4" width="4" height="16" rx="1"></rect>
     </svg>
-    <svg id="restTimerPlayIcon" class="hidden" width="23" height="23" viewBox="0 0 24 24" fill="currentColor">
+    <svg id="restTimerPlayIcon" class="hidden" width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
       <path d="M7 4.5v15l13-7.5z"></path>
     </svg>
   </button>
@@ -12223,7 +12224,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.323";
+const APP_VERSION = "0.9.324";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
