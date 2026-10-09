@@ -237,6 +237,12 @@ button {
 
 .rest-timer-display #restTimerValue{
   font-variant-numeric: tabular-nums; /* 🔥 숫자 폭이 매 초 달라져도 안 흔들리게 고정폭으로 */
+  /* 🔥 .topText가 기본으로 쓰는 Georgia 세리프체/1.2em은 "To the Top" 제목용 장식적
+     스타일이라 숫자 타이머엔 안 어울림 — 더 크고 또렷한 굵은 산세리프로 따로 지정 */
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 1.7em;
+  font-weight: 800;
+  letter-spacing: 0;
 }
 
 /* 🔥 설정 톱니 자리를 대신 차지하는 일시정지/재생 버튼 — announcement-btn/settings-btn과
@@ -12144,7 +12150,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.314";
+const APP_VERSION = "0.9.315";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
