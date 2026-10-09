@@ -12073,7 +12073,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.308";
+const APP_VERSION = "0.9.309";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -19647,6 +19647,8 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
    직접 구현함(홈탭에 있는 동안만 아래쪽 바운스를 되살리는 처리는 별도 블록 참고) */
 (function(){
   const GRADIENT_PULL = 80, CONVERGE_PULL = 40, MAX_PULL = GRADIENT_PULL + CONVERGE_PULL, COMMIT_MOVE = 8, BLADE_COUNT = 8;
+  const LOADING_PULL = 48; // 🔥 손을 놓은 뒤 로딩 중엔 MAX_PULL(120px)에 고정하지 않고, 스피너(22px)
+                            // 바로 밑에 여백만 살짝 남기는 높이로 한 번 더 줄어들게 함(아래 endDrag 참고)
   let startX = 0, startY = 0, tracking = false, dragging = false, refreshing = false;
   const pullEl = document.getElementById('homePullRefresh');
   const spinnerWrapEl = document.getElementById('homePullSpinner');
@@ -19755,9 +19757,11 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
 
     if (pulled >= MAX_PULL) {
       refreshing = true;
-      pullEl.style.height = MAX_PULL + 'px';
       // 🔥 여기 도달했다는 건 이미 2단계 수렴이 끝나 8칸 전부가 다 같은 진한 색인
-      //    상태(bladeOpacityAt(MAX_PULL, i) === 1 for all i)라, 바로 스핀으로 전환
+      //    상태(bladeOpacityAt(MAX_PULL, i) === 1 for all i)라, 바로 스핀으로 전환.
+      //    MAX_PULL(120px)에 고정해두지 않고 LOADING_PULL(48px)까지 바로 줄여서,
+      //    로딩 중엔 스피너 바로 밑까지 화면이 당겨 올라온 상태로 유지됨
+      pullEl.style.height = LOADING_PULL + 'px';
       spinnerEl.classList.add('spinning');
       const startAt = Date.now();
       try { await refreshHomeTab(); } catch (e) { console.error('home pull refresh err', e); }
