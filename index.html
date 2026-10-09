@@ -12073,7 +12073,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.311";
+const APP_VERSION = "0.9.312";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -19035,6 +19035,14 @@ bottomTabBtns.forEach(btn => {
     //    overscroll-behavior:none으로 잠금) 사이를 탭 전환 때마다 다시 맞춰줌
     document.querySelector('.app').style.overscrollBehaviorY = (target === 'tab1') ? 'contain' : 'none';
 
+    // 🔥 공지사항 종/설정 톱니 아이콘은 홈탭에서만 보여줌 — 3대/기록/달력은 이미 뭘 할지
+    //    정하고 들어가는 "업무 수행" 화면이라 거기서 알림/설정을 건드릴 일이 거의 없고,
+    //    알림 확인 기회 자체는 어차피 홈탭을 거쳐가며 보장되므로 숨겨도 무방함(식단은
+    //    별도 풀스크린 오버레이라 이 분기 자체를 안 타서 영향 없음)
+    const showTopBarIcons = (target === 'tab1');
+    if (openAnnouncementBtn) openAnnouncementBtn.style.display = showTopBarIcons ? '' : 'none';
+    if (openSettingsBtn) openSettingsBtn.style.display = showTopBarIcons ? '' : 'none';
+
     // Tip 탭 초기화
     if (target === 'tab4') {
       exerciseScreen.style.display = 'block';
@@ -20678,6 +20686,7 @@ async function deleteAccessoryRecord(recordId) {
   renderExercises();
 }
 
+const openAnnouncementBtn = document.getElementById("openAnnouncementBtn");
 const openSettingsBtn = document.getElementById("openSettingsBtn");
 const closeSettingsBtn = document.getElementById("closeSettingsBtn");
 const settingsOverlay = document.getElementById("settingsOverlay");
