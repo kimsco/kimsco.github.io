@@ -173,6 +173,12 @@ button {
   --bottomTabH: 88px;
   --settings-row-h: 67px; /* 🔥 설정 화면 "{이름}님" 프로필 칸의 실측 높이 — 다른 모든 설정 행(.settings-item)의 기준 높이로 재사용 */
 }
+/* 🔥 휴식 타이머가 돌고 있는 동안 홈/달력탭(타이머 전용 탭이 아닌 화면)에 보이는 미니
+   알약(.rest-timer-mini)을 위한 추가 세로 공간 — --topBarH 자체를 늘려서, 이 값을
+   참조하는 모든 레이아웃(탭 콘텐츠 높이 등)이 자동으로 같이 조정되게 함 */
+html.rtimer-mini-active{
+  --topBarH: 94.8px;
+}
 
 .topBar{
   position: fixed;
@@ -185,6 +191,7 @@ button {
 
   /* 🔥 [임시 실험] viewport-fit=cover로 상태바 뒤까지 배경이 확장되니 안전영역만큼 보정 */
   height: calc(var(--topBarH) + env(safe-area-inset-top));
+  transition: height 0.3s ease; /* 🔥 홈/달력탭 미니 타이머 알약이 뜨고 사라질 때 topBar 높이가 부드럽게 늘고 줄어들도록 */
   box-sizing: border-box;          /* ✅ padding 포함해서 height 유지 */
   padding: calc(12px + env(safe-area-inset-top)) 10px 12px 10px;
 
@@ -377,6 +384,68 @@ html.light-mode-on .rest-timer-card-bg{
     linear-gradient(to right, rgba(0,0,0,0.16), rgba(0,0,0,0.16))
       no-repeat bottom center / calc(100% - 2 * var(--rtimer-card-h)) 1.5px border-box;
   box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+}
+
+/* 🔥 홈/달력탭 등 휴식 타이머 전용 탭이 아닌 화면에서 제목 바로 밑에 뜨는 미니 알약 —
+   타이머를 돌리다가 다른 탭으로 넘어가도 경과시간을 계속 보여줌. topBar가 position:fixed라
+   별도 position:relative 없이 바로 absolute 기준점이 됨 */
+.rest-timer-mini{
+  position: absolute;
+  left: 50%;
+  bottom: 7px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(44,44,46,0.92);
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 9999px;
+  padding: 3px 4px 3px 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+.topBar.rtimer-mini-active .rest-timer-mini{
+  opacity: 1;
+  pointer-events: auto;
+}
+#restTimerMiniValue{
+  font-size: 12px;
+  font-weight: 700;
+  color: #eee;
+  font-variant-numeric: tabular-nums;
+}
+.rest-timer-mini-pause-btn{
+  all: unset;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.14);
+  color: #eee;
+  cursor: pointer;
+}
+.rest-timer-mini-pause-btn:active{
+  background: rgba(255,255,255,0.28);
+}
+html.light-mode-on .rest-timer-mini{
+  background: rgba(255,255,255,0.96);
+  border-color: rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+html.light-mode-on #restTimerMiniValue{
+  color: #333;
+}
+html.light-mode-on .rest-timer-mini-pause-btn{
+  background: rgba(0,0,0,0.06);
+  color: #333;
+}
+html.light-mode-on .rest-timer-mini-pause-btn:active{
+  background: rgba(0,0,0,0.14);
 }
 
 
@@ -3626,7 +3695,12 @@ html.light-mode-on .rest-timer-pause-btn {
 #restTimerPauseBtn.hidden,
 #restTimerPauseIcon.hidden,
 #restTimerPlayIcon.hidden,
-#restTimerCardBg.hidden {
+#restTimerCardBg.hidden,
+#navDrawerMenuIcon.hidden,
+#navDrawerStopIcon.hidden,
+#restTimerMiniDisplay.hidden,
+#restTimerMiniPauseIcon.hidden,
+#restTimerMiniPlayIcon.hidden {
   display: none;
 }
 html.light-mode-on .menu-btn {
@@ -8427,11 +8501,18 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
   <div class="rest-timer-card-bg hidden" id="restTimerCardBg"></div>
 
   <button id="openNavDrawerBtn" class="menu-btn" aria-label="메뉴">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+    <svg id="navDrawerMenuIcon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
          stroke-linecap="round" stroke-linejoin="round">
       <line x1="3" y1="6" x2="21" y2="6"></line>
       <line x1="3" y1="12" x2="21" y2="12"></line>
       <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+    <!-- 🔥 3대/기록 탭에서 휴식 타이머가 활성화된 동안엔 이 버튼이 메뉴 대신 "타이머 중지"
+         역할을 함 — 햄버거 아이콘을 숨기고 이 X 아이콘을 대신 보여줌 -->
+    <svg id="navDrawerStopIcon" class="hidden" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round">
+      <line x1="6" y1="6" x2="18" y2="18"></line>
+      <line x1="18" y1="6" x2="6" y2="18"></line>
     </svg>
   </button>
 
@@ -8443,6 +8524,22 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
        보여줌(기존 타이틀과 같은 위치/정렬을 쓰도록 topText 클래스 공유) — 평소엔 hidden -->
   <div class="topText rest-timer-display hidden" id="restTimerDisplay">
     <div id="restTimerValue">0:00</div>
+  </div>
+
+  <!-- 🔥 홈/달력 탭처럼 휴식 타이머 전용 탭이 아닌 화면에서도, 타이머가 돌고 있는 동안엔
+       제목 바로 밑에 작은 알약으로 경과시간을 계속 보여줌(탭을 옮겨도 타이머를 놓치지
+       않도록) — 평소엔 hidden, topBar 자체의 높이도 이게 보일 때만 살짝 늘어남 -->
+  <div class="rest-timer-mini hidden" id="restTimerMiniDisplay">
+    <span id="restTimerMiniValue">0:00</span>
+    <button id="restTimerMiniPauseBtn" class="rest-timer-mini-pause-btn" aria-label="휴식 타이머 일시정지">
+      <svg id="restTimerMiniPauseIcon" width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+        <rect x="6" y="4" width="4" height="16" rx="1"></rect>
+        <rect x="14" y="4" width="4" height="16" rx="1"></rect>
+      </svg>
+      <svg id="restTimerMiniPlayIcon" class="hidden" width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M7 4.5v15l13-7.5z"></path>
+      </svg>
+    </button>
   </div>
 
   <div class="topBar-right">
@@ -12356,7 +12453,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.339";
+const APP_VERSION = "0.9.340";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -19666,6 +19763,13 @@ function openNavDrawer(){
   // 뒤에만 열리도록 방어
   if (document.getElementById('bootSplash')) return;
 
+  // 🔥 3대/기록 탭에서 휴식 타이머가 활성화된 동안엔 이 버튼이 메뉴가 아니라 X(타이머
+  // 중지) 역할 — 메뉴 대신 타이머를 끄고 평소 제목으로 되돌림(함수는 아래에서 선언)
+  if (typeof topBarEl !== 'undefined' && topBarEl.classList.contains('rtimer-card-active')) {
+    if (typeof stopRestTimerManually === 'function') stopRestTimerManually();
+    return;
+  }
+
   // 현재 활성 탭에 맞춰 드로어 항목 하이라이트
   const activeTarget = document.querySelector('.bottomTab .tabBtn.active')?.dataset.target;
   document.querySelectorAll(".nav-drawer-item").forEach(item => {
@@ -21178,6 +21282,14 @@ const restTimerPauseIcon = document.getElementById("restTimerPauseIcon");
 const restTimerPlayIcon = document.getElementById("restTimerPlayIcon");
 const restTimerCardBg = document.getElementById("restTimerCardBg");
 const restTimerMenuBtnEl = document.getElementById("openNavDrawerBtn");
+const navDrawerMenuIcon = document.getElementById("navDrawerMenuIcon");
+const navDrawerStopIcon = document.getElementById("navDrawerStopIcon");
+// 🔥 홈/달력탭 등 다른 탭에서 타이머가 돌고 있을 때 제목 밑에 뜨는 미니 알약
+const restTimerMiniDisplay = document.getElementById("restTimerMiniDisplay");
+const restTimerMiniValueEl = document.getElementById("restTimerMiniValue");
+const restTimerMiniPauseBtn = document.getElementById("restTimerMiniPauseBtn");
+const restTimerMiniPauseIcon = document.getElementById("restTimerMiniPauseIcon");
+const restTimerMiniPlayIcon = document.getElementById("restTimerMiniPlayIcon");
 // 🔥 topBarEl은 이미 위에서(메뉴/설정 드로어 push용) 선언돼있어 재사용
 
 // 🔥 카드 배경의 상하좌우 여백을 CSS 고정값이 아니라, 실제로 렌더링된 햄버거 메뉴
@@ -21236,7 +21348,9 @@ function formatRestTimer(ms){
   return m + ":" + String(s).padStart(2, "0");
 }
 function renderRestTimerValue(){
-  restTimerValueEl.textContent = formatRestTimer(restTimerElapsedMs());
+  const text = formatRestTimer(restTimerElapsedMs());
+  restTimerValueEl.textContent = text;
+  restTimerMiniValueEl.textContent = text; // 🔥 메인 알약과 미니 알약이 같은 공유 타이머를 보여주므로 항상 같이 갱신
 }
 function startRestTimerTick(){
   if (restTimerIntervalId) return;
@@ -21256,9 +21370,12 @@ function currentActiveTabTarget(){
 function syncRestTimerUI(){
   const target = currentActiveTabTarget();
   const onTimerTab = REST_TIMER_TABS.includes(target);
-  const show = restTimerEnabled && restTimerActive && onTimerTab;
+  const showFull = restTimerEnabled && restTimerActive && onTimerTab;
+  // 🔥 3대/기록 탭이 아닌 다른 화면(홈/달력 등)에 있는 동안엔, 타이머가 돌고 있다면
+  // 제목 밑 미니 알약으로 계속 보여줌 — 탭을 옮겨도 휴식시간을 놓치지 않도록
+  const showMini = restTimerEnabled && restTimerActive && !onTimerTab;
 
-  if (show) {
+  if (showFull) {
     topTitleText.classList.add('hidden');
     topTitleText.classList.remove('rtimer-exit-up');
     restTimerDisplay.classList.remove('hidden', 'rtimer-enter-from-below');
@@ -21268,16 +21385,33 @@ function syncRestTimerUI(){
     topBarEl.classList.add('rtimer-card-active');
     restTimerCardBg.classList.remove('hidden', 'rtimer-card-enter');
     positionRestTimerCard(); // 🔥 버튼들이 보이는 상태가 된 뒤에 호출해야 정확한 위치가 나옴
-    renderRestTimerValue();
-    if (!restTimerPausedAt) startRestTimerTick(); else stopRestTimerTick();
+    // 🔥 타이머가 활성화된 3대/기록 탭에선 햄버거(메뉴) 대신 X(타이머 중지) 아이콘을 보여줌
+    navDrawerMenuIcon.classList.add('hidden');
+    navDrawerStopIcon.classList.remove('hidden');
   } else {
     topTitleText.classList.remove('hidden', 'rtimer-exit-up');
     restTimerDisplay.classList.add('hidden');
     restTimerPauseBtn.classList.add('hidden');
     topBarEl.classList.remove('rtimer-card-active');
     restTimerCardBg.classList.add('hidden');
-    stopRestTimerTick();
+    navDrawerMenuIcon.classList.remove('hidden');
+    navDrawerStopIcon.classList.add('hidden');
   }
+
+  if (showMini) {
+    restTimerMiniDisplay.classList.remove('hidden');
+    restTimerMiniPauseIcon.classList.toggle('hidden', !!restTimerPausedAt);
+    restTimerMiniPlayIcon.classList.toggle('hidden', !restTimerPausedAt);
+    topBarEl.classList.add('rtimer-mini-active');
+    document.documentElement.classList.add('rtimer-mini-active'); // 🔥 --topBarH를 키워 콘텐츠 영역이 같이 밀려나게 함
+  } else {
+    restTimerMiniDisplay.classList.add('hidden');
+    topBarEl.classList.remove('rtimer-mini-active');
+    document.documentElement.classList.remove('rtimer-mini-active');
+  }
+
+  renderRestTimerValue();
+  if (restTimerActive && !restTimerPausedAt) startRestTimerTick(); else stopRestTimerTick();
 }
 
 // 🔥 [실험 v3] 세트를 "처음" 저장해서 타이머 모드로 들어가는 순간에만 호출.
@@ -21317,6 +21451,10 @@ function playRestTimerEntranceAnimation(){
     void restTimerPauseBtn.offsetHeight; // 강제 리플로우
 
     topBarEl.classList.add('rtimer-card-active');
+    // 🔥 타이머가 활성화된 3대/기록 탭에선 햄버거(메뉴) 대신 X(타이머 중지) 아이콘을
+    // 보여줌 — syncRestTimerUI()를 거치지 않는 입장 애니메이션 경로라 여기서도 동일하게 처리
+    navDrawerMenuIcon.classList.add('hidden');
+    navDrawerStopIcon.classList.remove('hidden');
     // 🔥 unhide와 동시에(사이에 어떤 reflow도 안 끼게) 반지름 0인 시작 상태 클래스부터
     // 붙임 — positionRestTimerCard() 안의 getBoundingClientRect() 호출들이 강제
     // 리플로우를 일으키는데, 순서가 반대면(먼저 기본 상태로 unhide → 위치 계산 →
@@ -21352,6 +21490,64 @@ function playRestTimerEntranceAnimation(){
   startRestTimerTick();
 }
 
+// 🔥 3대/기록 탭에서 X 버튼으로 타이머를 수동 중지할 때, 위 등장 애니메이션을 그대로
+// 거꾸로 재생 — 숫자/일시정지 버튼 페이드아웃 → 알약이 중심점으로 다시 오그라듦 →
+// 그 자리에서 제목이 알약색인 채로 나타나 평소 색으로 되돌아감(진입 때와 대칭)
+function playRestTimerExitAnimation(onDone){
+  const FADE_MS = 350;   // 알약이 반지름 0으로 완전히 오그라드는 시간(아래 BLEED_MS와 동일하게 맞춤)
+  const COLOR_MS = 280;  // 제목이 알약색 → 원래색으로 되돌아가는 시간
+
+  restTimerDisplay.style.transition = 'opacity 0.2s ease';
+  restTimerPauseBtn.style.transition = 'opacity 0.2s ease';
+  restTimerDisplay.style.opacity = '0';
+  restTimerPauseBtn.style.opacity = '0';
+  restTimerCardBg.classList.add('rtimer-card-bleed-in'); // clip-path가 기본(400px)에서 0으로 트랜지션
+
+  setTimeout(() => {
+    restTimerDisplay.classList.add('hidden');
+    restTimerPauseBtn.classList.add('hidden');
+    restTimerDisplay.style.transition = '';
+    restTimerDisplay.style.opacity = '';
+    restTimerPauseBtn.style.transition = '';
+    restTimerPauseBtn.style.opacity = '';
+
+    topBarEl.classList.remove('rtimer-card-active');
+    restTimerCardBg.classList.add('hidden');
+    restTimerCardBg.classList.remove('rtimer-card-bleed-in');
+
+    // 🔥 알약이 사라진 바로 그 자리에서 제목이 "이미 알약색인 채로" 나타나야 색 차이로
+    // 인한 끊김이 없음 — transition을 잠깐 꺼서 순간적으로 알약색을 커밋한 뒤 복원
+    topTitleText.style.transition = 'none';
+    topTitleText.classList.add('rtimer-color-to-pill');
+    topTitleText.classList.remove('hidden');
+    void topTitleText.offsetHeight; // 강제 리플로우로 위 상태를 확실히 커밋
+    topTitleText.style.transition = '';
+
+    requestAnimationFrame(() => {
+      // 🔥 .rtimer-color-to-pill 클래스를 떼면 그 클래스에 딸려있던 transition도 같이
+      // 사라져서(기본 .topText엔 color transition이 없음) 즉시 스냅돼버리는 문제가
+      // 있었음 — 클래스를 떼기 직전에 인라인으로 같은 transition을 직접 걸어 유지
+      topTitleText.style.transition = 'color 0.28s ease-in';
+      topTitleText.classList.remove('rtimer-color-to-pill'); // 알약색 -> 원래색 트랜지션 시작
+      setTimeout(() => {
+        topTitleText.style.transition = ''; // 다음 활성화 때 원래 CSS 규칙으로 복귀
+        if (onDone) onDone();
+      }, COLOR_MS);
+    });
+  }, FADE_MS);
+}
+
+function stopRestTimerManually(){
+  if (!restTimerActive) return;
+  playRestTimerExitAnimation(() => {
+    restTimerActive = false;
+    restTimerPausedAt = 0;
+    restTimerPausedTotalMs = 0;
+    stopRestTimerTick();
+    syncRestTimerUI(); // 🔥 미니 알약/topBar 높이(html 클래스)/메뉴 아이콘 등 나머지 상태도 정리
+  });
+}
+
 // 🔥 3대탭(#recordAdd)/기록탭(addAccessorySet) 양쪽에서 세트 저장 시 공통으로 호출
 function resetRestTimerOnSave(){
   if (!restTimerEnabled) return;
@@ -21367,7 +21563,9 @@ function resetRestTimerOnSave(){
   }
 }
 
-restTimerPauseBtn.addEventListener('click', () => {
+// 🔥 메인 알약의 일시정지 버튼과 미니 알약의 일시정지 버튼이 같은 공유 타이머를
+// 제어하므로 토글 로직을 공통 함수로 분리 — 어느 쪽을 눌러도 동일하게 동작
+function toggleRestTimerPause(){
   if (restTimerPausedAt) {
     // 재생: 멈춰있던 시간만큼 누적하고 다시 흐르게 함
     restTimerPausedTotalMs += Date.now() - restTimerPausedAt;
@@ -21376,7 +21574,9 @@ restTimerPauseBtn.addEventListener('click', () => {
     restTimerPausedAt = Date.now();
   }
   syncRestTimerUI();
-});
+}
+restTimerPauseBtn.addEventListener('click', toggleRestTimerPause);
+restTimerMiniPauseBtn.addEventListener('click', toggleRestTimerPause);
 
 restTimerToggle.addEventListener('click', () => {
   const next = !restTimerToggle.classList.contains('active');
