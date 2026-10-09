@@ -12073,7 +12073,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.309";
+const APP_VERSION = "0.9.310";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -19743,42 +19743,46 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
       const pull = Math.min(MAX_PULL, dy * 0.5); // 🔥 고무줄처럼 절반 비율로만 따라오게 해서 저항감을 줌
       pullEl.style.height = pull + 'px';
       setBladeGradient(pull);
+      // 🔥 손을 놓을 때까지 기다리지 않고, 당긴 거리가 MAX_PULL(120px)에 닿는 그 순간
+      //    바로 새로고침 시작 — 여기 도달했다는 건 이미 2단계 수렴이 끝나 8칸 전부가
+      //    다 같은 진한 색인 상태(bladeOpacityAt(MAX_PULL, i) === 1 for all i)
+      if (pull >= MAX_PULL) startRefresh();
     }
   }, { passive: false });
 
-  async function endDrag(){
+  async function startRefresh(){
+    refreshing = true;
+    tracking = false; dragging = false; // 🔥 이 시점부터 터치 추적 종료 — 손가락이 더 움직이거나 떼져도 무시(endDrag는 no-op이 됨)
+    pullEl.style.transition = 'height 0.2s ease';
+    // 🔥 MAX_PULL(120px)에 고정해두지 않고 LOADING_PULL(48px)까지 바로 줄여서,
+    //    로딩 중엔 스피너 바로 밑까지 화면이 당겨 올라온 상태로 유지됨
+    pullEl.style.height = LOADING_PULL + 'px';
+    spinnerEl.classList.add('spinning');
+    const startAt = Date.now();
+    try { await refreshHomeTab(); } catch (e) { console.error('home pull refresh err', e); }
+    const elapsed = Date.now() - startAt;
+    if (elapsed < 500) await new Promise(r => setTimeout(r, 500 - elapsed)); // 🔥 너무 빨리 끝나면 깜빡여 보이므로 스피너를 최소 500ms는 붙잡아둠
+    pullEl.style.height = '0px';
+    spinnerWrapEl.style.opacity = '0';
+    spinnerEl.classList.remove('spinning');
+    resetBladeGradient();
+    setTimeout(() => { pullEl.style.transition = ''; refreshing = false; }, 220);
+  }
+
+  function endDrag(){
     if (!tracking) return;
     const wasDragging = dragging;
     tracking = false; dragging = false;
     if (!wasDragging) return;
 
-    const pulled = parseFloat(pullEl.style.height) || 0;
+    // 🔥 MAX_PULL 이상 당겨진 경우는 touchmove에서 이미 startRefresh()가 호출되며
+    //    tracking을 꺼버리므로 여기 도달하지 않음 — 여기 도달했다는 건 항상
+    //    "MAX_PULL을 못 채우고 손을 뗀" 취소 케이스
     pullEl.style.transition = 'height 0.2s ease';
-
-    if (pulled >= MAX_PULL) {
-      refreshing = true;
-      // 🔥 여기 도달했다는 건 이미 2단계 수렴이 끝나 8칸 전부가 다 같은 진한 색인
-      //    상태(bladeOpacityAt(MAX_PULL, i) === 1 for all i)라, 바로 스핀으로 전환.
-      //    MAX_PULL(120px)에 고정해두지 않고 LOADING_PULL(48px)까지 바로 줄여서,
-      //    로딩 중엔 스피너 바로 밑까지 화면이 당겨 올라온 상태로 유지됨
-      pullEl.style.height = LOADING_PULL + 'px';
-      spinnerEl.classList.add('spinning');
-      const startAt = Date.now();
-      try { await refreshHomeTab(); } catch (e) { console.error('home pull refresh err', e); }
-      const elapsed = Date.now() - startAt;
-      if (elapsed < 500) await new Promise(r => setTimeout(r, 500 - elapsed)); // 🔥 너무 빨리 끝나면 깜빡여 보이므로 스피너를 최소 500ms는 붙잡아둠
-      pullEl.style.height = '0px';
-      spinnerWrapEl.style.opacity = '0';
-      spinnerEl.classList.remove('spinning');
-      resetBladeGradient();
-      setTimeout(() => { pullEl.style.transition = ''; refreshing = false; }, 220);
-    } else {
-      // 🔥 8칸을 다 못 채우고 놓으면 그냥 취소 — 켜져 있던 칸도 전부 원래대로 꺼짐
-      pullEl.style.height = '0px';
-      spinnerWrapEl.style.opacity = '0';
-      resetBladeGradient();
-      setTimeout(() => { pullEl.style.transition = ''; }, 220);
-    }
+    pullEl.style.height = '0px';
+    spinnerWrapEl.style.opacity = '0';
+    resetBladeGradient();
+    setTimeout(() => { pullEl.style.transition = ''; }, 220);
   }
   document.addEventListener('touchend', endDrag, { passive: true });
   document.addEventListener('touchcancel', endDrag, { passive: true });
