@@ -12463,7 +12463,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.349";
+const APP_VERSION = "0.9.350";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -21634,12 +21634,23 @@ function playRestTimerShrinkToMini(){
   // 제목 자리가 빈 채로 있다가 애니메이션이 끝나야 나타나는 것처럼 보였음
   topTitleText.classList.remove('hidden', 'rtimer-exit-up');
 
-  // 숫자/일시정지 버튼은 알약이 줄어드는 동안 먼저 페이드아웃(작아진 알약 안에서
-  // 글자가 찌그러져 보이는 것보다 자연스러움)
-  restTimerDisplay.style.transition = 'opacity 0.18s ease';
-  restTimerPauseBtn.style.transition = 'opacity 0.18s ease';
+  // 🔥 숫자/일시정지 버튼은 알약이 줄어드는 동안 먼저 페이드아웃 — 이전엔 고정된
+  // 크기인 채로 투명도만 바뀌어서, 알약은 줄어드는데 숫자는 그대로 있다 갑자기
+  // 사라지는 것처럼 보였음("순간이동"처럼 느껴짐). opacity와 함께 scale도 같이
+  // 줄여서 알약이 줄어드는 느낌과 숫자가 작아지는 느낌이 같이 가도록 함.
+  // restTimerPauseBtn은 positionRestTimerCard()가 세로 중심 보정용으로 이미
+  // translateY(...)를 걸어둔 상태라, 그 값을 덮어쓰지 않고 scale()만 이어붙임
+  // 🔥 .topText는 "살짝 왼쪽으로 쏠려 보이는 착시" 보정용으로 항상 translateX(8px)이
+  // 기본 CSS에 걸려있음 — 여기서 transform을 scale()만으로 덮어쓰면 그 보정이
+  // 사라졌다가, 나중에 인라인을 지울 때 CSS 자체 트랜지션(0.35s)으로 되돌아오면서
+  // 긴 꼬리로 다시 드리프트되는 부작용이 있었음 — translateX(8px)를 항상 같이 포함
+  const pauseBtnBaseTransform = restTimerPauseBtn.style.transform || '';
+  restTimerDisplay.style.transition = 'opacity 0.18s ease, transform 0.18s ease';
+  restTimerPauseBtn.style.transition = 'opacity 0.18s ease, transform 0.18s ease';
   restTimerDisplay.style.opacity = '0';
+  restTimerDisplay.style.transform = 'translateX(8px) scale(0.5)';
   restTimerPauseBtn.style.opacity = '0';
+  restTimerPauseBtn.style.transform = `${pauseBtnBaseTransform} scale(0.5)`.trim();
 
   // 🔥 Last: 미니 알약의 목표 위치/크기 측정. .topBar 자체는 이제 절대 안 늘어나고
   // (--topBarRowH 고정) 미니 알약도 그 고정된 윗줄 바로 밑에 top 기준으로 배치되므로,
@@ -21737,8 +21748,10 @@ function playRestTimerShrinkToMini(){
     restTimerCardBg.style.removeProperty('--rtimer-card-h');
     restTimerDisplay.style.transition = '';
     restTimerDisplay.style.opacity = '';
+    restTimerDisplay.style.transform = '';
     restTimerPauseBtn.style.transition = '';
     restTimerPauseBtn.style.opacity = '';
+    restTimerPauseBtn.style.transform = '';
     // 🔥 미니 알약 자체 CSS의 opacity 트랜지션(0.25s)에 핸드오프를 맡기면, 줄어들던
     // 카드가 사라진 뒤에도 미니 알약이 그 0.25s 동안 서서히 나타나느라 그 사이
     // 잠깐 아무것도 안 보이는 빈틈이 생김("둘이 따로 노는" 느낌 재발) — 그래서
@@ -21791,6 +21804,18 @@ function playRestTimerGrowToFull(){
   const toRect = restTimerCardBg.getBoundingClientRect(); // positionRestTimerCard() 직후라 "진짜" 목표 rect
   const topBarRect = topBarEl.getBoundingClientRect();
 
+  // 🔥 숫자/일시정지 버튼도 알약이 커지는 동안 같이 작은 크기에서 커지도록 함(이전엔
+  // 고정 크기인 채로 투명도만 바뀌어서, 알약은 다 커졌는데 숫자만 그 자리에 갑자기
+  // "툭" 나타나는 것처럼 보였음). positionRestTimerCard()가 방금 pauseBtn에 세로
+  // 중심 보정용 translateY(...)를 걸어뒀으니, 그 값은 유지한 채 scale()만 작게
+  // 시작했다가 다시 키움 — 지금은 opacity가 이미 0이라 이 스냅은 안 보임
+  // 🔥 .topText 기본 CSS에 항상 걸려있는 translateX(8px) 착시 보정을 scale()로
+  // 덮어쓰지 않도록 같이 포함(안 그러면 나중에 인라인을 지울 때 CSS 자체의 느린
+  // 트랜지션으로 되돌아오면서 끝에 긴 드리프트가 생김)
+  const pauseBtnTargetTransform = restTimerPauseBtn.style.transform || '';
+  restTimerDisplay.style.transform = 'translateX(8px) scale(0.5)';
+  restTimerPauseBtn.style.transform = `${pauseBtnTargetTransform} scale(0.5)`.trim();
+
   // 🔥 positionRestTimerCard()가 내부적으로 토큰을 이미 한 번 새로 발급했으므로, 이
   // 애니메이션의 rAF 루프/정리 코드가 그 직후에 다시 낡은 값으로 취급되지 않도록
   // 여기서 토큰을 새로 받아둠(이게 지금부터는 "최신" 애니메이션임을 선언)
@@ -21842,10 +21867,12 @@ function playRestTimerGrowToFull(){
   // 시점과 가깝게 이어지도록)
   setTimeout(() => {
     if (myShrinkToken !== rtimerShrinkToken) return;
-    restTimerDisplay.style.transition = 'opacity 0.16s ease';
-    restTimerPauseBtn.style.transition = 'opacity 0.16s ease';
+    restTimerDisplay.style.transition = 'opacity 0.16s ease, transform 0.16s ease';
+    restTimerPauseBtn.style.transition = 'opacity 0.16s ease, transform 0.16s ease';
     restTimerDisplay.style.opacity = '';
+    restTimerDisplay.style.transform = 'translateX(8px) scale(1)';
     restTimerPauseBtn.style.opacity = '';
+    restTimerPauseBtn.style.transform = `${pauseBtnTargetTransform} scale(1)`.trim();
   }, DURATION - 160);
 
   setTimeout(() => {
@@ -21860,8 +21887,10 @@ function playRestTimerGrowToFull(){
     restTimerCardBg.style.removeProperty('--rtimer-card-h');
     restTimerDisplay.style.transition = '';
     restTimerDisplay.style.opacity = '';
+    restTimerDisplay.style.transform = '';
     restTimerPauseBtn.style.transition = '';
     restTimerPauseBtn.style.opacity = '';
+    restTimerPauseBtn.style.transform = '';
     syncRestTimerUI();
   }, DURATION);
 }
