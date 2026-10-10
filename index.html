@@ -10891,6 +10891,9 @@ MuscleFlow는 개인의 운동 및 식단 기록을 관리하는 PWA 서비스�
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+<script src="/js/sync.js?v=0.9.357"></script>
+<script src="/js/app-sync.js?v=0.9.357"></script>
+<script src="/js/rest-stopwatch.js?v=0.9.357"></script>
 
 <script>
    
@@ -10909,6 +10912,21 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
+
+const appSync = MFAppSync.install({db, auth, firebase, storage: localStorage, onStatus: renderSyncStatus});
+function renderSyncStatus(count, error){
+  let el = document.getElementById('syncStatus');
+  if (!el) {
+    el = document.createElement('div'); el.id = 'syncStatus'; el.setAttribute('role','status'); el.setAttribute('aria-live','polite');
+    el.style.cssText = 'position:fixed;bottom:calc(76px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);max-width:90%;padding:6px 12px;border-radius:14px;font-size:11px;background:var(--c-bg);color:var(--c-text-secondary);border:1px solid var(--c-border);z-index:9999;pointer-events:none';
+    document.body.appendChild(el);
+  }
+  el.textContent = count === null ? '기기 저장 실패 · 저장 공간을 확인해주세요' : error ? `기기에 저장됨 · 서버 동기화 대기 ${count}건 (재시도 중)` : count ? `기기에 저장됨 · 서버 동기화 대기 ${count}건` : '서버 동기화 완료';
+  el.hidden = !auth.currentUser && count !== null;
+}
+function privateWrite(uid, collection, id, data, options){ return appSync.write(uid,collection,id,data,options); }
+function privateSnapshot(snap, collection, uid, id){ return appSync.snapshot(snap,collection,uid,id); }
+
 
 /* 🔥 오프라인 저장/자동 동기화
    - 네트워크 없을 때 저장한 내용도 기기에 큐로 쌓아두고,
@@ -11175,7 +11193,7 @@ const LS_KEYS = {
 
 function lsGet(key, fallback){
   try{
-    const raw = localStorage.getItem(key);
+    const raw = localStorage.getItem(appSync.account.key(key));
     if(!raw) return fallback;
     return JSON.parse(raw);
   }catch(e){
@@ -11184,8 +11202,8 @@ function lsGet(key, fallback){
 }
 function lsSet(key, value){
   try{
-    localStorage.setItem(key, JSON.stringify(value));
-  }catch(e){}
+    localStorage.setItem(appSync.account.key(key), JSON.stringify(value));
+  }catch(e){ renderSyncStatus(null,e); throw e; }
 }
 
 // 🔥 Firestore 읽기 절약: 로그인(=앱 재실행)할 때마다 전체 데이터를 매번 다시
@@ -11225,6 +11243,30 @@ function loadAllFromLocal(){
   // 보조운동 기록
   accRecordsByExercise = lsGet(LS_KEYS.accessoryRecords, {});
   if(!accRecordsByExercise || typeof accRecordsByExercise !== "object") accRecordsByExercise = {};
+  const uid = auth.currentUser?.uid;
+  if (uid) {
+    for (const lift of ['bench','squat','dead','ohp']) {
+      const docs = privateSnapshot({docs:(records[lift] || []).filter(r=>r.firestoreId).map(r=>({id:r.firestoreId,data:()=>({...r,lift})}))}, 'records', uid).docs;
+      records[lift] = [...(records[lift] || []).filter(r=>!r.firestoreId), ...docs.filter(d=>d.data().lift===lift).map(d=>({...d.data(),firestoreId:d.id,createdAt:d.data().createdAt?.toMillis?.() || d.data().createdAt,firstAt:d.data().firstAt || d.data().createdAt?.toMillis?.(),sets:1}))];
+    }
+    const localAcc = Object.values(accRecordsByExercise).flat();
+    const docs = privateSnapshot({docs:localAcc.map(r=>({id:r.id,data:()=>r}))}, 'accessoryRecords', uid).docs;
+    accRecordsByExercise = {};
+    for (const doc of docs) {
+      const d = doc.data();
+      if (!d.exercise) continue;
+      (accRecordsByExercise[d.exercise] ||= []).push({...d,id:doc.id,createdAt:d.createdAt?.toMillis?.() || d.createdAt,_sortMs:d.createdAt?.toMillis?.() || d.createdAt});
+    }
+    const state = appSync.outbox.read(uid);
+    for (const [path,op] of Object.entries(state.ops)) {
+      if (path.startsWith('calendar/')) { if (op.data) calData[op.id]=op.data; else delete calData[op.id]; }
+      if (path === 'threeRM/latest' && op.data) {
+        benchRM.value=op.data.bench || 0; squatRM.value=op.data.squat || 0; deadRM.value=op.data.dead || 0; updateTotal3();
+      }
+    }
+    for (const path of Object.keys(state.deleted)) if (path.startsWith('calendar/')) delete calData[path.slice(9)];
+    renderActiveBox(); calRender();
+  }
 }
 
 /* ✅ 로컬로 전체 저장 */
@@ -11274,7 +11316,7 @@ async function ensureExerciseRefLinksSynced(){
   const user = auth.currentUser;
   if (!user) { exerciseRefLinksSyncedFromServer = true; return; }
   try {
-    const doc = await db.collection('users').doc(user.uid).collection('meta').doc('exerciseRefLinks').get();
+    const doc = await db.collection('users').doc(user.uid).collection('meta').doc('exerciseRefLinks').get().then(snap => privateSnapshot(snap, "meta", user.uid, 'exerciseRefLinks'));
     if (doc.exists) {
       exerciseRefLinks = doc.data().links || {};
       saveExerciseRefLinksToLocal();
@@ -11289,8 +11331,7 @@ async function saveExerciseRefLinksToServer(){
   const user = auth.currentUser;
   if (!user) return;
   try {
-    await db.collection('users').doc(user.uid).collection('meta').doc('exerciseRefLinks')
-      .set({ links: exerciseRefLinks }, { merge: true });
+    await privateWrite(user.uid, "meta", 'exerciseRefLinks', { links: exerciseRefLinks }, { merge: true });
   } catch (e) {
     console.error("종목 참고 링크 저장 실패", e);
   }
@@ -11989,12 +12030,7 @@ saveAccListToLocal(currentPart, currentExercises);
 
   const user = auth.currentUser;
   if (user) {
-    await db
-      .collection('users')
-      .doc(user.uid)
-      .collection('accessories')
-      .doc(currentPart)
-      .set({ list: currentExercises }, { merge: true });
+    await privateWrite(user.uid, "accessories", currentPart, { list: currentExercises }, { merge: true });
   }
 }
 
@@ -12118,13 +12154,8 @@ save3Btn.addEventListener('click', async ()=>{
   }
 
   try{
-    const ref = db
-      .collection('users')
-      .doc(user.uid)
-      .collection('threeRM')
-      .doc('latest'); // ✅ 고정 1개 문서
-
-    await ref.set({
+    saveThreeToLocal();
+    await privateWrite(user.uid, "threeRM", "latest", {
   bench,
   squat,
   dead,
@@ -12132,7 +12163,7 @@ save3Btn.addEventListener('click', async ()=>{
   createdAt: firebase.firestore.FieldValue.serverTimestamp()
 }, { merge: true });
 
-    showSave3Message('PR 저장 완료!');
+    showSave3Message('기기에 저장됨 · 서버 동기화 중');
   }catch(e){
     console.error('3대 저장 에러:', e);
     showSave3Message('저장 실패 (콘솔 확인)');
@@ -12159,7 +12190,7 @@ async function loadRecordsFromFirestore(user){
     .doc(user.uid)
     .collection('records')
     .orderBy('createdAt', 'asc')
-    .get();
+    .get().then(snap => privateSnapshot(snap, "records", user.uid));
 
   snap.forEach(doc=>{
     const data = doc.data();
@@ -12247,13 +12278,14 @@ async function ensureFullLiftHistory(liftKey){
       .doc(user.uid)
       .collection("records")
       .where("lift", "==", liftKey)
-      .get();
+      .get().then(snap => privateSnapshot(snap, "records", user.uid));
 
     const existingIds = new Set((records[liftKey] || []).map(r => r.firestoreId));
     let added = false;
     snap.forEach(doc => {
       if (existingIds.has(doc.id)) return;
       const d = doc.data();
+      if (d.lift !== liftKey) return;
       records[liftKey].push({
         firestoreId: doc.id,
         date: d.date,
@@ -12424,7 +12456,7 @@ recordAdd.addEventListener('click', async ()=>{
   // ✅ (A) 로컬: "항상 1세트 새로 추가" (절대 합치지 않음)
   const nowMs = Date.now();
   const newItem = {
-    firestoreId: null,
+    firestoreId: auth.currentUser ? appSync.outbox.freshId() : null,
     localId: nowMs + "_" + Math.random(),
     date,
     weight,
@@ -12436,6 +12468,10 @@ recordAdd.addEventListener('click', async ()=>{
     updatedAt: nowMs
   };
 
+  if (auth.currentUser) {
+    try { await privateWrite(auth.currentUser.uid, "records", newItem.firestoreId, {lift, date, weight, reps, createdAt: newItem.createdAt}); }
+    catch (error) { alert('기기에 저장하지 못했습니다. 저장 공간을 확인하고 다시 시도해주세요.'); return; }
+  }
   const arr = records[lift] || (records[lift] = []);
   arr.unshift(newItem);
 
@@ -12453,27 +12489,7 @@ recordAdd.addEventListener('click', async ()=>{
   // 🔥 오늘 이 부위(lift) 운동했다는 걸 달력에 자동 체크
   autoMarkCalendarToday(lift, date);
 
-  // ✅ (B) 로그인 상태면 Firestore에도 "항상 새 문서 add()"
-  const user = auth.currentUser;
-  if(user){
-    try{
-      const docRef = await db
-        .collection('users')
-        .doc(user.uid)
-        .collection('records')
-        .add({
-          lift, date, weight, reps,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
 
-      // 로컬 항목에 firestoreId 연결
-      newItem.firestoreId = docRef.id;
-      saveRecordsToLocal();
-
-    }catch(e){
-      console.error('Firestore add err', e);
-    }
-  }
 });
 
 
@@ -12485,7 +12501,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.356";
+const APP_VERSION = "0.9.357";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -12551,63 +12567,36 @@ if (settingsDeleteAccountText) {
 }
 
 // ✅ 회원 탈퇴 처리
+let accountDeletionBusy = false;
 async function deleteUserAccount() {
+  if (accountDeletionBusy) return;
+  const user = auth.currentUser;
+  if (!user) { alert('로그인 정보를 찾을 수 없습니다.'); return; }
+  if (!navigator.onLine) { alert('회원 탈퇴는 인터넷 연결 후 진행해주세요.'); return; }
+  accountDeletionBusy = true;
+  const button = document.getElementById('deleteAccountConfirm'); button.disabled = true;
+  let deletionStarted = false;
   try {
-    const user = auth.currentUser;
-    if (!user) {
-      alert('로그인 정보를 찾을 수 없습니다.');
-      return;
-    }
-
-    // (1) Firestore에서 사용자의 모든 컬렉션 삭제
-    const userDocRef = db.collection('users').doc(user.uid);
-
-    // records 컬렉션의 모든 문서 삭제
-    const recordsSnap = await userDocRef.collection('records').get();
-    if (recordsSnap.docs.length > 0) {
-      const recordsBatch = db.batch();
-      recordsSnap.docs.forEach(doc => {
-        recordsBatch.delete(doc.ref);
-      });
-      await recordsBatch.commit();
-    }
-
-    // diets 컬렉션의 모든 문서 삭제
-    const dietsSnap = await userDocRef.collection('diets').get();
-    if (dietsSnap.docs.length > 0) {
-      const dietsBatch = db.batch();
-      dietsSnap.docs.forEach(doc => {
-        dietsBatch.delete(doc.ref);
-      });
-      await dietsBatch.commit();
-    }
-
-    // threeRM 컬렉션 삭제
-    const threeRMSnap = await userDocRef.collection('threeRM').get();
-    if (threeRMSnap.docs.length > 0) {
-      const threeRMBatch = db.batch();
-      threeRMSnap.docs.forEach(doc => {
-        threeRMBatch.delete(doc.ref);
-      });
-      await threeRMBatch.commit();
-    }
-
-    // 사용자 문서 삭제
-    await userDocRef.delete();
-
-    // (2) Firebase Authentication에서 계정 삭제
+    // Check recent-login requirements before erasing any data. Popup cancellation is harmless.
+    await user.reauthenticateWithPopup(new firebase.auth.GoogleAuthProvider());
+    const checkIdentity = () => { if (auth.currentUser?.uid !== user.uid) throw new Error('계정이 변경되었습니다.'); };
+    checkIdentity();
+    deletionStarted = true;
+    const bounded = promise => Promise.race([promise, new Promise((_,reject) => setTimeout(() => reject(new Error('동기화 대기 시간 초과')), 20000))]);
+    await bounded(appSync.outbox.freeze(user.uid));
+    // Drain Firebase's own pending writes before deletion so they cannot recreate records.
+    await bounded(db.waitForPendingWrites());
+    await MFSync.deletePrivateData(db, user.uid, checkIdentity);
     await user.delete();
-
-    // (3) 로컬 저장소 초기화
-    localStorage.clear();
-
-    // (4) 로그아웃 & 페이지 새로고침
-    alert('회원 탈퇴가 완료되었습니다. 앱을 다시 시작합니다.');
-    location.reload();
+    appSync.account.clear(user.uid);
+    for (const name of ['mf_cached_name','mf_cached_email','mf_was_logged_in']) localStorage.removeItem(name);
+    appSync.account.select(null);
+    alert('회원 탈퇴가 완료되었습니다. 앱을 다시 시작합니다.'); location.reload();
   } catch (error) {
     console.error('회원 탈퇴 오류:', error);
-    alert('탈퇴 처리 중 오류가 발생했습니다: ' + error.message);
-  }
+    if (!deletionStarted) appSync.outbox.resume(user.uid);
+    alert(deletionStarted ? '일부 데이터 정리가 완료되었을 수 있습니다. 저장을 중지했습니다. 연결과 인증 상태를 확인한 뒤 회원 탈퇴를 다시 눌러 남은 정리를 완료해주세요.' : '탈퇴가 시작되지 않았습니다. 인증과 연결 상태를 확인해주세요.');
+  } finally { accountDeletionBusy = false; button.disabled = false; }
 }
 
 // ✅ 이용약관/개인정보처리방침 뷰어 열기·닫기 (로그인 하기 버튼 아래 링크)
@@ -12631,6 +12620,13 @@ if (consentCloseBtn) {
 }
 
 auth.onAuthStateChanged(async user => {
+  if (accountDeletionBusy) return;
+  if (appSync.account.select(user?.uid, user?.email)) {
+    location.reload(); return;
+  }
+  if (user) { renderSyncStatus(Object.keys(appSync.outbox.read(user.uid).ops).length); appSync.retry(); }
+  else renderSyncStatus(0);
+
 
   // ✅ (A) 상단 로그인 영역(없을 수도 있으니 null 체크)
   if (user) {
@@ -12713,7 +12709,7 @@ auth.onAuthStateChanged(async user => {
     .doc(user.uid)
     .collection("threeRM")
     .doc("latest")
-    .get();
+    .get().then(snap => privateSnapshot(snap, "threeRM", user.uid, "latest"));
 
   if (threeDoc.exists) {
     const data = threeDoc.data();
@@ -12736,12 +12732,10 @@ auth.onAuthStateChanged(async user => {
       .doc(user.uid)
       .collection("records")
       .where("date", ">=", getRecordsInitialWindowStartDateStr())
-      .get();
+      .get().then(snap => privateSnapshot(snap, "records", user.uid));
 
-    records.bench = [];
-    records.squat = [];
-    records.dead  = [];
-    records.ohp   = [];
+    // Preserve loaded history; snapshots overlay pending writes/tombstones.
+    for (const lift of ["bench","squat","dead","ohp"]) records[lift] = (records[lift] || []).filter(r => !r.firestoreId || !appSync.outbox.read(user.uid).deleted[`records/${r.firestoreId}`]);
 
     snap.forEach(doc => {
       const d = doc.data();
@@ -12759,10 +12753,10 @@ auth.onAuthStateChanged(async user => {
     updatedAt: d.createdAt?.toMillis?.() || 0
   };
 
-      if (d.lift === "bench") records.bench.push(item);
-      if (d.lift === "squat") records.squat.push(item);
-      if (d.lift === "dead")  records.dead.push(item);
-      if (d.lift === "ohp")   records.ohp.push(item);
+      if (records[d.lift]) {
+        const idx = records[d.lift].findIndex(r => r.firestoreId === doc.id);
+        if (idx < 0) records[d.lift].push(item); else records[d.lift][idx] = item;
+      }
     });
 
     renderActiveBox();
@@ -12898,8 +12892,11 @@ async function ensureCalendarForMonth(year, month){
       .collection("calendar")
       .where(firebase.firestore.FieldPath.documentId(), ">=", prefix)
       .where(firebase.firestore.FieldPath.documentId(), "<", prefix + "")
-      .get();
+      .get().then(snap => privateSnapshot(snap, "calendar", user.uid));
 
+    for (const path of Object.keys(appSync.outbox.read(user.uid).deleted)) {
+      if (path.startsWith('calendar/')) delete calData[path.slice(9)];
+    }
     snap.forEach(doc => { calData[doc.id] = doc.data(); });
     calLoadedMonths.add(monthKey);
     saveCalendarToLocal();
@@ -13220,9 +13217,7 @@ async function autoMarkCalendarToday(partOrLift, workoutDateOverride){
   const user = auth.currentUser;
   if (user) {
     try {
-      await db.collection("users").doc(user.uid)
-        .collection("calendar").doc(key)
-        .set({ muscles, confirmed: true, firstAt, lastAt, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+      await privateWrite(user.uid, "calendar", key, { muscles, confirmed: true, firstAt, lastAt, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
     } catch (e) {
       console.error("auto calendar mark err", e);
     }
@@ -13408,8 +13403,7 @@ document.getElementById("homeQuickRoutine").addEventListener("click", () => {
     delete calData[calSelectedDate];
 
     if (user) {
-      await db.collection("users").doc(user.uid)
-        .collection("calendar").doc(calSelectedDate).delete();
+      await privateWrite(user.uid, "calendar", calSelectedDate, null);
     }
   } else {
     // 🔥 과거 날짜를 수동으로 태깅하면 "실제로 했음"으로 바로 확정, 오늘/미래는
@@ -13426,9 +13420,7 @@ document.getElementById("homeQuickRoutine").addEventListener("click", () => {
     calData[calSelectedDate] = { muscles: calSelectedMuscles, confirmed };
 
     if (user) {
-      await db.collection("users").doc(user.uid)
-        .collection("calendar").doc(calSelectedDate)
-        .set({ muscles: calSelectedMuscles, confirmed, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+      await privateWrite(user.uid, "calendar", calSelectedDate, { muscles: calSelectedMuscles, confirmed, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
     }
   }
 
@@ -13529,6 +13521,11 @@ async function deleteRecord(id){
   const isLocal = String(id).startsWith("local_");
   const pureId = isLocal ? id.replace("local_", "") : id;
 
+  const user = auth.currentUser;
+  if (user && !isLocal) {
+    try { await privateWrite(user.uid, 'records', id, null); }
+    catch (error) { alert('삭제 요청을 저장하지 못했습니다. 다시 시도해주세요.'); return; }
+  }
   // 1️⃣ 로컬 배열에서 제거 (게스트/로그인 공통)
   ["bench","squat","dead","ohp"].forEach(type => {
     records[type] = records[type].filter(r =>
@@ -13539,20 +13536,7 @@ async function deleteRecord(id){
   renderActiveBox();
   saveRecordsToLocal(); // ✅ 로컬 저장
 
-  // 2️⃣ Firestore 삭제는 "진짜 firestoreId"일 때만
-  const user = auth.currentUser;
-  if (user && !isLocal) {
-    try {
-      await db
-        .collection('users')
-        .doc(user.uid)
-        .collection('records')
-        .doc(id)
-        .delete();
-    } catch (e) {
-      console.error("Firestore delete error:", e);
-    }
-  }
+
 }
 
 
@@ -15067,9 +15051,7 @@ function seedDefaultBodyweightExercisesIfNeeded(){
     saveAccListToLocal("bodyweight", currentExercises);
     const user = auth.currentUser;
     if (user) {
-      db.collection('users').doc(user.uid)
-        .collection('accessories').doc('bodyweight')
-        .set({ list: currentExercises }, { merge: true })
+      privateWrite(user.uid, "accessories", 'bodyweight', { list: currentExercises }, { merge: true })
         .catch(e => console.error("맨몸운동 기본 종목 저장 실패", e));
     }
   }
@@ -16353,57 +16335,44 @@ async function myRoutineSaveLiftSet(liftKey, weight, reps){
   const date = resolveWorkoutDate();
   const nowMs = Date.now();
   const newItem = {
-    firestoreId: null,
+    firestoreId: auth.currentUser ? appSync.outbox.freshId() : null,
     localId: nowMs + "_" + Math.random(),
     date, weight, reps, sets: 1,
     createdAt: nowMs, firstAt: nowMs, lastAt: nowMs, updatedAt: nowMs
   };
 
+  if (auth.currentUser) {
+    try { await privateWrite(auth.currentUser.uid, "records", newItem.firestoreId, {lift: liftKey, date, weight, reps, createdAt: newItem.createdAt}); }
+    catch (error) { alert('기기에 저장하지 못했습니다. 저장 공간을 확인하고 다시 시도해주세요.'); return; }
+  }
   const arr = records[liftKey] || (records[liftKey] = []);
   arr.unshift(newItem);
   saveRecordsToLocal();
+  resetRestTimerOnSave();
   autoMarkCalendarToday(liftKey, date);
   renderActiveBox(); // 3대탭이 열려있었다면 거기도 같이 갱신됨
 
-  const user = auth.currentUser;
-  if (user) {
-    try {
-      const docRef = await db.collection('users').doc(user.uid).collection('records').add({
-        lift: liftKey, date, weight, reps,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
-      newItem.firestoreId = docRef.id;
-      saveRecordsToLocal();
-    } catch (e) { console.error('내 루틴(3대) 저장 실패', e); }
-  }
   return newItem;
 }
 
 async function myRoutineSaveAccessorySet(exerciseName, partKey, weight, reps){
   const date = resolveWorkoutDate();
   const localItem = {
-    id: "local_" + Date.now() + "_" + Math.random(),
+    id: auth.currentUser ? appSync.outbox.freshId() : "local_" + Date.now() + "_" + Math.random(),
     exercise: exerciseName, part: partKey || "",
     weight, reps, date, createdAt: Date.now()
   };
 
+  if (auth.currentUser) {
+    try { await privateWrite(auth.currentUser.uid, "accessoryRecords", localItem.id, {exercise: exerciseName, part: partKey || "", date, weight, reps, createdAt: localItem.createdAt}); }
+    catch (error) { alert('기기에 저장하지 못했습니다. 저장 공간을 확인하고 다시 시도해주세요.'); return; }
+  }
   if (!accRecordsByExercise[exerciseName]) accRecordsByExercise[exerciseName] = [];
   accRecordsByExercise[exerciseName].push(localItem);
   saveAccRecordsToLocal();
+  resetRestTimerOnSave();
   autoMarkCalendarToday(partKey, date);
 
-  const user = auth.currentUser;
-  if (user) {
-    try {
-      const docRef = await db.collection("users").doc(user.uid).collection("accessoryRecords").add({
-        exercise: exerciseName, part: partKey || "", weight, reps,
-        date,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
-      localItem.id = docRef.id;
-      saveAccRecordsToLocal();
-    } catch (e) { console.error('내 루틴(액세서리) 저장 실패', e); }
-  }
   return localItem;
 }
 
@@ -16556,6 +16525,7 @@ function openMyRoutineDetail(partKey){
         saved = await myRoutineSaveAccessorySet(key, partKey, weight, reps);
       }
       btn.disabled = false;
+      if (!saved) return;
 
       weightEl.value = "";
       repsEl.value = "";
@@ -16591,14 +16561,13 @@ async function saveMyRoutineTemplateToFirestore(item){
   const user = auth.currentUser;
   if (!user) return;
   try {
-    await db.collection("users").doc(user.uid)
-      .collection("myRoutineTemplates").doc(item.id).set(item);
+    await privateWrite(user.uid, "myRoutineTemplates", item.id, item);
   } catch (e) { console.error("루틴 템플릿 저장 실패", e); }
 }
 async function loadMyRoutineTemplatesFromFirestore(uid){
   try {
     const snap = await db.collection("users").doc(uid)
-      .collection("myRoutineTemplates").get();
+      .collection("myRoutineTemplates").get().then(snap => privateSnapshot(snap, "myRoutineTemplates", uid));
     myRoutineTemplates = [];
     snap.forEach(doc => myRoutineTemplates.push(doc.data()));
     saveMyRoutineTemplatesToLocal(); // 🔥 로컬 저장 누락 버그 수정(재조회 생략 캐시가 비어있던 원인)
@@ -16685,8 +16654,7 @@ function renderBuilderPartSection(partKey){
     const user = auth.currentUser;
     if (user) {
       try {
-        await db.collection('users').doc(user.uid).collection('accessories').doc(dataPart)
-          .set({ list: updated }, { merge: true });
+        await privateWrite(user.uid, "accessories", dataPart, { list: updated }, { merge: true });
       } catch (e) { console.error("새 종목 저장 실패", e); }
     }
 
@@ -16805,7 +16773,7 @@ async function ensureExerciseHistory(name){
       .doc(user.uid)
       .collection("accessoryRecords")
       .where("exercise", "==", name)
-      .get();
+      .get().then(snap => privateSnapshot(snap, "accessoryRecords", user.uid));
 
     if (!accRecordsByExercise[name]) accRecordsByExercise[name] = [];
     const existingIds = new Set(accRecordsByExercise[name].map(r => r.id));
@@ -16813,6 +16781,7 @@ async function ensureExerciseHistory(name){
     snap.forEach(doc => {
       if (existingIds.has(doc.id)) return;
       const d = doc.data();
+      if (d.exercise !== name) return;
       accRecordsByExercise[name].push({ id: doc.id, ...d, _sortMs: d.createdAt?.toMillis?.() ?? 0 });
       added = true;
     });
@@ -16907,6 +16876,7 @@ function openMyRoutineDetailFromTemplate(template){
       btn.disabled = true;
       const saved = await myRoutineSaveAccessorySet(key, partInfoForSave.dataPart, weight, reps);
       btn.disabled = false;
+      if (!saved) return;
 
       weightEl.value = "";
       repsEl.value = "";
@@ -16944,8 +16914,7 @@ document.getElementById("myRoutineDeleteTemplateBtn").addEventListener("click", 
   const user = auth.currentUser;
   if (user) {
     try {
-      await db.collection("users").doc(user.uid)
-        .collection("myRoutineTemplates").doc(template.id).delete();
+      await privateWrite(user.uid, "myRoutineTemplates", template.id, null);
     } catch (e) { console.error("루틴 템플릿 삭제 실패", e); }
   }
 
@@ -20535,9 +20504,14 @@ async function renameExercise(oldName) {
   }
 
   const user = auth.currentUser;
+  if (user) {
+    try { await privateWrite(user.uid, 'accessoryRecords', 'query_' + appSync.outbox.freshId(), {exercise:newName}, {matchExercise:oldName}); }
+    catch (error) { alert('기기에 변경을 저장하지 못했습니다. 다시 시도해주세요.'); return; }
+  }
 
   // ✅ 1) 로컬 기록을 새 이름으로 이관 (게스트/로그인 공통)
   accRecordsByExercise[newName] = accRecordsByExercise[oldName] || [];
+  accRecordsByExercise[newName].forEach(r => {r.exercise=newName;});
   delete accRecordsByExercise[oldName];
   saveAccRecordsToLocal();
 
@@ -20549,24 +20523,8 @@ async function renameExercise(oldName) {
 
   // ✅ 3) 로그인 상태면 Firestore 기록들도 새 이름으로 이관
   if (user) {
-    const snap = await db
-      .collection('users')
-      .doc(user.uid)
-      .collection('accessoryRecords')
-      .where('exercise', '==', oldName)
-      .get();
-
-    const batch = db.batch();
-    snap.forEach(doc => batch.update(doc.ref, { exercise: newName }));
-    await batch.commit();
-
     if (currentPart) {
-      await db
-        .collection('users')
-        .doc(user.uid)
-        .collection('accessories')
-        .doc(currentPart)
-        .set({ list: currentExercises }, { merge: true });
+      await privateWrite(user.uid, "accessories", currentPart, { list: currentExercises }, { merge: true });
     }
   }
 
@@ -20583,6 +20541,10 @@ async function deleteExercise(exerciseName) {
   if (!confirm('정말로 삭제하시겠습니까? 삭제하면 복구가 불가능합니다.')) return;
 
   const user = auth.currentUser;
+  if (user) {
+    try { await privateWrite(user.uid, 'accessoryRecords', 'query_' + appSync.outbox.freshId(), null, {matchExercise:exerciseName}); }
+    catch (error) { alert('기기에 변경을 저장하지 못했습니다. 다시 시도해주세요.'); return; }
+  }
 
   // ✅ 1) 로컬 기록에서 삭제 (게스트/로그인 공통)
   delete accRecordsByExercise[exerciseName];
@@ -20596,24 +20558,8 @@ async function deleteExercise(exerciseName) {
 
   // ✅ 3) 로그인 상태면 Firestore도 삭제
   if (user) {
-    const snap = await db
-      .collection('users')
-      .doc(user.uid)
-      .collection('accessoryRecords')
-      .where('exercise', '==', exerciseName)
-      .get();
-
-    const batch = db.batch();
-    snap.forEach(doc => batch.delete(doc.ref));
-    await batch.commit();
-
     if (currentPart) {
-      await db
-        .collection('users')
-        .doc(user.uid)
-        .collection('accessories')
-        .doc(currentPart)
-        .set({ list: currentExercises }, { merge: true });
+      await privateWrite(user.uid, "accessories", currentPart, { list: currentExercises }, { merge: true });
     }
   }
 
@@ -20639,12 +20585,15 @@ async function loadAccessoryRecords() {
       .doc(user.uid)
       .collection('accessoryRecords')
       .where('date', '>=', getRecordsInitialWindowStartDateStr())
-      .get();
+      .get().then(snap => privateSnapshot(snap, "accessoryRecords", user.uid));
 
     // 🔥 여기서 accRecordsByExercise를 통째로 교체하면, "이전 기록 더 보기"
     //    스크롤로 이미 병합해둔 과거(3개월 밖) 기록이 기록 탭 재진입마다 날아가고,
     //    exerciseHistoryFullyLoaded 플래그는 true로 남아있어 다시는 재조회도 안 되는
     //    버그가 있었다 — 종목별로 기존 배열에 dedupe 병합하는 방식으로 변경.
+    for (const name of Object.keys(accRecordsByExercise)) {
+      accRecordsByExercise[name] = accRecordsByExercise[name].filter(r => !appSync.outbox.read(user.uid).deleted[`accessoryRecords/${r.id}`]);
+    }
     snap.forEach(doc => {
       const d = doc.data();
       if (!d.exercise) return;
@@ -20693,7 +20642,7 @@ async function saveExerciseToDB(exerciseName) {
     const user = auth.currentUser;
     if (!user) return;
     const docRef = db.collection('users').doc(user.uid).collection('accessories').doc(exerciseName);
-    await docRef.set({
+    await privateWrite(user.uid, "accessories", exerciseName, {
         name: exerciseName,
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
     }, { merge: true });
@@ -20724,9 +20673,7 @@ async function seedDefaultCoreExercisesIfNeeded(){
   const user = auth.currentUser;
   if (user) {
     try {
-      await db.collection('users').doc(user.uid)
-        .collection('accessories').doc('core')
-        .set({ list: currentExercises }, { merge: true });
+      await privateWrite(user.uid, "accessories", 'core', { list: currentExercises }, { merge: true });
     } catch (e) {
       console.error("코어 기본 종목 저장 실패", e);
     }
@@ -20756,8 +20703,8 @@ async function migrateArmSplitIfNeeded(){
   if (user) {
     try {
       const [triDoc, biDoc] = await Promise.all([
-        db.collection('users').doc(user.uid).collection('accessories').doc('arm_tri').get(),
-        db.collection('users').doc(user.uid).collection('accessories').doc('arm_bi').get(),
+        db.collection('users').doc(user.uid).collection('accessories').doc('arm_tri').get().then(snap => privateSnapshot(snap, "accessories", user.uid, 'arm_tri')),
+        db.collection('users').doc(user.uid).collection('accessories').doc('arm_bi').get().then(snap => privateSnapshot(snap, "accessories", user.uid, 'arm_bi')),
       ]);
       const triHas = triDoc.exists && (triDoc.data().list || []).some(x => typeof x === "string" && x.trim());
       const biHas = biDoc.exists && (biDoc.data().list || []).some(x => typeof x === "string" && x.trim());
@@ -20776,7 +20723,7 @@ async function migrateArmSplitIfNeeded(){
 
   if (user && !oldArmList.length) {
     try {
-      const oldDoc = await db.collection('users').doc(user.uid).collection('accessories').doc('arm').get();
+      const oldDoc = await db.collection('users').doc(user.uid).collection('accessories').doc('arm').get().then(snap => privateSnapshot(snap, "accessories", user.uid, 'arm'));
       if (oldDoc.exists) {
         oldArmList = (oldDoc.data().list || []).filter(x => typeof x === "string" && x.trim());
       }
@@ -20794,8 +20741,8 @@ async function migrateArmSplitIfNeeded(){
 
   if (user) {
     try {
-      await db.collection('users').doc(user.uid).collection('accessories').doc('arm_tri').set({ list: oldArmList }, { merge: true });
-      await db.collection('users').doc(user.uid).collection('accessories').doc('arm_bi').set({ list: [] }, { merge: true });
+      await privateWrite(user.uid, "accessories", 'arm_tri', { list: oldArmList }, { merge: true });
+      await privateWrite(user.uid, "accessories", 'arm_bi', { list: [] }, { merge: true });
     } catch (e) {
       console.error("팔 삼두/이두 마이그레이션 저장 실패", e);
     }
@@ -20830,8 +20777,8 @@ async function moveArmExerciseToBiceps(name){
   const user = auth.currentUser;
   if (user) {
     try {
-      await db.collection('users').doc(user.uid).collection('accessories').doc('arm_tri').set({ list: triList }, { merge: true });
-      await db.collection('users').doc(user.uid).collection('accessories').doc('arm_bi').set({ list: biList }, { merge: true });
+      await privateWrite(user.uid, "accessories", 'arm_tri', { list: triList }, { merge: true });
+      await privateWrite(user.uid, "accessories", 'arm_bi', { list: biList }, { merge: true });
     } catch (e) {
       console.error("팔 종목 이두로 이동 실패", e);
     }
@@ -20850,7 +20797,7 @@ async function autoClassifyCurlExercisesIfNeeded(){
   let triList;
   if (user) {
     try {
-      const doc = await db.collection('users').doc(user.uid).collection('accessories').doc('arm_tri').get();
+      const doc = await db.collection('users').doc(user.uid).collection('accessories').doc('arm_tri').get().then(snap => privateSnapshot(snap, "accessories", user.uid, 'arm_tri'));
       triList = doc.exists ? (doc.data().list || []) : [];
     } catch (e) {
       console.error("컬 자동 분류 중 삼두 목록 조회 실패", e);
@@ -20910,7 +20857,7 @@ async function prefetchAllExerciseParts(uid){
         .doc(uid)
         .collection('accessories')
         .doc(part)
-        .get();
+        .get().then(snap => privateSnapshot(snap, "accessories", uid, part));
       const list = doc.exists ? (doc.data().list || []) : [];
       const cleaned = list.filter(x => typeof x === "string" && x.trim());
       saveAccListToLocal(part, cleaned);
@@ -20943,7 +20890,7 @@ async function loadExercises(part, opts) {
     .doc(uid)
     .collection('accessories')
     .doc(part)
-    .get();
+    .get().then(snap => privateSnapshot(snap, "accessories", uid, part));
 
   // 그 사이에 다른 부위탭으로 넘어갔으면 화면 갱신하지 않음(엉뚱한 부위 덮어쓰기 방지)
   if (currentPart !== part) return;
@@ -20975,7 +20922,7 @@ async function addAccessorySet(opts) {
 
   // ✅ 게스트/로그인 공통으로 로컬에 먼저 반영할 아이템
   const localItem = {
-    id: "local_" + Date.now() + "_" + Math.random(),
+    id: auth.currentUser ? appSync.outbox.freshId() : "local_" + Date.now() + "_" + Math.random(),
     exercise: currentExerciseName,
     part: currentPart || "",
     weight: w,
@@ -20984,6 +20931,10 @@ async function addAccessorySet(opts) {
     createdAt: Date.now()
   };
 
+  if (auth.currentUser) {
+    try { await privateWrite(auth.currentUser.uid, "accessoryRecords", localItem.id, {exercise: currentExerciseName, part: currentPart || "", date, weight: w, reps: r, createdAt: localItem.createdAt}); }
+    catch (error) { alert('기기에 저장하지 못했습니다. 저장 공간을 확인하고 다시 시도해주세요.'); return; }
+  }
   if (!accRecordsByExercise[currentExerciseName]) {
     accRecordsByExercise[currentExerciseName] = [];
   }
@@ -20997,32 +20948,6 @@ async function addAccessorySet(opts) {
   // 세션이면 resolveWorkoutDate가 돌려준 이전 날짜에 찍힘)
   autoMarkCalendarToday(currentPart, date);
 
-  // ✅ 로그인 상태면 Firestore에도 저장 + id를 firestore id로 업데이트
-  if (user) {
-    const item = {
-      exercise: currentExerciseName,
-      part: currentPart || "",
-      weight: w,
-      reps: r,
-      date,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    };
-
-    try {
-      const docRef = await db
-        .collection("users")
-        .doc(user.uid)
-        .collection("accessoryRecords")
-        .add(item);
-
-      // 로컬 id를 firestore id로 교체(옵션이지만 깔끔)
-      localItem.id = docRef.id;
-      saveAccRecordsToLocal();
-    } catch (e) {
-      console.error("accessoryRecords save err", e);
-    }
-  }
-
   // 🔥 방금 기록을 남긴 종목을 목록 맨 위로 올림(생성일시 고정 순서 대신 최근 기록순)
   const idx = currentExercises.indexOf(currentExerciseName);
   if (idx > 0) {
@@ -21030,9 +20955,7 @@ async function addAccessorySet(opts) {
     currentExercises.unshift(currentExerciseName);
     saveAccListToLocal(currentPart, currentExercises);
     if (user) {
-      db.collection('users').doc(user.uid)
-        .collection('accessories').doc(currentPart)
-        .set({ list: currentExercises }, { merge: true })
+      privateWrite(user.uid, "accessories", currentPart, { list: currentExercises }, { merge: true })
         .catch(e => console.error("종목 순서 저장 실패", e));
     }
   }
@@ -21103,6 +21026,11 @@ async function deleteAccessoryRecord(recordId) {
 
   console.log("deleteAccessoryRecord 시도:", recordId);
 
+  const user = auth.currentUser;
+  if (user && !String(recordId).startsWith('local_')) {
+    try { await privateWrite(user.uid, 'accessoryRecords', recordId, null); }
+    catch (error) { alert('삭제 요청을 저장하지 못했습니다. 다시 시도해주세요.'); return; }
+  }
   // 1) 로컬에서 제거 (게스트/로그인 공통)
   let removedCount = 0;
   Object.keys(accRecordsByExercise).forEach(exName => {
@@ -21114,24 +21042,6 @@ async function deleteAccessoryRecord(recordId) {
   saveAccRecordsToLocal();
 
   console.log("삭제된 로컬 항목 수:", removedCount);
-
-  // 2) 로그인 상태면 Firestore에서도 삭제
-  const user = auth.currentUser;
-  if (user) {
-    // recordId가 firestore id일 때만 시도
-    if (!String(recordId).startsWith("local_")) {
-      try {
-        await db
-          .collection("users")
-          .doc(user.uid)
-          .collection("accessoryRecords")
-          .doc(recordId)
-          .delete();
-      } catch (e) {
-        console.error("accessory record delete err", e);
-      }
-    }
-  }
 
   // 3) 화면 갱신
   if (currentExerciseName) renderAccessoryRecords(currentExerciseName);
@@ -21426,10 +21336,12 @@ let restTimerIntervalId = null;
 
 // 🔥 실제 경과시간은 항상 타임스탬프 기준으로 계산 — setInterval이 꺼져있던
 // 동안(다른 탭 보던 중)에도 돌아왔을 때 정확한 값이 바로 나옴
-function restTimerElapsedMs(){
-  const end = restTimerPausedAt || Date.now();
-  return Math.max(0, end - restTimerStartedAt - restTimerPausedTotalMs);
+const restStopwatch = MFRestStopwatch.create({storage:localStorage, key:appSync.account.key('mf_rest_stopwatch_v1')});
+function applyRestTimerState(state){
+  restTimerActive = state.active; restTimerStartedAt = state.startedAt;
+  restTimerPausedAt = state.pausedAt; restTimerPausedTotalMs = state.pausedTotalMs;
 }
+function restTimerElapsedMs(){ return restStopwatch.elapsed(); }
 function formatRestTimer(ms){
   const totalSec = Math.floor(ms / 1000);
   const m = Math.floor(totalSec / 60);
@@ -21437,6 +21349,7 @@ function formatRestTimer(ms){
   return m + ":" + String(s).padStart(2, "0");
 }
 function renderRestTimerValue(){
+  if (restStopwatch.expired()) { applyRestTimerState(restStopwatch.stop()); syncRestTimerUI(); return; }
   const text = formatRestTimer(restTimerElapsedMs());
   restTimerValueEl.textContent = text;
   restTimerMiniValueEl.textContent = text; // 🔥 메인 알약과 미니 알약이 같은 공유 타이머를 보여주므로 항상 같이 갱신
@@ -21628,6 +21541,7 @@ function playRestTimerExitAnimation(onDone){
 
 function stopRestTimerManually(){
   if (!restTimerActive) return;
+  restStopwatch.stop();
   playRestTimerExitAnimation(() => {
     restTimerActive = false;
     restTimerPausedAt = 0;
@@ -21926,10 +21840,7 @@ function playRestTimerGrowToFull(){
 function resetRestTimerOnSave(){
   if (!restTimerEnabled) return;
   const wasActive = restTimerActive;
-  restTimerStartedAt = Date.now();
-  restTimerPausedAt = 0;
-  restTimerPausedTotalMs = 0;
-  restTimerActive = true;
+  applyRestTimerState(restStopwatch.reset());
   if (!wasActive && REST_TIMER_TABS.includes(currentActiveTabTarget())) {
     playRestTimerEntranceAnimation();
   } else {
@@ -21941,13 +21852,7 @@ function resetRestTimerOnSave(){
 // 표시용 아이콘으로 바꿔서(위 CSS에서 pointer-events:none, 원형 배경도 제거) 클릭
 // 리스너를 따로 안 둠
 function toggleRestTimerPause(){
-  if (restTimerPausedAt) {
-    // 재생: 멈춰있던 시간만큼 누적하고 다시 흐르게 함
-    restTimerPausedTotalMs += Date.now() - restTimerPausedAt;
-    restTimerPausedAt = 0;
-  } else {
-    restTimerPausedAt = Date.now();
-  }
+  applyRestTimerState(restStopwatch.togglePause());
   syncRestTimerUI();
 }
 restTimerPauseBtn.addEventListener('click', toggleRestTimerPause);
@@ -21958,6 +21863,7 @@ restTimerToggle.addEventListener('click', () => {
   restTimerEnabled = next;
   try { localStorage.setItem('mf_rest_timer_enabled', next ? '1' : '0'); } catch(e){}
   if (!next) {
+    restStopwatch.stop();
     // 끄면 진행 중이던 타이머 상태도 완전히 초기화(다음에 켜면 다시 처음부터)
     restTimerActive = false;
     restTimerPausedAt = 0;
@@ -21970,7 +21876,11 @@ restTimerToggle.addEventListener('click', () => {
 try {
   restTimerEnabled = localStorage.getItem('mf_rest_timer_enabled') === '1';
   restTimerToggle.classList.toggle('active', restTimerEnabled);
-} catch(e){}
+  applyRestTimerState(restTimerEnabled ? restStopwatch.restore() : restStopwatch.stop());
+  setTimeout(syncRestTimerUI, 0);
+} catch(e){ console.error('휴식 상태 복원 실패', e); }
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { renderRestTimerValue(); syncRestTimerUI(); } });
+window.addEventListener('pageshow', () => { renderRestTimerValue(); syncRestTimerUI(); });
 // 🔥 방금 토글해서 새로고침된 직후라면, 있던 탭/설정 화면 상태를 그대로 복원(제자리 유지)하고
 // 나서 iOS 상태바 재계산을 강제 트리거.
 // alert() 같은 사용자 탭이 필요한 네이티브 모달로도 재계산이 되긴 했지만(라이트모드는 그마저도
@@ -22995,16 +22905,14 @@ async function saveUserSpecToFirestore(){
   const user = auth.currentUser;
   if (!user) return;
   try {
-    await db.collection("users").doc(user.uid)
-      .collection("profile").doc("spec")
-      .set(userSpec, { merge: true });
+    await privateWrite(user.uid, "profile", "spec", userSpec, { merge: true });
   } catch (e) { console.error("spec save err", e); }
 }
 
 async function loadUserSpecFromFirestore(uid){
   try {
     const doc = await db.collection("users").doc(uid)
-      .collection("profile").doc("spec").get();
+      .collection("profile").doc("spec").get().then(snap => privateSnapshot(snap, "profile", uid, "spec"));
     if (doc.exists) {
       userSpec = { ...userSpec, ...doc.data() };
       saveUserSpecToLocal(); // 🔥 로컬에도 저장해둬야, 다음 실행 시 캐시가 신선해서 재조회를
@@ -23019,16 +22927,14 @@ async function saveWaterToFirestore(){
   const user = auth.currentUser;
   if (!user) return;
   try {
-    await db.collection("users").doc(user.uid)
-      .collection("profile").doc("water")
-      .set({ byDate: waterByDate, mlPerGlass: waterMlPerGlass }, { merge: true });
+    await privateWrite(user.uid, "profile", "water", { byDate: waterByDate, mlPerGlass: waterMlPerGlass }, { merge: true });
   } catch (e) { console.error("water save err", e); }
 }
 
 async function loadWaterFromFirestore(uid){
   try {
     const doc = await db.collection("users").doc(uid)
-      .collection("profile").doc("water").get();
+      .collection("profile").doc("water").get().then(snap => privateSnapshot(snap, "profile", uid, "water"));
     if (doc.exists) {
       const d = doc.data();
       waterByDate = d.byDate || {};
@@ -23043,16 +22949,14 @@ async function saveWeightToFirestore(){
   const user = auth.currentUser;
   if (!user) return;
   try {
-    await db.collection("users").doc(user.uid)
-      .collection("profile").doc("weight")
-      .set(userWeight, { merge: true });
+    await privateWrite(user.uid, "profile", "weight", userWeight, { merge: true });
   } catch (e) { console.error("weight save err", e); }
 }
 
 async function loadWeightFromFirestore(uid){
   try {
     const doc = await db.collection("users").doc(uid)
-      .collection("profile").doc("weight").get();
+      .collection("profile").doc("weight").get().then(snap => privateSnapshot(snap, "profile", uid, "weight"));
     if (doc.exists) {
       userWeight = { ...userWeight, ...doc.data() };
       saveWeightToLocal(); // 🔥 로컬 저장 누락 버그 수정(재조회 생략 캐시가 비어있던 원인)
@@ -23066,8 +22970,7 @@ async function saveFoodTemplateToFirestore(item){
   const user = auth.currentUser;
   if (!user) return;
   try {
-    await db.collection("users").doc(user.uid)
-      .collection("foodTemplates").doc(item.id).set(item);
+    await privateWrite(user.uid, "foodTemplates", item.id, item);
   } catch (e) { console.error("template save err", e); }
 }
 
@@ -23075,15 +22978,14 @@ async function deleteFoodTemplateFromFirestore(id){
   const user = auth.currentUser;
   if (!user) return;
   try {
-    await db.collection("users").doc(user.uid)
-      .collection("foodTemplates").doc(id).delete();
+    await privateWrite(user.uid, "foodTemplates", id, null);
   } catch (e) { console.error("template delete err", e); }
 }
 
 async function loadFoodTemplatesFromFirestore(uid){
   try {
     const snap = await db.collection("users").doc(uid)
-      .collection("foodTemplates").get();
+      .collection("foodTemplates").get().then(snap => privateSnapshot(snap, "foodTemplates", uid));
     foodTemplates = [];
     snap.forEach(doc => foodTemplates.push(doc.data()));
     saveFoodTemplatesToLocal(); // 🔥 로컬 저장 누락 버그 수정(재조회 생략 캐시가 비어있던 원인)
@@ -23096,8 +22998,7 @@ async function saveMealToFirestore(item){
   const user = auth.currentUser;
   if (!user) return;
   try {
-    await db.collection("users").doc(user.uid)
-      .collection("meals").doc(item.id).set(item);
+    await privateWrite(user.uid, "meals", item.id, item);
   } catch (e) { console.error("meal save err", e); }
 }
 
@@ -23105,8 +23006,7 @@ async function deleteMealFromFirestore(id){
   const user = auth.currentUser;
   if (!user) return;
   try {
-    await db.collection("users").doc(user.uid)
-      .collection("meals").doc(id).delete();
+    await privateWrite(user.uid, "meals", id, null);
   } catch (e) { console.error("meal delete err", e); }
 }
 
@@ -23115,7 +23015,7 @@ async function loadMealsFromFirestore(uid){
     const snap = await db.collection("users").doc(uid)
       .collection("meals")
       .where("date", ">=", getRecentWindowStartDateStr())
-      .get();
+      .get().then(snap => privateSnapshot(snap, "meals", uid));
     mealsAll = [];
     snap.forEach(doc => mealsAll.push(doc.data()));
     saveMealsToLocal(); // 🔥 로컬 저장 누락 버그 수정(재조회 생략 캐시가 비어있던 원인)
@@ -23649,7 +23549,7 @@ async function ensureMealsForMonth(year, month){
       .collection("meals")
       .where("date", ">=", monthStart)
       .where("date", "<=", monthEnd)
-      .get();
+      .get().then(snap => privateSnapshot(snap, "meals", user.uid));
 
     const existingIds = new Set(mealsAll.map(m => m.id));
     let added = false;

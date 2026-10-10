@@ -1,0 +1,57 @@
+# 사용자 데이터와 검증
+
+작업 기준: GitHub main `0232631fcbdeb017e129b443194f65dd4abcca60` (0.9.356).
+프로젝트 AGENTS.md, 패키지 매니페스트, 빌드/테스트 스크립트는 없었다.
+앱은 정적 index.html + service worker이며 Firebase 8.10.1을 사용한다.
+
+## 저장 위치
+
+- `localStorage`: `mf_account_v2:<uid 또는 guest>:<기존 키>`로 사용자 캐시와 미전송 대기열을 분리한다.
+- 기존 키: `mf_threeRM_v1`, `mf_records_v1`(bench/squat/dead/ohp 배열), `mf_calendar_v1`, `mf_acc_list_<part>_v1`, `mf_acc_records_v1`(종목별 배열), `mf_user_spec_v1`, `mf_food_templates_v1`, `mf_meals_v1`, `mf_water_v1`, `mf_weight_v1`, `mf_my_routine_templates_v1`, `mf_my_routine_collapsed_groups_v1`, `mf_exercise_ref_links_v1`.
+- 맨몸 사용자 루틴·완료 기록·목표·마이그레이션 플래그도 같은 계정 네임스페이스를 사용한다.
+- `outbox`: 문서별 최신 작업, 고정 ID, 삭제 표식을 저장한다. 서버가 확인한 작업만 대기열에서 제거한다. 삭제 표식은 오래된 캐시로 기록이 되살아나는 것을 막는다.
+- 기기 설정: `mf_light_mode`, `mf_serious_mode`, `mf_rest_timer_enabled`, `mf_unit_prefs_v1`은 기기 공통이다. 휴식 진행 상태는 계정별 `mf_rest_stopwatch_v1`이다.
+- 공용 운동도감 캐시: `mf_dex_folders_v1`, `mf_dex_posts_v1`, `mf_dex_pending_ids_v1`은 분리하지 않는다.
+- `sessionStorage`: 화면 모드 변경 시 탭/설정 복원, 앱 버전 업데이트 확인 플래그. 운동 기록의 영구 저장소가 아니다.
+- Firebase SDK는 IndexedDB에 인증 상태·Firestore 캐시/미전송 작업을 별도로 저장한다. 앱 자체 대기열은 SDK persistence가 지원되지 않아도 남는다.
+
+## 실제 Firestore 컬렉션
+
+| 경로 | 내용 |
+| --- | --- |
+| users/{uid}/records | 3대 및 OHP의 개별 세트 |
+| users/{uid}/accessoryRecords | 보조·맨몸 기본운동 개별 세트 |
+| users/{uid}/calendar | YYYY-M-D 문서별 부위·계획/확정·첫/마지막 세트 시각 |
+| users/{uid}/threeRM | latest 문서의 PR 값 |
+| users/{uid}/accessories | 부위별 종목 목록 및 과거 종목 문서 |
+| users/{uid}/profile | spec, water, weight |
+| users/{uid}/foodTemplates | 식단 템플릿 |
+| users/{uid}/meals | 식사 기록 |
+| users/{uid}/myRoutineTemplates | 사용자 운동 루틴 |
+| users/{uid}/meta | exerciseRefLinks 문서 |
+| users/{uid}/diets | 과거 탈퇴 코드가 사용한 레거시 컬렉션, 호환 삭제 대상 |
+| users/{uid} | 사용자 루트 문서 |
+| dexFolders, dexPosts | 공용 운동도감: 탈퇴 삭제 대상에서 제외 |
+
+현재 사용자 하위 문서 아래에 다시 컬렉션을 만드는 코드는 없다. 앞으로 새 하위 컬렉션을 도입하면 `MFSync.PRIVATE_COLLECTIONS`와 격리 삭제 테스트를 함께 업데이트해야 한다. 클라이언트 SDK는 임의 하위 컬렉션을 열거할 수 없으며 부모 삭제는 연쇄 삭제가 아니다.
+
+## 처리 원칙
+
+- 3대·보조·내 루틴 입력은 같은 기록 컬렉션과 휴식 스톱워치를 사용한다. 맨몸 루틴의 기존 "운동 시작" 버튼은 이미 완료 기록을 로컬에 생성하는 동작이므로 이를 별도 개별 세트와 중복 집계하지 않는다.
+- 서버 문서 ID는 UI에 기록을 표시하기 전에 고정한다. 재시도는 add() 대신 같은 문서에 set()한다. 저장 실패/미확인 작업은 연결 복구·페이지 복귀·15초 주기로 재시도한다.
+- 새 작업이 대기 중인 작업을 바꿨을 때 오래된 응답으로 새 작업을 제거하지 않는다. 지원 브라우저는 Web Locks로 탭 간 대기열 수정과 서버 전송을 직렬화한다.
+- 로그아웃/계정 변경 시 새 계정 저장소를 선택하고 새로고침하여 이전 계정의 비동기 로더와 화면 상태를 종료한다. 원래 계정의 대기열은 다시 로그인할 때 재개한다.
+- uid 없는 레거시 캐시는 기존 로그인 이메일이 일치할 때만 해당 사용자에 이관한다. 소유자를 알 수 없는 로그인 캐시는 다른 계정이나 게스트에 노출/업로드하지 않는다. 과거 코드의 ID 없는 실패 기록은 서버 중복 여부를 알 수 없어 자동 업로드하지 않는다.
+- 탈퇴는 Google 재인증 후 쓰기를 동결하고 SDK 미전송 쓰기가 끝난 뒤 진행한다. 서버에서 최대 400문서씩 읽고 지우며 모두 완료된 뒤 루트와 인증 계정을 삭제한다. 부분 실패 시 동결을 유지하고 다음 탈퇴 시 남은 데이터를 정리한다. 다른 사용자와 공용 데이터는 삭제하지 않는다.
+- 휴식은 세트 저장으로 리셋하고, 타임스탬프로 계산하며 새로고침/재실행 시 실행·일시정지 상태를 복원한다. 일시정지를 제외한 30분에서 자동 종료한다. 수동 종료/설정 OFF 시 저장 상태를 제거한다. 큰/미니 알약 FLIP 모션과 CSS는 기존 구현을 유지한다.
+
+## 검증 명령
+
+```
+node --test tests/core.test.cjs
+python3 -m http.server 8000 --bind 127.0.0.1
+# 다른 터미널, Python Playwright와 /usr/bin/chromium 필요
+python3 tests/browser_smoke.py
+```
+
+핵심 테스트는 격리 저장소/Firestore 대역으로 오프라인 재실행·응답 유실·중복 방지·삭제 경합·계정 변경·로컬 저장 실패·900개 이상 문서의 탈퇴 및 부분 실패를 검증한다. 브라우저 검증은 Firebase 대역을 사용하고 실제 계정/운영 문서에 접근하지 않는다. Chart.js는 시스템 TLS로 검증한 공식 CDN 파일을 브라우저에 제공한다. 실제 외부 SDK 연결 확인과 격리 기능 검증을 구별하여 보고한다.
