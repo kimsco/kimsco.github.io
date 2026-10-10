@@ -10904,11 +10904,11 @@ MuscleFlow는 개인의 운동 및 식단 기록을 관리하는 PWA 서비스�
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-<script src="/js/sync.js?v=0.9.365"></script>
-<script src="/js/app-sync.js?v=0.9.365"></script>
-<script src="/js/rest-stopwatch.js?v=0.9.365"></script>
-<script src="/js/rest-timer-motion.js?v=0.9.365"></script>
-<script src="/js/workout-summary.js?v=0.9.365"></script>
+<script src="/js/sync.js?v=0.9.366"></script>
+<script src="/js/app-sync.js?v=0.9.366"></script>
+<script src="/js/rest-stopwatch.js?v=0.9.366"></script>
+<script src="/js/rest-timer-motion.js?v=0.9.366"></script>
+<script src="/js/workout-summary.js?v=0.9.366"></script>
 
 <script>
    
@@ -12541,7 +12541,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.365";
+const APP_VERSION = "0.9.366";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -13344,14 +13344,13 @@ function renderHomeTab(){
     partsRowEl.innerHTML = HOME_PARTS.map(item => {
       const days = daysSinceLastWorkoutForMuscle(item.muscle);
       const daysLabel = days === null ? "-" : `${days}일`;
-      const subLabel = days === null ? "기록 없음" : "지났습니다";
       const imgSrc = HOME_PART_IMAGES[item.label];
       return `
         <div class="home-part-item">
           <div class="home-part-name">${item.label}</div>
           <div class="home-part-img-slot">${imgSrc ? `<img class="home-part-img" src="${imgSrc}" alt="${item.label}">` : ""}</div>
           <div class="home-part-days">${daysLabel}</div>
-          <div class="home-part-sub">${subLabel}</div>
+          ${days === null ? '<div class="home-part-sub">기록 없음</div>' : ""}
         </div>
       `;
     }).join("");
