@@ -78,6 +78,28 @@ with sync_playwright() as p:
  page.wait_for_timeout(1100)
  assert page.locator('.mf-rest-motion').count()==0
  assert not page.evaluate('restTimerActive')
+ # A physical X press must not feed its animated button scale into pill geometry.
+ for light in [False,True]:
+  for paused in [False,True]:
+   page.evaluate('(v)=>applyLightMode(v)',light)
+   page.locator('.bottomTab .tabBtn[data-target="tab2"]').click()
+   page.locator('#recordWeight').fill('60');page.locator('#recordReps').fill('5')
+   page.locator('#recordAdd').click();page.wait_for_timeout(1100)
+   assert page.evaluate('restTimerActive')
+   if paused:page.evaluate('toggleRestTimerPause()')
+   before=page.locator('#restTimerCardBg').bounding_box()
+   button=page.locator('#openNavDrawerBtn').bounding_box()
+   page.mouse.move(button['x']+button['width']/2,button['y']+button['height']/2)
+   page.mouse.down();page.wait_for_timeout(120)
+   page.mouse.up()
+   for delay in [0,50,100]:
+    page.wait_for_timeout(delay)
+    after=page.locator('#restTimerCardBg').bounding_box()
+    assert after is not None
+    assert max(abs(after[k]-before[k]) for k in ['x','y','width','height'])<.1,(before,after)
+   page.wait_for_timeout(700)
+   assert not page.evaluate('restTimerActive')
+   assert page.locator('#restTimerCardBg').bounding_box() is None
  assert not errors,errors
- print('PASS: same-frame pill/time/icon geometry in both directions, running/paused, dark/light, 12 rapid reversals and manual stop')
+ print('PASS: same-frame pill/time/icon geometry in both directions, running/paused, dark/light, 12 rapid reversals and manual stop without pill expansion')
  b.close()
