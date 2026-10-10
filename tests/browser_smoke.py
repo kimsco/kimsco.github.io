@@ -108,9 +108,13 @@ with sync_playwright() as p:
     # Summary integration uses existing guest records; no extra record copies are stored.
     first_session=page.evaluate('workoutSession.state().active.id')
     page.locator('.bottomTab .tabBtn[data-target="tab2"]').click();page.wait_for_timeout(700)
-    page.locator('#tab2 .mf-warmup-toggle').check()
+    assert page.locator('#tab2 .mf-workout-controls, #tab4 .mf-workout-controls').count()==0
+    page.locator('.bottomTab .tabBtn[data-target="tab1"]').click();page.wait_for_timeout(400)
+    page.locator('#workoutSummaryCard .mf-warmup-toggle').check()
+    page.locator('.bottomTab .tabBtn[data-target="tab2"]').click();page.wait_for_timeout(400)
     page.locator('#recordWeight').fill('20');page.locator('#recordReps').fill('10');page.locator('#recordAdd').click();page.wait_for_timeout(200)
-    page.locator('#tab2 .mf-warmup-toggle').uncheck()
+    page.locator('.bottomTab .tabBtn[data-target="tab1"]').click();page.wait_for_timeout(400)
+    page.locator('#workoutSummaryCard .mf-warmup-toggle').uncheck()
     page.evaluate("myRoutineSaveAccessorySet('풀업','bodyweight',0,15)");page.wait_for_timeout(200)
     counts=page.evaluate('MFWorkout.summarize(workoutRows().filter(r=>r.sessionId===workoutSession.state().active.id))')
     assert counts['exercises']==2 and counts['sets']==2 and counts['warmupSets']==1 and counts['volume']==400,counts
