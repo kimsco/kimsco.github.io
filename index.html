@@ -10916,10 +10916,10 @@ MuscleFlow는 개인의 운동 및 식단 기록을 관리하는 PWA 서비스�
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-<script src="/js/sync.js?v=0.9.360"></script>
-<script src="/js/app-sync.js?v=0.9.360"></script>
-<script src="/js/rest-stopwatch.js?v=0.9.360"></script>
-<script src="/js/workout-summary.js?v=0.9.360"></script>
+<script src="/js/sync.js?v=0.9.361"></script>
+<script src="/js/app-sync.js?v=0.9.361"></script>
+<script src="/js/rest-stopwatch.js?v=0.9.361"></script>
+<script src="/js/workout-summary.js?v=0.9.361"></script>
 
 <script>
    
@@ -10953,7 +10953,7 @@ function renderSyncStatus(status, error){
   let el = document.getElementById('syncStatus');
   if (!el) {
     el = document.createElement('div'); el.id = 'syncStatus'; el.setAttribute('role','status'); el.setAttribute('aria-live','polite');
-    el.style.cssText = 'position:fixed;bottom:calc(76px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);max-width:90%;padding:6px 12px;border-radius:14px;font-size:11px;background:var(--c-bg);color:var(--c-text-secondary);border:1px solid var(--c-border);z-index:9999;pointer-events:none;white-space:nowrap;box-sizing:border-box';
+    el.style.cssText = 'position:fixed;bottom:calc(var(--bottomTabH, 88px) + 12px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);max-width:90%;padding:6px 12px;border-radius:14px;font-size:11px;background:var(--c-bg);color:var(--c-text-secondary);border:1px solid var(--c-border);z-index:9999;pointer-events:none;white-space:nowrap;box-sizing:border-box';
     document.body.appendChild(el);
   }
   clearTimeout(syncToastTimer);
@@ -12552,7 +12552,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.360";
+const APP_VERSION = "0.9.361";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
