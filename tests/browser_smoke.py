@@ -63,7 +63,10 @@ with sync_playwright() as p:
     page.locator('#recordWeight').fill('90');page.locator('#recordReps').fill('3');page.locator('#recordAdd').click();page.wait_for_timeout(200)
     assert page.locator('#syncStatus').inner_text()=='서버 연결 후 자동으로 반영됩니다.'
     assert page.locator('#syncStatus').is_visible()
-    page.wait_for_timeout(2100)
+    page.wait_for_timeout(2400)
+    assert page.locator('#syncStatus').is_visible()
+    assert 0 < page.locator('#syncStatus').evaluate('(el)=>Number(getComputedStyle(el).opacity)') < 1
+    page.wait_for_timeout(700)
     assert page.locator('#syncStatus').is_hidden()
     page.evaluate('appSync.retry()');page.wait_for_timeout(100)
     assert page.locator('#syncStatus').is_hidden()
@@ -74,8 +77,9 @@ with sync_playwright() as p:
     assert page.evaluate('(id)=>records.bench.filter(r=>r.firestoreId===id).length',identity)==1
     assert page.evaluate("Object.keys(appSync.outbox.read('alice').ops).length")==0
     assert page.locator('#syncStatus').inner_text()=='대기 중이던 기록을 서버에 반영했습니다.'
+    assert page.locator('#syncStatus').evaluate('(el)=>getComputedStyle(el).whiteSpace')=='nowrap'
     assert page.locator('#syncStatus').is_visible()
-    page.wait_for_timeout(2100)
+    page.wait_for_timeout(3100)
     assert page.locator('#syncStatus').is_hidden()
     page.evaluate('(id)=>deleteRecord(id)',identity);page.wait_for_timeout(200)
     assert page.locator('#syncStatus').is_hidden()
@@ -87,7 +91,7 @@ with sync_playwright() as p:
     context.set_offline(False)
     page.wait_for_timeout(200)
     assert page.locator('#syncStatus').inner_text()=='대기 중이던 기록을 서버에 반영했습니다.'
-    page.wait_for_timeout(2100)
+    page.wait_for_timeout(3100)
     page.evaluate('appSync.retry()');page.wait_for_timeout(100)
     assert page.locator('#syncStatus').is_hidden()
     assert page.evaluate('(id)=>fixture.store.has("users/alice/records/"+id)',identity) is False
