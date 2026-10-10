@@ -18,10 +18,30 @@
     }
     const lock = (name, fn) => navigator.locks ? navigator.locks.request(name, fn) : Promise.resolve().then(fn);
     const stateLock = (uid,fn) => lock(`mf-outbox-state:${uid}`, fn);
+    const noticeKey = uid => `mf_account_v2:${uid}:sync_notice`;
+    let delayTimer;
+    function waiting(uid, notify = true) {
+      const first = storage.getItem(noticeKey(uid)) !== '1';
+      storage.setItem(noticeKey(uid), '1');
+      if (notify && first && uid === auth.currentUser?.uid) onStatus('waiting');
+    }
     const outbox = root.MFSync.createOutbox({storage, currentUid: () => auth.currentUser?.uid,
       lockState:stateLock, lead:(uid,fn) => lock(`mf-outbox-send:${uid}`, fn),
       online: () => navigator.onLine,
-      onChange: (uid,state,error) => { if (uid === auth.currentUser?.uid) onStatus(Object.keys(state.ops).length,error); },
+      onChange: (uid,state,error) => {
+        if (uid !== auth.currentUser?.uid) return;
+        clearTimeout(delayTimer);
+        const count = Object.keys(state.ops).length;
+        if (!count) {
+          if (storage.getItem(noticeKey(uid)) === '1') {
+            storage.removeItem(noticeKey(uid));
+            onStatus('complete');
+          }
+        } else if (error) waiting(uid);
+        else if (navigator.onLine) delayTimer = setTimeout(() => {
+          if (Object.keys(outbox.read(uid).ops).length) waiting(uid);
+        }, 5000);
+      },
       send: async (uid, op) => {
         if (auth.currentUser?.uid !== uid) throw new Error('Account changed');
         const collection = db.collection('users').doc(uid).collection(op.collection);
@@ -46,7 +66,14 @@
     setInterval(retry, 15000);
     // IndexedDB persistence is paused on sign-out so no new writes dispatch as another account.
     function write(uid, collection, id, data, options) {
-      return stateLock(uid, () => outbox.enqueue(uid, collection, id, data === null ? null : clean(data), options))
+      return stateLock(uid, () => {
+        const result = outbox.enqueue(uid, collection, id, data === null ? null : clean(data), options);
+        if (!navigator.onLine) {
+          waiting(uid, false);
+          if (uid === auth.currentUser?.uid) onStatus('waiting');
+        }
+        return result;
+      })
         .catch(error => { onStatus(null,error); throw error; });
     }
     function snapshot(snap, collection, uid, id) {
@@ -58,7 +85,12 @@
       const items = outbox.overlay(uid, collection, snap.docs.map(d => ({id:d.id,data:d.data()}))).map(doc);
       return {docs:items, empty:!items.length, forEach(fn) {items.forEach(fn);}};
     }
-    return {account, outbox, write, snapshot, retry};
+    function restoreStatus(uid) {
+      clearTimeout(delayTimer);
+      onStatus('hide');
+      if (uid && Object.keys(outbox.read(uid).ops).length) waiting(uid, false);
+    }
+    return {account, outbox, write, snapshot, retry, restoreStatus};
   }
   root.MFAppSync = {install};
 })(window);

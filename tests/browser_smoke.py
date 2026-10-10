@@ -57,16 +57,39 @@ with sync_playwright() as p:
     # Signed-in isolated fixture: queue a set offline, restart, retry and delete.
     page.evaluate("localStorage.setItem('fixture_uid','alice');localStorage.setItem('mf_data_owner_v2','alice')")
     page.reload();page.wait_for_timeout(400)
+    assert page.locator('#syncStatus').is_hidden()
     page.evaluate('fixture.setOnline(false)')
     page.locator('.bottomTab .tabBtn[data-target="tab2"]').click();page.wait_for_timeout(200)
     page.locator('#recordWeight').fill('90');page.locator('#recordReps').fill('3');page.locator('#recordAdd').click();page.wait_for_timeout(200)
+    assert page.locator('#syncStatus').inner_text()=='서버 연결 후 자동으로 반영됩니다.'
+    assert page.locator('#syncStatus').is_visible()
+    page.wait_for_timeout(2100)
+    assert page.locator('#syncStatus').is_hidden()
+    page.evaluate('appSync.retry()');page.wait_for_timeout(100)
+    assert page.locator('#syncStatus').is_hidden()
     identity=page.evaluate('records.bench[0].firestoreId')
     assert identity and not identity.startswith('local_')
     assert page.evaluate("Object.keys(appSync.outbox.read('alice').ops).length")>0
     page.reload();page.wait_for_timeout(500)
     assert page.evaluate('(id)=>records.bench.filter(r=>r.firestoreId===id).length',identity)==1
     assert page.evaluate("Object.keys(appSync.outbox.read('alice').ops).length")==0
+    assert page.locator('#syncStatus').inner_text()=='대기 중이던 기록을 서버에 반영했습니다.'
+    assert page.locator('#syncStatus').is_visible()
+    page.wait_for_timeout(2100)
+    assert page.locator('#syncStatus').is_hidden()
     page.evaluate('(id)=>deleteRecord(id)',identity);page.wait_for_timeout(200)
+    assert page.locator('#syncStatus').is_hidden()
+    # Recovery during the same visit also reports completion once.
+    context.set_offline(True)
+    page.evaluate("fixture.setOnline(false); privateWrite('alice','records','toast-retry',{lift:'bench',weight:10,reps:1})")
+    assert page.locator('#syncStatus').inner_text()=='서버 연결 후 자동으로 반영됩니다.'
+    page.evaluate('fixture.setOnline(true)')
+    context.set_offline(False)
+    page.wait_for_timeout(200)
+    assert page.locator('#syncStatus').inner_text()=='대기 중이던 기록을 서버에 반영했습니다.'
+    page.wait_for_timeout(2100)
+    page.evaluate('appSync.retry()');page.wait_for_timeout(100)
+    assert page.locator('#syncStatus').is_hidden()
     assert page.evaluate('(id)=>fixture.store.has("users/alice/records/"+id)',identity) is False
     assert not errors,errors
     # Restart in a different account: alice data/stopwatch must never appear.
