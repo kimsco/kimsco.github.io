@@ -12463,7 +12463,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.346";
+const APP_VERSION = "0.9.347";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -21318,6 +21318,14 @@ const restTimerMiniPauseIcon = document.getElementById("restTimerMiniPauseIcon")
 const restTimerMiniPlayIcon = document.getElementById("restTimerMiniPlayIcon");
 // 🔥 topBarEl은 이미 위에서(메뉴/설정 드로어 push용) 선언돼있어 재사용
 
+// 🔥 탭을 빠르게 왔다갔다 하면 playRestTimerShrinkToMini()가 끝나기 전에 또 호출될 수
+// 있는데, 그러면 이전 호출의 rAF 루프/350ms 뒤 정리 코드가 새 호출과 동시에 같은
+// restTimerCardBg 인라인 스타일(width/height/--rtimer-card-h 등)을 서로 덮어쓰며
+// 경합해서, 최악의 경우 축소 애니메이션이 중간에 멈춘 값(아주 작은 --rtimer-card-h 등)이
+// 그대로 남아버릴 수 있음 — 호출마다 토큰을 새로 발급해서 "내가 가장 최근 호출이
+// 아니면" rAF 루프/정리 코드가 즉시 멈추게 해서 이 경합을 막음
+let rtimerShrinkToken = 0;
+
 // 🔥 카드 배경의 상하좌우 여백을 CSS 고정값이 아니라, 실제로 렌더링된 햄버거 메뉴
 // 버튼(왼쪽 기준)·일시정지 버튼(오른쪽 기준)의 위치를 읽어서 "버튼 테두리로부터
 // 똑같은 간격"이 되도록 매번 계산해서 inline style로 꽂아줌 — 기기별 safe-area,
@@ -21331,6 +21339,22 @@ function positionRestTimerCard(){
   restTimerPauseBtn.style.transform = '';
   const pauseRect = restTimerPauseBtn.getBoundingClientRect();
   const g = REST_TIMER_CARD_GAP;
+  // 🔥 미니 알약으로 줄어드는 애니메이션(playRestTimerShrinkToMini)이 탭을 빠르게
+  // 왔다갔다 하다 중간에 끊기면(에: 축소 도중 다시 3대탭으로 복귀) 그 애니메이션의
+  // rAF 루프/350ms 뒤 정리 코드가 여전히 "유효한" 토큰인 채로 계속 돌면서, 지금
+  // 이 함수가 설정하는 값을 뒤이어 다시 덮어써버릴 수 있음 — 여기서 토큰을
+  // 새로 발급해 그 루프/정리 코드를 확실히 무효화시킴
+  rtimerShrinkToken++;
+  // 🔥 또한 카드에 아직 shrink 애니메이션이 걸어둔 left/top/width/height용
+  // transition이 살아있는 채로 바로 아래에서 새 left/top/right/bottom 값을 넣으면
+  // (또는 width/height를 리셋하면) 그 값으로도 서서히 트랜지션돼버려서 즉시
+  // 제자리로 안 돌아옴 — transition부터 끄고 지금 상태를 커밋한 뒤 리셋해야
+  // 진짜로 "즉시" 원래 모습(큰 카드, 정상 테두리)으로 돌아옴
+  restTimerCardBg.style.transition = 'none';
+  void restTimerCardBg.offsetHeight;
+  restTimerCardBg.style.width = '';
+  restTimerCardBg.style.height = '';
+  restTimerCardBg.style.removeProperty('--rtimer-card-h');
   restTimerCardBg.style.left = (menuRect.left - barRect.left - g) + 'px';
   restTimerCardBg.style.top = (menuRect.top - barRect.top - g) + 'px';
   restTimerCardBg.style.bottom = (barRect.bottom - menuRect.bottom - g) + 'px';
@@ -21352,6 +21376,12 @@ function positionRestTimerCard(){
   const valueRect = restTimerValueEl.getBoundingClientRect();
   const valueCenterY = valueRect.top + valueRect.height / 2;
   restTimerValueEl.style.transform = `translateY(${(menuCenterY - valueCenterY).toFixed(2)}px)`;
+
+  // 🔥 여기까지의 left/top/bottom/right/width/height 변경은 즉시(트랜지션 없이)
+  // 적용되도록 리플로우로 커밋한 뒤, transition:none을 다시 지워서 카드 자신의
+  // 원래 CSS 트랜지션(입장 애니메이션의 clip-path 번짐 등)은 평소대로 계속 동작하게 함
+  void restTimerCardBg.offsetHeight;
+  restTimerCardBg.style.transition = '';
 }
 
 let restTimerEnabled = false;
@@ -21579,6 +21609,7 @@ function stopRestTimerManually(){
 // 사라지고 미니 알약이 따로 페이드인해서 "둘이 따로 노는" 느낌이었던 것을 개선.
 // bottomTabBtns 클릭 핸들러에서 "타이머 탭 → 비-타이머 탭 + 타이머 활성중"일 때만 호출됨
 function playRestTimerShrinkToMini(){
+  const myShrinkToken = ++rtimerShrinkToken; // 이 호출만의 고유 번호 — 뒤에 또 호출되면 이 번호가 낡은 게 됨
   const fromRect = restTimerCardBg.getBoundingClientRect(); // First: 지금 큰 알약의 실제 위치/크기
 
   // 🔥 벨/설정 아이콘(홈탭 전용)은 탭 전환 핸들러에서 이미 즉시 바뀌어 보이는데, 햄버거
@@ -21651,8 +21682,12 @@ function playRestTimerShrinkToMini(){
   });
 
   // 테두리 하이라이트 패치 크기를 매 프레임 실제 박스 높이에 맞춰 갱신(위 주석 참고)
+  // 🔥 중간에 또 다른 shrink 호출이 생기면(탭을 빠르게 왔다갔다) 토큰이 바뀌므로
+  // 이 낡은 루프는 즉시 멈춤 — 안 그러면 서로 다른 호출의 rAF가 같은 엘리먼트의
+  // --rtimer-card-h를 번갈아 덮어써서 애니메이션이 끝나도 이상한 값에 멈춰버림
   const cardHStart = performance.now();
   function syncCardHighlightSize(){
+    if (myShrinkToken !== rtimerShrinkToken) return;
     const elapsed = performance.now() - cardHStart;
     if (elapsed >= DURATION) {
       restTimerCardBg.style.setProperty('--rtimer-card-h', toRect.height + 'px');
@@ -21665,6 +21700,10 @@ function playRestTimerShrinkToMini(){
   requestAnimationFrame(syncCardHighlightSize);
 
   setTimeout(() => {
+    // 🔥 이 호출이 이미 낡았으면(그새 또 shrink가 호출됐으면) 여기서 인라인 스타일을
+    // 지우거나 syncRestTimerUI()를 불러서 최신 호출의 진행 중인 애니메이션을
+    // 방해하면 안 됨 — 그냥 조용히 멈춤(최신 호출이 자기 몫의 정리를 알아서 함)
+    if (myShrinkToken !== rtimerShrinkToken) return;
     // 마무리 — 인라인으로 걸어둔 임시 스타일을 전부 지우고 syncRestTimerUI()에
     // 최종 상태(미니 알약 보임/큰 알약 숨김/메뉴 아이콘 복원 등) 정리를 맡김
     restTimerCardBg.style.transition = '';
