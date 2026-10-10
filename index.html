@@ -12463,7 +12463,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.347";
+const APP_VERSION = "0.9.348";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -21662,7 +21662,17 @@ function playRestTimerShrinkToMini(){
   const toLeft = toRect.left - topBarRect.left;
   const toTop = toRect.top - topBarRect.top;
 
-  const DURATION = 350;
+  // 🔥 기존엔 가로폭이 체감상 다 줄어든 뒤로도(이징 곡선 cubic-bezier(.3,.7,.4,1)의
+  // 꼬리가 아주 길고 완만해서) 한동안 거의 안 줄어드는 채로 멈춰 있다가 그 타이밍에
+  // 맞춰 숫자가 사라지고, 그 뒤로도 또 한참(실측 약 170ms) 빈 알약만 떠 있다가
+  // 350ms가 꽉 차야 미니 알약 내용이 "뙇" 튀어나왔음 — 숫자가 사라진 뒤에도 알약
+  // 자체는 계속 눈에 띄게 움직이고 있어야 "아직 줄어드는 중"으로 보이지, 다 줄어든
+  // 채로 멈춰 있다 갑자기 바뀌는 것처럼 안 보임. 꼬리가 긴 ease-out 대신 끝까지
+  // 고르게 움직이는 곡선(Material 디자인 표준 easing)으로 바꾸고, 전체 시간도
+  // 줄여서(260ms) 숫자가 사라지는 시점(180ms)과 알약이 다 줄어드는 시점 사이의
+  // 빈 시간 자체도 같이 단축함
+  const DURATION = 260;
+  const EASING = 'cubic-bezier(0.4, 0, 0.2, 1)';
 
   restTimerCardBg.style.transition = 'none';
   restTimerCardBg.style.right = 'auto';
@@ -21673,7 +21683,7 @@ function playRestTimerShrinkToMini(){
   restTimerCardBg.style.height = fromRect.height + 'px';
   restTimerCardBg.style.setProperty('--rtimer-card-h', fromRect.height + 'px');
   void restTimerCardBg.offsetHeight; // 시작 상태(원래 크기/위치) 커밋
-  restTimerCardBg.style.transition = `left ${DURATION}ms cubic-bezier(.3,.7,.4,1), top ${DURATION}ms cubic-bezier(.3,.7,.4,1), width ${DURATION}ms cubic-bezier(.3,.7,.4,1), height ${DURATION}ms cubic-bezier(.3,.7,.4,1)`;
+  restTimerCardBg.style.transition = `left ${DURATION}ms ${EASING}, top ${DURATION}ms ${EASING}, width ${DURATION}ms ${EASING}, height ${DURATION}ms ${EASING}`;
   requestAnimationFrame(() => {
     restTimerCardBg.style.left = toLeft + 'px';
     restTimerCardBg.style.top = toTop + 'px';
