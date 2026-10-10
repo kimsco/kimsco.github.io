@@ -501,6 +501,16 @@ html.light-mode-on .rest-timer-mini-pause-btn{
    남은 상태)으로 트랜지션되게 함. .topText의 transform을 통째로 덮어써야 하므로 translateX(8px)도 함께 명시 */
 .topText.rtimer-exit-up{ transform: translateX(8px) translateY(-18px); opacity: 0; }
 .topText.rtimer-enter-from-below{ transform: translateX(8px) translateY(18px); opacity: 0; }
+/* 🔥 위 +8px 보정은 "To the Top" 제목 전용(왼쪽엔 항상 햄버거, 오른쪽은 탭에 따라
+   비어있을 수 있는 비대칭 때문에 생기는 착시를 보정) — 휴식 타이머 숫자는 .topText
+   클래스를 공유해서 이 보정을 그대로 물려받지만, 타이머는 X/일시정지 버튼이 항상
+   좌우 대칭으로 떠있어서 이 보정이 필요 없고 오히려 숫자가 알약 중심에서 8px
+   오른쪽으로 치우쳐 보이는 원인이었음(실측: 알약 중심 195px, 숫자 중심 203px).
+   .topText.rest-timer-display(클래스 2개, 특이도 0,2,0)로 .topText 단독(0,1,0)보다
+   우선해서 0으로 되돌림 */
+.topText.rest-timer-display{
+  transform: translateX(0);
+}
 
 .rest-timer-display #restTimerValue{
   font-variant-numeric: tabular-nums; /* 🔥 숫자 폭이 매 초 달라져도 안 흔들리게 고정폭으로 */
@@ -12475,7 +12485,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.355";
+const APP_VERSION = "0.9.356";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -21663,15 +21673,16 @@ function playRestTimerShrinkToMini(){
   // 트랜지션에 맡김
   // restTimerPauseBtn은 positionRestTimerCard()가 세로 중심 보정용으로 이미
   // translateY(...)를 걸어둔 상태라, 그 값을 덮어쓰지 않고 scale()만 이어붙임
-  // 🔥 .topText는 "살짝 왼쪽으로 쏠려 보이는 착시" 보정용으로 항상 translateX(8px)이
-  // 기본 CSS에 걸려있음 — 여기서 transform을 scale()만으로 덮어쓰면 그 보정이
-  // 사라졌다가, 나중에 인라인을 지울 때 CSS 자체 트랜지션(0.35s)으로 되돌아오면서
-  // 긴 꼬리로 다시 드리프트되는 부작용이 있었음 — translateX(8px)를 항상 같이 포함
+  // 🔥 .topText의 기본 +8px 보정("To the Top" 제목 전용, 좌우 버튼 비대칭 착시 보정)은
+  // .rest-timer-display에선 CSS에서 0으로 되돌려놨음(위 .topText.rest-timer-display
+  // 규칙 참고) — 타이머는 X/일시정지 버튼이 항상 대칭이라 그 보정이 필요 없고,
+  // 오히려 숫자가 알약 중심에서 오른쪽으로 쏠려 보이는 원인이었음. 그래서 여기서도
+  // scale()만 쓰고 translateX는 안 붙임
   const pauseBtnBaseTransform = restTimerPauseBtn.style.transform || '';
   restTimerDisplay.style.transition = `opacity ${DURATION}ms ease`;
   restTimerPauseBtn.style.transition = `opacity ${DURATION}ms ease`;
   restTimerDisplay.style.opacity = '0';
-  restTimerDisplay.style.transform = 'translateX(8px) scale(1)';
+  restTimerDisplay.style.transform = 'scale(1)';
   restTimerPauseBtn.style.opacity = '0';
   restTimerPauseBtn.style.transform = `${pauseBtnBaseTransform} scale(1)`.trim();
 
@@ -21735,14 +21746,14 @@ function playRestTimerShrinkToMini(){
     const elapsed = performance.now() - cardHStart;
     if (elapsed >= DURATION) {
       restTimerCardBg.style.setProperty('--rtimer-card-h', toRect.height + 'px');
-      restTimerDisplay.style.transform = `translateX(8px) scale(${toRect.height / fromRect.height})`;
+      restTimerDisplay.style.transform = `scale(${toRect.height / fromRect.height})`;
       restTimerPauseBtn.style.transform = `${pauseBtnBaseTransform} scale(${toRect.height / fromRect.height})`.trim();
       return;
     }
     const h = restTimerCardBg.getBoundingClientRect().height;
     restTimerCardBg.style.setProperty('--rtimer-card-h', h + 'px');
     const scale = h / fromRect.height;
-    restTimerDisplay.style.transform = `translateX(8px) scale(${scale})`;
+    restTimerDisplay.style.transform = `scale(${scale})`;
     restTimerPauseBtn.style.transform = `${pauseBtnBaseTransform} scale(${scale})`.trim();
     requestAnimationFrame(syncCardHighlightSize);
   }
@@ -21826,11 +21837,10 @@ function playRestTimerGrowToFull(){
   // "툭" 나타나는 것처럼 보였음). positionRestTimerCard()가 방금 pauseBtn에 세로
   // 중심 보정용 translateY(...)를 걸어뒀으니, 그 값은 유지한 채 scale()만 작게
   // 시작했다가 다시 키움 — 지금은 opacity가 이미 0이라 이 스냅은 안 보임
-  // 🔥 .topText 기본 CSS에 항상 걸려있는 translateX(8px) 착시 보정을 scale()로
-  // 덮어쓰지 않도록 같이 포함(안 그러면 나중에 인라인을 지울 때 CSS 자체의 느린
-  // 트랜지션으로 되돌아오면서 끝에 긴 드리프트가 생김)
+  // 🔥 .rest-timer-display는 .topText 기본 +8px 보정을 CSS에서 0으로 되돌려놨으므로
+  // (타이머는 X/일시정지 버튼이 항상 대칭이라 그 보정이 필요 없음) scale()만 사용
   const pauseBtnTargetTransform = restTimerPauseBtn.style.transform || '';
-  restTimerDisplay.style.transform = 'translateX(8px) scale(0.5)';
+  restTimerDisplay.style.transform = 'scale(0.5)';
   restTimerPauseBtn.style.transform = `${pauseBtnTargetTransform} scale(0.5)`.trim();
 
   // 🔥 positionRestTimerCard()가 내부적으로 토큰을 이미 한 번 새로 발급했으므로, 이
@@ -21886,7 +21896,7 @@ function playRestTimerGrowToFull(){
     const h = restTimerCardBg.getBoundingClientRect().height;
     restTimerCardBg.style.setProperty('--rtimer-card-h', h + 'px');
     const scale = h / toRect.height;
-    restTimerDisplay.style.transform = `translateX(8px) scale(${scale})`;
+    restTimerDisplay.style.transform = `scale(${scale})`;
     restTimerPauseBtn.style.transform = `${pauseBtnTargetTransform} scale(${scale})`.trim();
     requestAnimationFrame(syncCardHighlightSize);
   }
