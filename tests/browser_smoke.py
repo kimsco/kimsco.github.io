@@ -78,5 +78,59 @@ with sync_playwright() as p:
     assert page.evaluate('appSync.account.owner')=='guest'
     assert page.evaluate('records.bench.length')==1
     assert not errors,errors
-    print('PASS: mobile set/save, offline restart/retry/delete, account change/logout, running/paused reload, 8 rapid tabs, dark/light pill geometry')
+    # Summary integration uses existing guest records; no extra record copies are stored.
+    first_session=page.evaluate('workoutSession.state().active.id')
+    page.locator('.bottomTab .tabBtn[data-target="tab2"]').click();page.wait_for_timeout(700)
+    page.locator('#tab2 .mf-warmup-toggle').check()
+    page.locator('#recordWeight').fill('20');page.locator('#recordReps').fill('10');page.locator('#recordAdd').click();page.wait_for_timeout(200)
+    page.locator('#tab2 .mf-warmup-toggle').uncheck()
+    page.evaluate("myRoutineSaveAccessorySet('풀업','bodyweight',0,15)");page.wait_for_timeout(200)
+    counts=page.evaluate('MFWorkout.summarize(workoutRows().filter(r=>r.sessionId===workoutSession.state().active.id))')
+    assert counts['exercises']==2 and counts['sets']==2 and counts['warmupSets']==1 and counts['volume']==400,counts
+    page.locator('.bottomTab .tabBtn[data-target="tab1"]').click();page.wait_for_timeout(700)
+    page.on('dialog',lambda dialog:dialog.accept())
+    page.locator('#workoutSummaryCard .mf-finish-workout').click();page.wait_for_timeout(1000)
+    assert page.evaluate('workoutSession.state().active') is None
+    last=page.evaluate('workoutSession.state().last')
+    assert last['summary']['volume']==400 and last['summary']['sets']==2,last
+    assert page.locator('#lastWorkoutSummary').inner_text().find('준비 1세트')>=0
+    assert page.locator('#weeklyGrowthSummary').inner_text().find('한국 시간')>=0
+    for light in [True,False]:
+        page.evaluate('(v)=>applyLightMode(v)',light)
+        page.locator('#workoutSummaryCard').scroll_into_view_if_needed()
+        page.screenshot(path=f'/tmp/ttt-summary-{light}.png')
+        assert page.evaluate('document.documentElement.scrollWidth <= window.innerWidth')
+    page.reload();page.wait_for_timeout(300)
+    assert page.evaluate('workoutSession.state().active') is None
+    assert page.evaluate('workoutSession.state().last.summary.volume')==400
+    page.locator('.bottomTab .tabBtn[data-target="tab2"]').click();page.wait_for_timeout(700)
+    page.locator('#recordWeight').fill('85');page.locator('#recordReps').fill('5');page.locator('#recordAdd').click();page.wait_for_timeout(200)
+    assert page.evaluate('workoutSession.state().active.id')!=first_session
+    # A save during the old manual-stop animation must keep the new stopwatch running.
+    page.evaluate('stopRestTimerManually(); setTimeout(resetRestTimerOnSave,50)');page.wait_for_timeout(1400)
+    assert page.evaluate('restTimerActive')
+    assert page.evaluate("JSON.parse(localStorage.getItem(appSync.account.key('mf_rest_stopwatch_v1'))).active")
+    assert not errors,errors
+    # Deletion UI is exercised only against this fixture. Popup cancellation is non-destructive.
+    page.evaluate("localStorage.setItem('fixture_uid','delete-test');localStorage.setItem('mf_data_owner_v2','delete-test')")
+    page.reload();page.wait_for_timeout(500)
+    page.evaluate("fixture.store.set('users/delete-test/records/keep',{lift:'bench',weight:60,reps:5});fixture.setReauthError(true)")
+    page.evaluate('deleteUserAccount()')
+    assert page.evaluate("fixture.store.has('users/delete-test/records/keep')")
+    assert page.evaluate("appSync.outbox.isDeleting('delete-test')") is False
+    # A partial previous deletion must stay frozen even if its next reauthentication is canceled.
+    page.evaluate("localStorage.setItem('mf_account_v2:delete-test:deleting','1')")
+    page.evaluate('deleteUserAccount()')
+    assert page.evaluate("appSync.outbox.isDeleting('delete-test')")
+    page.evaluate('fixture.setReauthError(false); fixture.setDeleteError(true)')
+    page.evaluate('deleteUserAccount()')
+    assert not page.evaluate("fixture.store.has('users/delete-test/records/keep')")
+    assert page.evaluate("appSync.outbox.isDeleting('delete-test')")
+    # Retry cleanup after Auth deletion failure; other users/public docs remain.
+    page.evaluate("fixture.store.set('users/other/records/keep',{reps:3});fixture.store.set('dexPosts/public',{name:'public'});fixture.setDeleteError(false)")
+    page.evaluate('deleteUserAccount()');page.wait_for_timeout(500)
+    assert page.evaluate("localStorage.getItem('mf_account_v2:delete-test:deleting')") is None
+    assert page.evaluate('appSync.account.owner')=='guest'
+    assert not errors,errors
+    print('PASS: mobile sync/timer/summary workflows and isolated reauthentication cancellation, partial Auth deletion failure and retry')
     browser.close()

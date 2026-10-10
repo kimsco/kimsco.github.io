@@ -8428,6 +8428,16 @@ html.light-mode-on .my-routine-group-box {
 #tab1 .home-quick-btn .home-quick-icon { display: flex; align-items: center; justify-content: center; margin-bottom: 6px; color: rgba(255,255,255,0.85); }
 #tab1 .home-quick-btn .home-quick-icon svg { display: block; margin: 0 auto; }
 
+
+/* Incremental summary cards; use existing theme variables. */
+.mf-summary-card { color:var(--c-text-primary); }
+.mf-summary-metrics { display:flex; flex-wrap:wrap; gap:8px 16px; margin:10px 0; font-size:14px; line-height:1.6; }
+.mf-summary-note { color:var(--c-text-secondary); font-size:11px; line-height:1.7; margin:7px 0; }
+.mf-workout-controls { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:8px 0 14px; font-size:12px; color:var(--c-text-secondary); }
+.mf-workout-controls button { width:auto; margin:0; padding:7px 12px; border:1px solid var(--c-border); border-radius:14px; color:var(--c-text-primary); background:transparent; font-size:12px; }
+.mf-workout-controls label { display:flex; align-items:center; gap:5px; white-space:nowrap; }
+.mf-workout-controls input { width:auto; margin:0; }
+
 </style>
 </head>
 
@@ -8682,6 +8692,16 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
     </div>
   </div>
 
+  <section class="home-card mf-summary-card" id="workoutSummaryCard" aria-label="운동 종료 요약">
+    <div class="home-card-label">이번 운동</div>
+    <div id="workoutSessionSummary"></div>
+    <div class="mf-workout-controls"></div>
+    <div id="lastWorkoutSummary"></div>
+  </section>
+  <section class="home-card mf-summary-card" id="weeklyGrowthCard" aria-label="주간 성장 요약">
+    <div class="home-card-label">주간 성장 · 일요일 시작</div>
+    <div id="weeklyGrowthSummary"></div>
+  </section>
   <div class="home-card home-week-card">
     <div class="home-card-label">이번 주 활동</div>
     <div class="home-week-row" id="homeWeekRow"></div>
@@ -8747,6 +8767,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
 
 <!-- 3대 -->
 <div id="tab2" class="tabContent">
+    <div class="mf-workout-controls"></div>
 
     <div class="recordFolders">
         <button class="folderBtn" data-target="squatBox">스쿼트</button>
@@ -8774,6 +8795,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
         
 </div>
 <div id="tab4" class="tabContent">
+    <div class="mf-workout-controls"></div>
 
 <div class="recordFolders4-wrap" id="recordFolders4Wrap">
   <div class="recordFolders4">
@@ -9567,7 +9589,8 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
 
         <div class="bw-detail-divider"></div>
 
-        <div id="bodyweightRoutineDetailExList" class="bw-routine-detail-exlist"></div>
+        <div class="mf-workout-controls"></div>
+<div id="bodyweightRoutineDetailExList" class="bw-routine-detail-exlist"></div>
 
         <div class="bw-detail-divider"></div>
 
@@ -9864,7 +9887,8 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
     position:fixed; inset:0; background:#000; z-index:150000;
   ">
   <div id="myRoutineRevealScreen" style="height:100%; overflow-y:auto; -webkit-overflow-scrolling:touch; touch-action:pan-y; padding: calc(60px + env(safe-area-inset-top)) 24px calc(24px + env(safe-area-inset-bottom));">
-    <div id="myRoutineRevealContent" style="display:flex; flex-direction:column; align-items:center; text-align:center;"></div>
+    <div class="mf-workout-controls"></div>
+<div id="myRoutineRevealContent" style="display:flex; flex-direction:column; align-items:center; text-align:center;"></div>
   </div>
 
   <div id="myRoutineRevealInputBar" class="recordFloatBar" style="
@@ -10049,7 +10073,8 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
       </div>
     </div>
 
-    <div id="myRoutineDetailBody" style="flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; padding: 0 18px calc(24px + env(safe-area-inset-bottom));">
+    <div class="mf-workout-controls"></div>
+<div id="myRoutineDetailBody" style="flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; padding: 0 18px calc(24px + env(safe-area-inset-bottom));">
       <div id="myRoutineDateBanner"></div>
       <div id="myRoutineDetailList"></div>
     </div>
@@ -10891,9 +10916,10 @@ MuscleFlow는 개인의 운동 및 식단 기록을 관리하는 PWA 서비스�
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-<script src="/js/sync.js?v=0.9.357"></script>
-<script src="/js/app-sync.js?v=0.9.357"></script>
-<script src="/js/rest-stopwatch.js?v=0.9.357"></script>
+<script src="/js/sync.js?v=0.9.358"></script>
+<script src="/js/app-sync.js?v=0.9.358"></script>
+<script src="/js/rest-stopwatch.js?v=0.9.358"></script>
+<script src="/js/workout-summary.js?v=0.9.358"></script>
 
 <script>
    
@@ -10914,6 +10940,14 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 
 const appSync = MFAppSync.install({db, auth, firebase, storage: localStorage, onStatus: renderSyncStatus});
+const workoutSession = MFWorkout.createSession({storage:localStorage,key:appSync.account.key('mf_workout_session_v1')});
+let nextSetWarmup = false;
+function workoutSetMeta(){ return {sessionId:workoutSession.prepare().id, isWarmup:nextSetWarmup}; }
+function acceptWorkoutSet(item){
+  const active=workoutSession.state().active;
+  if (active && active.id===item.sessionId) workoutSession.accept(active,MFWorkout.timestamp(item.createdAt) || item.completedAt);
+  renderWorkoutSummary();
+}
 function renderSyncStatus(count, error){
   let el = document.getElementById('syncStatus');
   if (!el) {
@@ -12196,6 +12230,8 @@ async function loadRecordsFromFirestore(user){
     const data = doc.data();
     const item = {
       firestoreId: doc.id,
+      sessionId:data.sessionId, isWarmup:data.isWarmup,
+      createdAt:data.createdAt?.toMillis?.() || 0,
       date: data.date,
       weight: data.weight,
       reps: data.reps
@@ -12213,10 +12249,8 @@ async function loadRecordsFromFirestore(user){
 
 // 포맷 날짜: '25.12.10'
 function formatTodayYYMMDD(d = new Date()){
-    const yy = String(d.getFullYear()).slice(2);
-    const mm = String(d.getMonth()+1).padStart(2,'0');
-    const dd = String(d.getDate()).padStart(2,'0');
-    return `${yy}.${mm}.${dd}`;
+    const [yyyy,mm,dd] = MFWorkout.koreanDay(d.getTime()).split('-');
+    return `${yyyy.slice(2)}.${mm}.${dd}`;
 }
 
 // 🔥 자정을 걸쳐 이어지는 운동을 하루 앞선 날짜로 계속 묶기 위한 전역 상태 —
@@ -12230,7 +12264,7 @@ let lastWorkoutSaveDate = null;
 
 function resolveWorkoutDate(){
   const now = Date.now();
-  const date = (lastWorkoutSaveAt != null && (now - lastWorkoutSaveAt) <= WORKOUT_SESSION_GAP_MS)
+  const date = (workoutSession.state().active && lastWorkoutSaveAt != null && (now - lastWorkoutSaveAt) <= WORKOUT_SESSION_GAP_MS)
     ? lastWorkoutSaveDate
     : formatTodayYYMMDD();
   lastWorkoutSaveAt = now;
@@ -12288,6 +12322,7 @@ async function ensureFullLiftHistory(liftKey){
       if (d.lift !== liftKey) return;
       records[liftKey].push({
         firestoreId: doc.id,
+        sessionId:d.sessionId, isWarmup:d.isWarmup,
         date: d.date,
         weight: d.weight,
         reps: d.reps,
@@ -12433,6 +12468,7 @@ renderActiveBox();
 
 /* 기록 추가 (가로 폼에서 저장) */
 recordAdd.addEventListener('click', async ()=>{
+  if (finishWorkoutBusy) return;
 
   const weightRaw = parseFloat(recordWeight.value);
   const reps = roundIntOrHalf(parseFloat(recordReps.value));
@@ -12456,6 +12492,7 @@ recordAdd.addEventListener('click', async ()=>{
   // ✅ (A) 로컬: "항상 1세트 새로 추가" (절대 합치지 않음)
   const nowMs = Date.now();
   const newItem = {
+    ...workoutSetMeta(),
     firestoreId: auth.currentUser ? appSync.outbox.freshId() : null,
     localId: nowMs + "_" + Math.random(),
     date,
@@ -12469,7 +12506,7 @@ recordAdd.addEventListener('click', async ()=>{
   };
 
   if (auth.currentUser) {
-    try { await privateWrite(auth.currentUser.uid, "records", newItem.firestoreId, {lift, date, weight, reps, createdAt: newItem.createdAt}); }
+    try { await privateWrite(auth.currentUser.uid, "records", newItem.firestoreId, {lift, date, weight, reps, createdAt: newItem.createdAt, sessionId:newItem.sessionId, isWarmup:newItem.isWarmup}); }
     catch (error) { alert('기기에 저장하지 못했습니다. 저장 공간을 확인하고 다시 시도해주세요.'); return; }
   }
   const arr = records[lift] || (records[lift] = []);
@@ -12485,6 +12522,7 @@ recordAdd.addEventListener('click', async ()=>{
 
   renderActiveBox();
   saveRecordsToLocal();
+  acceptWorkoutSet(newItem);
 
   // 🔥 오늘 이 부위(lift) 운동했다는 걸 달력에 자동 체크
   autoMarkCalendarToday(lift, date);
@@ -12501,7 +12539,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.357";
+const APP_VERSION = "0.9.358";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -12576,6 +12614,7 @@ async function deleteUserAccount() {
   accountDeletionBusy = true;
   const button = document.getElementById('deleteAccountConfirm'); button.disabled = true;
   let deletionStarted = false;
+  const alreadyDeleting = appSync.outbox.isDeleting(user.uid);
   try {
     // Check recent-login requirements before erasing any data. Popup cancellation is harmless.
     await user.reauthenticateWithPopup(new firebase.auth.GoogleAuthProvider());
@@ -12594,7 +12633,7 @@ async function deleteUserAccount() {
     alert('회원 탈퇴가 완료되었습니다. 앱을 다시 시작합니다.'); location.reload();
   } catch (error) {
     console.error('회원 탈퇴 오류:', error);
-    if (!deletionStarted) appSync.outbox.resume(user.uid);
+    if (!deletionStarted && !alreadyDeleting) appSync.outbox.resume(user.uid);
     alert(deletionStarted ? '일부 데이터 정리가 완료되었을 수 있습니다. 저장을 중지했습니다. 연결과 인증 상태를 확인한 뒤 회원 탈퇴를 다시 눌러 남은 정리를 완료해주세요.' : '탈퇴가 시작되지 않았습니다. 인증과 연결 상태를 확인해주세요.');
   } finally { accountDeletionBusy = false; button.disabled = false; }
 }
@@ -12743,6 +12782,7 @@ auth.onAuthStateChanged(async user => {
 
       const item = {
     firestoreId: doc.id,
+    sessionId:d.sessionId, isWarmup:d.isWarmup,
     date: d.date,
     weight: d.weight,
     reps: d.reps,
@@ -13338,6 +13378,60 @@ function renderHomeTab(){
       <div class="home-macro-pill"><div class="v">${Math.round(macroSum.fat)}g</div><div class="l">지방</div></div>
     `;
   }
+  renderWorkoutSummary();
+}
+
+
+function workoutRows(){
+  return MFWorkout.normalize({records,accessories:accRecordsByExercise,bodyweightRoutines:bodyweightRoutineRecords});
+}
+function summaryMetrics(value){
+  return `<div class="mf-summary-metrics"><span>${value.exercises}종목</span><span>${value.sets}세트</span><span>${value.volume.toLocaleString()}kg 볼륨</span></div><div class="mf-summary-note">준비 ${value.warmupSets}세트 별도 · 맨몸 ${value.bodyweightSets}세트 포함 · 볼륨 = 외부 중량 × 횟수 × 본 세트</div>`;
+}
+function renderWorkoutSummary(){
+  const card=document.getElementById('workoutSessionSummary');
+  if (!card) return;
+  const rows=workoutRows(); workoutSession.recover(rows);
+  const state=workoutSession.state();
+  const active=state.active && !state.active.pending ? state.active : null;
+  const summary=MFWorkout.summarize(rows.filter(r=>active && r.sessionId===active.id));
+  card.innerHTML=active ? summaryMetrics(summary) : '<div class="mf-summary-note">첫 세트를 저장하면 운동이 시작됩니다. 운동을 마치면 종료 버튼을 눌러주세요.</div>';
+  document.querySelectorAll('.mf-workout-controls').forEach((el,i)=>{
+    el.innerHTML=`<label><input type="checkbox" class="mf-warmup-toggle" ${nextSetWarmup?'checked':''}> 준비 세트로 저장</label><button type="button" class="mf-finish-workout" ${active?'':'disabled'}>${active?'운동 종료':'운동 대기'}</button>`;
+    el.querySelector('.mf-warmup-toggle').addEventListener('change',e=>{ nextSetWarmup=e.target.checked; document.querySelectorAll('.mf-warmup-toggle').forEach(input=>input.checked=nextSetWarmup); });
+    el.querySelector('.mf-finish-workout').addEventListener('click',finishWorkout);
+  });
+  const last=document.getElementById('lastWorkoutSummary');
+  if (state.last) {
+    const pr=state.last.personalRecords.map(r=>`${escapeHtml(({bench:'벤치프레스',squat:'스쿼트',dead:'데드리프트',ohp:'OHP'})[r.exercise] || r.exercise)} ${r.weight?`${r.weight}kg × `:''}${r.reps}회${r.first?' (첫 기록)':''}`).join(' · ');
+    last.innerHTML=`<div class="home-card-label">최근 종료한 운동</div>${summaryMetrics(state.last.summary)}<div class="mf-summary-note">${state.last.historyComplete?'최고기록':'이 기기에서 확인한 최고기록'}: ${pr || '새 최고기록 없음'}</div>${state.last.historyComplete?'':'<div class="mf-summary-note">과거 서버 기록을 모두 확인하지 못했습니다. 최고기록은 현재 기기에 있는 기록 기준입니다.</div>'}`;
+  } else last.innerHTML='';
+  const week=MFWorkout.weekly(rows);
+  document.getElementById('weeklyGrowthSummary').innerHTML=`<div class="mf-summary-note">${week.range.start} ~ ${new Date(new Date(week.range.end+'T00:00:00Z').getTime()-86400000).toISOString().slice(0,10)} · 한국 시간</div><div class="mf-summary-metrics"><span>${week.current.days}일</span><span>${week.current.sets}세트</span><span>${week.current.volume.toLocaleString()}kg 볼륨</span></div><div class="mf-summary-note">${MFWorkout.comparison(week.current.days,week.previous.days,'일')}<br>${MFWorkout.comparison(week.current.sets,week.previous.sets,'세트')}<br>${MFWorkout.comparison(week.current.volume,week.previous.volume,'kg')}</div><div class="mf-summary-note">준비 ${week.current.warmupSets}세트 별도 · 무중량 맨몸 ${week.current.bodyweightSets}세트 · 지난주 ${week.previous.days}일 / ${week.previous.sets}세트 / ${week.previous.volume.toLocaleString()}kg</div>`;
+}
+let finishWorkoutBusy=false;
+async function finishWorkout(){
+  if (finishWorkoutBusy || !workoutSession.state().active) return;
+  if (!confirm('이번 운동을 종료하고 요약할까요?')) return;
+  finishWorkoutBusy=true;
+  document.querySelectorAll('.mf-finish-workout').forEach(b=>{b.disabled=true;b.textContent='운동 요약 중';});
+  const uid=auth.currentUser?.uid;
+  const sessionId=workoutSession.state().active.id;
+  let historyComplete=!uid;
+  try {
+    const sessionRows=workoutRows().filter(r=>r.sessionId===sessionId);
+    if (uid && navigator.onLine) {
+      const lifts=new Set(sessionRows.filter(r=>r.id.startsWith('lift:')).map(r=>r.exercise));
+      const exercises=new Set(sessionRows.filter(r=>!r.id.startsWith('lift:')).map(r=>r.exercise));
+      await Promise.race([Promise.all([...lifts].map(ensureFullLiftHistory).concat([...exercises].map(ensureExerciseHistory))),new Promise(resolve=>setTimeout(resolve,10000))]);
+      historyComplete=[...lifts].every(l=>liftFullHistoryLoaded[l]) && [...exercises].every(e=>exerciseHistoryFullyLoaded.has(e));
+    }
+    if (auth.currentUser?.uid!==uid || workoutSession.state().active?.id!==sessionId) return;
+    const rows=workoutRows();workoutSession.finish(rows,rows,{historyComplete});
+    nextSetWarmup=false;lastWorkoutSaveAt=null;lastWorkoutSaveDate=null;
+    stopRestTimerManually();renderWorkoutSummary();
+  } catch(error){renderSyncStatus(null,error);alert('운동 요약을 기기에 저장하지 못했습니다. 다시 시도해주세요.');}
+  finally {finishWorkoutBusy=false;renderWorkoutSummary();}
 }
 
 // 🔥 홈탭 당겨서 새로고침(pull-to-refresh) 시 실제로 데이터를 다시 불러오는 함수 —
@@ -13535,6 +13629,7 @@ async function deleteRecord(id){
 
   renderActiveBox();
   saveRecordsToLocal(); // ✅ 로컬 저장
+  renderWorkoutSummary();
 
 
 }
@@ -14205,7 +14300,9 @@ function saveBodyweightRoutineRecords(){
   lsSet("mf_bodyweight_routine_records_v1", bodyweightRoutineRecords);
 }
 function saveBodyweightRoutineRecord(routine){
-  bodyweightRoutineRecords.push({
+  if (finishWorkoutBusy) return;
+  const item = {
+    ...workoutSetMeta(),
     id: "routine_" + Date.now() + "_" + Math.random(),
     date: formatTodayYYMMDD(),
     routineKey: routine.key,
@@ -14214,8 +14311,11 @@ function saveBodyweightRoutineRecord(routine){
     totalSets: routine.sets,
     totalReps: bodyweightRoutineTotalReps(routine),
     completedAt: Date.now(),
-  });
+  };
+  bodyweightRoutineRecords.push(item);
   saveBodyweightRoutineRecords();
+  acceptWorkoutSet(item);
+  renderHomeTab();
 }
 
 // 01 기본운동 기록 중 맨몸운동 파트(part === "bodyweight")만 — accRecordsByExercise는
@@ -16332,9 +16432,11 @@ document.getElementById("myRoutineBuilderNameConfirmBtn").addEventListener("clic
    - 새 컬렉션 없음: records[liftKey] / accRecordsByExercise[name]에 그대로 들어감
 ================================ */
 async function myRoutineSaveLiftSet(liftKey, weight, reps){
+  if (finishWorkoutBusy) return;
   const date = resolveWorkoutDate();
   const nowMs = Date.now();
   const newItem = {
+    ...workoutSetMeta(),
     firestoreId: auth.currentUser ? appSync.outbox.freshId() : null,
     localId: nowMs + "_" + Math.random(),
     date, weight, reps, sets: 1,
@@ -16342,12 +16444,13 @@ async function myRoutineSaveLiftSet(liftKey, weight, reps){
   };
 
   if (auth.currentUser) {
-    try { await privateWrite(auth.currentUser.uid, "records", newItem.firestoreId, {lift: liftKey, date, weight, reps, createdAt: newItem.createdAt}); }
+    try { await privateWrite(auth.currentUser.uid, "records", newItem.firestoreId, {lift: liftKey, date, weight, reps, createdAt: newItem.createdAt, sessionId:newItem.sessionId, isWarmup:newItem.isWarmup}); }
     catch (error) { alert('기기에 저장하지 못했습니다. 저장 공간을 확인하고 다시 시도해주세요.'); return; }
   }
   const arr = records[liftKey] || (records[liftKey] = []);
   arr.unshift(newItem);
   saveRecordsToLocal();
+  acceptWorkoutSet(newItem);
   resetRestTimerOnSave();
   autoMarkCalendarToday(liftKey, date);
   renderActiveBox(); // 3대탭이 열려있었다면 거기도 같이 갱신됨
@@ -16356,20 +16459,23 @@ async function myRoutineSaveLiftSet(liftKey, weight, reps){
 }
 
 async function myRoutineSaveAccessorySet(exerciseName, partKey, weight, reps){
+  if (finishWorkoutBusy) return;
   const date = resolveWorkoutDate();
   const localItem = {
+    ...workoutSetMeta(),
     id: auth.currentUser ? appSync.outbox.freshId() : "local_" + Date.now() + "_" + Math.random(),
     exercise: exerciseName, part: partKey || "",
     weight, reps, date, createdAt: Date.now()
   };
 
   if (auth.currentUser) {
-    try { await privateWrite(auth.currentUser.uid, "accessoryRecords", localItem.id, {exercise: exerciseName, part: partKey || "", date, weight, reps, createdAt: localItem.createdAt}); }
+    try { await privateWrite(auth.currentUser.uid, "accessoryRecords", localItem.id, {exercise: exerciseName, part: partKey || "", date, weight, reps, createdAt: localItem.createdAt, sessionId:localItem.sessionId, isWarmup:localItem.isWarmup}); }
     catch (error) { alert('기기에 저장하지 못했습니다. 저장 공간을 확인하고 다시 시도해주세요.'); return; }
   }
   if (!accRecordsByExercise[exerciseName]) accRecordsByExercise[exerciseName] = [];
   accRecordsByExercise[exerciseName].push(localItem);
   saveAccRecordsToLocal();
+  acceptWorkoutSet(localItem);
   resetRestTimerOnSave();
   autoMarkCalendarToday(partKey, date);
 
@@ -17276,6 +17382,7 @@ document.getElementById("myRoutineRevealInputSaveBtn").addEventListener("click",
   const saved = row.type === "lift"
     ? await myRoutineSaveLiftSet(row.key, weight, reps)
     : await myRoutineSaveAccessorySet(row.key, row.partKey, weight, reps);
+  if (!saved) return;
 
   const idx = row.newCount || 0;
   row.newCount = idx + 1;
@@ -20904,6 +21011,7 @@ async function loadExercises(part, opts) {
 
 
 async function addAccessorySet(opts) {
+  if (finishWorkoutBusy) return;
   opts = opts || {};
   const weightElId = opts.weightElId || "acc-weight";
   const repsElId = opts.repsElId || "acc-reps";
@@ -20922,6 +21030,7 @@ async function addAccessorySet(opts) {
 
   // ✅ 게스트/로그인 공통으로 로컬에 먼저 반영할 아이템
   const localItem = {
+    ...workoutSetMeta(),
     id: auth.currentUser ? appSync.outbox.freshId() : "local_" + Date.now() + "_" + Math.random(),
     exercise: currentExerciseName,
     part: currentPart || "",
@@ -20932,14 +21041,15 @@ async function addAccessorySet(opts) {
   };
 
   if (auth.currentUser) {
-    try { await privateWrite(auth.currentUser.uid, "accessoryRecords", localItem.id, {exercise: currentExerciseName, part: currentPart || "", date, weight: w, reps: r, createdAt: localItem.createdAt}); }
+    try { await privateWrite(auth.currentUser.uid, "accessoryRecords", localItem.id, {exercise: currentExerciseName, part: currentPart || "", date, weight: w, reps: r, createdAt: localItem.createdAt, sessionId:localItem.sessionId, isWarmup:localItem.isWarmup}); }
     catch (error) { alert('기기에 저장하지 못했습니다. 저장 공간을 확인하고 다시 시도해주세요.'); return; }
   }
   if (!accRecordsByExercise[currentExerciseName]) {
     accRecordsByExercise[currentExerciseName] = [];
   }
   accRecordsByExercise[currentExerciseName].push(localItem);
-  saveAccRecordsToLocal(); // ✅ 게스트도 저장됨
+  saveAccRecordsToLocal();
+  acceptWorkoutSet(localItem); // ✅ 게스트도 저장됨
 
   // 🔥 휴식 타이머 켜져있으면 세트 저장 시마다 리셋(3대탭 recordAdd와 공유)
   if (typeof resetRestTimerOnSave === 'function') resetRestTimerOnSave();
@@ -21044,6 +21154,7 @@ async function deleteAccessoryRecord(recordId) {
   console.log("삭제된 로컬 항목 수:", removedCount);
 
   // 3) 화면 갱신
+  renderWorkoutSummary();
   if (currentExerciseName) renderAccessoryRecords(currentExerciseName);
   renderExercises();
 }
@@ -21333,6 +21444,7 @@ let restTimerStartedAt = 0;        // Date.now() 기준 시작 시각
 let restTimerPausedAt = 0;         // 0이 아니면 일시정지 중(그 시각부터 안 흐름)
 let restTimerPausedTotalMs = 0;    // 지금까지 누적된 일시정지 시간
 let restTimerIntervalId = null;
+let restTimerLifecycleToken = 0;
 
 // 🔥 실제 경과시간은 항상 타임스탬프 기준으로 계산 — setInterval이 꺼져있던
 // 동안(다른 탭 보던 중)에도 돌아왔을 때 정확한 값이 바로 나옴
@@ -21542,7 +21654,9 @@ function playRestTimerExitAnimation(onDone){
 function stopRestTimerManually(){
   if (!restTimerActive) return;
   restStopwatch.stop();
+  const token = ++restTimerLifecycleToken;
   playRestTimerExitAnimation(() => {
+    if (token !== restTimerLifecycleToken) { syncRestTimerUI(); return; }
     restTimerActive = false;
     restTimerPausedAt = 0;
     restTimerPausedTotalMs = 0;
@@ -21839,6 +21953,7 @@ function playRestTimerGrowToFull(){
 // 🔥 3대탭(#recordAdd)/기록탭(addAccessorySet) 양쪽에서 세트 저장 시 공통으로 호출
 function resetRestTimerOnSave(){
   if (!restTimerEnabled) return;
+  ++restTimerLifecycleToken;
   const wasActive = restTimerActive;
   applyRestTimerState(restStopwatch.reset());
   if (!wasActive && REST_TIMER_TABS.includes(currentActiveTabTarget())) {
@@ -21863,6 +21978,7 @@ restTimerToggle.addEventListener('click', () => {
   restTimerEnabled = next;
   try { localStorage.setItem('mf_rest_timer_enabled', next ? '1' : '0'); } catch(e){}
   if (!next) {
+    ++restTimerLifecycleToken;
     restStopwatch.stop();
     // 끄면 진행 중이던 타이머 상태도 완전히 초기화(다음에 켜면 다시 처음부터)
     restTimerActive = false;
