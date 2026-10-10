@@ -12463,7 +12463,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.350";
+const APP_VERSION = "0.9.351";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -21845,11 +21845,28 @@ function playRestTimerGrowToFull(){
   restTimerCardBg.style.setProperty('--rtimer-card-h', fromRect.height + 'px');
   void restTimerCardBg.offsetHeight; // 시작 상태(미니 알약 크기/위치) 커밋
   restTimerCardBg.style.transition = `left ${DURATION}ms ${EASING}, top ${DURATION}ms ${EASING}, width ${DURATION}ms ${EASING}, height ${DURATION}ms ${EASING}`;
+  // 🔥 숫자/일시정지 버튼은 카드가 자라나기 시작하는 것과 동시에(지연 없이) 같이
+  // 커지고 페이드인하게 함 — scale(0.5→1)은 중심 기준이라 커질수록 가장자리가
+  // 자연스럽게 위로 움직이는데(정상적인 "중심에서 확대" 현상), 이걸 짧은 시간에
+  // 몰아넣으면("카드가 어느 정도 커진 뒤부터 나타나기 시작") 그 가장자리 이동이
+  // 뭉쳐 보여서 "다 자란 뒤에 위로 훅 올라가며 자리 보정되는" 것처럼 보였음.
+  // 줄어들 때(처음부터 즉시 0.18s에 걸쳐 페이드아웃)와 대칭으로, 여기서도 카드가
+  // 자라기 시작하는 즉시 같이 커지고 페이드인하게 해서 전체 애니메이션에 걸쳐
+  // 고르게 퍼지도록 함(박스는 260ms, 내용물은 180ms — 내용물이 살짝 먼저 다
+  // 자리잡고 박스만 마지막 80ms 동안 미세하게 마저 안착)
   requestAnimationFrame(() => {
     restTimerCardBg.style.left = toLeft + 'px';
     restTimerCardBg.style.top = toTop + 'px';
     restTimerCardBg.style.width = toRect.width + 'px';
     restTimerCardBg.style.height = toRect.height + 'px';
+
+    if (myShrinkToken !== rtimerShrinkToken) return;
+    restTimerDisplay.style.transition = 'opacity 0.18s ease, transform 0.18s ease';
+    restTimerPauseBtn.style.transition = 'opacity 0.18s ease, transform 0.18s ease';
+    restTimerDisplay.style.opacity = '';
+    restTimerDisplay.style.transform = 'translateX(8px) scale(1)';
+    restTimerPauseBtn.style.opacity = '';
+    restTimerPauseBtn.style.transform = `${pauseBtnTargetTransform} scale(1)`.trim();
   });
 
   // 테두리 하이라이트 패치 크기를 매 프레임 실제 박스 높이에 맞춰 갱신(줄어들 때와 동일)
@@ -21860,20 +21877,6 @@ function playRestTimerGrowToFull(){
     requestAnimationFrame(syncCardHighlightSize);
   }
   requestAnimationFrame(syncCardHighlightSize);
-
-  // 🔥 숫자/일시정지 버튼은 카드가 어느 정도 커진 뒤부터 나타나기 시작해서 애니메이션이
-  // 끝나는 시점에 딱 맞춰 다 보이게 함(줄어들 때 먼저 사라졌다가 핸드오프 시점에
-  // 빈 알약이 오래 머물던 문제의 교훈을 반영 — 내용물 등장이 알약이 다 커지는
-  // 시점과 가깝게 이어지도록)
-  setTimeout(() => {
-    if (myShrinkToken !== rtimerShrinkToken) return;
-    restTimerDisplay.style.transition = 'opacity 0.16s ease, transform 0.16s ease';
-    restTimerPauseBtn.style.transition = 'opacity 0.16s ease, transform 0.16s ease';
-    restTimerDisplay.style.opacity = '';
-    restTimerDisplay.style.transform = 'translateX(8px) scale(1)';
-    restTimerPauseBtn.style.opacity = '';
-    restTimerPauseBtn.style.transform = `${pauseBtnTargetTransform} scale(1)`.trim();
-  }, DURATION - 160);
 
   setTimeout(() => {
     if (myShrinkToken !== rtimerShrinkToken) return;
