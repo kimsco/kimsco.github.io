@@ -12463,7 +12463,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.348";
+const APP_VERSION = "0.9.349";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -19446,8 +19446,19 @@ bottomTabBtns.forEach(btn => {
       typeof restTimerActive !== 'undefined' && restTimerActive &&
       typeof REST_TIMER_TABS !== 'undefined' &&
       REST_TIMER_TABS.includes(prevTabTargetForRestTimer) && !REST_TIMER_TABS.includes(target);
+    // 🔥 반대 방향("홈/달력(미니 알약)" → "3대/기록(큰 알약)")도 순간 전환 대신
+    // playRestTimerShrinkToMini()의 정확히 역순으로 미니 알약이 커지며 큰 카드가
+    // 되는 애니메이션을 재생 — 나갈 때만 애니메이션 있고 돌아올 때는 순간 전환이면
+    // 비대칭이라 어색함
+    const enteringTimerTabWhileActive =
+      typeof restTimerEnabled !== 'undefined' && restTimerEnabled &&
+      typeof restTimerActive !== 'undefined' && restTimerActive &&
+      typeof REST_TIMER_TABS !== 'undefined' &&
+      !REST_TIMER_TABS.includes(prevTabTargetForRestTimer) && REST_TIMER_TABS.includes(target);
     if (leavingTimerTabWhileActive && typeof playRestTimerShrinkToMini === 'function') {
       playRestTimerShrinkToMini();
+    } else if (enteringTimerTabWhileActive && typeof playRestTimerGrowToFull === 'function') {
+      playRestTimerGrowToFull();
     } else if (typeof syncRestTimerUI === 'function') {
       syncRestTimerUI();
     }
@@ -21738,6 +21749,119 @@ function playRestTimerShrinkToMini(){
     void restTimerMiniDisplay.offsetHeight;
     restTimerMiniDisplay.style.transition = '';
     restTimerMiniDisplay.style.opacity = '';
+    syncRestTimerUI();
+  }, DURATION);
+}
+
+// 🔥 playRestTimerShrinkToMini()의 정확히 역순 — 홈/달력(미니 알약)에서 3대/기록
+// (큰 알약)으로 돌아올 때, 미니 알약이 그 자리에서 커지며 큰 카드가 되는 것처럼
+// 보이게 함(FLIP 역방향). bottomTabBtns 클릭 핸들러에서 "비-타이머 탭 → 타이머 탭
+// + 타이머 활성중"일 때만 호출됨
+function playRestTimerGrowToFull(){
+  // X 아이콘도 탭이 바뀌는 즉시(동기적으로) 보여줌 — 나갈 때 햄버거가 즉시
+  // 바뀌었던 것과 대칭
+  navDrawerMenuIcon.classList.add('hidden');
+  navDrawerStopIcon.classList.remove('hidden');
+  // "To the Top" 제목도 3대/기록 탭에 들어오는 즉시 바로 숨김(이 탭에선 항상
+  // 숨겨져 있는 상태라, 애니메이션 끝까지 기다릴 이유가 없음)
+  topTitleText.classList.add('hidden');
+
+  // First: 지금 미니 알약의 실제 위치/크기(아직 화면에 보이는 채로 측정)
+  const fromRect = restTimerMiniDisplay.getBoundingClientRect();
+
+  // 🔥 숫자/일시정지 버튼을 먼저 "투명하지만 레이아웃엔 존재"하는 상태로 깔아둬야
+  // positionRestTimerCard()가 정확한 최종 위치를 측정할 수 있음(entrance 애니메이션과
+  // 동일한 이유)
+  restTimerDisplay.classList.remove('hidden', 'rtimer-enter-from-below');
+  restTimerDisplay.style.transition = 'none';
+  restTimerDisplay.style.opacity = '0';
+
+  restTimerPauseBtn.classList.remove('hidden');
+  restTimerPauseIcon.classList.toggle('hidden', !!restTimerPausedAt);
+  restTimerPlayIcon.classList.toggle('hidden', !restTimerPausedAt);
+  restTimerPauseBtn.style.transition = 'none';
+  restTimerPauseBtn.style.opacity = '0';
+
+  topBarEl.classList.add('rtimer-card-active');
+  restTimerCardBg.classList.remove('hidden', 'rtimer-card-enter', 'rtimer-card-bleed-in');
+  // Last: 큰 카드의 목표 위치/크기 계산(이 함수가 내부적으로 즉시 적용 + 토큰도
+  // 새로 발급하며 정리해줌 — 아래에서 다시 토큰을 발급받아 이 애니메이션 몫으로 가져옴)
+  positionRestTimerCard();
+
+  const toRect = restTimerCardBg.getBoundingClientRect(); // positionRestTimerCard() 직후라 "진짜" 목표 rect
+  const topBarRect = topBarEl.getBoundingClientRect();
+
+  // 🔥 positionRestTimerCard()가 내부적으로 토큰을 이미 한 번 새로 발급했으므로, 이
+  // 애니메이션의 rAF 루프/정리 코드가 그 직후에 다시 낡은 값으로 취급되지 않도록
+  // 여기서 토큰을 새로 받아둠(이게 지금부터는 "최신" 애니메이션임을 선언)
+  const myShrinkToken = ++rtimerShrinkToken;
+
+  // 미니 알약은 이제 카드가 그 자리를 대신하니 바로 숨김(인스턴트 교체 — 줄어들 때
+  // 핸드오프를 끊김없이 만들었던 것과 대칭)
+  restTimerMiniDisplay.classList.add('hidden');
+  topBarEl.classList.remove('rtimer-mini-active');
+  document.documentElement.classList.remove('rtimer-mini-active');
+
+  const fromLeft = fromRect.left - topBarRect.left;
+  const fromTop = fromRect.top - topBarRect.top;
+  const toLeft = toRect.left - topBarRect.left;
+  const toTop = toRect.top - topBarRect.top;
+
+  const DURATION = 260;
+  const EASING = 'cubic-bezier(0.4, 0, 0.2, 1)';
+
+  restTimerCardBg.style.transition = 'none';
+  restTimerCardBg.style.right = 'auto';
+  restTimerCardBg.style.bottom = 'auto';
+  restTimerCardBg.style.left = fromLeft + 'px';
+  restTimerCardBg.style.top = fromTop + 'px';
+  restTimerCardBg.style.width = fromRect.width + 'px';
+  restTimerCardBg.style.height = fromRect.height + 'px';
+  restTimerCardBg.style.setProperty('--rtimer-card-h', fromRect.height + 'px');
+  void restTimerCardBg.offsetHeight; // 시작 상태(미니 알약 크기/위치) 커밋
+  restTimerCardBg.style.transition = `left ${DURATION}ms ${EASING}, top ${DURATION}ms ${EASING}, width ${DURATION}ms ${EASING}, height ${DURATION}ms ${EASING}`;
+  requestAnimationFrame(() => {
+    restTimerCardBg.style.left = toLeft + 'px';
+    restTimerCardBg.style.top = toTop + 'px';
+    restTimerCardBg.style.width = toRect.width + 'px';
+    restTimerCardBg.style.height = toRect.height + 'px';
+  });
+
+  // 테두리 하이라이트 패치 크기를 매 프레임 실제 박스 높이에 맞춰 갱신(줄어들 때와 동일)
+  function syncCardHighlightSize(){
+    if (myShrinkToken !== rtimerShrinkToken) return;
+    const h = restTimerCardBg.getBoundingClientRect().height;
+    restTimerCardBg.style.setProperty('--rtimer-card-h', h + 'px');
+    requestAnimationFrame(syncCardHighlightSize);
+  }
+  requestAnimationFrame(syncCardHighlightSize);
+
+  // 🔥 숫자/일시정지 버튼은 카드가 어느 정도 커진 뒤부터 나타나기 시작해서 애니메이션이
+  // 끝나는 시점에 딱 맞춰 다 보이게 함(줄어들 때 먼저 사라졌다가 핸드오프 시점에
+  // 빈 알약이 오래 머물던 문제의 교훈을 반영 — 내용물 등장이 알약이 다 커지는
+  // 시점과 가깝게 이어지도록)
+  setTimeout(() => {
+    if (myShrinkToken !== rtimerShrinkToken) return;
+    restTimerDisplay.style.transition = 'opacity 0.16s ease';
+    restTimerPauseBtn.style.transition = 'opacity 0.16s ease';
+    restTimerDisplay.style.opacity = '';
+    restTimerPauseBtn.style.opacity = '';
+  }, DURATION - 160);
+
+  setTimeout(() => {
+    if (myShrinkToken !== rtimerShrinkToken) return;
+    restTimerCardBg.style.transition = '';
+    restTimerCardBg.style.left = '';
+    restTimerCardBg.style.top = '';
+    restTimerCardBg.style.width = '';
+    restTimerCardBg.style.height = '';
+    restTimerCardBg.style.right = '';
+    restTimerCardBg.style.bottom = '';
+    restTimerCardBg.style.removeProperty('--rtimer-card-h');
+    restTimerDisplay.style.transition = '';
+    restTimerDisplay.style.opacity = '';
+    restTimerPauseBtn.style.transition = '';
+    restTimerPauseBtn.style.opacity = '';
     syncRestTimerUI();
   }, DURATION);
 }
