@@ -110,25 +110,25 @@ with sync_playwright() as p:
     page.locator('.bottomTab .tabBtn[data-target="tab2"]').click();page.wait_for_timeout(700)
     assert page.locator('#tab2 .mf-workout-controls, #tab4 .mf-workout-controls').count()==0
     page.locator('.bottomTab .tabBtn[data-target="tab1"]').click();page.wait_for_timeout(400)
-    page.locator('#workoutSummaryCard .mf-warmup-toggle').check()
+    page.evaluate('nextSetWarmup=true;renderWorkoutSummary()')
     page.locator('.bottomTab .tabBtn[data-target="tab2"]').click();page.wait_for_timeout(400)
     page.locator('#recordWeight').fill('20');page.locator('#recordReps').fill('10');page.locator('#recordAdd').click();page.wait_for_timeout(200)
     page.locator('.bottomTab .tabBtn[data-target="tab1"]').click();page.wait_for_timeout(400)
-    page.locator('#workoutSummaryCard .mf-warmup-toggle').uncheck()
+    page.evaluate('nextSetWarmup=false;renderWorkoutSummary()')
     page.evaluate("myRoutineSaveAccessorySet('풀업','bodyweight',0,15)");page.wait_for_timeout(200)
     counts=page.evaluate('MFWorkout.summarize(workoutRows().filter(r=>r.sessionId===workoutSession.state().active.id))')
     assert counts['exercises']==2 and counts['sets']==2 and counts['warmupSets']==1 and counts['volume']==400,counts
     page.locator('.bottomTab .tabBtn[data-target="tab1"]').click();page.wait_for_timeout(700)
     page.on('dialog',lambda dialog:dialog.accept())
-    page.locator('#workoutSummaryCard .mf-finish-workout').click();page.wait_for_timeout(1000)
+    page.evaluate('finishWorkout()');page.wait_for_timeout(1000)
     assert page.evaluate('workoutSession.state().active') is None
     last=page.evaluate('workoutSession.state().last')
     assert last['summary']['volume']==400 and last['summary']['sets']==2,last
-    assert page.locator('#lastWorkoutSummary').inner_text().find('준비 1세트')>=0
-    assert page.locator('#weeklyGrowthSummary').inner_text().find('한국 시간')>=0
+    assert page.locator('#workoutSummaryCard, #weeklyGrowthCard').count()==0
+    assert page.locator('.home-week-card').is_visible()
     for light in [True,False]:
         page.evaluate('(v)=>applyLightMode(v)',light)
-        page.locator('#workoutSummaryCard').scroll_into_view_if_needed()
+        page.locator('.home-week-card').scroll_into_view_if_needed()
         page.screenshot(path=f'/tmp/ttt-summary-{light}.png')
         assert page.evaluate('document.documentElement.scrollWidth <= window.innerWidth')
     page.reload();page.wait_for_timeout(300)

@@ -8692,16 +8692,6 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
     </div>
   </div>
 
-  <section class="home-card mf-summary-card" id="workoutSummaryCard" aria-label="운동 종료 요약">
-    <div class="home-card-label">이번 운동</div>
-    <div id="workoutSessionSummary"></div>
-    <div class="mf-workout-controls"></div>
-    <div id="lastWorkoutSummary"></div>
-  </section>
-  <section class="home-card mf-summary-card" id="weeklyGrowthCard" aria-label="주간 성장 요약">
-    <div class="home-card-label">주간 성장 · 일요일 시작</div>
-    <div id="weeklyGrowthSummary"></div>
-  </section>
   <div class="home-card home-week-card">
     <div class="home-card-label">이번 주 활동</div>
     <div class="home-week-row" id="homeWeekRow"></div>
@@ -10914,10 +10904,10 @@ MuscleFlow는 개인의 운동 및 식단 기록을 관리하는 PWA 서비스�
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-<script src="/js/sync.js?v=0.9.362"></script>
-<script src="/js/app-sync.js?v=0.9.362"></script>
-<script src="/js/rest-stopwatch.js?v=0.9.362"></script>
-<script src="/js/workout-summary.js?v=0.9.362"></script>
+<script src="/js/sync.js?v=0.9.363"></script>
+<script src="/js/app-sync.js?v=0.9.363"></script>
+<script src="/js/rest-stopwatch.js?v=0.9.363"></script>
+<script src="/js/workout-summary.js?v=0.9.363"></script>
 
 <script>
    
@@ -12550,7 +12540,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.362";
+const APP_VERSION = "0.9.363";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -13401,24 +13391,25 @@ function summaryMetrics(value){
 }
 function renderWorkoutSummary(){
   const card=document.getElementById('workoutSessionSummary');
-  if (!card) return;
   const rows=workoutRows(); workoutSession.recover(rows);
   const state=workoutSession.state();
   const active=state.active && !state.active.pending ? state.active : null;
   const summary=MFWorkout.summarize(rows.filter(r=>active && r.sessionId===active.id));
-  card.innerHTML=active ? summaryMetrics(summary) : '<div class="mf-summary-note">첫 세트를 저장하면 운동이 시작됩니다. 운동을 마치면 종료 버튼을 눌러주세요.</div>';
+  if (card) card.innerHTML=active ? summaryMetrics(summary) : '<div class="mf-summary-note">첫 세트를 저장하면 운동이 시작됩니다. 운동을 마치면 종료 버튼을 눌러주세요.</div>';
   document.querySelectorAll('.mf-workout-controls').forEach((el,i)=>{
     el.innerHTML=`<label><input type="checkbox" class="mf-warmup-toggle" ${nextSetWarmup?'checked':''}> 준비 세트로 저장</label><button type="button" class="mf-finish-workout" ${active?'':'disabled'}>${active?'운동 종료':'운동 대기'}</button>`;
     el.querySelector('.mf-warmup-toggle').addEventListener('change',e=>{ nextSetWarmup=e.target.checked; document.querySelectorAll('.mf-warmup-toggle').forEach(input=>input.checked=nextSetWarmup); });
     el.querySelector('.mf-finish-workout').addEventListener('click',finishWorkout);
   });
   const last=document.getElementById('lastWorkoutSummary');
-  if (state.last) {
+  if (last && state.last) {
     const pr=state.last.personalRecords.map(r=>`${escapeHtml(({bench:'벤치프레스',squat:'스쿼트',dead:'데드리프트',ohp:'OHP'})[r.exercise] || r.exercise)} ${r.weight?`${r.weight}kg × `:''}${r.reps}회${r.first?' (첫 기록)':''}`).join(' · ');
     last.innerHTML=`<div class="home-card-label">최근 종료한 운동</div>${summaryMetrics(state.last.summary)}<div class="mf-summary-note">${state.last.historyComplete?'최고기록':'이 기기에서 확인한 최고기록'}: ${pr || '새 최고기록 없음'}</div>${state.last.historyComplete?'':'<div class="mf-summary-note">과거 서버 기록을 모두 확인하지 못했습니다. 최고기록은 현재 기기에 있는 기록 기준입니다.</div>'}`;
-  } else last.innerHTML='';
+  } else if (last) last.innerHTML='';
+  const weeklyCard=document.getElementById('weeklyGrowthSummary');
+  if (!weeklyCard) return;
   const week=MFWorkout.weekly(rows);
-  document.getElementById('weeklyGrowthSummary').innerHTML=`<div class="mf-summary-note">${week.range.start} ~ ${new Date(new Date(week.range.end+'T00:00:00Z').getTime()-86400000).toISOString().slice(0,10)} · 한국 시간</div><div class="mf-summary-metrics"><span>${week.current.days}일</span><span>${week.current.sets}세트</span><span>${week.current.volume.toLocaleString()}kg 볼륨</span></div><div class="mf-summary-note">${MFWorkout.comparison(week.current.days,week.previous.days,'일')}<br>${MFWorkout.comparison(week.current.sets,week.previous.sets,'세트')}<br>${MFWorkout.comparison(week.current.volume,week.previous.volume,'kg')}</div><div class="mf-summary-note">준비 ${week.current.warmupSets}세트 별도 · 무중량 맨몸 ${week.current.bodyweightSets}세트 · 지난주 ${week.previous.days}일 / ${week.previous.sets}세트 / ${week.previous.volume.toLocaleString()}kg</div>`;
+  weeklyCard.innerHTML=`<div class="mf-summary-note">${week.range.start} ~ ${new Date(new Date(week.range.end+'T00:00:00Z').getTime()-86400000).toISOString().slice(0,10)} · 한국 시간</div><div class="mf-summary-metrics"><span>${week.current.days}일</span><span>${week.current.sets}세트</span><span>${week.current.volume.toLocaleString()}kg 볼륨</span></div><div class="mf-summary-note">${MFWorkout.comparison(week.current.days,week.previous.days,'일')}<br>${MFWorkout.comparison(week.current.sets,week.previous.sets,'세트')}<br>${MFWorkout.comparison(week.current.volume,week.previous.volume,'kg')}</div><div class="mf-summary-note">준비 ${week.current.warmupSets}세트 별도 · 무중량 맨몸 ${week.current.bodyweightSets}세트 · 지난주 ${week.previous.days}일 / ${week.previous.sets}세트 / ${week.previous.volume.toLocaleString()}kg</div>`;
 }
 let finishWorkoutBusy=false;
 async function finishWorkout(){
