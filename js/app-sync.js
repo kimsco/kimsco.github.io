@@ -19,17 +19,22 @@
     const lock = (name, fn) => navigator.locks ? navigator.locks.request(name, fn) : Promise.resolve().then(fn);
     const stateLock = (uid,fn) => lock(`mf-outbox-state:${uid}`, fn);
     const noticeKey = uid => `mf_account_v2:${uid}:sync_notice`;
-    let delayTimer;
+    let delayTimer, calendarPending=false;
     function waiting(uid, notify = true) {
       const first = storage.getItem(noticeKey(uid)) !== '1';
       storage.setItem(noticeKey(uid), '1');
       if (notify && first && uid === auth.currentUser?.uid) onStatus('waiting');
     }
+    const lastWorkout=root.MFLastWorkout.createService({db,storage,currentUid:()=>auth.currentUser?.uid,
+      isDeleting:uid=>outbox.isDeleting(uid),onChange:()=>root.dispatchEvent(new Event('mf-last-workout-change'))});
     const outbox = root.MFSync.createOutbox({storage, currentUid: () => auth.currentUser?.uid,
       lockState:stateLock, lead:(uid,fn) => lock(`mf-outbox-send:${uid}`, fn),
       online: () => navigator.onLine,
       onChange: (uid,state,error) => {
         if (uid !== auth.currentUser?.uid) return;
+        const hasCalendar=Object.values(state.ops).some(op=>op.collection==='calendar');
+        if(hasCalendar || calendarPending) root.dispatchEvent(new Event('mf-last-workout-change'));
+        calendarPending=hasCalendar;
         clearTimeout(delayTimer);
         const count = Object.keys(state.ops).length;
         if (!count) {
@@ -44,6 +49,7 @@
       },
       send: async (uid, op) => {
         if (auth.currentUser?.uid !== uid) throw new Error('Account changed');
+        if (op.collection === 'calendar') return lastWorkout.send(uid,op);
         const collection = db.collection('users').doc(uid).collection(op.collection);
         if (op.matchExercise) {
           while (true) {
@@ -59,7 +65,18 @@
         if (op.data === null) await ref.delete();
         else await ref.set(withTimestamps(op.collection, op.data), {merge: op.merge});
       }});
-    const retry = () => { const uid = auth.currentUser?.uid; if (uid) void outbox.flush(uid); };
+    const retry = () => {
+      const uid=auth.currentUser?.uid;
+      if(uid && !outbox.isDeleting(uid)) {
+        void lastWorkout.load(uid).catch(error=>console.warn('Last workout summary load',error));
+        void outbox.flush(uid);
+      }
+    };
+    root.addEventListener('storage',event=>{
+      const uid=auth.currentUser?.uid;
+      if(uid && [`mf_account_v2:${uid}:last_workout_dates_v1`,`mf_account_v2:${uid}:outbox`].includes(event.key))
+        root.dispatchEvent(new Event('mf-last-workout-change'));
+    });
     root.addEventListener('online', retry);
     root.addEventListener('pageshow', retry);
     document.addEventListener('visibilitychange', () => { if (!document.hidden) retry(); });
@@ -90,7 +107,7 @@
       onStatus('hide');
       if (uid && Object.keys(outbox.read(uid).ops).length) waiting(uid, false);
     }
-    return {account, outbox, write, snapshot, retry, restoreStatus};
+    return {account, outbox, write, snapshot, retry, restoreStatus, lastWorkout};
   }
   root.MFAppSync = {install};
 })(window);

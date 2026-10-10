@@ -10904,11 +10904,12 @@ MuscleFlow는 개인의 운동 및 식단 기록을 관리하는 PWA 서비스�
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-<script src="/js/sync.js?v=0.9.366"></script>
-<script src="/js/app-sync.js?v=0.9.366"></script>
-<script src="/js/rest-stopwatch.js?v=0.9.366"></script>
-<script src="/js/rest-timer-motion.js?v=0.9.366"></script>
-<script src="/js/workout-summary.js?v=0.9.366"></script>
+<script src="/js/sync.js?v=0.9.367"></script>
+<script src="/js/last-workout.js?v=0.9.367"></script>
+<script src="/js/app-sync.js?v=0.9.367"></script>
+<script src="/js/rest-stopwatch.js?v=0.9.367"></script>
+<script src="/js/rest-timer-motion.js?v=0.9.367"></script>
+<script src="/js/workout-summary.js?v=0.9.367"></script>
 
 <script>
    
@@ -10960,6 +10961,7 @@ function renderSyncStatus(status, error){
     syncToastHideTimer = setTimeout(() => { el.hidden = true; }, 1000);
   }, 2000);
 }
+window.addEventListener('mf-last-workout-change',()=>renderHomeTab());
 function privateWrite(uid, collection, id, data, options){ return appSync.write(uid,collection,id,data,options); }
 function privateSnapshot(snap, collection, uid, id){ return appSync.snapshot(snap,collection,uid,id); }
 
@@ -12541,7 +12543,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.366";
+const APP_VERSION = "0.9.367";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -12625,6 +12627,7 @@ async function deleteUserAccount() {
     deletionStarted = true;
     const bounded = promise => Promise.race([promise, new Promise((_,reject) => setTimeout(() => reject(new Error('동기화 대기 시간 초과')), 20000))]);
     await bounded(appSync.outbox.freeze(user.uid));
+    await bounded(appSync.lastWorkout.idle(user.uid));
     // Drain Firebase's own pending writes before deletion so they cannot recreate records.
     await bounded(db.waitForPendingWrites());
     await MFSync.deletePrivateData(db, user.uid, checkIdentity);
@@ -13191,16 +13194,15 @@ const HOME_PART_IMAGES = {
   "삼두": "icons/muscle/highlight/home_triceps.png?v=" + APP_VERSION,
 };
 
-// 🔥 calData(캘린더에 자동/수동으로 태그된 부위 기록)를 오늘부터 거꾸로 훑어서
-// 해당 부위가 마지막으로 찍힌 날짜까지 며칠 지났는지 계산 — 기록 없으면 null
-function daysSinceLastWorkoutForMuscle(muscle){
-  const now = new Date();
-  for (let i = 0; i < 3650; i++) {
-    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
-    const key = `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
-    if ((calData[key]?.muscles || []).includes(muscle)) return i;
-  }
-  return null;
+// Calendar month loading stays lazy; home uses the one-document date summary.
+function homeLastWorkoutInfo(){
+  const uid=auth.currentUser?.uid;
+  if(uid) return appSync.lastWorkout.view(uid,appSync.outbox.read(uid).ops);
+  const today=MFLastWorkout.today();
+  return {known:true,dates:MFLastWorkout.dates(MFLastWorkout.build(Object.entries(calData).map(([id,data])=>({id,data})),today),today),today};
+}
+function daysSinceLastWorkoutForMuscle(muscle,info=homeLastWorkoutInfo()){
+  return MFLastWorkout.elapsed(info.dates[muscle],info.today);
 }
 
 // 🔥 부위 구분 없이, 실제로 수행/기록된(confirmed) 가장 최근 날짜가 오늘로부터
@@ -13341,16 +13343,18 @@ function renderHomeTab(){
   // 부위별 마지막 운동(별도 카드)
   const partsRowEl = document.getElementById("homePartsRow");
   if (partsRowEl) {
+    const lastWorkoutInfo=homeLastWorkoutInfo();
     partsRowEl.innerHTML = HOME_PARTS.map(item => {
-      const days = daysSinceLastWorkoutForMuscle(item.muscle);
-      const daysLabel = days === null ? "-" : `${days}일`;
+      const days = daysSinceLastWorkoutForMuscle(item.muscle,lastWorkoutInfo);
+      const unknown=days===null && !lastWorkoutInfo.known;
+      const daysLabel = unknown ? '…' : days === null ? '-' : `${days}일`;
       const imgSrc = HOME_PART_IMAGES[item.label];
       return `
         <div class="home-part-item">
           <div class="home-part-name">${item.label}</div>
           <div class="home-part-img-slot">${imgSrc ? `<img class="home-part-img" src="${imgSrc}" alt="${item.label}">` : ""}</div>
           <div class="home-part-days">${daysLabel}</div>
-          ${days === null ? '<div class="home-part-sub">기록 없음</div>' : ""}
+          ${unknown ? '<div class="home-part-sub">확인 대기</div>' : days === null ? '<div class="home-part-sub">기록 없음</div>' : ""}
         </div>
       `;
     }).join("");
@@ -13445,6 +13449,7 @@ async function refreshHomeTab(){
   if (user) {
     try {
       const y = calCurrent.getFullYear(), m = calCurrent.getMonth() + 1;
+      await appSync.lastWorkout.load(user.uid,{force:true});
       calLoadedMonths.delete(`${y}-${m}`);
       await ensureCalendarForMonth(y, m);
       calRender();
