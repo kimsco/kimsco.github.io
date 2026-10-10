@@ -12453,7 +12453,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "0.9.341";
+const APP_VERSION = "0.9.342";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -21608,9 +21608,15 @@ function playRestTimerShrinkToMini(){
 
   // Invert + Play: 큰 알약을 "그 자리 그 크기"에서 시작해 목표(Last) 위치/크기로
   // transform(이동+스케일)만으로 트랜지션 — 둘 다 border-radius:9999px라 스케일돼도
-  // 계속 알약 모양 유지됨
-  const scaleX = toRect.width / fromRect.width;
-  const scaleY = toRect.height / fromRect.height;
+  // 계속 알약 모양 유지됨.
+  // 🔥 가로/세로를 각각 다른 비율로(scaleX, scaleY 따로) 줄이면 가로폭이 세로보다
+  // 훨씬 빨리 줄어들어(원래 알약이 가로로 아주 길어서) 비율이 안 맞게 찌그러지는
+  // 느낌이 있었음("새로도 같은 비율로 줄어들어야지") — 가로세로 동일한 scale
+  // 하나만 써서 비율 그대로 유지한 채 균일하게 작아지게 함. 높이 기준으로 맞추면
+  // (세로는 정확히 목표 높이로 끝나고, 가로는 목표보다 살짝 넓게 끝날 수 있지만)
+  // 알약의 둥근 끝 모양이 끝까지 안 찌그러지고, 어차피 애니메이션 끝에는 실제
+  // 미니 알약으로 교체되므로 그 미세한 가로 오차는 안 보임
+  const scale = toRect.height / fromRect.height;
   const dx = (toRect.left + toRect.width / 2) - (fromRect.left + fromRect.width / 2);
   const dy = (toRect.top + toRect.height / 2) - (fromRect.top + fromRect.height / 2);
 
@@ -21620,7 +21626,7 @@ function playRestTimerShrinkToMini(){
   void restTimerCardBg.offsetHeight; // 시작 상태(원래 크기) 커밋
   restTimerCardBg.style.transition = 'transform 0.35s cubic-bezier(.3,.7,.4,1)';
   requestAnimationFrame(() => {
-    restTimerCardBg.style.transform = `translate(${dx}px, ${dy}px) scale(${scaleX}, ${scaleY})`;
+    restTimerCardBg.style.transform = `translate(${dx}px, ${dy}px) scale(${scale})`;
   });
 
   setTimeout(() => {
