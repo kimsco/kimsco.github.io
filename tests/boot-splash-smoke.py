@@ -13,6 +13,7 @@ with sync_playwright() as p:
   c.route('https://**/*',route)
   page=c.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
   page.goto('http://127.0.0.1:8000/',wait_until='domcontentloaded')
+  assert page.evaluate("getComputedStyle(document.getElementById('bottomTab')).visibility")=='hidden'
   a=page.locator('#bootSplash img').bounding_box()
   assert abs(a['y']+a['height']/2-422)<.1,a
   assert page.locator('meta[name="theme-color"]').get_attribute('content')=='#000000'
@@ -21,11 +22,13 @@ with sync_playwright() as p:
   assert abs(a['y']-z['y'])<.1,(a,z)
   page.wait_for_timeout(1200)
   assert page.locator('#bootSplash').count()==0
+  assert page.evaluate("getComputedStyle(document.getElementById('bottomTab')).visibility")=='visible'
   assert page.locator('meta[name="theme-color"]').get_attribute('content')==('#ffffff' if light else '#000000')
   assert page.evaluate("getComputedStyle(document.body).backgroundColor")==('rgb(255, 255, 255)' if light else 'rgb(0, 0, 0)')
   assert not errors,errors
   page.goto('http://127.0.0.1:8000/?modeswitch=1',wait_until='domcontentloaded')
   assert not page.locator('#bootSplash').is_visible()
+  assert not page.evaluate("document.documentElement.classList.contains('mf-boot-hold')")
   assert page.locator('meta[name="theme-color"]').get_attribute('content')==('#ffffff' if light else '#000000')
   c.close()
  b.close()
