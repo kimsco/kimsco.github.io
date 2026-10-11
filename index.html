@@ -13,6 +13,37 @@
 <meta name="mobile-web-app-capable" content="yes">
 
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script>
+// Temporary, local-only startup measurements. rAF callbacks are not proof of display presentation.
+window.MFBootDiagnostic = (function(){
+  var enabled=false;
+  try { enabled=localStorage.getItem('mf_boot_diagnostic')==='1'; } catch(e){}
+  if(!enabled) return {mark:function(){},mount:function(){}};
+  var events=[], panel, started=performance.now(), id=String(Date.now()).slice(-6), frame=0, raf=0;
+  function mark(name,detail){events.push({name:name,ms:Math.round(performance.now()),detail:detail||null});}
+  function save(){try {if(localStorage.getItem('mf_boot_diagnostic')!=='1')return;localStorage.setItem('mf_boot_diagnostic_last',JSON.stringify({id:id,events:events}));}catch(e){}}
+  mark('HEAD');
+  try {new PerformanceObserver(function(list){list.getEntries().forEach(function(e){events.push({name:e.name,ms:Math.round(e.startTime)});});}).observe({type:'paint',buffered:true});}catch(e){}
+  window.addEventListener('resize',function(){mark('RESIZE',{height:innerHeight,width:innerWidth});});
+  document.addEventListener('DOMContentLoaded',function(){mark('DOM_READY');});
+  function mount(){
+    panel=document.createElement('pre');panel.id='mfBootDiagnosticPanel';
+    panel.style.cssText='position:fixed;top:calc(env(safe-area-inset-top) + 12px);left:12px;z-index:2000000;background:#000;color:#65ff92;padding:8px;margin:0;font:11px/1.5 monospace;pointer-events:none;white-space:pre;';
+    document.body.appendChild(panel);mark('SPLASH_DOM');
+    function draw(){
+      if(!panel.isConnected)return;
+      frame++;if(frame<=2)mark('RAF_'+frame);
+      var splash=document.getElementById('bootSplash'),paint=events.filter(function(e){return /paint/.test(e.name);});
+      panel.textContent='BOOT '+id+' · 1.0.6\n'+Math.round(performance.now())+' ms | frame '+frame+'\n'+events.filter(function(e){return !/paint/.test(e.name);}).slice(-5).map(function(e){return e.name+' '+e.ms+'ms';}).join('\n')+'\nPAINT '+(paint.length?paint.map(function(e){return e.name+' '+e.ms+'ms';}).join(', '):'미지원/미관측')+'\nSPLASH '+(splash?getComputedStyle(splash).opacity:'없음')+' | H '+innerHeight;
+      if(performance.now()-started<4000)raf=requestAnimationFrame(draw);else save();
+    }
+    raf=requestAnimationFrame(draw);
+    setTimeout(function(){cancelAnimationFrame(raf);save();panel.remove();},8000);
+  }
+  return {mark:mark,mount:mount};
+})();
+</script>
+
 <!-- Paint black before fonts, CDN scripts or the main stylesheet finish loading. -->
 <style>
 html, body { margin:0; padding:0; background:#000; }
@@ -8471,6 +8502,7 @@ html.light-mode-on .my-routine-group-box {
   <img src="/icons/icon-512.png" alt="">
 </div>
 <script>
+MFBootDiagnostic.mount();
 window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
   if (location.search.indexOf("modeswitch=1") !== -1) {
     document.getElementById('bootSplash').style.display = 'none';
@@ -8485,10 +8517,12 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
     var elapsed = Date.now() - window.__bootSplashStart;
     var wait = Math.max(0, MIN_MS - elapsed);
     setTimeout(function(){
+      MFBootDiagnostic.mark('FADE_START');
       document.documentElement.classList.remove('mf-boot-hold');
       el.style.opacity = '0';
       el.style.pointerEvents = 'none'; // 🔥 페이드 중에도 명시적으로 터치 차단(방어적 조치)
       setTimeout(function(){
+        MFBootDiagnostic.mark('SPLASH_END');
         el.remove();
         window.__bootSplashHolding = false;
         var theme = document.querySelector('meta[name="theme-color"]');
@@ -10583,6 +10617,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
          리로드 중 잠깐 엉뚱한 버전이 보였음. 채워지기 전까지는 빈칸이 맞음 -->
     <span style="color:var(--c-text-tertiary); font-size:14px;" id="appVersionDisplay"></span>
   </div>
+  <button type="button" id="bootDiagnosticToggle" class="settings-item">시작 화면 진단: OFF</button>
 </div>
 
 <!-- ✅ 하단 로그아웃/회원탈퇴 (카드 밖, 텍스트 링크)
@@ -10916,12 +10951,12 @@ MuscleFlow는 개인의 운동 및 식단 기록을 관리하는 PWA 서비스�
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-<script src="/js/sync.js?v=1.0.5"></script>
-<script src="/js/last-workout.js?v=1.0.5"></script>
-<script src="/js/app-sync.js?v=1.0.5"></script>
-<script src="/js/rest-stopwatch.js?v=1.0.5"></script>
-<script src="/js/rest-timer-motion.js?v=1.0.5"></script>
-<script src="/js/workout-summary.js?v=1.0.5"></script>
+<script src="/js/sync.js?v=1.0.6"></script>
+<script src="/js/last-workout.js?v=1.0.6"></script>
+<script src="/js/app-sync.js?v=1.0.6"></script>
+<script src="/js/rest-stopwatch.js?v=1.0.6"></script>
+<script src="/js/rest-timer-motion.js?v=1.0.6"></script>
+<script src="/js/workout-summary.js?v=1.0.6"></script>
 
 <script>
    
@@ -12555,7 +12590,18 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.5";
+const APP_VERSION = "1.0.6";
+const bootDiagnosticToggle=document.getElementById('bootDiagnosticToggle');
+function updateBootDiagnosticLabel(){bootDiagnosticToggle.textContent='시작 화면 진단: '+(localStorage.getItem('mf_boot_diagnostic')==='1'?'ON (다음 실행부터 표시)':'OFF');}
+try {updateBootDiagnosticLabel();}catch(e){}
+bootDiagnosticToggle.addEventListener('click',()=>{
+  try {
+    const on=localStorage.getItem('mf_boot_diagnostic')!=='1';
+    localStorage.setItem('mf_boot_diagnostic',on?'1':'0');
+    if(!on){document.getElementById('mfBootDiagnosticPanel')?.remove();localStorage.removeItem('mf_boot_diagnostic_last');}
+    updateBootDiagnosticLabel();
+  }catch(e){bootDiagnosticToggle.textContent='진단 설정 저장 실패';}
+});
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
