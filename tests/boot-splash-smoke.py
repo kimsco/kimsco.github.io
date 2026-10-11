@@ -22,6 +22,7 @@ with sync_playwright() as p:
   page.wait_for_timeout(1200)
   assert page.locator('#bootSplash').count()==0
   assert page.locator('meta[name="theme-color"]').get_attribute('content')==('#ffffff' if light else '#000000')
+  assert page.evaluate("getComputedStyle(document.body).backgroundColor")==('rgb(255, 255, 255)' if light else 'rgb(0, 0, 0)')
   assert not errors,errors
   page.goto('http://127.0.0.1:8000/?modeswitch=1',wait_until='domcontentloaded')
   assert not page.locator('#bootSplash').is_visible()

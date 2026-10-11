@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko"> 
+<html lang="ko" style="background-color:#000000;">
 <head>
 <!-- 🔥 [임시 실험 — 결과 확인되면 무조건 제거] 친구 앱(GoRIP) 실제 소스를 받아서 확인한
      결과, 걔는 메타태그가 아니라 레이아웃 설계 자체가 달랐음: body에 overflow:hidden
@@ -4779,6 +4779,8 @@ html.light-mode-on body,
 html.light-mode-on .app {
   background: #ffffff;
 }
+/* Keep the selected light theme after the inline black startup fallback. */
+html.light-mode-on body { background-color:#ffffff !important; }
 /* 🔥 dietOverlay도 통계 서브탭(#dietPanel-stats)이 자식이라 필터 대상에서 뺐으므로,
    자기 자신의 배경도 실제 값을 직접 지정(인라인 style이라 !important 필요) */
 html.light-mode-on #dietOverlay {
@@ -8457,7 +8459,7 @@ html.light-mode-on .my-routine-group-box {
 </style>
 </head>
 
-<body>
+<body style="background-color:#000000;">
 
 <!-- Keep the startup logo centered on the same full screen as the iOS launch image.
      The native handoff may still flash; this overlay only controls web rendering. -->
@@ -10909,12 +10911,12 @@ MuscleFlow는 개인의 운동 및 식단 기록을 관리하는 PWA 서비스�
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-<script src="/js/sync.js?v=1.0.2"></script>
-<script src="/js/last-workout.js?v=1.0.2"></script>
-<script src="/js/app-sync.js?v=1.0.2"></script>
-<script src="/js/rest-stopwatch.js?v=1.0.2"></script>
-<script src="/js/rest-timer-motion.js?v=1.0.2"></script>
-<script src="/js/workout-summary.js?v=1.0.2"></script>
+<script src="/js/sync.js?v=1.0.3"></script>
+<script src="/js/last-workout.js?v=1.0.3"></script>
+<script src="/js/app-sync.js?v=1.0.3"></script>
+<script src="/js/rest-stopwatch.js?v=1.0.3"></script>
+<script src="/js/rest-timer-motion.js?v=1.0.3"></script>
+<script src="/js/workout-summary.js?v=1.0.3"></script>
 
 <script>
    
@@ -12548,7 +12550,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.2";
+const APP_VERSION = "1.0.3";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
