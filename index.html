@@ -34,7 +34,7 @@ window.MFBootDiagnostic = (function(){
       if(!panel.isConnected)return;
       frame++;if(frame<=2)mark('RAF_'+frame);
       var splash=document.getElementById('bootSplash'),paint=events.filter(function(e){return /paint/.test(e.name);});
-      panel.textContent='BOOT '+id+' · 1.0.7\n'+Math.round(performance.now())+' ms | frame '+frame+'\n'+events.filter(function(e){return !/paint/.test(e.name);}).slice(-5).map(function(e){return e.name+' '+e.ms+'ms';}).join('\n')+'\nPAINT '+(paint.length?paint.map(function(e){return e.name+' '+e.ms+'ms';}).join(', '):'미지원/미관측')+'\nSPLASH '+(splash?getComputedStyle(splash).opacity:'없음')+' | H '+innerHeight;
+      panel.textContent='BOOT '+id+' · 1.0.8\n'+Math.round(performance.now())+' ms | frame '+frame+'\n'+events.filter(function(e){return !/paint/.test(e.name);}).slice(-5).map(function(e){return e.name+' '+e.ms+'ms';}).join('\n')+'\nPAINT '+(paint.length?paint.map(function(e){return e.name+' '+e.ms+'ms';}).join(', '):'미지원/미관측')+'\nSPLASH '+(splash?getComputedStyle(splash).opacity:'없음')+' | H '+innerHeight;
       if(performance.now()-started<4000)raf=requestAnimationFrame(draw);else save();
     }
     raf=requestAnimationFrame(draw);
@@ -82,19 +82,7 @@ try {
 </script>
 <meta name="apple-mobile-web-app-title" content="TTT">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
-<!-- 🔥 iOS 홈화면 실행 시 로딩 스플래시 화면(검은/흰 빈 화면) 대신 로고가 뜨도록 —
-     iOS는 manifest 기반 자동 스플래시 지원이 기기/버전마다 들쭉날쭉해서, 확실하게
-     뜨도록 아이폰 주요 기종별 정확한 해상도의 apple-touch-startup-image를 직접 지정 -->
-<link rel="apple-touch-startup-image" href="/icons/splash/1290x2796.png" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
-<link rel="apple-touch-startup-image" href="/icons/splash/1206x2622.png" media="(device-width: 402px) and (device-height: 874px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
-<link rel="apple-touch-startup-image" href="/icons/splash/1179x2556.png" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
-<link rel="apple-touch-startup-image" href="/icons/splash/1284x2778.png" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
-<link rel="apple-touch-startup-image" href="/icons/splash/1170x2532.png" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
-<link rel="apple-touch-startup-image" href="/icons/splash/1125x2436.png" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
-<link rel="apple-touch-startup-image" href="/icons/splash/1242x2688.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
-<link rel="apple-touch-startup-image" href="/icons/splash/828x1792.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
-<link rel="apple-touch-startup-image" href="/icons/splash/750x1334.png" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
-<link rel="apple-touch-startup-image" href="/icons/splash/640x1136.png" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+<!-- Startup comparison: iOS launch-image links temporarily omitted; web logo unchanged. -->
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
 <title>TTT</title>
@@ -10954,12 +10942,12 @@ MuscleFlow는 개인의 운동 및 식단 기록을 관리하는 PWA 서비스�
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-<script src="/js/sync.js?v=1.0.7"></script>
-<script src="/js/last-workout.js?v=1.0.7"></script>
-<script src="/js/app-sync.js?v=1.0.7"></script>
-<script src="/js/rest-stopwatch.js?v=1.0.7"></script>
-<script src="/js/rest-timer-motion.js?v=1.0.7"></script>
-<script src="/js/workout-summary.js?v=1.0.7"></script>
+<script src="/js/sync.js?v=1.0.8"></script>
+<script src="/js/last-workout.js?v=1.0.8"></script>
+<script src="/js/app-sync.js?v=1.0.8"></script>
+<script src="/js/rest-stopwatch.js?v=1.0.8"></script>
+<script src="/js/rest-timer-motion.js?v=1.0.8"></script>
+<script src="/js/workout-summary.js?v=1.0.8"></script>
 
 <script>
    
@@ -12593,7 +12581,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.7";
+const APP_VERSION = "1.0.8";
 const bootDiagnosticToggle=document.getElementById('bootDiagnosticToggle');
 function updateBootDiagnosticLabel(){bootDiagnosticToggle.textContent='시작 화면 진단: '+(localStorage.getItem('mf_boot_diagnostic')==='1'?'ON (다음 실행부터 표시)':'OFF');}
 try {updateBootDiagnosticLabel();}catch(e){}
