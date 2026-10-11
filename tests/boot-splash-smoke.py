@@ -15,6 +15,7 @@ with sync_playwright() as p:
   page.goto('http://127.0.0.1:8000/',wait_until='domcontentloaded')
   assert page.evaluate("getComputedStyle(document.getElementById('bottomTab')).visibility")=='hidden'
   assert page.evaluate("getComputedStyle(document.getElementById('tab1')).visibility")=='hidden'
+  assert page.evaluate("getComputedStyle(document.documentElement).colorScheme")=='dark'
   a=page.locator('#bootSplash img').bounding_box()
   assert abs(a['y']+a['height']/2-422)<.1,a
   assert page.locator('meta[name="theme-color"]').get_attribute('content')=='#000000'
@@ -23,6 +24,7 @@ with sync_playwright() as p:
   assert abs(a['y']-z['y'])<.1,(a,z)
   page.wait_for_timeout(1200)
   assert page.locator('#bootSplash').count()==0
+  assert page.evaluate("getComputedStyle(document.documentElement).colorScheme")=='normal'
   assert page.evaluate("getComputedStyle(document.getElementById('tab1')).visibility")=='visible'
   assert page.evaluate("getComputedStyle(document.getElementById('bottomTab')).visibility")=='visible'
   assert page.locator('meta[name="theme-color"]').get_attribute('content')==('#ffffff' if light else '#000000')
