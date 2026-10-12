@@ -12719,7 +12719,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.22";
+const APP_VERSION = "1.0.23";
 function renderLoginDiagnosticControls(){
   const on=loginDiagnostic.enabled();
   document.getElementById('loginDiagnosticToggle').textContent='로그인 진단: '+(on?'ON':'OFF');
@@ -20325,6 +20325,10 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
   // 🔥 운동도감/내 루틴 등 다른 전체화면이 이미 떠있으면(=그 화면의 뒤로가기 스와이프랑 겹치면 안 되니까)
   //    1RM탭 메뉴 열기 제스처는 완전히 비활성화
   function anyOtherOverlayOpen(){
+    // 🔥 공지/참고링크/종목추가 모달처럼 exercise-ref-modal-open 클래스를 토글하는
+    //    모달들도 전부 여기 걸려야 함 — id를 일일이 나열하는 대신 그 공용 클래스로
+    //    한번에 체크(새 모달이 이 스타일을 재사용해도 자동으로 커버됨)
+    if (document.documentElement.classList.contains('exercise-ref-modal-open')) return true;
     const overlayIds = [
       "exerciseDexOverlay", "dexPostDetailOverlay", "dexWriteOverlay",
       "mySpecOverlay", "threeSummaryOverlay", "settingsOverlay",
