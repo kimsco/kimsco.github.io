@@ -8460,7 +8460,7 @@ html.light-mode-on .my-routine-group-box {
 .mf-workout-controls label { display:flex; align-items:center; gap:5px; white-space:nowrap; }
 .mf-workout-controls input { width:auto; margin:0; }
 
-#googleLoginStatus[hidden] { display:none !important; }
+#loginDiagnosticCopy[hidden], #loginDiagnosticReport[hidden], #googleLoginStatus[hidden] { display:none !important; }
 #loginSheetGoogleBtn:disabled { opacity:.6; cursor:wait; }
 </style>
 </head>
@@ -10585,6 +10585,9 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
          리로드 중 잠깐 엉뚱한 버전이 보였음. 채워지기 전까지는 빈칸이 맞음 -->
     <span style="color:var(--c-text-tertiary); font-size:14px;" id="appVersionDisplay"></span>
   </div>
+  <button type="button" id="loginDiagnosticToggle" class="settings-item">로그인 진단: OFF</button>
+  <button type="button" id="loginDiagnosticCopy" class="settings-item" hidden>로그인 진단 결과 복사</button>
+  <textarea id="loginDiagnosticReport" readonly hidden aria-label="로그인 진단 결과" style="width:100%;height:180px;font-size:11px;"></textarea>
 </div>
 
 <!-- ✅ 하단 로그아웃/회원탈퇴 (카드 밖, 텍스트 링크)
@@ -10919,13 +10922,14 @@ MuscleFlow는 개인의 운동 및 식단 기록을 관리하는 PWA 서비스�
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-<script src="/js/sync.js?v=1.0.12"></script>
-<script src="/js/last-workout.js?v=1.0.12"></script>
-<script src="/js/app-sync.js?v=1.0.12"></script>
-<script src="/js/rest-stopwatch.js?v=1.0.12"></script>
-<script src="/js/rest-timer-motion.js?v=1.0.12"></script>
-<script src="/js/workout-summary.js?v=1.0.12"></script>
-<script src="/js/google-login.js?v=1.0.12"></script>
+<script src="/js/sync.js?v=1.0.13"></script>
+<script src="/js/last-workout.js?v=1.0.13"></script>
+<script src="/js/app-sync.js?v=1.0.13"></script>
+<script src="/js/rest-stopwatch.js?v=1.0.13"></script>
+<script src="/js/rest-timer-motion.js?v=1.0.13"></script>
+<script src="/js/workout-summary.js?v=1.0.13"></script>
+<script src="/js/google-login.js?v=1.0.13"></script>
+<script src="/js/login-diagnostic.js?v=1.0.13"></script>
 
 <script>
    
@@ -10944,9 +10948,10 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
+const loginDiagnostic=MFLoginDiagnostic.create({storage:localStorage,version:'1.0.13'});
 let googleLoginPollTimer=null;
 const googleLoginFlow=MFGoogleLogin.create({auth,provider:()=>new firebase.auth.GoogleAuthProvider(),
-  onState:renderGoogleLoginState,onSignedIn:user=>handleAuthSession(user).catch(e=>console.error('계정 상태 반영 실패',e))});
+  onDiagnostic:(stage,detail)=>loginDiagnostic.mark(stage,detail),onState:renderGoogleLoginState,onSignedIn:user=>handleAuthSession(user).catch(e=>console.error('계정 상태 반영 실패',e))});
 
 
 const appSync = MFAppSync.install({db, auth, firebase, storage: localStorage, onStatus: renderSyncStatus});
@@ -12563,7 +12568,24 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.12";
+const APP_VERSION = "1.0.13";
+function renderLoginDiagnosticControls(){
+  const on=loginDiagnostic.enabled();
+  document.getElementById('loginDiagnosticToggle').textContent='로그인 진단: '+(on?'ON':'OFF');
+  document.getElementById('loginDiagnosticCopy').hidden=!on;
+  if(!on)document.getElementById('loginDiagnosticReport').hidden=true;
+}
+renderLoginDiagnosticControls();
+document.getElementById('loginDiagnosticToggle').addEventListener('click',()=>{
+  try{loginDiagnostic.toggle();renderLoginDiagnosticControls();}catch(e){document.getElementById('loginDiagnosticToggle').textContent='진단 설정 저장 실패';}
+});
+document.getElementById('loginDiagnosticCopy').addEventListener('click',async()=>{
+  const report=loginDiagnostic.report(),field=document.getElementById('loginDiagnosticReport');
+  field.value=report;field.hidden=false;
+  try{await navigator.clipboard.writeText(report);document.getElementById('loginDiagnosticCopy').textContent='복사 완료';}
+  catch(e){field.focus();field.select();document.getElementById('loginDiagnosticCopy').textContent='아래 결과를 선택해서 복사해주세요';}
+});
+
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -12686,12 +12708,14 @@ if (consentCloseBtn) {
 let handledAuthUid;
 async function handleAuthSession(user){
   const uid=user?.uid || null;
+  loginDiagnostic.mark('session_apply',{hasUser:Boolean(user),repeated:handledAuthUid===uid});
   if(handledAuthUid===uid)return;
   if (accountDeletionBusy) return;
   handledAuthUid=uid;
   googleLoginFlow.observe(user);
   if(user)closeLoginSheet();
   if (appSync.account.select(user?.uid, user?.email)) {
+    loginDiagnostic.mark('account_reload',{hasUser:Boolean(user)});
     location.reload(); return;
   }
   appSync.restoreStatus(user?.uid);
@@ -12711,6 +12735,7 @@ async function handleAuthSession(user){
 
   // ✅ (B) 설정 패널 UI 갱신 (이걸 여기 넣는 게 포인트)
   renderSettingsIdentity(!!user);
+  loginDiagnostic.mark('identity_rendered',{hasUser:Boolean(user)});
 
 
 
@@ -12882,7 +12907,7 @@ async function handleAuthSession(user){
   renderDateAgendaPanel();
   renderHomeTab();
 }
-auth.onAuthStateChanged(user=>handleAuthSession(user).catch(e=>console.error('계정 상태 반영 실패',e)));
+auth.onAuthStateChanged(user=>{loginDiagnostic.mark('auth_state',{hasUser:Boolean(user)});handleAuthSession(user).catch(e=>{loginDiagnostic.mark('session_error');console.error('계정 상태 반영 실패',e);});});
 
 
 
@@ -21875,7 +21900,8 @@ document.body.appendChild(logoutModal);
 
 // ✅ 구글 로그인 함수 (게스트에서도 동작)
 // 로그인 시 개인정보처리방침/이용약관에 동의한 것으로 간주(로그인 버튼 아래 안내 문구 참고)
-function refreshGoogleLoginOnReturn(){
+function refreshGoogleLoginOnReturn(event){
+  if(event)loginDiagnostic.mark('app_return',{hasUser:Boolean(auth.currentUser),busy:googleLoginFlow.busy});
   if(auth.currentUser && !accountDeletionBusy){
     googleLoginFlow.observe(auth.currentUser);
     handleAuthSession(auth.currentUser).catch(e=>console.error('계정 상태 반영 실패',e));
@@ -21883,7 +21909,7 @@ function refreshGoogleLoginOnReturn(){
 }
 window.addEventListener('pageshow',refreshGoogleLoginOnReturn);
 window.addEventListener('focus',refreshGoogleLoginOnReturn);
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshGoogleLoginOnReturn();});
+document.addEventListener('visibilitychange',()=>{loginDiagnostic.mark('visibility',{hidden:document.hidden,busy:googleLoginFlow.busy,hasUser:Boolean(auth.currentUser)});if(!document.hidden)refreshGoogleLoginOnReturn();});
 function renderGoogleLoginState(state){
   const busy=state.status==='pending' || state.status==='slow';
   for(const id of ['googleLoginBtn','loginSheetGoogleBtn']){
