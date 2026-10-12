@@ -115,3 +115,9 @@ python tests/firebase-sdk-smoke.py
 ```
 
 The test creates dummy emulator identities and local browser records, verifies the upgrade and sign-out, and closes its own HTTP server. Stop the isolated emulator afterwards. Prior SDK comparison baseline: commit 65cee5c (1.0.13).
+
+### 1.0.17: 로그인 데이터 조회 대기 분리
+
+3대·최근 기록·달력·프로필·식단·체중 등의 기존 조회를 독립적으로 시작합니다. 최근 기록 조회가 끝날 때까지 프로필과 홈 데이터 조회를 미루지 않으며, 프로필 수신 시 설정 이름도 즉시 갱신합니다. 조회 범위와 개수 및 지난 달 달력의 지연 조회 정책은 유지합니다.
+
+`tests/login-data-render-smoke.py`는 격리된 Firebase fixture에서 최근 기록과 루틴 조회를 계속 대기시킨 채, 탭 전환 없이 설정 이름·프로필 입력값·홈 목표 칼로리·달력·식단·체중 반영을 확인합니다. 화면 갱신을 반복해도 추가 서버 읽기는 발생하지 않는지 검사합니다. 실제 iPhone Google 로그인은 이 테스트 범위에 포함되지 않습니다.

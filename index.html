@@ -10929,14 +10929,14 @@ MuscleFlow는 개인의 운동 및 식단 기록을 관리하는 PWA 서비스�
 <script src="https://www.gstatic.com/firebasejs/13.0.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/13.0.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore-compat.js"></script>
-<script src="/js/sync.js?v=1.0.16"></script>
-<script src="/js/last-workout.js?v=1.0.16"></script>
-<script src="/js/app-sync.js?v=1.0.16"></script>
-<script src="/js/rest-stopwatch.js?v=1.0.16"></script>
-<script src="/js/rest-timer-motion.js?v=1.0.16"></script>
-<script src="/js/workout-summary.js?v=1.0.16"></script>
-<script src="/js/google-login.js?v=1.0.16"></script>
-<script src="/js/login-diagnostic.js?v=1.0.16"></script>
+<script src="/js/sync.js?v=1.0.17"></script>
+<script src="/js/last-workout.js?v=1.0.17"></script>
+<script src="/js/app-sync.js?v=1.0.17"></script>
+<script src="/js/rest-stopwatch.js?v=1.0.17"></script>
+<script src="/js/rest-timer-motion.js?v=1.0.17"></script>
+<script src="/js/workout-summary.js?v=1.0.17"></script>
+<script src="/js/google-login.js?v=1.0.17"></script>
+<script src="/js/login-diagnostic.js?v=1.0.17"></script>
 
 <script>
    
@@ -10955,7 +10955,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
-const loginDiagnostic=MFLoginDiagnostic.create({storage:localStorage,version:'1.0.16'});
+const loginDiagnostic=MFLoginDiagnostic.create({storage:localStorage,version:'1.0.17'});
 let googleLoginPollTimer=null;
 const googleLoginFlow=MFGoogleLogin.create({auth,provider:()=>new firebase.auth.GoogleAuthProvider(),
   onDiagnostic:(stage,detail)=>loginDiagnostic.mark(stage,detail),onState:renderGoogleLoginState,onSignedIn:user=>handleAuthSession(user).catch(e=>console.error('계정 상태 반영 실패',e))});
@@ -12575,7 +12575,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.16";
+const APP_VERSION = "1.0.17";
 function renderLoginDiagnosticControls(){
   const on=loginDiagnostic.enabled();
   document.getElementById('loginDiagnosticToggle').textContent='로그인 진단: '+(on?'ON':'OFF');
@@ -12835,6 +12835,8 @@ async function handleAuthSession(user){
       //    (기다리지 않음 - 다른 로딩이랑 동시에 진행되어 첫 클릭 딜레이를 없앰)
       prefetchAllExerciseParts(user.uid);
 
+      const initialLoads = [
+        (async () => {
       /* 3대 최신값 */
       try {
         const threeDoc = await db
@@ -12857,6 +12859,8 @@ async function handleAuthSession(user){
         console.error("load threeRM err", e);
       }
 
+        })(),
+        (async () => {
       /* records: 처음엔 화면에 실제로 보여줄 만큼(최근 30일)만 읽고,
          그보다 과거 기록은 스크롤로 더 볼 때 ensureFullLiftHistory가 온디맨드로 채움 */
   try {
@@ -12900,6 +12904,8 @@ async function handleAuthSession(user){
     console.error("load records err", e);
   }
 
+        })(),
+        (async () => {
       /* 달력: 이번 달치만 우선 로드 — 다른 달은 이전/다음달 버튼 누를 때 온디맨드로 불러옴 */
       try {
         await ensureCalendarForMonth(calCurrent.getFullYear(), calCurrent.getMonth() + 1);
@@ -12908,14 +12914,17 @@ async function handleAuthSession(user){
         console.error("calendar load error", e);
       }
 
-      await loadAccessoryRecords();
-      await loadUserSpecFromFirestore(user.uid);
-      renderSettingsIdentity(true); // 🔥 Firestore에서 저장된 사용자명을 불러온 뒤 다시 반영
-      await loadFoodTemplatesFromFirestore(user.uid);
-      await loadMealsFromFirestore(user.uid);
-      await loadWaterFromFirestore(user.uid);
-      await loadWeightFromFirestore(user.uid);
-      await loadMyRoutineTemplatesFromFirestore(user.uid);
+        })(),
+        loadAccessoryRecords(),
+        loadUserSpecFromFirestore(user.uid),
+        loadFoodTemplatesFromFirestore(user.uid),
+        loadMealsFromFirestore(user.uid),
+        loadWaterFromFirestore(user.uid),
+        loadWeightFromFirestore(user.uid),
+        loadMyRoutineTemplatesFromFirestore(user.uid)
+      ];
+      // Independent reads must not delay profile/home updates behind record history.
+      await Promise.allSettled(initialLoads);
 
       // 🔥 기록탭: 로그인 상태가 확정된 후에 기본 부위(가슴) 로드 (레이스 컨디션 방지)
       currentPart = 'chest';
@@ -22919,6 +22928,7 @@ async function loadUserSpecFromFirestore(uid){
   } catch (e) { console.error("spec load err", e); }
   applySpecToUI();
   renderMacroSummary();
+  renderSettingsIdentity(Boolean(auth.currentUser));
   scheduleLoadedViews(uid);
 }
 
