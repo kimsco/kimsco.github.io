@@ -10929,14 +10929,14 @@ MuscleFlow는 개인의 운동 및 식단 기록을 관리하는 PWA 서비스�
 <script src="https://www.gstatic.com/firebasejs/13.0.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/13.0.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore-compat.js"></script>
-<script src="/js/sync.js?v=1.0.15"></script>
-<script src="/js/last-workout.js?v=1.0.15"></script>
-<script src="/js/app-sync.js?v=1.0.15"></script>
-<script src="/js/rest-stopwatch.js?v=1.0.15"></script>
-<script src="/js/rest-timer-motion.js?v=1.0.15"></script>
-<script src="/js/workout-summary.js?v=1.0.15"></script>
-<script src="/js/google-login.js?v=1.0.15"></script>
-<script src="/js/login-diagnostic.js?v=1.0.15"></script>
+<script src="/js/sync.js?v=1.0.16"></script>
+<script src="/js/last-workout.js?v=1.0.16"></script>
+<script src="/js/app-sync.js?v=1.0.16"></script>
+<script src="/js/rest-stopwatch.js?v=1.0.16"></script>
+<script src="/js/rest-timer-motion.js?v=1.0.16"></script>
+<script src="/js/workout-summary.js?v=1.0.16"></script>
+<script src="/js/google-login.js?v=1.0.16"></script>
+<script src="/js/login-diagnostic.js?v=1.0.16"></script>
 
 <script>
    
@@ -10955,7 +10955,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
-const loginDiagnostic=MFLoginDiagnostic.create({storage:localStorage,version:'1.0.15'});
+const loginDiagnostic=MFLoginDiagnostic.create({storage:localStorage,version:'1.0.16'});
 let googleLoginPollTimer=null;
 const googleLoginFlow=MFGoogleLogin.create({auth,provider:()=>new firebase.auth.GoogleAuthProvider(),
   onDiagnostic:(stage,detail)=>loginDiagnostic.mark(stage,detail),onState:renderGoogleLoginState,onSignedIn:user=>handleAuthSession(user).catch(e=>console.error('계정 상태 반영 실패',e))});
@@ -12575,7 +12575,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.15";
+const APP_VERSION = "1.0.16";
 function renderLoginDiagnosticControls(){
   const on=loginDiagnostic.enabled();
   document.getElementById('loginDiagnosticToggle').textContent='로그인 진단: '+(on?'ON':'OFF');
@@ -12712,6 +12712,20 @@ if (consentCloseBtn) {
   });
 }
 
+// Coalesce model updates into one paint; these renderers make no server requests.
+let loadedViewsFrame=0;
+let loadedViewsOwner;
+function scheduleLoadedViews(owner=appSync.account.owner){
+  if(owner!==appSync.account.owner)return;
+  loadedViewsOwner=owner;
+  if(loadedViewsFrame)return;
+  loadedViewsFrame=requestAnimationFrame(()=>{
+    loadedViewsFrame=0;
+    if(loadedViewsOwner!==appSync.account.owner || accountDeletionBusy)return;
+    renderHomeTab();
+    renderDateAgendaPanel();
+  });
+}
 let handledAuthUid;
 async function handleAuthSession(user){
   const uid=user?.uid || null;
@@ -12803,6 +12817,7 @@ async function handleAuthSession(user){
     loadWaterFromLocal();
     loadWeightFromLocal();
     loadMyRoutineTemplatesFromLocal();
+    scheduleLoadedViews();
     renderSettingsIdentity(true);
 
     if (isFullSyncFresh(user.uid)) {
@@ -12880,6 +12895,7 @@ async function handleAuthSession(user){
 
     renderActiveBox();
     saveRecordsToLocal();
+    scheduleLoadedViews(user.uid);
   } catch (e) {
     console.error("load records err", e);
   }
@@ -12919,6 +12935,7 @@ async function handleAuthSession(user){
     loadWaterFromLocal();
     loadWeightFromLocal();
     loadMyRoutineTemplatesFromLocal();
+    scheduleLoadedViews();
 
     // 🔥 게스트도 마찬가지로 여기서 기본 부위(가슴) 로드
     currentPart = 'chest';
@@ -13021,6 +13038,7 @@ async function ensureCalendarForMonth(year, month){
     snap.forEach(doc => { calData[doc.id] = doc.data(); });
     calLoadedMonths.add(monthKey);
     saveCalendarToLocal();
+    scheduleLoadedViews(user.uid);
   } catch (e) {
     console.error("calendar month load err", e);
   }
@@ -20802,6 +20820,7 @@ async function loadAccessoryRecords() {
     Object.values(accRecordsByExercise).forEach(list => list.sort((a, b) => (a._sortMs || 0) - (b._sortMs || 0)));
     saveAccRecordsToLocal(); // 🔥 로컬 저장 누락 버그 수정(재조회 생략 캐시가 비어있던 원인)
 
+    scheduleLoadedViews(user.uid);
     renderExercises(); // 목록
     if (currentExerciseName) {
       renderAccessoryRecords(currentExerciseName); // 카드
@@ -22809,6 +22828,7 @@ function loadUserSpecFromLocal(){
   if (saved && typeof saved === "object") userSpec = { ...userSpec, ...saved };
   applySpecToUI();
   renderMacroSummary();
+  scheduleLoadedViews();
 }
 
 function saveFoodTemplatesToLocal(){ lsSet(LS_KEYS.foodTemplates, foodTemplates); }
@@ -22850,6 +22870,7 @@ function loadMealsFromLocal(){
   if (!Array.isArray(mealsAll)) mealsAll = [];
   renderTodayMealList();
   renderMacroSummary();
+  scheduleLoadedViews();
 }
 
 function saveWaterToLocal(){
@@ -22874,6 +22895,7 @@ function loadWeightFromLocal(){
   if (saved && typeof saved === "object") userWeight = { ...userWeight, ...saved };
   renderDietTodayWeightButton();
   renderStatsWeightWidget();
+  scheduleLoadedViews();
 }
 
 /* ---------- Firestore 저장/로드 (로그인 시) ---------- */
@@ -22897,6 +22919,7 @@ async function loadUserSpecFromFirestore(uid){
   } catch (e) { console.error("spec load err", e); }
   applySpecToUI();
   renderMacroSummary();
+  scheduleLoadedViews(uid);
 }
 
 async function saveWaterToFirestore(){
@@ -22940,6 +22963,7 @@ async function loadWeightFromFirestore(uid){
   } catch (e) { console.error("weight load err", e); }
   renderDietTodayWeightButton();
   renderStatsWeightWidget();
+  scheduleLoadedViews(uid);
 }
 
 async function saveFoodTemplateToFirestore(item){
@@ -22998,6 +23022,7 @@ async function loadMealsFromFirestore(uid){
   } catch (e) { console.error("meal load err", e); }
   renderTodayMealList();
   renderMacroSummary();
+  scheduleLoadedViews(uid);
 }
 
 /* ---------- 계산 로직 ---------- */
