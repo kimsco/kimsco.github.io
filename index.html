@@ -10615,7 +10615,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
 // — 실제 값은 잠시 후 auth.onAuthStateChanged가 확정하면서 다시 덮어씀
 try {
   if (localStorage.getItem("mf_was_logged_in") === "1") {
-    const cachedName = localStorage.getItem("mf_cached_name") || "사용자명";
+    const cachedName = localStorage.getItem("mf_cached_name");
     const cachedEmail = localStorage.getItem("mf_cached_email") || "";
     const guestBadge = document.getElementById("settingsGuestBadge");
     const headerName = document.getElementById("settingsHeaderName");
@@ -10624,7 +10624,7 @@ try {
     const logoutText = document.getElementById("settingsLogoutText");
     const deleteText = document.getElementById("settingsDeleteAccountText");
     if (guestBadge) guestBadge.style.display = "block";
-    if (headerName) headerName.textContent = `${cachedName}님`;
+    if (headerName) headerName.textContent = cachedName ? `${cachedName}님` : "프로필 불러오는 중…";
     if (headerSub) headerSub.textContent = cachedEmail;
     if (loginRow) loginRow.style.display = "none";
     if (logoutText) logoutText.style.display = "block";
@@ -10929,14 +10929,15 @@ MuscleFlow는 개인의 운동 및 식단 기록을 관리하는 PWA 서비스�
 <script src="https://www.gstatic.com/firebasejs/13.0.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/13.0.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore-compat.js"></script>
-<script src="/js/sync.js?v=1.0.17"></script>
-<script src="/js/last-workout.js?v=1.0.17"></script>
-<script src="/js/app-sync.js?v=1.0.17"></script>
-<script src="/js/rest-stopwatch.js?v=1.0.17"></script>
-<script src="/js/rest-timer-motion.js?v=1.0.17"></script>
-<script src="/js/workout-summary.js?v=1.0.17"></script>
-<script src="/js/google-login.js?v=1.0.17"></script>
-<script src="/js/login-diagnostic.js?v=1.0.17"></script>
+<script src="/js/sync.js?v=1.0.18"></script>
+<script src="/js/last-workout.js?v=1.0.18"></script>
+<script src="/js/app-sync.js?v=1.0.18"></script>
+<script src="/js/rest-stopwatch.js?v=1.0.18"></script>
+<script src="/js/rest-timer-motion.js?v=1.0.18"></script>
+<script src="/js/workout-summary.js?v=1.0.18"></script>
+<script src="/js/profile-loader.js?v=1.0.18"></script>
+<script src="/js/google-login.js?v=1.0.18"></script>
+<script src="/js/login-diagnostic.js?v=1.0.18"></script>
 
 <script>
    
@@ -10955,7 +10956,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
-const loginDiagnostic=MFLoginDiagnostic.create({storage:localStorage,version:'1.0.17'});
+const loginDiagnostic=MFLoginDiagnostic.create({storage:localStorage,version:'1.0.18'});
 let googleLoginPollTimer=null;
 const googleLoginFlow=MFGoogleLogin.create({auth,provider:()=>new firebase.auth.GoogleAuthProvider(),
   onDiagnostic:(stage,detail)=>loginDiagnostic.mark(stage,detail),onState:renderGoogleLoginState,onSignedIn:user=>handleAuthSession(user).catch(e=>console.error('계정 상태 반영 실패',e))});
@@ -11281,6 +11282,7 @@ function lsSet(key, value){
 //    사용자당(uid별) 마지막 전체 동기화 시각을 기록해서 판단.
 const FULL_SYNC_STALE_MS = 60 * 60 * 1000; // 1시간
 function isFullSyncFresh(uid){
+  if(lsGet("mf_profile_verified_v1",false)!==true || !lsGet(LS_KEYS.userSpec,null)) return false;
   const ts = Number(lsGet(`mf_full_sync_at_${uid}`, 0)) || 0;
   return (Date.now() - ts) < FULL_SYNC_STALE_MS;
 }
@@ -12575,7 +12577,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.17";
+const APP_VERSION = "1.0.18";
 function renderLoginDiagnosticControls(){
   const on=loginDiagnostic.enabled();
   document.getElementById('loginDiagnosticToggle').textContent='로그인 진단: '+(on?'ON':'OFF');
@@ -12726,6 +12728,7 @@ function scheduleLoadedViews(owner=appSync.account.owner){
     renderDateAgendaPanel();
   });
 }
+let profileLoadState='idle';
 let handledAuthUid;
 async function handleAuthSession(user){
   const uid=user?.uid || null;
@@ -12750,7 +12753,7 @@ async function handleAuthSession(user){
       try {
         localStorage.setItem('mf_was_logged_in','1');
         localStorage.setItem('mf_cached_email',user.email || '');
-        localStorage.setItem('mf_cached_name',user.displayName || '');
+        localStorage.setItem('mf_cached_name','');
       }catch(e){}
     }
     location.reload(); return;
@@ -12808,6 +12811,7 @@ async function handleAuthSession(user){
 
     // 🔥 서버 응답을 기다리기 전에 로컬 캐시로 먼저 화면을 그려서 체감 딜레이를 없앰
     //    (아래 Firestore 조회들이 끝나는 대로 최신값으로 자연스럽게 덮어써짐)
+    loginDiagnostic.mark('data_local_start');
     loadAllFromLocal();
     checkInactivityOverlay(); // 🔥 로컬 캐시 기준으로 3일 이상 미기록 판정 후 필요시 전면 안내 페이지 노출
     loadBodyweightRoutineRecords(); // 🔥 맨몸운동 화면을 아직 한 번도 안 열었어도 월간 운동률 집계에 잡히도록 미리 로드
@@ -12820,6 +12824,8 @@ async function handleAuthSession(user){
     scheduleLoadedViews();
     renderSettingsIdentity(true);
 
+    loginDiagnostic.mark('data_local_ready');
+    loginDiagnostic.mark(isFullSyncFresh(user.uid)?'data_cache_used':'data_server_start');
     if (isFullSyncFresh(user.uid)) {
       // 🔥 Firestore 읽기 절약: 최근(FULL_SYNC_STALE_MS 이내)에 이미 전체를 받아온 적
       //    있으면 재조회하지 않고 방금 로컬 캐시로 채운 화면을 그대로 사용한다.
@@ -12924,13 +12930,14 @@ async function handleAuthSession(user){
         loadMyRoutineTemplatesFromFirestore(user.uid)
       ];
       // Independent reads must not delay profile/home updates behind record history.
-      await Promise.allSettled(initialLoads);
+      const initialResults=await Promise.allSettled(initialLoads);
+      loginDiagnostic.mark('data_server_done');
 
       // 🔥 기록탭: 로그인 상태가 확정된 후에 기본 부위(가슴) 로드 (레이스 컨디션 방지)
       currentPart = 'chest';
       await loadExercises(currentPart);
 
-      markFullSyncNow(user.uid);
+      if(initialResults[4].status==='fulfilled' && initialResults[4].value===true)markFullSyncNow(user.uid);
     }
 
   } else {
@@ -22916,21 +22923,38 @@ async function saveUserSpecToFirestore(){
   } catch (e) { console.error("spec save err", e); }
 }
 
-async function loadUserSpecFromFirestore(uid){
-  try {
-    const doc = await db.collection("users").doc(uid)
-      .collection("profile").doc("spec").get().then(snap => privateSnapshot(snap, "profile", uid, "spec"));
-    if (doc.exists) {
-      userSpec = { ...userSpec, ...doc.data() };
-      saveUserSpecToLocal(); // 🔥 로컬에도 저장해둬야, 다음 실행 시 캐시가 신선해서 재조회를
-                              //    건너뛸 때도 이름/스펙이 남아있음(이게 빠져있던 버그)
+let profileLoader;
+function loadUserSpecFromFirestore(uid){
+  profileLoader ||= MFProfileLoader.create({
+    currentOwner:()=>appSync.account.owner,
+    online:()=>navigator.onLine!==false,
+    read:owner=>{
+      loginDiagnostic.mark('profile_read_start');
+      return db.collection("users").doc(owner).collection("profile").doc("spec")
+        .get({source:'server'}).then(snap=>privateSnapshot(snap,"profile",owner,"spec"));
+    },
+    apply:(doc,owner)=>{
+      loginDiagnostic.mark(doc.exists?'profile_read_found':'profile_read_empty');
+      if(doc.exists)userSpec={...userSpec,...doc.data()};
+      saveUserSpecToLocal();
+      lsSet("mf_profile_verified_v1",true);
+      applySpecToUI();renderMacroSummary();scheduleLoadedViews(owner);
+    },
+    onState:(state,owner)=>{
+      if(owner!==appSync.account.owner)return;
+      profileLoadState=state;
+      loginDiagnostic.mark('profile_'+state);
+      renderSettingsIdentity(Boolean(auth.currentUser));
     }
-  } catch (e) { console.error("spec load err", e); }
-  applySpecToUI();
-  renderMacroSummary();
-  renderSettingsIdentity(Boolean(auth.currentUser));
-  scheduleLoadedViews(uid);
+  });
+  return profileLoader.load(uid);
 }
+window.addEventListener('online',()=>{
+  if(auth.currentUser && profileLoadState==='error' && !accountDeletionBusy)loadUserSpecFromFirestore(auth.currentUser.uid);
+});
+window.addEventListener('focus',()=>{
+  if(auth.currentUser && profileLoadState==='error' && !accountDeletionBusy)loadUserSpecFromFirestore(auth.currentUser.uid);
+});
 
 async function saveWaterToFirestore(){
   const user = auth.currentUser;
@@ -23201,7 +23225,15 @@ function renderSettingsIdentity(isLoggedIn){
   if (settingsGuestBadge) settingsGuestBadge.style.display = isLoggedIn ? "block" : "none";
 
   if (isLoggedIn) {
+    const hasProfile=Boolean(lsGet(LS_KEYS.userSpec,null));
+    const loading=!hasProfile && profileLoadState!=='ready';
     const displayName = (userSpec.name && userSpec.name.trim()) || "사용자명";
+    if(loading){
+      if(settingsHeaderName)settingsHeaderName.textContent=profileLoadState==='error'?'프로필 연결 대기':'프로필 불러오는 중…';
+      document.getElementById('saveSpecBtn').disabled=true;
+      return;
+    }
+    document.getElementById('saveSpecBtn').disabled=false;
     if (settingsHeaderName) settingsHeaderName.textContent = `${displayName}님`;
     try { localStorage.setItem("mf_cached_name", displayName); } catch(e){}
   } else {
