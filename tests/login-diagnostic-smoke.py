@@ -4,7 +4,7 @@ from playwright.sync_api import sync_playwright
 root=Path(__file__).resolve().parents[1];fixture=(root/'tests/firebase-fixture.js').read_text()
 with sync_playwright() as p:
  b=p.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox']);c=b.new_context(viewport={'width':390,'height':844},is_mobile=True)
- c.route('https://**/*',lambda r:r.fulfill(body=fixture if '/firebase-app.js' in r.request.url else '',content_type='application/javascript'))
+ c.route('https://**/*',lambda r:r.fulfill(body=fixture if '/firebase-app-compat.js' in r.request.url else '',content_type='application/javascript'))
  page=c.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
  page.goto('http://127.0.0.1:8000/');page.wait_for_timeout(1200)
  assert page.evaluate("localStorage.getItem('mf_login_diagnostic_v1')") is None

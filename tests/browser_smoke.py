@@ -13,7 +13,7 @@ with sync_playwright() as p:
     context=browser.new_context(viewport={'width':390,'height':844},is_mobile=True,has_touch=True)
     def route(r):
         url=r.request.url
-        if '/firebase-app.js' in url:r.fulfill(status=200,content_type='application/javascript',body=fixture)
+        if '/firebase-app-compat.js' in url:r.fulfill(status=200,content_type='application/javascript',body=fixture)
         elif 'firebasejs/' in url:r.fulfill(status=200,content_type='application/javascript',body='')
         elif 'chart.js' in url:r.fulfill(status=200,content_type='application/javascript',body=chart)
         else:r.abort()

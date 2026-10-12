@@ -9,7 +9,7 @@ with sync_playwright() as p:
   c=b.new_context(viewport={'width':390,'height':824},is_mobile=True)
   c.add_init_script("Object.defineProperty(navigator,'standalone',{value:true});Object.defineProperty(screen,'height',{value:844});Object.defineProperty(screen,'width',{value:390});localStorage.setItem('mf_light_mode','"+('1' if light else '0')+"');")
   def route(r):
-   r.fulfill(body=fixture if '/firebase-app.js' in r.request.url else '',content_type='application/javascript')
+   r.fulfill(body=fixture if '/firebase-app-compat.js' in r.request.url else '',content_type='application/javascript')
   c.route('https://**/*',route)
   page=c.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
   page.goto('http://127.0.0.1:8000/',wait_until='domcontentloaded')

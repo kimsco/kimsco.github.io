@@ -9,7 +9,7 @@ with sync_playwright() as p:
  b=p.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox'])
  c=b.new_context(viewport={'width':390,'height':844},is_mobile=True,has_touch=True)
  def route(r):
-  if '/firebase-app.js' in r.request.url:r.fulfill(body=fixture,content_type='application/javascript')
+  if '/firebase-app-compat.js' in r.request.url:r.fulfill(body=fixture,content_type='application/javascript')
   elif 'firebasejs/' in r.request.url:r.fulfill(body='',content_type='application/javascript')
   elif 'chart.js' in r.request.url:r.fulfill(body=chart,content_type='application/javascript')
   else:r.abort()

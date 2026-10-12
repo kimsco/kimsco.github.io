@@ -93,3 +93,25 @@ python3 tests/browser_smoke.py
 - 기준은 기존 홈과 동일하게 달력의 부위 태그다. 미래 날짜는 경과일에 포함하지 않는다. `confirmed:false`를 부위별 경과일에서 별도로 제외하지 않는 기존 기준도 유지한다. 세트 하나를 삭제해도 달력 부위 태그가 남는 기존 동작은 유지하며, 달력 태그를 삭제/변경하면 요약도 변경된다.
 - 로컬 요약은 `mf_account_v2:{uid}:last_workout_dates_v1`. 초기 확인 전에는 없는 기록으로 단정하지 않고 `확인 대기`를 표시한다. 회원 탈퇴의 기존 `meta` 삭제 범위에 포함되고, 탈퇴 중 초기 요약 생성이 남아있으면 완료/중단을 기다린 뒤 삭제한다. 공용 자료·다른 계정은 조회/삭제하지 않는다. 추가 컬렉션·복합 인덱스·관리자 권한·Cloud Functions는 필요 없다.
 - `node --test tests/*.test.cjs`: 날짜 경계, 윤년/미래, 삭제/변경, 압축 크기, 초기 생성 및 후속 1회 읽기, 원자적 실패·재시도, 오프라인 재실행, 동시 기기 변경, 계정 분리, 탈퇴 중 초기화 중단을 검증한다. `python3 tests/last-workout-smoke.py`: 과거 달력을 열지 않은 홈 경과일, 초기/재실행 읽기 횟수, 오프라인 저장·변경·삭제·재실행·연결 복구, 테마·계정 변경을 격리된 Firebase에서 검증한다. 운영 계정의 초기 생성·수정·삭제 테스트는 하지 않는다.
+
+
+### Firebase SDK 13.0.0 comparison (1.0.14)
+
+Replaced the three 8.10.1 browser scripts with pinned 13.0.0 compat scripts; retained popup login, authDomain, Firestore collection paths, account isolation and startup behavior. Auth 1.13.6 release notes describe iOS/Safari popup persistence reconnection and initialization deadlock fixes; these are candidates for the reported first-attempt hang, not proof of its cause.
+
+Validation: 44 Node tests; mobile sync/deletion, login, diagnostic, startup and timer motion smoke tests; actual SDK Google credentials via an isolated Auth emulator, Auth/Firestore reload persistence, and native SDK 8.10.1-to-13.0.0 persistence migration. No production accounts or data were used. Live Google popup verification in the cloud was blocked by HTTP 403 from apis.google.com/js/api.js; real iPhone first-login verification remains required.
+
+To repeat the native migration test, run from the repository directory (Python Playwright and /usr/bin/chromium required):
+
+```sh
+npm install --prefix /tmp/ttt-firebase-emulator --cache /tmp/ttt-firebase-npm-cache --no-audit --no-fund firebase-tools@15.33.0
+XDG_CONFIG_HOME=/tmp/ttt-firebase-config /tmp/ttt-firebase-emulator/node_modules/.bin/firebase emulators:start --only auth --project demo-ttt-sdk --config tests/firebase-emulator.json --non-interactive
+```
+
+In a second terminal:
+
+```sh
+python tests/firebase-sdk-smoke.py
+```
+
+The test creates dummy emulator identities and local browser records, verifies the upgrade and sign-out, and closes its own HTTP server. Stop the isolated emulator afterwards. Prior SDK comparison baseline: commit 65cee5c (1.0.13).

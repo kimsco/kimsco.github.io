@@ -5,7 +5,7 @@ root=Path(__file__).resolve().parents[1];fixture=(root/'tests/firebase-fixture.j
 with sync_playwright() as p:
  b=p.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox']);c=b.new_context(viewport={'width':390,'height':844},is_mobile=True)
  c.add_init_script("(()=>{const timeout=window.setTimeout;window.setTimeout=function(fn,ms,...args){return timeout(fn,ms===15000?250:ms,...args);};})()")
- c.route('https://**/*',lambda r:r.fulfill(body=fixture if '/firebase-app.js' in r.request.url else '',content_type='application/javascript'))
+ c.route('https://**/*',lambda r:r.fulfill(body=fixture if '/firebase-app-compat.js' in r.request.url else '',content_type='application/javascript'))
  page=c.new_page();errors=[];dialogs=[];page.on('pageerror',lambda e:errors.append(str(e)));page.on('dialog',lambda d:(dialogs.append(d.message),d.dismiss()))
  page.goto('http://127.0.0.1:8000/');page.wait_for_timeout(1200)
  page.evaluate("""()=>{window.loginCalls=0;auth.signInWithPopup=()=>{loginCalls++;return new Promise((resolve,reject)=>{window.loginResolve=resolve;window.loginReject=reject;});};openLoginSheet();doGoogleLogin();doGoogleLogin();}""")
