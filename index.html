@@ -12719,7 +12719,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.23";
+const APP_VERSION = "1.0.24";
 function renderLoginDiagnosticControls(){
   const on=loginDiagnostic.enabled();
   document.getElementById('loginDiagnosticToggle').textContent='로그인 진단: '+(on?'ON':'OFF');
@@ -20475,6 +20475,9 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
   ];
   function anyBlockingOverlayOpen(){
     if (navDrawerOverlay && !navDrawerOverlay.classList.contains('hidden')) return true;
+    // 🔥 공지/참고링크/종목추가 모달도 여기 걸려야 함 — 드로어 스와이프 때와
+    //    동일하게 그 공용 클래스로 한번에 체크(id 나열 대신)
+    if (document.documentElement.classList.contains('exercise-ref-modal-open')) return true;
     return PULL_REFRESH_BLOCKING_OVERLAY_IDS.some(id => {
       const el = document.getElementById(id);
       return el && !el.classList.contains('hidden');
