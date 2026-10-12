@@ -25,7 +25,14 @@ html.mf-boot-hold .app,
 html.mf-boot-hold .app * { visibility:hidden !important; pointer-events:none !important; }
 </style>
 <script>
-window.__bootSplashHolding = location.search.indexOf("modeswitch=1") === -1;
+window.__skipLoginSplash = false;
+try {
+  const requestedAt=Number(sessionStorage.getItem('mf_skip_login_splash'));
+  sessionStorage.removeItem('mf_skip_login_splash');
+  const isReload=performance.getEntriesByType('navigation')[0]?.type==='reload' || performance.navigation?.type===1;
+  window.__skipLoginSplash=isReload && requestedAt>0 && Date.now()-requestedAt>=0 && Date.now()-requestedAt<60000;
+} catch(e){}
+window.__bootSplashHolding = !window.__skipLoginSplash && location.search.indexOf("modeswitch=1") === -1;
 document.documentElement.classList.toggle("mf-boot-hold", window.__bootSplashHolding);
 // The iOS launch image uses the full portrait screen, before viewport insets settle.
 // Freeze only the startup overlay, leaving the app and keyboard layout unchanged.
@@ -8474,8 +8481,8 @@ html.light-mode-on .my-routine-group-box {
 </div>
 <script>
 window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
-  if (location.search.indexOf("modeswitch=1") !== -1) {
-    document.getElementById('bootSplash').style.display = 'none';
+  if (window.__skipLoginSplash || location.search.indexOf("modeswitch=1") !== -1) {
+    document.getElementById('bootSplash').remove();
     resolveBootSplashDone();
     return;
   }
@@ -10922,14 +10929,14 @@ MuscleFlow는 개인의 운동 및 식단 기록을 관리하는 PWA 서비스�
 <script src="https://www.gstatic.com/firebasejs/13.0.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/13.0.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore-compat.js"></script>
-<script src="/js/sync.js?v=1.0.14"></script>
-<script src="/js/last-workout.js?v=1.0.14"></script>
-<script src="/js/app-sync.js?v=1.0.14"></script>
-<script src="/js/rest-stopwatch.js?v=1.0.14"></script>
-<script src="/js/rest-timer-motion.js?v=1.0.14"></script>
-<script src="/js/workout-summary.js?v=1.0.14"></script>
-<script src="/js/google-login.js?v=1.0.14"></script>
-<script src="/js/login-diagnostic.js?v=1.0.14"></script>
+<script src="/js/sync.js?v=1.0.15"></script>
+<script src="/js/last-workout.js?v=1.0.15"></script>
+<script src="/js/app-sync.js?v=1.0.15"></script>
+<script src="/js/rest-stopwatch.js?v=1.0.15"></script>
+<script src="/js/rest-timer-motion.js?v=1.0.15"></script>
+<script src="/js/workout-summary.js?v=1.0.15"></script>
+<script src="/js/google-login.js?v=1.0.15"></script>
+<script src="/js/login-diagnostic.js?v=1.0.15"></script>
 
 <script>
    
@@ -10948,7 +10955,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
-const loginDiagnostic=MFLoginDiagnostic.create({storage:localStorage,version:'1.0.14'});
+const loginDiagnostic=MFLoginDiagnostic.create({storage:localStorage,version:'1.0.15'});
 let googleLoginPollTimer=null;
 const googleLoginFlow=MFGoogleLogin.create({auth,provider:()=>new firebase.auth.GoogleAuthProvider(),
   onDiagnostic:(stage,detail)=>loginDiagnostic.mark(stage,detail),onState:renderGoogleLoginState,onSignedIn:user=>handleAuthSession(user).catch(e=>console.error('계정 상태 반영 실패',e))});
@@ -12568,7 +12575,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.14";
+const APP_VERSION = "1.0.15";
 function renderLoginDiagnosticControls(){
   const on=loginDiagnostic.enabled();
   document.getElementById('loginDiagnosticToggle').textContent='로그인 진단: '+(on?'ON':'OFF');
@@ -12716,6 +12723,22 @@ async function handleAuthSession(user){
   if(user)closeLoginSheet();
   if (appSync.account.select(user?.uid, user?.email)) {
     loginDiagnostic.mark('account_reload',{hasUser:Boolean(user)});
+    if(user){
+      // The confirmed login needs one account-scoped reload, not another launch animation.
+      try {
+        sessionStorage.setItem('mf_skip_login_splash',String(Date.now()));
+        if(!document.getElementById('settingsOverlay').classList.contains('hidden')){
+          sessionStorage.setItem('mf_reload_restore_settings','1');
+          sessionStorage.setItem('mf_reload_restore_tab',currentActiveTabTarget() || 'tab1');
+        }
+      }catch(e){}
+      // These are UI hints for the confirmed user; account data still loads in its own namespace.
+      try {
+        localStorage.setItem('mf_was_logged_in','1');
+        localStorage.setItem('mf_cached_email',user.email || '');
+        localStorage.setItem('mf_cached_name',user.displayName || '');
+      }catch(e){}
+    }
     location.reload(); return;
   }
   appSync.restoreStatus(user?.uid);
