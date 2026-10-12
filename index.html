@@ -8460,7 +8460,7 @@ html.light-mode-on .my-routine-group-box {
 .mf-workout-controls label { display:flex; align-items:center; gap:5px; white-space:nowrap; }
 .mf-workout-controls input { width:auto; margin:0; }
 
-#googleLoginStatus[hidden], #googleLoginRecover[hidden] { display:none !important; }
+#googleLoginStatus[hidden] { display:none !important; }
 #loginSheetGoogleBtn:disabled { opacity:.6; cursor:wait; }
 </style>
 </head>
@@ -10652,7 +10652,6 @@ try {
     </button>
 
     <p id="googleLoginStatus" role="status" aria-live="polite" hidden style="font-size:13px;line-height:1.6;color:var(--c-text-secondary);"></p>
-    <button id="googleLoginRecover" type="button" hidden style="padding:12px;color:var(--c-login-link);">로그인 상태 다시 확인</button>
     <div class="settings-login-consent-notice">
       로그인 시 <span id="consentNoticePrivacyLink" class="consent-notice-link">개인정보 처리방침</span>,
       <span id="consentNoticeTermsLink" class="consent-notice-link">서비스 이용약관</span>에
@@ -10920,13 +10919,13 @@ MuscleFlow는 개인의 운동 및 식단 기록을 관리하는 PWA 서비스�
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-<script src="/js/sync.js?v=1.0.11"></script>
-<script src="/js/last-workout.js?v=1.0.11"></script>
-<script src="/js/app-sync.js?v=1.0.11"></script>
-<script src="/js/rest-stopwatch.js?v=1.0.11"></script>
-<script src="/js/rest-timer-motion.js?v=1.0.11"></script>
-<script src="/js/workout-summary.js?v=1.0.11"></script>
-<script src="/js/google-login.js?v=1.0.11"></script>
+<script src="/js/sync.js?v=1.0.12"></script>
+<script src="/js/last-workout.js?v=1.0.12"></script>
+<script src="/js/app-sync.js?v=1.0.12"></script>
+<script src="/js/rest-stopwatch.js?v=1.0.12"></script>
+<script src="/js/rest-timer-motion.js?v=1.0.12"></script>
+<script src="/js/workout-summary.js?v=1.0.12"></script>
+<script src="/js/google-login.js?v=1.0.12"></script>
 
 <script>
    
@@ -10945,6 +10944,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
+let googleLoginPollTimer=null;
 const googleLoginFlow=MFGoogleLogin.create({auth,provider:()=>new firebase.auth.GoogleAuthProvider(),
   onState:renderGoogleLoginState,onSignedIn:user=>handleAuthSession(user).catch(e=>console.error('계정 상태 반영 실패',e))});
 
@@ -12563,7 +12563,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.11";
+const APP_VERSION = "1.0.12";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -21892,8 +21892,13 @@ function renderGoogleLoginState(state){
   }
   const status=document.getElementById('googleLoginStatus');
   if(status){status.textContent=state.message || '';status.hidden=state.status==='success';}
-  const recover=document.getElementById('googleLoginRecover');
-  if(recover)recover.hidden=state.status!=='slow';
+  if(busy && googleLoginPollTimer===null){
+    googleLoginPollTimer=setInterval(()=>{
+      if(!document.hidden)refreshGoogleLoginOnReturn();
+    },500);
+  }else if(!busy && googleLoginPollTimer!==null){
+    clearInterval(googleLoginPollTimer);googleLoginPollTimer=null;
+  }
 }
 function doGoogleLogin(){return googleLoginFlow.request();}
 
@@ -21940,12 +21945,7 @@ function closeLoginSheet(){
   }, 230);
 }
 
-document.getElementById('googleLoginRecover').addEventListener('click',()=>{
-  if(auth.currentUser){googleLoginFlow.observe(auth.currentUser);handleAuthSession(auth.currentUser).catch(e=>console.error('계정 상태 반영 실패',e));return;}
-  // A user-requested reload recreates a stalled SDK popup resolver without opening another popup.
-  try {sessionStorage.setItem('mf_reload_restore_settings','1');sessionStorage.setItem('mf_reload_restore_tab',currentActiveTabTarget() || 'tab1');}catch(e){}
-  location.reload();
-});
+
 if (loginSheetOverlay) loginSheetOverlay.addEventListener("click", closeLoginSheet);
 if (loginSheetGoogleBtn) {
   loginSheetGoogleBtn.addEventListener("click", () => {

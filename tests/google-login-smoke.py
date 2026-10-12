@@ -13,7 +13,7 @@ with sync_playwright() as p:
  assert page.locator('#loginSheetGoogleBtn').is_disabled()
  assert page.locator('#loginSheet').get_attribute('aria-hidden')=='false'
  page.wait_for_timeout(350)
- assert page.locator('#googleLoginRecover').is_visible()
+ assert page.locator('#googleLoginRecover').count()==0
  assert '지연' in page.locator('#googleLoginStatus').inner_text()
  page.evaluate("loginReject({code:'auth/popup-closed-by-user'})");page.wait_for_timeout(100)
  assert page.locator('#loginSheetGoogleBtn').is_enabled()
@@ -24,11 +24,13 @@ with sync_playwright() as p:
  assert page.locator('#loginSheet').get_attribute('aria-hidden')=='true'
  assert page.evaluate('googleLoginFlow.busy') is False
  assert page.evaluate('loginCalls')==2
- # On return, a confirmed currentUser is enough even when the popup promise is still pending.
- page.evaluate("""()=>{auth.currentUser=null;doGoogleLogin();auth.currentUser={uid:'alice',email:'alice@example.test',displayName:'Alice'};window.dispatchEvent(new Event('focus'));}""")
+ # Poll confirmed SDK state even if neither the popup promise nor a focus event arrives.
+ page.evaluate("""()=>{auth.currentUser=null;doGoogleLogin();auth.currentUser={uid:'alice',email:'alice@example.test',displayName:'Alice'};}""")
+ page.wait_for_timeout(700)
  assert page.evaluate('googleLoginFlow.busy') is False
+ assert page.evaluate('googleLoginPollTimer') is None
  page.evaluate("loginReject({code:'auth/cancelled-popup-request'})");page.wait_for_timeout(100)
  assert not dialogs,dialogs
  assert not errors,errors
- print('PASS: one popup, pending/slow/canceled UI, popup-result success, foreground currentUser reconciliation, late conflict ignored, no alerts')
+ print('PASS: one popup, pending/slow/canceled UI, popup-result success, automatic currentUser reconciliation without focus events, late conflict ignored, no alerts')
  b.close()

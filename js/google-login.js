@@ -18,7 +18,7 @@
       const op={id:++generation};pending=op;
       onState({status:'pending',message:'Google 로그인 결과를 기다리고 있습니다.'});
       op.timer=schedule(()=>{
-        if(pending===op)onState({status:'slow',message:'로그인 확인이 지연되고 있습니다. 아래 버튼으로 상태를 다시 확인해주세요.'});
+        if(pending===op)onState({status:'slow',message:'로그인 확인이 지연되고 있습니다. 결과를 기다리고 있습니다.'});
       },slowMs);
       let popup;
       try{popup=auth.signInWithPopup(provider());}catch(e){popup=Promise.reject(e);}
