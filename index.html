@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <script>
 // Temporary, local-only startup measurements. rAF callbacks are not proof of display presentation.
 window.MFBootDiagnostic = (function(){
@@ -34,7 +34,7 @@ window.MFBootDiagnostic = (function(){
       if(!panel.isConnected)return;
       frame++;if(frame<=2)mark('RAF_'+frame);
       var splash=document.getElementById('bootSplash'),paint=events.filter(function(e){return /paint/.test(e.name);});
-      panel.textContent='BOOT '+id+' · 1.0.8\n'+Math.round(performance.now())+' ms | frame '+frame+'\n'+events.filter(function(e){return !/paint/.test(e.name);}).slice(-5).map(function(e){return e.name+' '+e.ms+'ms';}).join('\n')+'\nPAINT '+(paint.length?paint.map(function(e){return e.name+' '+e.ms+'ms';}).join(', '):'미지원/미관측')+'\nSPLASH '+(splash?getComputedStyle(splash).opacity:'없음')+' | H '+innerHeight;
+      panel.textContent='BOOT '+id+' · 1.0.9\n'+Math.round(performance.now())+' ms | frame '+frame+'\n'+events.filter(function(e){return !/paint/.test(e.name);}).slice(-5).map(function(e){return e.name+' '+e.ms+'ms';}).join('\n')+'\nPAINT '+(paint.length?paint.map(function(e){return e.name+' '+e.ms+'ms';}).join(', '):'미지원/미관측')+'\nSPLASH '+(splash?getComputedStyle(splash).opacity:'없음')+' | H '+innerHeight;
       if(performance.now()-started<4000)raf=requestAnimationFrame(draw);else save();
     }
     raf=requestAnimationFrame(draw);
@@ -10942,12 +10942,12 @@ MuscleFlow는 개인의 운동 및 식단 기록을 관리하는 PWA 서비스�
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-<script src="/js/sync.js?v=1.0.8"></script>
-<script src="/js/last-workout.js?v=1.0.8"></script>
-<script src="/js/app-sync.js?v=1.0.8"></script>
-<script src="/js/rest-stopwatch.js?v=1.0.8"></script>
-<script src="/js/rest-timer-motion.js?v=1.0.8"></script>
-<script src="/js/workout-summary.js?v=1.0.8"></script>
+<script src="/js/sync.js?v=1.0.9"></script>
+<script src="/js/last-workout.js?v=1.0.9"></script>
+<script src="/js/app-sync.js?v=1.0.9"></script>
+<script src="/js/rest-stopwatch.js?v=1.0.9"></script>
+<script src="/js/rest-timer-motion.js?v=1.0.9"></script>
+<script src="/js/workout-summary.js?v=1.0.9"></script>
 
 <script>
    
@@ -12581,7 +12581,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.8";
+const APP_VERSION = "1.0.9";
 const bootDiagnosticToggle=document.getElementById('bootDiagnosticToggle');
 function updateBootDiagnosticLabel(){bootDiagnosticToggle.textContent='시작 화면 진단: '+(localStorage.getItem('mf_boot_diagnostic')==='1'?'ON (다음 실행부터 표시)':'OFF');}
 try {updateBootDiagnosticLabel();}catch(e){}
