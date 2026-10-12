@@ -5428,6 +5428,33 @@ html.light-mode-on .exercise-ref-modal-box {
   cursor: pointer;
 }
 
+/* 🔥 공지사항 패널 — 종목 참고링크 패널(.exercise-ref-modal-box)과 같은 톤의
+   헤더+스크롤 목록 구조를 그대로 재사용(입력창 없는 읽기 전용 목록) */
+.announcement-empty {
+  color: var(--c-text-secondary);
+  font-size: 13px;
+  padding: 10px 0;
+}
+.announcement-row {
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(var(--c-ink-rgb),0.08);
+}
+.announcement-row:last-child {
+  border-bottom: none;
+}
+.announcement-row-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--c-text-primary);
+  margin-bottom: 6px;
+}
+.announcement-row-body {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--c-text-secondary);
+  white-space: pre-line;
+}
+
 /* 🔥 종목 "+" 추가 모달 — 참고 링크 패널(.exercise-ref-modal-box)과 동일한 틀을
    재사용하되, 입력창이 위(헤더 바로 아래)에 오고 추천 목록이 그 아래 스크롤 영역 */
 .add-exercise-modal-box {
@@ -9986,6 +10013,21 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
   </div>
 </div>
 
+<!-- 🔥 공지사항 패널 — 종(openAnnouncementBtn)을 누르면 열림. 여러 개 쌓이는
+     목록이라 참고링크 패널(.exercise-ref-modal-box)과 같은 구조 재사용, 읽기
+     전용이라 입력 footer는 없음. 열리는 순간 전부 읽음 처리됨(JS) -->
+<div id="announcementModal" class="modal hidden">
+  <div class="exercise-ref-modal-box">
+    <div class="exercise-ref-modal-header">
+      <div class="exercise-ref-modal-title">공지사항</div>
+      <button id="announcementModalCloseBtn" class="exercise-ref-modal-close" aria-label="닫기">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
+    <div class="exercise-ref-modal-body" id="announcementList"></div>
+  </div>
+</div>
+
 <!-- 🔥 종목 "+" 추가 시 뜨는 모달 — 부위별 추천 종목을 입력과 동시에 필터링해서 보여줌 -->
 <div id="addExerciseModal" class="modal hidden">
   <div class="add-exercise-modal-box">
@@ -11252,7 +11294,8 @@ const LS_KEYS = {
   dexPendingIds: "mf_dex_pending_ids_v1", // 서버 동기화 아직 안 된 폴더/게시물 id 목록
   myRoutineTemplates: "mf_my_routine_templates_v1", // 내가 만든 루틴 템플릿
   myRoutineCollapsedGroups: "mf_my_routine_collapsed_groups_v1", // 루틴 상자 접기/펼치기 최근 사용 상태
-  exerciseRefLinks: "mf_exercise_ref_links_v1" // 종목별 참고 링크(유튜브 등) 목록
+  exerciseRefLinks: "mf_exercise_ref_links_v1", // 종목별 참고 링크(유튜브 등) 목록
+  announcementReads: "mf_announcement_reads_v1" // 읽은 공지 id 목록
 };
 
 function lsGet(key, fallback){
@@ -11507,6 +11550,101 @@ document.getElementById('exerciseRefAddBtn').addEventListener('click', () => {
 });
 exerciseRefUrlInput.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') document.getElementById('exerciseRefAddBtn').click();
+});
+
+/* ===============================
+   🔥 공지사항 — 종 아이콘(openAnnouncementBtn)을 누르면 패널이 열림. 내용은
+   서버에 안 두고 코드에 배열로 쌓음(새 공지 추가 = 아래 배열에 항목 추가).
+   "읽음" 여부만 계정에 동기화(meta/announcementReads, exerciseRefLinks와
+   동일 패턴) — 로그인한 다른 기기에서도 빨간 점이 똑같이 사라짐
+================================ */
+const ANNOUNCEMENTS = [
+  {
+    id: 'rest-stopwatch-2026-10',
+    title: '⏱️ 휴식 스톱워치 추가!',
+    body: '설정 → 휴식 스톱워치 켜기 → 기록 입력하면 자동 시작.\n세트 사이 얼마나 쉬었는지 바로 보여요.'
+  }
+]; // 🔥 새 공지는 이 배열 맨 위에 추가(최신순으로 그대로 노출됨)
+
+let announcementReadIds = lsGet(LS_KEYS.announcementReads, []);
+let announcementReadsSyncedFromServer = false;
+
+function saveAnnouncementReadIdsToLocal(){
+  lsSet(LS_KEYS.announcementReads, announcementReadIds);
+}
+
+function updateAnnouncementDot(){
+  const hasUnread = ANNOUNCEMENTS.some(a => !announcementReadIds.includes(a.id));
+  document.getElementById('announcementDot').classList.toggle('visible', hasUnread);
+}
+updateAnnouncementDot(); // 🔥 로그인 확정 전에도 로컬 캐시 기준으로 일단 바로 반영
+
+async function ensureAnnouncementReadsSynced(){
+  if (announcementReadsSyncedFromServer) return;
+  const user = auth.currentUser;
+  if (!user) { announcementReadsSyncedFromServer = true; return; }
+  try {
+    const doc = await db.collection('users').doc(user.uid).collection('meta').doc('announcementReads').get().then(snap => privateSnapshot(snap, "meta", user.uid, 'announcementReads'));
+    if (doc.exists) {
+      const serverIds = doc.data().readIds || [];
+      announcementReadIds = Array.from(new Set([...announcementReadIds, ...serverIds]));
+      saveAnnouncementReadIdsToLocal();
+    }
+  } catch (e) {
+    console.error("공지 읽음 상태 동기화 실패", e);
+  }
+  announcementReadsSyncedFromServer = true;
+  updateAnnouncementDot();
+}
+
+async function markAllAnnouncementsRead(){
+  const unreadIds = ANNOUNCEMENTS.map(a => a.id).filter(id => !announcementReadIds.includes(id));
+  if (!unreadIds.length) return;
+  announcementReadIds = Array.from(new Set([...announcementReadIds, ...unreadIds]));
+  saveAnnouncementReadIdsToLocal();
+  updateAnnouncementDot();
+  const user = auth.currentUser;
+  if (!user) return;
+  try {
+    await privateWrite(user.uid, "meta", 'announcementReads', { readIds: announcementReadIds }, { merge: true });
+  } catch (e) {
+    console.error("공지 읽음 상태 저장 실패", e);
+  }
+}
+
+const announcementModal = document.getElementById('announcementModal');
+const announcementList = document.getElementById('announcementList');
+
+function renderAnnouncementList(){
+  if (!ANNOUNCEMENTS.length) {
+    announcementList.innerHTML = `<div class="announcement-empty">아직 공지가 없어요</div>`;
+    return;
+  }
+  announcementList.innerHTML = ANNOUNCEMENTS.map(a => `
+    <div class="announcement-row">
+      <div class="announcement-row-title">${a.title}</div>
+      <div class="announcement-row-body">${a.body}</div>
+    </div>
+  `).join('');
+}
+
+async function openAnnouncementModal(){
+  renderAnnouncementList();
+  announcementModal.classList.remove('hidden');
+  document.documentElement.classList.add('exercise-ref-modal-open'); // 🔥 사파리 backdrop-filter z-index 버그 회피(기존 참고링크 패널과 동일한 공용 클래스 재사용)
+  await ensureAnnouncementReadsSynced();
+  await markAllAnnouncementsRead(); // 🔥 열면 전부 읽음 처리(개별 항목 클릭 아님)
+}
+
+function closeAnnouncementModal(){
+  announcementModal.classList.add('hidden');
+  document.documentElement.classList.remove('exercise-ref-modal-open');
+}
+
+document.getElementById('openAnnouncementBtn').addEventListener('click', openAnnouncementModal);
+document.getElementById('announcementModalCloseBtn').addEventListener('click', closeAnnouncementModal);
+announcementModal.addEventListener('click', (e) => {
+  if (e.target === announcementModal) closeAnnouncementModal();
 });
 
 // 🔥 참고 링크 입력창 키보드 대응 — 알약바(setupPillBarKeyboardFix, #514~535
@@ -12574,7 +12712,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.20";
+const APP_VERSION = "1.0.21";
 function renderLoginDiagnosticControls(){
   const on=loginDiagnostic.enabled();
   document.getElementById('loginDiagnosticToggle').textContent='로그인 진단: '+(on?'ON':'OFF');
@@ -12926,7 +13064,8 @@ async function handleAuthSession(user){
         loadMealsFromFirestore(user.uid),
         loadWaterFromFirestore(user.uid),
         loadWeightFromFirestore(user.uid),
-        loadMyRoutineTemplatesFromFirestore(user.uid)
+        loadMyRoutineTemplatesFromFirestore(user.uid),
+        ensureAnnouncementReadsSynced() // 🔥 로그인 즉시 읽음 상태 서버 동기화(빨간 점 정확도). 반드시 배열 맨 끝에 추가: initialResults[4] 인덱스 기준 참조 때문에 순서 변경 금지
       ];
       // Independent reads must not delay profile/home updates behind record history.
       const initialResults=await Promise.allSettled(initialLoads);
