@@ -1590,6 +1590,13 @@ html.exercise-ref-modal-open .topBar,
 html.exercise-ref-modal-open .bottomTab {
   visibility: hidden;
 }
+/* 🔥 이 모달들이 열려있는 동안 뒤의 .app(실제 스크롤 주체)이 같이 스크롤되던 문제 —
+   바텀시트(body.sheet-open .app)와 동일한 잠금 방식 재사용 */
+html.exercise-ref-modal-open .app {
+  overflow: hidden !important;
+  -webkit-overflow-scrolling: auto !important;
+  touch-action: none;
+}
 
 /* 🔥 식단 탭 안에 있을 때: 5칸짜리 하단탭을 위로 슬라이드시켜 감춤. 자기 높이(100%)만큼
    이동하는 게 아니라, 하단탭의 "윗선"이 딱 식단 알약바(#dietSubTabBar)의 윗선 높이
@@ -12712,7 +12719,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.21";
+const APP_VERSION = "1.0.22";
 function renderLoginDiagnosticControls(){
   const on=loginDiagnostic.enabled();
   document.getElementById('loginDiagnosticToggle').textContent='로그인 진단: '+(on?'ON':'OFF');
