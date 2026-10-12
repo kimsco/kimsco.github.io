@@ -10,9 +10,10 @@
         for(let attempt=0;attempt<attempts;attempt++){
           if(currentOwner()!==owner) return false;
           let timer;
+          const waitMs=typeof timeoutMs==='function'?timeoutMs(attempt):timeoutMs;
           try{
             if(!online())throw Error('offline');
-            const value=await Promise.race([Promise.resolve().then(()=>read(owner)),new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('profile timeout')),timeoutMs);})]);
+            const value=await Promise.race([Promise.resolve().then(()=>read(owner,attempt)),new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('profile timeout')),waitMs);})]);
             clearTimeout(timer);
             if(currentOwner()!==owner)return false;
             apply(value,owner);onState('ready',owner);return true;

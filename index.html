@@ -10929,15 +10929,16 @@ MuscleFlow는 개인의 운동 및 식단 기록을 관리하는 PWA 서비스�
 <script src="https://www.gstatic.com/firebasejs/13.0.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/13.0.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore-compat.js"></script>
-<script src="/js/sync.js?v=1.0.18"></script>
-<script src="/js/last-workout.js?v=1.0.18"></script>
-<script src="/js/app-sync.js?v=1.0.18"></script>
-<script src="/js/rest-stopwatch.js?v=1.0.18"></script>
-<script src="/js/rest-timer-motion.js?v=1.0.18"></script>
-<script src="/js/workout-summary.js?v=1.0.18"></script>
-<script src="/js/profile-loader.js?v=1.0.18"></script>
-<script src="/js/google-login.js?v=1.0.18"></script>
-<script src="/js/login-diagnostic.js?v=1.0.18"></script>
+<script src="/js/sync.js?v=1.0.19"></script>
+<script src="/js/last-workout.js?v=1.0.19"></script>
+<script src="/js/app-sync.js?v=1.0.19"></script>
+<script src="/js/rest-stopwatch.js?v=1.0.19"></script>
+<script src="/js/rest-timer-motion.js?v=1.0.19"></script>
+<script src="/js/workout-summary.js?v=1.0.19"></script>
+<script src="/js/firestore-runtime.js?v=1.0.19"></script>
+<script src="/js/profile-loader.js?v=1.0.19"></script>
+<script src="/js/google-login.js?v=1.0.19"></script>
+<script src="/js/login-diagnostic.js?v=1.0.19"></script>
 
 <script>
    
@@ -10956,7 +10957,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
-const loginDiagnostic=MFLoginDiagnostic.create({storage:localStorage,version:'1.0.18'});
+const loginDiagnostic=MFLoginDiagnostic.create({storage:localStorage,version:'1.0.19'});
 let googleLoginPollTimer=null;
 const googleLoginFlow=MFGoogleLogin.create({auth,provider:()=>new firebase.auth.GoogleAuthProvider(),
   onDiagnostic:(stage,detail)=>loginDiagnostic.mark(stage,detail),onState:renderGoogleLoginState,onSignedIn:user=>handleAuthSession(user).catch(e=>console.error('계정 상태 반영 실패',e))});
@@ -11003,15 +11004,7 @@ function privateSnapshot(snap, collection, uid, id){ return appSync.snapshot(sna
    - 네트워크 없을 때 저장한 내용도 기기에 큐로 쌓아두고,
      인터넷 재연결되면 자동으로 Firestore에 반영됨
    - 실패하더라도(여러 탭 동시 사용, 미지원 브라우저 등) 기존 기능엔 전혀 영향 없음 */
-db.enablePersistence({ synchronizeTabs: true }).catch((err) => {
-  if (err.code === "failed-precondition") {
-    console.warn("Firestore persistence: 여러 탭이 열려있어 이 탭에서는 오프라인 캐시가 비활성화됩니다.");
-  } else if (err.code === "unimplemented") {
-    console.warn("Firestore persistence: 이 브라우저에서는 지원되지 않습니다.");
-  } else {
-    console.error("Firestore persistence 오류:", err);
-  }
-});
+MFFirestoreRuntime.configure({db,nav:navigator,onStage:stage=>loginDiagnostic.mark(stage)});
 
 let currentExercises = [];
 /* 요소 참조 */
@@ -12577,7 +12570,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.18";
+const APP_VERSION = "1.0.19";
 function renderLoginDiagnosticControls(){
   const on=loginDiagnostic.enabled();
   document.getElementById('loginDiagnosticToggle').textContent='로그인 진단: '+(on?'ON':'OFF');
@@ -22926,9 +22919,16 @@ async function saveUserSpecToFirestore(){
 let profileLoader;
 function loadUserSpecFromFirestore(uid){
   profileLoader ||= MFProfileLoader.create({
-    currentOwner:()=>appSync.account.owner,
+    currentOwner:()=>accountDeletionBusy?null:appSync.account.owner,
     online:()=>navigator.onLine!==false,
-    read:owner=>{
+    timeoutMs:attempt=>attempt===0?4000:9000,
+    retryMs:0,
+    read:(owner,attempt)=>{
+      if(attempt>0)return MFFirestoreRuntime.readProfile({
+        auth,projectId:firebaseConfig.projectId,owner,
+        timestamp:value=>firebase.firestore.Timestamp.fromMillis(Date.parse(value)),
+        onStage:stage=>loginDiagnostic.mark(stage)
+      }).then(snap=>privateSnapshot(snap,"profile",owner,"spec"));
       loginDiagnostic.mark('profile_read_start');
       return db.collection("users").doc(owner).collection("profile").doc("spec")
         .get({source:'server'}).then(snap=>privateSnapshot(snap,"profile",owner,"spec"));

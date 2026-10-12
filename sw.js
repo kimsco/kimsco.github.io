@@ -1,4 +1,4 @@
-const CACHE = "mf-v61"; // 🔥 아래 food-db-full.json 삭제 + 로고 이미지가 그동안 세 차례 더
+const CACHE = "mf-v62"; // 🔥 아래 food-db-full.json 삭제 + 로고 이미지가 그동안 세 차례 더
                          // 교체(#764/#765/#768)됐지만 이 캐시 이름을 안 올려서 새 서비스워커가
                          // 설치되지 않고 있었음(바로 아래 참고) — 올려서 처음부터 다시 받아오게 함
 const ASSETS = [
@@ -6,15 +6,16 @@ const ASSETS = [
   "/index.html",
   "/manifest.json",
   "/sw.js",
-  "/js/sync.js?v=1.0.18",
-  "/js/app-sync.js?v=1.0.18",
-  "/js/last-workout.js?v=1.0.18",
-  "/js/rest-stopwatch.js?v=1.0.18",
-  "/js/rest-timer-motion.js?v=1.0.18",
-  "/js/workout-summary.js?v=1.0.18",
-  "/js/profile-loader.js?v=1.0.18",
-  "/js/google-login.js?v=1.0.18",
-  "/js/login-diagnostic.js?v=1.0.18",
+  "/js/sync.js?v=1.0.19",
+  "/js/app-sync.js?v=1.0.19",
+  "/js/last-workout.js?v=1.0.19",
+  "/js/rest-stopwatch.js?v=1.0.19",
+  "/js/rest-timer-motion.js?v=1.0.19",
+  "/js/workout-summary.js?v=1.0.19",
+  "/js/firestore-runtime.js?v=1.0.19",
+  "/js/profile-loader.js?v=1.0.19",
+  "/js/google-login.js?v=1.0.19",
+  "/js/login-diagnostic.js?v=1.0.19",
   // 🔥 "/food-db-full.json"은 실제로 존재한 적 없는(index.html 어디서도 안 쓰이는) 죽은
   // 참조였음 — cache.addAll()은 목록 중 하나라도 404면 전체가 실패하는 all-or-nothing
   // 방식이라, 이 한 줄 때문에 install 이벤트가 매번 조용히 실패해서 서비스워커가 한 번도
