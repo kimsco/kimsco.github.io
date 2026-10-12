@@ -12,38 +12,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script>
-// Temporary, local-only startup measurements. rAF callbacks are not proof of display presentation.
-window.MFBootDiagnostic = (function(){
-  var enabled=false;
-  try { enabled=localStorage.getItem('mf_boot_diagnostic')==='1'; } catch(e){}
-  if(!enabled) return {mark:function(){},mount:function(){}};
-  var events=[], panel, started=performance.now(), id=String(Date.now()).slice(-6), frame=0, raf=0;
-  function mark(name,detail){events.push({name:name,ms:Math.round(performance.now()),detail:detail||null});}
-  function save(){try {if(localStorage.getItem('mf_boot_diagnostic')!=='1')return;localStorage.setItem('mf_boot_diagnostic_last',JSON.stringify({id:id,events:events}));}catch(e){}}
-  mark('HEAD');
-  try {new PerformanceObserver(function(list){list.getEntries().forEach(function(e){events.push({name:e.name,ms:Math.round(e.startTime)});});}).observe({type:'paint',buffered:true});}catch(e){}
-  window.addEventListener('resize',function(){mark('RESIZE',{height:innerHeight,width:innerWidth});});
-  document.addEventListener('DOMContentLoaded',function(){mark('DOM_READY');});
-  function mount(){
-    panel=document.createElement('pre');panel.id='mfBootDiagnosticPanel';
-    panel.style.cssText='position:fixed;top:calc(env(safe-area-inset-top) + 12px);left:12px;z-index:2000000;background:#000;color:#65ff92;padding:8px;margin:0;font:11px/1.5 monospace;pointer-events:none;white-space:pre;';
-    document.body.appendChild(panel);mark('SPLASH_DOM');
-    function draw(){
-      if(!panel.isConnected)return;
-      frame++;if(frame<=2)mark('RAF_'+frame);
-      var splash=document.getElementById('bootSplash'),paint=events.filter(function(e){return /paint/.test(e.name);});
-      panel.textContent='BOOT '+id+' · 1.0.9\n'+Math.round(performance.now())+' ms | frame '+frame+'\n'+events.filter(function(e){return !/paint/.test(e.name);}).slice(-5).map(function(e){return e.name+' '+e.ms+'ms';}).join('\n')+'\nPAINT '+(paint.length?paint.map(function(e){return e.name+' '+e.ms+'ms';}).join(', '):'미지원/미관측')+'\nSPLASH '+(splash?getComputedStyle(splash).opacity:'없음')+' | H '+innerHeight;
-      if(performance.now()-started<4000)raf=requestAnimationFrame(draw);else save();
-    }
-    raf=requestAnimationFrame(draw);
-    setTimeout(function(){cancelAnimationFrame(raf);save();panel.remove();},8000);
-  }
-  return {mark:mark,mount:mount};
-})();
-</script>
-
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <!-- Paint black before fonts, CDN scripts or the main stylesheet finish loading. -->
 <style>
 html, body { margin:0; padding:0; background:#000; }
@@ -51,7 +20,6 @@ html, body { margin:0; padding:0; background:#000; }
   height:var(--mf-boot-screen-height, 100%); z-index:1000000; background:#000;
   display:flex; align-items:center; justify-content:center; transition:opacity .525s ease; }
 #bootSplash img { width:26vw; height:26vw; display:block; }
-html.mf-boot-dark-scheme { color-scheme:dark; }
 html.mf-boot-hold #bottomTab,
 html.mf-boot-hold .app,
 html.mf-boot-hold .app * { visibility:hidden !important; pointer-events:none !important; }
@@ -59,7 +27,6 @@ html.mf-boot-hold .app * { visibility:hidden !important; pointer-events:none !im
 <script>
 window.__bootSplashHolding = location.search.indexOf("modeswitch=1") === -1;
 document.documentElement.classList.toggle("mf-boot-hold", window.__bootSplashHolding);
-document.documentElement.classList.toggle("mf-boot-dark-scheme", window.__bootSplashHolding);
 // The iOS launch image uses the full portrait screen, before viewport insets settle.
 // Freeze only the startup overlay, leaving the app and keyboard layout unchanged.
 if (navigator.standalone === true && screen.height > screen.width) {
@@ -82,7 +49,19 @@ try {
 </script>
 <meta name="apple-mobile-web-app-title" content="TTT">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
-<!-- Startup comparison: iOS launch-image links temporarily omitted; web logo unchanged. -->
+<!-- 🔥 iOS 홈화면 실행 시 로딩 스플래시 화면(검은/흰 빈 화면) 대신 로고가 뜨도록 —
+     iOS는 manifest 기반 자동 스플래시 지원이 기기/버전마다 들쭉날쭉해서, 확실하게
+     뜨도록 아이폰 주요 기종별 정확한 해상도의 apple-touch-startup-image를 직접 지정 -->
+<link rel="apple-touch-startup-image" href="/icons/splash/1290x2796.png" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="/icons/splash/1206x2622.png" media="(device-width: 402px) and (device-height: 874px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="/icons/splash/1179x2556.png" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="/icons/splash/1284x2778.png" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="/icons/splash/1170x2532.png" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="/icons/splash/1125x2436.png" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="/icons/splash/1242x2688.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="/icons/splash/828x1792.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="/icons/splash/750x1334.png" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="/icons/splash/640x1136.png" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
 <title>TTT</title>
@@ -8492,7 +8471,6 @@ html.light-mode-on .my-routine-group-box {
   <img src="/icons/icon-512.png" alt="">
 </div>
 <script>
-MFBootDiagnostic.mount();
 window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
   if (location.search.indexOf("modeswitch=1") !== -1) {
     document.getElementById('bootSplash').style.display = 'none';
@@ -8502,20 +8480,17 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
   window.__bootSplashStart = Date.now();
   window.addEventListener('DOMContentLoaded', function hideBootSplash(){
     var el = document.getElementById('bootSplash');
-    if (!el) { document.documentElement.classList.remove('mf-boot-hold', 'mf-boot-dark-scheme'); resolveBootSplashDone(); return; }
+    if (!el) { document.documentElement.classList.remove('mf-boot-hold'); resolveBootSplashDone(); return; }
     var MIN_MS = 500;
     var elapsed = Date.now() - window.__bootSplashStart;
     var wait = Math.max(0, MIN_MS - elapsed);
     setTimeout(function(){
-      MFBootDiagnostic.mark('FADE_START');
       document.documentElement.classList.remove('mf-boot-hold');
       el.style.opacity = '0';
       el.style.pointerEvents = 'none'; // 🔥 페이드 중에도 명시적으로 터치 차단(방어적 조치)
       setTimeout(function(){
-        MFBootDiagnostic.mark('SPLASH_END');
         el.remove();
         window.__bootSplashHolding = false;
-        document.documentElement.classList.remove('mf-boot-dark-scheme');
         var theme = document.querySelector('meta[name="theme-color"]');
         if (theme) theme.content = document.documentElement.classList.contains('light-mode-on') ? '#ffffff' : '#000000';
         resolveBootSplashDone();
@@ -10608,7 +10583,6 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
          리로드 중 잠깐 엉뚱한 버전이 보였음. 채워지기 전까지는 빈칸이 맞음 -->
     <span style="color:var(--c-text-tertiary); font-size:14px;" id="appVersionDisplay"></span>
   </div>
-  <button type="button" id="bootDiagnosticToggle" class="settings-item">시작 화면 진단: OFF</button>
 </div>
 
 <!-- ✅ 하단 로그아웃/회원탈퇴 (카드 밖, 텍스트 링크)
@@ -10942,12 +10916,12 @@ MuscleFlow는 개인의 운동 및 식단 기록을 관리하는 PWA 서비스�
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-<script src="/js/sync.js?v=1.0.9"></script>
-<script src="/js/last-workout.js?v=1.0.9"></script>
-<script src="/js/app-sync.js?v=1.0.9"></script>
-<script src="/js/rest-stopwatch.js?v=1.0.9"></script>
-<script src="/js/rest-timer-motion.js?v=1.0.9"></script>
-<script src="/js/workout-summary.js?v=1.0.9"></script>
+<script src="/js/sync.js?v=1.0.10"></script>
+<script src="/js/last-workout.js?v=1.0.10"></script>
+<script src="/js/app-sync.js?v=1.0.10"></script>
+<script src="/js/rest-stopwatch.js?v=1.0.10"></script>
+<script src="/js/rest-timer-motion.js?v=1.0.10"></script>
+<script src="/js/workout-summary.js?v=1.0.10"></script>
 
 <script>
    
@@ -12581,18 +12555,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.9";
-const bootDiagnosticToggle=document.getElementById('bootDiagnosticToggle');
-function updateBootDiagnosticLabel(){bootDiagnosticToggle.textContent='시작 화면 진단: '+(localStorage.getItem('mf_boot_diagnostic')==='1'?'ON (다음 실행부터 표시)':'OFF');}
-try {updateBootDiagnosticLabel();}catch(e){}
-bootDiagnosticToggle.addEventListener('click',()=>{
-  try {
-    const on=localStorage.getItem('mf_boot_diagnostic')!=='1';
-    localStorage.setItem('mf_boot_diagnostic',on?'1':'0');
-    if(!on){document.getElementById('mfBootDiagnosticPanel')?.remove();localStorage.removeItem('mf_boot_diagnostic_last');}
-    updateBootDiagnosticLabel();
-  }catch(e){bootDiagnosticToggle.textContent='진단 설정 저장 실패';}
-});
+const APP_VERSION = "1.0.10";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
