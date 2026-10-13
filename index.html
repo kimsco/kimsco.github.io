@@ -12552,10 +12552,10 @@ const historyPages=MFHistoryPages.create({
    const at=Number(localStorage.getItem('mf_account_v2:'+uid+':read_fresh:'+(kind==='lift'?'liftHistory:':'exerciseHistory:')+name));
    return Array.isArray(data?.[name]) && at>0 && Date.now()>=at && Date.now()-at<HISTORY_CACHE_TTL_MS;
  },
- query:async(uid,kind,name,{before,cursor,limit})=>{
+ query:async(uid,kind,name,{before,date,cursor,limit})=>{
    const collection=kind==='lift'?'records':'accessoryRecords';
    let q=db.collection('users').doc(uid).collection(collection)
-    .where(kind==='lift'?'lift':'exercise','==',name).where('date','<',before)
+    .where(kind==='lift'?'lift':'exercise','==',name).where('date',date?'==':'<',date || before)
     .orderBy('date','desc').orderBy(firebase.firestore.FieldPath.documentId(),'desc').limit(limit);
    if(cursor)q=q.startAfter(cursor.date,cursor.id);
    const snap=await q.get({source:'server'});readCache.noteSnapshot(snap);return snap;
