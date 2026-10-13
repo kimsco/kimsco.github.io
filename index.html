@@ -10975,15 +10975,16 @@ MuscleFlow는 개인의 운동 및 식단 기록을 관리하는 PWA 서비스�
 <script src="https://www.gstatic.com/firebasejs/13.0.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/13.0.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore-compat.js"></script>
-<script src="/js/sync.js?v=1.0.25"></script>
-<script src="/js/last-workout.js?v=1.0.25"></script>
-<script src="/js/app-sync.js?v=1.0.25"></script>
-<script src="/js/rest-stopwatch.js?v=1.0.25"></script>
-<script src="/js/rest-timer-motion.js?v=1.0.25"></script>
-<script src="/js/workout-summary.js?v=1.0.25"></script>
-<script src="/js/firestore-runtime.js?v=1.0.25"></script>
-<script src="/js/profile-loader.js?v=1.0.25"></script>
-<script src="/js/google-login.js?v=1.0.25"></script>
+<script src="/js/sync.js?v=1.0.26"></script>
+<script src="/js/last-workout.js?v=1.0.26"></script>
+<script src="/js/read-cache.js?v=1.0.26"></script>
+<script src="/js/app-sync.js?v=1.0.26"></script>
+<script src="/js/rest-stopwatch.js?v=1.0.26"></script>
+<script src="/js/rest-timer-motion.js?v=1.0.26"></script>
+<script src="/js/workout-summary.js?v=1.0.26"></script>
+<script src="/js/firestore-runtime.js?v=1.0.26"></script>
+<script src="/js/profile-loader.js?v=1.0.26"></script>
+<script src="/js/google-login.js?v=1.0.26"></script>
 
 <script>
    
@@ -11002,6 +11003,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
+const readCache=MFReadCache.create({storage:localStorage});
 try{localStorage.removeItem('mf_login_diagnostic_enabled');localStorage.removeItem('mf_login_diagnostic_v1');}catch(e){}
 let googleLoginPollTimer=null;
 const googleLoginFlow=MFGoogleLogin.create({auth,provider:()=>new firebase.auth.GoogleAuthProvider(),
@@ -11042,7 +11044,7 @@ function renderSyncStatus(status, error){
 }
 window.addEventListener('mf-last-workout-change',()=>renderHomeTab());
 function privateWrite(uid, collection, id, data, options){ return appSync.write(uid,collection,id,data,options); }
-function privateSnapshot(snap, collection, uid, id){ return appSync.snapshot(snap,collection,uid,id); }
+function privateSnapshot(snap, collection, uid, id){ readCache.noteSnapshot(snap);return appSync.snapshot(snap,collection,uid,id); }
 
 
 /* 🔥 오프라인 저장/자동 동기화
@@ -12473,7 +12475,13 @@ function getRecordsInitialWindowStartDateStr(baseDate = new Date()){
 // 🔥 최근 창 밖의 과거 리프트 기록을, 그래프를 열거나 "이전 기록 더 보기"를 누를 때만
 //    온디맨드로 추가 조회해서 병합한다 (리프트별로 한 번만).
 const liftFullHistoryLoaded = { bench: false, squat: false, dead: false, ohp: false };
-async function ensureFullLiftHistory(liftKey){
+function ensureFullLiftHistory(liftKey){
+ if(liftFullHistoryLoaded[liftKey])return Promise.resolve(false);
+ const user=auth.currentUser;
+ if(!user)return fetch_ensureFullLiftHistory(liftKey);
+ return readCache.run(user.uid,'liftHistory:'+liftKey,()=>fetch_ensureFullLiftHistory(liftKey),{reuse:()=>false}).catch(e=>{console.error('과거 기록 조회 실패',e);return false;});
+}
+async function fetch_ensureFullLiftHistory(liftKey){
   if (liftFullHistoryLoaded[liftKey]) return false;
   const user = auth.currentUser;
   if (!user) { liftFullHistoryLoaded[liftKey] = true; return false; }
@@ -12490,6 +12498,7 @@ async function ensureFullLiftHistory(liftKey){
       .where("lift", "==", liftKey)
       .get().then(snap => privateSnapshot(snap, "records", user.uid));
 
+    if(auth.currentUser?.uid!==user.uid || accountDeletionBusy)throw Error("Account changed");
     const existingIds = new Set((records[liftKey] || []).map(r => r.firestoreId));
     let added = false;
     snap.forEach(doc => {
@@ -12516,7 +12525,7 @@ async function ensureFullLiftHistory(liftKey){
     return added;
   } catch (e) {
     console.error("과거 리프트 기록 추가 조회 실패", e);
-    return false;
+    throw e;
   }
 }
 
@@ -12715,7 +12724,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.25";
+const APP_VERSION = "1.0.26";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -17107,7 +17116,13 @@ function getLastSetsForExercise(name){
 
 // 🔥 최근 창 안에 기록이 없는 종목만, 루틴 상세 화면 진입 시 온디맨드로 과거 기록을 추가 조회
 const exerciseHistoryFullyLoaded = new Set();
-async function ensureExerciseHistory(name){
+function ensureExerciseHistory(name){
+ if(exerciseHistoryFullyLoaded.has(name))return Promise.resolve(false);
+ const user=auth.currentUser;
+ if(!user)return fetch_ensureExerciseHistory(name);
+ return readCache.run(user.uid,'exerciseHistory:'+name,()=>fetch_ensureExerciseHistory(name),{reuse:()=>false}).catch(e=>{console.error('과거 기록 조회 실패',e);return false;});
+}
+async function fetch_ensureExerciseHistory(name){
   if (exerciseHistoryFullyLoaded.has(name)) return false;
   const user = auth.currentUser;
   if (!user) { exerciseHistoryFullyLoaded.add(name); return false; }
@@ -17122,6 +17137,7 @@ async function ensureExerciseHistory(name){
       .where("exercise", "==", name)
       .get().then(snap => privateSnapshot(snap, "accessoryRecords", user.uid));
 
+    if(auth.currentUser?.uid!==user.uid || accountDeletionBusy)throw Error("Account changed");
     if (!accRecordsByExercise[name]) accRecordsByExercise[name] = [];
     const existingIds = new Set(accRecordsByExercise[name].map(r => r.id));
     let added = false;
@@ -17141,7 +17157,7 @@ async function ensureExerciseHistory(name){
     return added;
   } catch (e) {
     console.error("과거 보조운동 기록 추가 조회 실패", e);
-    return false;
+    throw e;
   }
 }
 
@@ -19807,8 +19823,7 @@ bottomTabBtns.forEach(btn => {
     if (target === 'tab4') {
       exerciseScreen.style.display = 'block';
       detailScreen.style.display = 'none';
-      // 🔥 로그인 직후 최초 1회 로드가 가끔 늦게 동기화되면서 기록이 비어 보이던
-      //    문제 때문에, 기록 탭에 들어올 때마다 다시 불러와서 갱신
+      // 계정별 5분 신선도와 진행 중 요청을 재사용합니다.
       if (auth.currentUser) loadAccessoryRecords();
     } else if (target === 'tab3') {
       detailScreen.style.display = 'none';
@@ -20927,10 +20942,17 @@ async function deleteExercise(exerciseName) {
 
    
 
-async function loadAccessoryRecords() {
+function loadAccessoryRecords(){
+  const user=auth.currentUser;
+  if(!user || user.uid!==appSync.account.owner)return Promise.resolve();
+  return readCache.run(user.uid,'recentAccessoryRecords',()=>fetchAccessoryRecords(user.uid),{reuse:()=>undefined,hasLocal:()=>lsGet(LS_KEYS.accessoryRecords,null)!==null}).catch(e=>console.error('보조운동 조회 실패',e));
+}
+async function fetchAccessoryRecords(uid) {
   const user = auth.currentUser;
   if (!user) return;
 
+  const startedAt=Date.now();
+  const windowStart=getRecordsInitialWindowStartDateStr();
   try {
     // 🔥 orderBy('createdAt')는 serverTimestamp()가 아직 서버에서 확정되지 않은
     //    (또는 오프라인 캐시에 null로 남아있는) 문서를 조용히 결과에서 빼버릴 수 있어서,
@@ -20940,15 +20962,17 @@ async function loadAccessoryRecords() {
       .collection('users')
       .doc(user.uid)
       .collection('accessoryRecords')
-      .where('date', '>=', getRecordsInitialWindowStartDateStr())
-      .get().then(snap => privateSnapshot(snap, "accessoryRecords", user.uid));
+      .where('date', '>=', windowStart)
+      .get({source:'server'}).then(snap => privateSnapshot(snap, "accessoryRecords", user.uid));
 
+    if(auth.currentUser?.uid!==uid || appSync.account.owner!==uid || accountDeletionBusy)throw Error('Account changed');
     // 🔥 여기서 accRecordsByExercise를 통째로 교체하면, "이전 기록 더 보기"
     //    스크롤로 이미 병합해둔 과거(3개월 밖) 기록이 기록 탭 재진입마다 날아가고,
     //    exerciseHistoryFullyLoaded 플래그는 true로 남아있어 다시는 재조회도 안 되는
     //    버그가 있었다 — 종목별로 기존 배열에 dedupe 병합하는 방식으로 변경.
+    const receivedIds=new Set(snap.docs.map(doc=>doc.id));
     for (const name of Object.keys(accRecordsByExercise)) {
-      accRecordsByExercise[name] = accRecordsByExercise[name].filter(r => !appSync.outbox.read(user.uid).deleted[`accessoryRecords/${r.id}`]);
+      accRecordsByExercise[name] = accRecordsByExercise[name].filter(r => !appSync.outbox.read(uid).deleted[`accessoryRecords/${r.id}`] && (r.date<windowStart || !r.id || String(r.id).startsWith('local_') || receivedIds.has(r.id) || Number(r.createdAt)>=startedAt || r._sortMs>=startedAt));
     }
     snap.forEach(doc => {
       const d = doc.data();
@@ -20975,7 +20999,7 @@ async function loadAccessoryRecords() {
   } catch (e) {
     // 🔥 여기서 실패해도 로그인 흐름의 나머지(내 정보/식단/루틴 로드 등)가
     //    전부 멈추지 않도록 여기서 막고 로그만 남김
-    console.error("보조운동 기록 불러오기 실패", e);
+    throw e;
   }
 }
 
@@ -21208,11 +21232,14 @@ armClassifyModal.addEventListener('click', (e) => {
 let exerciseLoadSequence=0;
 const exerciseListReads=new Map();
 function readExerciseList(uid,part){
+  return readCache.run(uid,'exerciseList:'+part,()=>fetchExerciseList(uid,part),{reuse:()=>loadAccListFromLocal(part),hasLocal:()=>lsGet(LS_KEYS.accessoriesList(part),null)!==null});
+}
+function fetchExerciseList(uid,part){
   const key=uid+':'+part;
   if(exerciseListReads.has(key))return exerciseListReads.get(key);
-  const task=db.collection('users').doc(uid).collection('accessories').doc(part).get()
+  const task=db.collection('users').doc(uid).collection('accessories').doc(part).get({source:'server'})
     .then(snap=>{
-      if(appSync.account.owner!==uid)return [];
+      if(appSync.account.owner!==uid || accountDeletionBusy)throw Error('Account changed');
       const doc=privateSnapshot(snap,"accessories",uid,part);
       const list=(doc.exists?(doc.data().list||[]):[]).filter(x=>typeof x==='string' && x.trim());
       saveAccListToLocal(part,list);
@@ -21232,7 +21259,7 @@ async function loadExercises(part,opts){
   const user=auth.currentUser;
   const target=opts?.listElId?document.getElementById(opts.listElId):exerciseListEl;
   const isCurrent=()=>sequence===exerciseLoadSequence && currentPart===part && owner===appSync.account.owner;
-  if(!isCurrent())return;
+  if(!isCurrent() || (user && user.uid!==owner))return;
   const cached=lsGet(LS_KEYS.accessoriesList(part),null);
   exerciseLoadingPart=user && cached===null ? part : null;
   currentExercises=(cached||[]).filter(x=>typeof x==='string' && x.trim());
@@ -22091,6 +22118,14 @@ function refreshGoogleLoginOnReturn(event){
 }
 window.addEventListener('pageshow',refreshGoogleLoginOnReturn);
 window.addEventListener('focus',refreshGoogleLoginOnReturn);
+function refreshVisibleRecordData(){
+  if(auth.currentUser && !accountDeletionBusy && currentActiveTabTarget()==='tab4'){
+    loadAccessoryRecords();if(currentPart)loadExercises(currentPart);
+  }
+}
+window.addEventListener('focus',refreshVisibleRecordData);
+window.addEventListener('online',refreshVisibleRecordData);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshVisibleRecordData();});
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshGoogleLoginOnReturn();});
 function renderGoogleLoginState(state){
   const busy=state.status==='pending' || state.status==='slow';
