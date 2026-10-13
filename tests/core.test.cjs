@@ -30,7 +30,7 @@ test('deletion replaces unsent creation and tombstones filter stale server snaps
 test('in-flight acknowledgement cannot erase a newer delete',async()=>{
  let release;const storage=new Storage(),sent=[];
  const box=createOutbox({storage,currentUid:()=> 'a',send:async(u,op)=>{sent.push(op);if(sent.length===1)await new Promise(r=>release=r);}});
- box.enqueue('a','records','x',{reps:5});box.enqueue('a','records','x',null);release();await tick();await box.flush();
+ box.enqueue('a','records','x',{reps:5});await tick();box.enqueue('a','records','x',null);release();await tick();await box.flush();
  assert.equal(sent.length,2);assert.equal(sent[1].data,null);assert.equal(Object.keys(box.read('a').ops).length,0);
 });
 test('merge updates preserve fields of a pending full creation',()=>{
@@ -93,4 +93,15 @@ test('exercise rename keeps pending set fields and updates stale server document
  const box=createOutbox({storage:new Storage(),currentUid:()=>null,send:async()=>{}});
  box.enqueue('a','accessoryRecords','x',{exercise:'old',weight:20,reps:10});box.enqueue('a','accessoryRecords','query-rename',{exercise:'new'},{matchExercise:'old'});
  const docs=box.overlay('a','accessoryRecords',[{id:'server',data:{exercise:'old',reps:2}}]);assert.ok(docs.every(d=>d.data.exercise==='new'));assert.equal(docs.find(d=>d.id==='x').data.reps,10);
+});
+test('durable client sequence sends an older different record before a replaced first entry',async()=>{
+ const storage=new Storage(),sent=[];let online=false;
+ const box=createOutbox({storage,currentUid:()=> 'a',online:()=>online,send:async(_,op)=>sent.push({...op})});
+ box.enqueue('a','records','first',{reps:1});box.enqueue('a','records','second',{reps:2});box.enqueue('a','records','first',{reps:3});
+ online=true;await box.flush();assert.deepEqual(sent.map(x=>x.id),['second','first']);assert.ok(sent[0].clientSeq<sent[1].clientSeq);assert.equal(sent[0].clientId,sent[1].clientId);
+});
+test('legacy queued operations gain durable identity once and preserve it across retry/restart',async()=>{
+ const storage=new Storage();storage.setItem('mf_account_v2:a:outbox',JSON.stringify({ops:{'records/old':{collection:'records',id:'old',data:{reps:5},revision:'old-revision'}},deleted:{}}));
+ const sent=[];const box=createOutbox({storage,currentUid:()=> 'a',send:async(_,op)=>{sent.push({...op});throw Error('network');}});await box.flush();
+ const restarted=createOutbox({storage,currentUid:()=> 'a',send:async(_,op)=>sent.push({...op})});await restarted.flush();assert.equal(sent[0].clientId,sent[1].clientId);assert.equal(sent[0].clientSeq,sent[1].clientSeq);assert.equal(sent[1].revision,'old-revision');
 });
