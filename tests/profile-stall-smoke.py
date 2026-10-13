@@ -11,7 +11,7 @@ fixture=fixture.replace('  window.fixture={',"  store.set('users/alice/profile/s
 with sync_playwright() as p:
  b=p.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox'])
  c=b.new_context(viewport={'width':390,'height':844},is_mobile=True,user_agent='Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148')
- c.add_init_script("Object.defineProperty(navigator,'standalone',{value:true});localStorage.setItem('fixture_uid','alice');localStorage.setItem('mf_data_owner_v2','alice');localStorage.setItem('mf_legacy_migrated_v2','1');localStorage.setItem('mf_login_diagnostic_enabled','1');")
+ c.add_init_script("Object.defineProperty(navigator,'standalone',{value:true});localStorage.setItem('fixture_uid','alice');localStorage.setItem('mf_data_owner_v2','alice');localStorage.setItem('mf_legacy_migrated_v2','1');")
  rest=[]
  def route(r):
   if r.request.url.startswith('https://firestore.googleapis.com/v1/'):
@@ -29,8 +29,6 @@ with sync_playwright() as p:
  assert page.locator('#settingsHeaderName').inner_text()=='Recovered athlete님'
  assert len(rest)==1
  assert page.evaluate("fixture.calls.filter(x=>x.path==='users/alice/profile/spec').length")==1
- assert 'firestore_direct' in page.evaluate('loginDiagnostic.report()')
- assert 'profile_rest_received' in page.evaluate('loginDiagnostic.report()')
  page.evaluate('releaseStalledProfile()');page.wait_for_timeout(150)
  assert page.locator('#settingsHeaderName').inner_text()=='Recovered athlete님'
  assert page.locator('#specName').input_value()=='Recovered athlete'

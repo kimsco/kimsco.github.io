@@ -8501,7 +8501,7 @@ html.light-mode-on .my-routine-group-box {
 .mf-workout-controls label { display:flex; align-items:center; gap:5px; white-space:nowrap; }
 .mf-workout-controls input { width:auto; margin:0; }
 
-#loginDiagnosticCopy[hidden], #loginDiagnosticReport[hidden], #googleLoginStatus[hidden] { display:none !important; }
+#googleLoginStatus[hidden] { display:none !important; }
 #loginSheetGoogleBtn:disabled { opacity:.6; cursor:wait; }
 </style>
 </head>
@@ -10641,9 +10641,6 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
          리로드 중 잠깐 엉뚱한 버전이 보였음. 채워지기 전까지는 빈칸이 맞음 -->
     <span style="color:var(--c-text-tertiary); font-size:14px;" id="appVersionDisplay"></span>
   </div>
-  <button type="button" id="loginDiagnosticToggle" class="settings-item">로그인 진단: OFF</button>
-  <button type="button" id="loginDiagnosticCopy" class="settings-item" hidden>로그인 진단 결과 복사</button>
-  <textarea id="loginDiagnosticReport" readonly hidden aria-label="로그인 진단 결과" style="width:100%;height:180px;font-size:11px;"></textarea>
 </div>
 
 <!-- ✅ 하단 로그아웃/회원탈퇴 (카드 밖, 텍스트 링크)
@@ -10978,16 +10975,15 @@ MuscleFlow는 개인의 운동 및 식단 기록을 관리하는 PWA 서비스�
 <script src="https://www.gstatic.com/firebasejs/13.0.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/13.0.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore-compat.js"></script>
-<script src="/js/sync.js?v=1.0.20"></script>
-<script src="/js/last-workout.js?v=1.0.20"></script>
-<script src="/js/app-sync.js?v=1.0.20"></script>
-<script src="/js/rest-stopwatch.js?v=1.0.20"></script>
-<script src="/js/rest-timer-motion.js?v=1.0.20"></script>
-<script src="/js/workout-summary.js?v=1.0.20"></script>
-<script src="/js/firestore-runtime.js?v=1.0.20"></script>
-<script src="/js/profile-loader.js?v=1.0.20"></script>
-<script src="/js/google-login.js?v=1.0.20"></script>
-<script src="/js/login-diagnostic.js?v=1.0.20"></script>
+<script src="/js/sync.js?v=1.0.25"></script>
+<script src="/js/last-workout.js?v=1.0.25"></script>
+<script src="/js/app-sync.js?v=1.0.25"></script>
+<script src="/js/rest-stopwatch.js?v=1.0.25"></script>
+<script src="/js/rest-timer-motion.js?v=1.0.25"></script>
+<script src="/js/workout-summary.js?v=1.0.25"></script>
+<script src="/js/firestore-runtime.js?v=1.0.25"></script>
+<script src="/js/profile-loader.js?v=1.0.25"></script>
+<script src="/js/google-login.js?v=1.0.25"></script>
 
 <script>
    
@@ -11006,10 +11002,10 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
-const loginDiagnostic=MFLoginDiagnostic.create({storage:localStorage,version:'1.0.20'});
+try{localStorage.removeItem('mf_login_diagnostic_enabled');localStorage.removeItem('mf_login_diagnostic_v1');}catch(e){}
 let googleLoginPollTimer=null;
 const googleLoginFlow=MFGoogleLogin.create({auth,provider:()=>new firebase.auth.GoogleAuthProvider(),
-  onDiagnostic:(stage,detail)=>loginDiagnostic.mark(stage,detail),onState:renderGoogleLoginState,onSignedIn:user=>handleAuthSession(user).catch(e=>console.error('계정 상태 반영 실패',e))});
+  onState:renderGoogleLoginState,onSignedIn:user=>handleAuthSession(user).catch(e=>console.error('계정 상태 반영 실패',e))});
 
 
 const appSync = MFAppSync.install({db, auth, firebase, storage: localStorage, onStatus: renderSyncStatus});
@@ -11053,7 +11049,7 @@ function privateSnapshot(snap, collection, uid, id){ return appSync.snapshot(sna
    - 네트워크 없을 때 저장한 내용도 기기에 큐로 쌓아두고,
      인터넷 재연결되면 자동으로 Firestore에 반영됨
    - 실패하더라도(여러 탭 동시 사용, 미지원 브라우저 등) 기존 기능엔 전혀 영향 없음 */
-MFFirestoreRuntime.configure({db,nav:navigator,onStage:stage=>loginDiagnostic.mark(stage)});
+MFFirestoreRuntime.configure({db,nav:navigator});
 
 let currentExercises = [];
 /* 요소 참조 */
@@ -12719,24 +12715,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.24";
-function renderLoginDiagnosticControls(){
-  const on=loginDiagnostic.enabled();
-  document.getElementById('loginDiagnosticToggle').textContent='로그인 진단: '+(on?'ON':'OFF');
-  document.getElementById('loginDiagnosticCopy').hidden=!on;
-  if(!on)document.getElementById('loginDiagnosticReport').hidden=true;
-}
-renderLoginDiagnosticControls();
-document.getElementById('loginDiagnosticToggle').addEventListener('click',()=>{
-  try{loginDiagnostic.toggle();renderLoginDiagnosticControls();}catch(e){document.getElementById('loginDiagnosticToggle').textContent='진단 설정 저장 실패';}
-});
-document.getElementById('loginDiagnosticCopy').addEventListener('click',async()=>{
-  const report=loginDiagnostic.report(),field=document.getElementById('loginDiagnosticReport');
-  field.value=report;field.hidden=false;
-  try{await navigator.clipboard.writeText(report);document.getElementById('loginDiagnosticCopy').textContent='복사 완료';}
-  catch(e){field.focus();field.select();document.getElementById('loginDiagnosticCopy').textContent='아래 결과를 선택해서 복사해주세요';}
-});
-
+const APP_VERSION = "1.0.25";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -12874,14 +12853,14 @@ let profileLoadState='idle';
 let handledAuthUid;
 async function handleAuthSession(user){
   const uid=user?.uid || null;
-  loginDiagnostic.mark('session_apply',{hasUser:Boolean(user),repeated:handledAuthUid===uid});
+
   if(handledAuthUid===uid)return;
   if (accountDeletionBusy) return;
   handledAuthUid=uid;
   googleLoginFlow.observe(user);
   if(user)closeLoginSheet();
   if (appSync.account.select(user?.uid, user?.email)) {
-    loginDiagnostic.mark('account_reload',{hasUser:Boolean(user)});
+
     if(user){
       // The confirmed login needs one account-scoped reload, not another launch animation.
       try {
@@ -12917,7 +12896,7 @@ async function handleAuthSession(user){
 
   // ✅ (B) 설정 패널 UI 갱신 (이걸 여기 넣는 게 포인트)
   renderSettingsIdentity(!!user);
-  loginDiagnostic.mark('identity_rendered',{hasUser:Boolean(user)});
+
 
 
 
@@ -12953,7 +12932,7 @@ async function handleAuthSession(user){
 
     // 🔥 서버 응답을 기다리기 전에 로컬 캐시로 먼저 화면을 그려서 체감 딜레이를 없앰
     //    (아래 Firestore 조회들이 끝나는 대로 최신값으로 자연스럽게 덮어써짐)
-    loginDiagnostic.mark('data_local_start');
+
     loadAllFromLocal();
     checkInactivityOverlay(); // 🔥 로컬 캐시 기준으로 3일 이상 미기록 판정 후 필요시 전면 안내 페이지 노출
     loadBodyweightRoutineRecords(); // 🔥 맨몸운동 화면을 아직 한 번도 안 열었어도 월간 운동률 집계에 잡히도록 미리 로드
@@ -12966,8 +12945,8 @@ async function handleAuthSession(user){
     scheduleLoadedViews();
     renderSettingsIdentity(true);
 
-    loginDiagnostic.mark('data_local_ready');
-    loginDiagnostic.mark(isFullSyncFresh(user.uid)?'data_cache_used':'data_server_start');
+
+
     if (isFullSyncFresh(user.uid)) {
       // 🔥 Firestore 읽기 절약: 최근(FULL_SYNC_STALE_MS 이내)에 이미 전체를 받아온 적
       //    있으면 재조회하지 않고 방금 로컬 캐시로 채운 화면을 그대로 사용한다.
@@ -13076,7 +13055,7 @@ async function handleAuthSession(user){
       ];
       // Independent reads must not delay profile/home updates behind record history.
       const initialResults=await Promise.allSettled(initialLoads);
-      loginDiagnostic.mark('data_server_done');
+
 
       // 🔥 기록탭: 로그인 상태가 확정된 후에 기본 부위(가슴) 로드 (레이스 컨디션 방지)
       await initialExerciseLoad;
@@ -13107,7 +13086,7 @@ async function handleAuthSession(user){
   renderDateAgendaPanel();
   renderHomeTab();
 }
-auth.onAuthStateChanged(user=>{loginDiagnostic.mark('auth_state',{hasUser:Boolean(user)});handleAuthSession(user).catch(e=>{loginDiagnostic.mark('session_error');console.error('계정 상태 반영 실패',e);});});
+auth.onAuthStateChanged(user=>{handleAuthSession(user).catch(e=>{console.error('계정 상태 반영 실패',e);});});
 
 
 
@@ -22105,7 +22084,6 @@ document.body.appendChild(logoutModal);
 // ✅ 구글 로그인 함수 (게스트에서도 동작)
 // 로그인 시 개인정보처리방침/이용약관에 동의한 것으로 간주(로그인 버튼 아래 안내 문구 참고)
 function refreshGoogleLoginOnReturn(event){
-  if(event)loginDiagnostic.mark('app_return',{hasUser:Boolean(auth.currentUser),busy:googleLoginFlow.busy});
   if(auth.currentUser && !accountDeletionBusy){
     googleLoginFlow.observe(auth.currentUser);
     handleAuthSession(auth.currentUser).catch(e=>console.error('계정 상태 반영 실패',e));
@@ -22113,7 +22091,7 @@ function refreshGoogleLoginOnReturn(event){
 }
 window.addEventListener('pageshow',refreshGoogleLoginOnReturn);
 window.addEventListener('focus',refreshGoogleLoginOnReturn);
-document.addEventListener('visibilitychange',()=>{loginDiagnostic.mark('visibility',{hidden:document.hidden,busy:googleLoginFlow.busy,hasUser:Boolean(auth.currentUser)});if(!document.hidden)refreshGoogleLoginOnReturn();});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshGoogleLoginOnReturn();});
 function renderGoogleLoginState(state){
   const busy=state.status==='pending' || state.status==='slow';
   for(const id of ['googleLoginBtn','loginSheetGoogleBtn']){
@@ -23080,14 +23058,13 @@ function loadUserSpecFromFirestore(uid){
       if(attempt>0)return MFFirestoreRuntime.readProfile({
         auth,projectId:firebaseConfig.projectId,owner,
         timestamp:value=>firebase.firestore.Timestamp.fromMillis(Date.parse(value)),
-        onStage:stage=>loginDiagnostic.mark(stage)
       }).then(snap=>privateSnapshot(snap,"profile",owner,"spec"));
-      loginDiagnostic.mark('profile_read_start');
+
       return db.collection("users").doc(owner).collection("profile").doc("spec")
         .get({source:'server'}).then(snap=>privateSnapshot(snap,"profile",owner,"spec"));
     },
     apply:(doc,owner)=>{
-      loginDiagnostic.mark(doc.exists?'profile_read_found':'profile_read_empty');
+
       if(doc.exists)userSpec={...userSpec,...doc.data()};
       saveUserSpecToLocal();
       lsSet("mf_profile_verified_v1",true);
@@ -23096,7 +23073,7 @@ function loadUserSpecFromFirestore(uid){
     onState:(state,owner)=>{
       if(owner!==appSync.account.owner)return;
       profileLoadState=state;
-      loginDiagnostic.mark('profile_'+state);
+
       renderSettingsIdentity(Boolean(auth.currentUser));
     }
   });
