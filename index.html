@@ -10975,16 +10975,17 @@ MuscleFlow는 개인의 운동 및 식단 기록을 관리하는 PWA 서비스�
 <script src="https://www.gstatic.com/firebasejs/13.0.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/13.0.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore-compat.js"></script>
-<script src="/js/sync.js?v=1.0.29"></script>
-<script src="/js/last-workout.js?v=1.0.29"></script>
-<script src="/js/read-cache.js?v=1.0.29"></script>
-<script src="/js/app-sync.js?v=1.0.29"></script>
-<script src="/js/rest-stopwatch.js?v=1.0.29"></script>
-<script src="/js/rest-timer-motion.js?v=1.0.29"></script>
-<script src="/js/workout-summary.js?v=1.0.29"></script>
-<script src="/js/firestore-runtime.js?v=1.0.29"></script>
-<script src="/js/profile-loader.js?v=1.0.29"></script>
-<script src="/js/google-login.js?v=1.0.29"></script>
+<script src="/js/sync.js?v=1.0.30"></script>
+<script src="/js/last-workout.js?v=1.0.30"></script>
+<script src="/js/read-cache.js?v=1.0.30"></script>
+<script src="/js/history-pages.js?v=1.0.30"></script>
+<script src="/js/app-sync.js?v=1.0.30"></script>
+<script src="/js/rest-stopwatch.js?v=1.0.30"></script>
+<script src="/js/rest-timer-motion.js?v=1.0.30"></script>
+<script src="/js/workout-summary.js?v=1.0.30"></script>
+<script src="/js/firestore-runtime.js?v=1.0.30"></script>
+<script src="/js/profile-loader.js?v=1.0.30"></script>
+<script src="/js/google-login.js?v=1.0.30"></script>
 
 <script>
    
@@ -12056,13 +12057,24 @@ function setupRecordInfiniteScroll(containerEl, totalUnits, visibleUnits, hasMor
   sentinel.innerHTML = `<div class="record-loading-spinner"></div>`;
   containerEl.appendChild(sentinel);
 
+  function fetchRemote(){
+    sentinel.innerHTML='<div class="record-loading-spinner"></div>';
+    Promise.resolve().then(onFetchRemote).catch(error=>{
+      console.warn('이전 기록 조회 실패',error);
+      sentinel.innerHTML='';
+      const button=document.createElement('button');button.type='button';
+      button.textContent='이전 기록을 불러오지 못했어요 · 다시 시도';
+      button.style.cssText='background:transparent;color:var(--c-text-secondary);border:0;padding:12px;';
+      button.onclick=fetchRemote;sentinel.appendChild(button);
+    });
+  }
   const observer = new IntersectionObserver((entries) => {
     if (!entries[0].isIntersecting) return;
     observer.disconnect();
     if (hasMoreLocal) {
       setTimeout(onLoadMoreLocal, 300); // 로컬 전용 페이지도 스피너가 잠깐 보이도록
     } else {
-      onFetchRemote();
+      fetchRemote();
     }
   }, { root: containerEl, rootMargin: '80px' });
 
@@ -12123,12 +12135,12 @@ function renderAccessoryRecords(exerciseName, opts) {
     // 🔥 최근 창(로컬 캐시) 안에 기록이 없어도 과거에 기록이 있을 수 있어(ensureExerciseHistory가
     //    자동으로 확인함) — 그 확인이 끝나기 전엔 "기록이 여기에 쌓입니다"(진짜로 없다는 뜻)를
     //    띄우지 않고, 로딩 스피너(아래 setupRecordInfiniteScroll이 붙여줌)만 보여줌.
-    el.innerHTML = exerciseHistoryFullyLoaded.has(exerciseName)
+    el.innerHTML = historyPages.done('accessory',exerciseName)
       ? `<div style="color:var(--c-text-secondary);font-size:13px;">기록이 여기에 쌓입니다</div>`
       : '';
-    setupRecordInfiniteScroll(el, 0, 0, !exerciseHistoryFullyLoaded.has(exerciseName),
+    setupRecordInfiniteScroll(el, 0, 0, !historyPages.done('accessory',exerciseName),
       () => {},
-      async () => { await ensureExerciseHistory(exerciseName); renderAccessoryRecords(exerciseName, opts); }
+      async () => { await historyPages.next('accessory',exerciseName,getRecordsInitialWindowStartDateStr()); renderAccessoryRecords(exerciseName, opts); }
     );
     return;
   }
@@ -12157,13 +12169,13 @@ function renderAccessoryRecords(exerciseName, opts) {
     `;
   });
 
-  setupRecordInfiniteScroll(el, totalDays, visibleDays, !exerciseHistoryFullyLoaded.has(exerciseName),
+  setupRecordInfiniteScroll(el, totalDays, visibleDays, !historyPages.done('accessory',exerciseName),
     () => {
       accessoryDaysVisible.set(exerciseName, visibleDays + RECORD_DAYS_PER_PAGE_ACCESSORY);
       renderAccessoryRecords(exerciseName, opts);
     },
     async () => {
-      const added = await ensureExerciseHistory(exerciseName);
+      const added = await historyPages.next('accessory',exerciseName,getRecordsInitialWindowStartDateStr());
       if (added) accessoryDaysVisible.set(exerciseName, visibleDays + RECORD_DAYS_PER_PAGE_ACCESSORY);
       renderAccessoryRecords(exerciseName, opts);
     }
@@ -12532,6 +12544,42 @@ async function fetch_ensureFullLiftHistory(liftKey){
   }
 }
 
+const historyPages=MFHistoryPages.create({
+ storage:localStorage,currentUid:()=>appSync.outbox.isDeleting(auth.currentUser?.uid)?null:auth.currentUser?.uid,
+ hasLocal:(kind,name)=>Array.isArray(lsGet(kind==='lift'?LS_KEYS.records:LS_KEYS.accessoryRecords,null)?.[name]),
+ fullFresh:(uid,kind,name)=>{
+   const data=lsGet(kind==='lift'?LS_KEYS.records:LS_KEYS.accessoryRecords,null);
+   const at=Number(localStorage.getItem('mf_account_v2:'+uid+':read_fresh:'+(kind==='lift'?'liftHistory:':'exerciseHistory:')+name));
+   return Array.isArray(data?.[name]) && at>0 && Date.now()>=at && Date.now()-at<HISTORY_CACHE_TTL_MS;
+ },
+ query:async(uid,kind,name,{before,cursor,limit})=>{
+   const collection=kind==='lift'?'records':'accessoryRecords';
+   let q=db.collection('users').doc(uid).collection(collection)
+    .where(kind==='lift'?'lift':'exercise','==',name).where('date','<',before)
+    .orderBy('date','desc').orderBy(firebase.firestore.FieldPath.documentId(),'desc').limit(limit);
+   if(cursor)q=q.startAfter(cursor.date,cursor.id);
+   const snap=await q.get({source:'server'});readCache.noteSnapshot(snap);return snap;
+ },
+ apply:(uid,kind,name,snap,range)=>{
+   if(auth.currentUser?.uid!==uid || appSync.account.owner!==uid || accountDeletionBusy)throw Error('Account changed');
+   const collection=kind==='lift'?'records':'accessoryRecords';
+   const rows=privateSnapshot(snap,collection,uid).docs.filter(doc=>doc.data()[kind==='lift'?'lift':'exercise']===name);
+   const source=kind==='lift'?records[name] || []:accRecordsByExercise[name] || [];
+   const original=JSON.stringify(source);const idOf=row=>kind==='lift'?row.firestoreId:row.id;
+   const last=snap.docs.at(-1);const end=last?{date:last.data().date,id:last.id}:null;
+   const compare=(date,id,bound)=>date.localeCompare(bound.date) || id.localeCompare(bound.id);
+   const covered=row=>row.date<range.before && (!range.cursor || compare(row.date,idOf(row),range.cursor)<0) && (range.exhausted || end && compare(row.date,idOf(row),end)>=0);
+   const received=new Set(rows.map(doc=>doc.id));
+   const kept=source.filter(row=>!idOf(row) || String(idOf(row)).startsWith('local_') || !covered(row) || !received.has(idOf(row)) && Number(row.createdAt)>=range.startedAt);
+   const byId=new Map(kept.map(row=>[idOf(row),row]));
+   for(const doc of rows){const d=doc.data(),ms=d.createdAt?.toMillis?.() || Number(d.createdAt) || 0;
+    byId.set(doc.id,kind==='lift'?{...d,firestoreId:doc.id,sets:1,createdAt:ms,firstAt:ms,lastAt:ms,updatedAt:ms}:{...d,id:doc.id,createdAt:ms,_sortMs:ms});}
+   if(kind==='lift'){records[name]=Array.from(byId.values());saveRecordsToLocal();}
+   else{accRecordsByExercise[name]=Array.from(byId.values());saveAccRecordsToLocal();}
+   return original!==JSON.stringify(kind==='lift'?records[name]:accRecordsByExercise[name]);
+ }
+});
+
 // 초기 날짜 표시
 recordDate.value = formatTodayYYMMDD();
 
@@ -12600,12 +12648,12 @@ function renderActiveBox(){
         // 🔥 최근 30일 안에 기록이 없어도 과거에 기록이 있을 수 있어(ensureFullLiftHistory가
         //    자동으로 확인함) — 그 확인이 끝나기 전엔 "기록이 여기에 쌓입니다"(진짜로 없다는 뜻)를
         //    띄우지 않고, 로딩 스피너(아래 setupRecordInfiniteScroll이 붙여줌)만 보여줌.
-        boxEl.innerHTML = liftFullHistoryLoaded[liftKey]
+        boxEl.innerHTML = historyPages.done('lift',liftKey)
             ? `<div style="color:var(--c-text-secondary);font-size:13px;">기록이 여기에 쌓입니다</div>`
             : '';
-        setupRecordInfiniteScroll(boxEl, 0, 0, !liftFullHistoryLoaded[liftKey],
+        setupRecordInfiniteScroll(boxEl, 0, 0, !historyPages.done('lift',liftKey),
             () => {},
-            async () => { await ensureFullLiftHistory(liftKey); renderActiveBox(); }
+            async () => { await historyPages.next('lift',liftKey,getRecordsInitialWindowStartDateStr()); renderActiveBox(); }
         );
         return;
     }
@@ -12640,13 +12688,13 @@ function renderActiveBox(){
         `;
     });
 
-    setupRecordInfiniteScroll(boxEl, totalDays, visibleDays, !liftFullHistoryLoaded[liftKey],
+    setupRecordInfiniteScroll(boxEl, totalDays, visibleDays, !historyPages.done('lift',liftKey),
         () => {
             liftDaysVisible[liftKey] = visibleDays + RECORD_DAYS_PER_PAGE_LIFT;
             renderActiveBox();
         },
         async () => {
-            const added = await ensureFullLiftHistory(liftKey);
+            const added = await historyPages.next('lift',liftKey,getRecordsInitialWindowStartDateStr());
             if (added) liftDaysVisible[liftKey] = visibleDays + RECORD_DAYS_PER_PAGE_LIFT;
             renderActiveBox();
         }
@@ -12727,7 +12775,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.29";
+const APP_VERSION = "1.0.30";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;

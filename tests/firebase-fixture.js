@@ -7,8 +7,18 @@
   function ref(path){return {path,id:path.split('/').at(-1),collection:n=>query(path+'/'+n),get:async(options)=>{calls.push({path,type:'get',source:options?.source});if(options?.source==='server'&&(!online||denied))throw Error('fixture unavailable');return docSnap(path,store.get(path));},
     set:async(data,opts)=>{calls.push({path,type:'set'});if(!online||denied)throw Error('fixture unavailable');store.set(path,opts?.merge?{...store.get(path),...data}:data);},
     delete:async()=>{calls.push({path,type:'delete'});if(!online||denied)throw Error('fixture unavailable');store.delete(path);}};}
-  function query(path,filters=[],maximum=Infinity){return {doc:id=>ref(path+'/'+id),where:(field,op,value)=>query(path,[...filters,[field,op,value]]),orderBy:()=>query(path,filters),limit:n=>query(path,filters,n),
-    get:async(options)=>{calls.push({path,type:'query',source:options?.source,filters});if(options?.source==='server'&&(!online||denied))throw Error('fixture unavailable');const docs=[...store].filter(([key,data])=>key.startsWith(path+'/')&&key.split('/').length===path.split('/').length+1&&filters.every(([field,op,value])=>{const v=field==='__id__'?key.split('/').at(-1):data[field];return op==='=='?v===value:op==='>='?v>=value:op==='<='?v<=value:op==='<'?v<value:true;})).slice(0,maximum).map(([key,data])=>docSnap(key,data));return {docs,empty:!docs.length,forEach:fn=>docs.forEach(fn)};}};}
+  function query(path,filters=[],maximum=Infinity,orders=[],cursor=null){
+    const build=(f=filters,m=maximum,o=orders,c=cursor)=>query(path,f,m,o,c);
+    const value=(key,data,field)=>field==='__id__'?key.split('/').at(-1):data[field];
+    const compare=(entry,bounds)=>{for(let i=0;i<orders.length;i++){const [field,dir]=orders[i],v=value(...entry,field),b=bounds[i];if(v!==b)return (v<b?-1:1)*(dir==='desc'?-1:1);}return 0;};
+    return {doc:id=>ref(path+'/'+id),where:(field,op,v)=>build([...filters,[field,op,v]]),orderBy:(field,dir='asc')=>build(filters,maximum,[...orders,[field,dir]]),limit:n=>build(filters,n),startAfter:(...v)=>build(filters,maximum,orders,v),
+    get:async(options)=>{calls.push({path,type:'query',source:options?.source,filters,maximum,orders});if(options?.source==='server'&&(!online||denied))throw Error('fixture unavailable');
+      let entries=[...store].filter(([key,data])=>key.startsWith(path+'/')&&key.split('/').length===path.split('/').length+1&&filters.every(([field,op,v])=>{const x=value(key,data,field);return op==='=='?x===v:op==='>='?x>=v:op==='<='?x<=v:op==='<'?x<v:op==='>'?x>v:true;}));
+      if(orders.length)entries.sort((a,b)=>compare(a,orders.map(([f])=>value(...b,f))));
+      if(cursor)entries=entries.filter(e=>compare(e,cursor)>0);
+      const docs=entries.slice(0,maximum).map(([key,data])=>docSnap(key,data));return {docs,empty:!docs.length,forEach:fn=>docs.forEach(fn)};
+    }};
+  }
   const db={settings:options=>calls.push({type:'settings',options}),collection:n=>query(n),enablePersistence:async()=>{},waitForPendingWrites:async()=>{},batch:()=>{const ops=[];return {delete:r=>ops.push(()=>r.delete()),update:(r,d)=>ops.push(()=>r.set(d,{merge:true})),commit:async()=>{for(const op of ops)await op();}};}};
   let transactions=Promise.resolve();
   db.runTransaction=fn=>{
