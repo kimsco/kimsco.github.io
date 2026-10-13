@@ -1,0 +1,7 @@
+{
+  "indexes": [
+    {"collectionGroup":"records","queryScope":"COLLECTION","fields":[{"fieldPath":"lift","order":"ASCENDING"},{"fieldPath":"date","order":"DESCENDING"},{"fieldPath":"__name__","order":"DESCENDING"}]},
+    {"collectionGroup":"accessoryRecords","queryScope":"COLLECTION","fields":[{"fieldPath":"exercise","order":"ASCENDING"},{"fieldPath":"date","order":"DESCENDING"},{"fieldPath":"__name__","order":"DESCENDING"}]}
+  ],
+  "fieldOverrides": []
+}
