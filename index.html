@@ -10975,16 +10975,16 @@ MuscleFlow는 개인의 운동 및 식단 기록을 관리하는 PWA 서비스�
 <script src="https://www.gstatic.com/firebasejs/13.0.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/13.0.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore-compat.js"></script>
-<script src="/js/sync.js?v=1.0.28"></script>
-<script src="/js/last-workout.js?v=1.0.28"></script>
-<script src="/js/read-cache.js?v=1.0.28"></script>
-<script src="/js/app-sync.js?v=1.0.28"></script>
-<script src="/js/rest-stopwatch.js?v=1.0.28"></script>
-<script src="/js/rest-timer-motion.js?v=1.0.28"></script>
-<script src="/js/workout-summary.js?v=1.0.28"></script>
-<script src="/js/firestore-runtime.js?v=1.0.28"></script>
-<script src="/js/profile-loader.js?v=1.0.28"></script>
-<script src="/js/google-login.js?v=1.0.28"></script>
+<script src="/js/sync.js?v=1.0.29"></script>
+<script src="/js/last-workout.js?v=1.0.29"></script>
+<script src="/js/read-cache.js?v=1.0.29"></script>
+<script src="/js/app-sync.js?v=1.0.29"></script>
+<script src="/js/rest-stopwatch.js?v=1.0.29"></script>
+<script src="/js/rest-timer-motion.js?v=1.0.29"></script>
+<script src="/js/workout-summary.js?v=1.0.29"></script>
+<script src="/js/firestore-runtime.js?v=1.0.29"></script>
+<script src="/js/profile-loader.js?v=1.0.29"></script>
+<script src="/js/google-login.js?v=1.0.29"></script>
 
 <script>
    
@@ -12466,6 +12466,7 @@ function getRecentWindowStartDateStr(baseDate = new Date()){
 //    ensureFullLiftHistory/ensureExerciseHistory가 그때 가서 전체를 온디맨드로 채워준다
 //    (이 함수들은 이미 날짜 제한 없이 전체를 받아오는 구조라 그대로 재사용 가능).
 const RECORDS_INITIAL_WINDOW_DAYS = 30;
+const HISTORY_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 function getRecordsInitialWindowStartDateStr(baseDate = new Date()){
   const d = new Date(baseDate);
   d.setDate(d.getDate() - RECORDS_INITIAL_WINDOW_DAYS);
@@ -12476,16 +12477,15 @@ function getRecordsInitialWindowStartDateStr(baseDate = new Date()){
 //    온디맨드로 추가 조회해서 병합한다 (리프트별로 한 번만).
 const liftFullHistoryLoaded = { bench: false, squat: false, dead: false, ohp: false };
 function ensureFullLiftHistory(liftKey){
- if(liftFullHistoryLoaded[liftKey])return Promise.resolve(false);
  const user=auth.currentUser;
  if(!user)return fetch_ensureFullLiftHistory(liftKey);
- return readCache.run(user.uid,'liftHistory:'+liftKey,()=>fetch_ensureFullLiftHistory(liftKey),{reuse:()=>false}).catch(e=>{console.error('과거 기록 조회 실패',e);return false;});
+ return readCache.run(user.uid,'liftHistory:'+liftKey,()=>fetch_ensureFullLiftHistory(liftKey),{ttlMs:HISTORY_CACHE_TTL_MS,reuse:()=>{liftFullHistoryLoaded[liftKey]=true;return false;},hasLocal:()=>Array.isArray(lsGet(LS_KEYS.records,null)?.[liftKey])}).catch(e=>{liftFullHistoryLoaded[liftKey]=false;console.error('과거 기록 조회 실패',e);return false;});
 }
 async function fetch_ensureFullLiftHistory(liftKey){
-  if (liftFullHistoryLoaded[liftKey]) return false;
   const user = auth.currentUser;
   if (!user) { liftFullHistoryLoaded[liftKey] = true; return false; }
 
+  const startedAt=Date.now();
   try {
     // 🔥 date까지 같이 필터링하면 서로 다른 필드에 대한 등호+범위 복합 쿼리가 되어
     //    Firestore 복합 색인이 없으면 조용히 실패한다 — lift 단일 필드로만 걸어
@@ -12499,10 +12499,12 @@ async function fetch_ensureFullLiftHistory(liftKey){
       .get().then(snap => privateSnapshot(snap, "records", user.uid));
 
     if(auth.currentUser?.uid!==user.uid || accountDeletionBusy)throw Error("Account changed");
-    const existingIds = new Set((records[liftKey] || []).map(r => r.firestoreId));
+    const previous=records[liftKey] || [];
+    const before=JSON.stringify(previous);
+    const received=new Set(snap.docs.map(doc=>doc.id));
+    records[liftKey]=previous.filter(row=>!row.firestoreId || (!received.has(row.firestoreId) && Number(row.createdAt)>=startedAt));
     let added = false;
     snap.forEach(doc => {
-      if (existingIds.has(doc.id)) return;
       const d = doc.data();
       if (d.lift !== liftKey) return;
       records[liftKey].push({
@@ -12520,8 +12522,9 @@ async function fetch_ensureFullLiftHistory(liftKey){
       added = true;
     });
 
+    added = before!==JSON.stringify(records[liftKey]);
+    saveRecordsToLocal();
     liftFullHistoryLoaded[liftKey] = true;
-    if (added) saveRecordsToLocal();
     return added;
   } catch (e) {
     console.error("과거 리프트 기록 추가 조회 실패", e);
@@ -12724,7 +12727,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.28";
+const APP_VERSION = "1.0.29";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -17117,16 +17120,15 @@ function getLastSetsForExercise(name){
 // 🔥 최근 창 안에 기록이 없는 종목만, 루틴 상세 화면 진입 시 온디맨드로 과거 기록을 추가 조회
 const exerciseHistoryFullyLoaded = new Set();
 function ensureExerciseHistory(name){
- if(exerciseHistoryFullyLoaded.has(name))return Promise.resolve(false);
  const user=auth.currentUser;
  if(!user)return fetch_ensureExerciseHistory(name);
- return readCache.run(user.uid,'exerciseHistory:'+name,()=>fetch_ensureExerciseHistory(name),{reuse:()=>false}).catch(e=>{console.error('과거 기록 조회 실패',e);return false;});
+ return readCache.run(user.uid,'exerciseHistory:'+name,()=>fetch_ensureExerciseHistory(name),{ttlMs:HISTORY_CACHE_TTL_MS,reuse:()=>{exerciseHistoryFullyLoaded.add(name);return false;},hasLocal:()=>Array.isArray(lsGet(LS_KEYS.accessoryRecords,null)?.[name])}).catch(e=>{exerciseHistoryFullyLoaded.delete(name);console.error('과거 기록 조회 실패',e);return false;});
 }
 async function fetch_ensureExerciseHistory(name){
-  if (exerciseHistoryFullyLoaded.has(name)) return false;
   const user = auth.currentUser;
   if (!user) { exerciseHistoryFullyLoaded.add(name); return false; }
 
+  const startedAt=Date.now();
   try {
     // 🔥 date까지 같이 필터링하면 복합 색인이 필요해 색인이 없으면 조용히 실패한다 —
     //    exercise 단일 필드로만 걸어 해당 종목의 전체 기록을 한 번에 받음(dedupe로 안전).
@@ -17138,22 +17140,24 @@ async function fetch_ensureExerciseHistory(name){
       .get().then(snap => privateSnapshot(snap, "accessoryRecords", user.uid));
 
     if(auth.currentUser?.uid!==user.uid || accountDeletionBusy)throw Error("Account changed");
-    if (!accRecordsByExercise[name]) accRecordsByExercise[name] = [];
-    const existingIds = new Set(accRecordsByExercise[name].map(r => r.id));
+    const previous=accRecordsByExercise[name] || [];
+    const before=JSON.stringify(previous);
+    const received=new Set(snap.docs.map(doc=>doc.id));
+    accRecordsByExercise[name]=previous.filter(row=>!row.id || String(row.id).startsWith("local_") || (!received.has(row.id) && Number(row.createdAt)>=startedAt));
     let added = false;
     snap.forEach(doc => {
-      if (existingIds.has(doc.id)) return;
       const d = doc.data();
       if (d.exercise !== name) return;
       accRecordsByExercise[name].push({ id: doc.id, ...d, _sortMs: d.createdAt?.toMillis?.() ?? 0 });
       added = true;
     });
 
-    exerciseHistoryFullyLoaded.add(name);
+    added=before!==JSON.stringify(accRecordsByExercise[name]);
     if (added) {
       accRecordsByExercise[name].sort((a, b) => (a._sortMs || 0) - (b._sortMs || 0));
-      saveAccRecordsToLocal();
     }
+    saveAccRecordsToLocal();
+    exerciseHistoryFullyLoaded.add(name);
     return added;
   } catch (e) {
     console.error("과거 보조운동 기록 추가 조회 실패", e);

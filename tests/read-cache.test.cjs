@@ -22,3 +22,17 @@ test('freshness survives restart only when the account still has its local cache
  const lost=create({storage,now:()=>time});await lost.run('a','records',async()=>++reads,{hasLocal:()=>false});assert.equal(reads,3);
  time=302000;const stale=create({storage,now:()=>time});await stale.run('a','records',async()=>++reads,{hasLocal:()=>true});assert.equal(reads,4);
 });
+test('history TTL persists for 24 hours while ordinary reads still expire at five minutes',async()=>{
+ const values=new Map(),storage={getItem:k=>values.get(k),setItem:(k,v)=>values.set(k,v)};let time=1000,reads=0;
+ const options={ttlMs:86400000,hasLocal:()=>true,reuse:()=>false};
+ await create({storage,now:()=>time}).run('alice','exerciseHistory:press',async()=>++reads,options);
+ time+=3600000;
+ const restarted=create({storage,now:()=>time});await restarted.run('alice','exerciseHistory:press',async()=>++reads,options);assert.equal(reads,1);
+ time+=86400000;await restarted.run('alice','exerciseHistory:press',async()=>++reads,options);assert.equal(reads,2);
+ await restarted.run('alice','exerciseHistory:press',async()=>++reads,{...options,hasLocal:()=>false});assert.equal(reads,3);
+});
+test('failed history persistence never creates a completion stamp and can retry',async()=>{
+ const values=new Map(),storage={getItem:k=>values.get(k),setItem:(k,v)=>values.set(k,v)};const cache=create({storage});
+ await assert.rejects(cache.run('a','history',async()=>{throw Error('local quota');},{ttlMs:86400000}));
+ assert.equal(values.size,0);await cache.run('a','history',async()=>true,{ttlMs:86400000});assert.equal(values.size,1);
+});

@@ -159,7 +159,7 @@ with sync_playwright() as p:
     assert page.evaluate("appSync.outbox.isDeleting('delete-test')")
     # Retry cleanup after Auth deletion failure; other users/public docs remain.
     page.evaluate("fixture.store.set('users/other/records/keep',{reps:3});fixture.store.set('dexPosts/public',{name:'public'});fixture.setDeleteError(false)")
-    page.evaluate('deleteUserAccount()');page.wait_for_timeout(500)
+    page.evaluate('deleteUserAccount()');page.wait_for_function("()=>{try{return appSync.account.owner==='guest';}catch(e){return false;}}")
     assert page.evaluate("localStorage.getItem('mf_account_v2:delete-test:deleting')") is None
     assert page.evaluate('appSync.account.owner')=='guest'
     assert not errors,errors
