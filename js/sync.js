@@ -44,27 +44,17 @@
     const running = new Map();
     const blocked = new Set();
     const freshId = () => root.crypto?.randomUUID?.() || `${Date.now()}_${Math.random().toString(36).slice(2)}`;
-    function prepareIdentities(state){
-      let changed=false;
-      if(!state.clientId){state.clientId=freshId();changed=true;}
-      state.nextSeq=Object.values(state.ops).reduce((maximum,op)=>Number.isSafeInteger(op.clientSeq)?Math.max(maximum,op.clientSeq):maximum,Number.isSafeInteger(state.nextSeq)?Math.max(0,state.nextSeq):0);
-      for(const op of Object.values(state.ops))if(!op.clientId || !Number.isSafeInteger(op.clientSeq) || op.clientSeq<=0){
-        op.clientId=state.clientId;op.clientSeq=++state.nextSeq;changed=true;
-      }
-      return changed;
-    }
     function enqueue(uid, collection, id, data, options) {
       if (!uid || !PRIVATE_COLLECTIONS.includes(collection) || !id || String(id).includes('/')) throw new Error('Invalid private write');
       if (blocked.has(uid) || storage.getItem(`mf_account_v2:${uid}:deleting`) === '1') throw new Error('회원 탈퇴 진행 중에는 저장할 수 없습니다.');
       const state = read(uid), path = `${collection}/${id}`;
-      prepareIdentities(state);
       state.deletedExercises ||= {};
       if (options?.matchExercise) {
         if (collection !== 'accessoryRecords') throw new Error('Invalid exercise operation');
         for (const [pendingPath,pending] of Object.entries(state.ops)) {
           if (pending.collection !== collection || pending.data?.exercise !== options.matchExercise) continue;
           if (data === null) { delete state.ops[pendingPath]; state.deleted[pendingPath] = true; }
-          else { pending.data.exercise = data.exercise; pending.revision = freshId();pending.clientId=state.clientId;pending.clientSeq=++state.nextSeq; }
+          else { pending.data.exercise = data.exercise; pending.revision = freshId(); }
         }
         if (data === null) state.deletedExercises[options.matchExercise] = true;
       } else if (collection === 'accessoryRecords' && data?.exercise) {
@@ -73,7 +63,7 @@
       const previous = state.ops[path];
       const combine = data !== null && options?.merge && previous?.data;
       const op = {collection, id, data: combine ? {...previous.data, ...data} : data ?? null,
-        merge: combine ? previous.merge : !!options?.merge, revision: freshId(), clientId:state.clientId,clientSeq:++state.nextSeq,matchExercise:options?.matchExercise};
+        merge: combine ? previous.merge : !!options?.merge, revision: freshId(), matchExercise:options?.matchExercise};
       state.ops[path] = op;
       if (data === null) state.deleted[path] = true; else delete state.deleted[path];
       write(uid, state); // Never report a saved record if durable storage failed.
@@ -84,12 +74,7 @@
       if (!uid || running.has(uid) || blocked.has(uid) || storage.getItem(`mf_account_v2:${uid}:deleting`) === '1' || currentUid() !== uid || !online()) return;
       const task = lead(uid, async () => {
         while (currentUid() === uid && online() && !blocked.has(uid)) {
-          const op=await lockState(uid,()=>{
-            const state=read(uid);if(!Object.keys(state.ops).length)return null;
-            if(prepareIdentities(state))write(uid,state);
-            // Replacing an earlier queued document must not skip another older operation.
-            return Object.values(state.ops).sort((a,b)=>a.clientSeq-b.clientSeq)[0];
-          });
+          const state = read(uid), op = Object.values(state.ops)[0];
           if (!op) break;
           try { await send(uid, op); }
           catch (error) { onChange(uid, read(uid), error); break; }

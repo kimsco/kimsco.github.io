@@ -1,6 +1,6 @@
 (function(root) {
   'use strict';
-  function install({db, auth, firebase, storage, onStatus,onReadSnapshot=()=>{}}) {
+  function install({db, auth, firebase, storage, onStatus}) {
     const account = root.MFSync.createAccountStorage(storage);
     const clean = value => {
       if (value instanceof firebase.firestore.FieldValue) return Date.now();
@@ -19,8 +19,7 @@
     const lock = (name, fn) => navigator.locks ? navigator.locks.request(name, fn) : Promise.resolve().then(fn);
     const stateLock = (uid,fn) => lock(`mf-outbox-state:${uid}`, fn);
     const noticeKey = uid => `mf_account_v2:${uid}:sync_notice`;
-    let delayTimer, calendarPending=false,recordChanges;
-    const pendingCommits=new Map();
+    let delayTimer, calendarPending=false;
     function waiting(uid, notify = true) {
       const first = storage.getItem(noticeKey(uid)) !== '1';
       storage.setItem(noticeKey(uid), '1');
@@ -39,7 +38,6 @@
         clearTimeout(delayTimer);
         const count = Object.keys(state.ops).length;
         if (!count) {
-          if(pendingCommits.has(uid)){const commits=pendingCommits.get(uid);pendingCommits.delete(uid);root.dispatchEvent(new CustomEvent('mf-record-commits',{detail:{uid,commits}}));}
           if (storage.getItem(noticeKey(uid)) === '1') {
             storage.removeItem(noticeKey(uid));
             onStatus('complete');
@@ -52,18 +50,12 @@
       send: async (uid, op) => {
         if (auth.currentUser?.uid !== uid) throw new Error('Account changed');
         if (op.collection === 'calendar') return lastWorkout.send(uid,op);
-        if(!op.matchExercise && recordChanges && await recordChanges.write(uid,{...op,data:op.data===null?null:withTimestamps(op.collection,op.data)}))return;
         const collection = db.collection('users').doc(uid).collection(op.collection);
         if (op.matchExercise) {
-          if(recordChanges && await recordChanges.acknowledged(uid,op))return;
           while (true) {
             if (auth.currentUser?.uid !== uid) throw new Error('Account changed');
-            const snap = await collection.where('exercise','==',op.matchExercise).limit(200).get({source:'server'});
-            if (!snap.docs.length){
-              if(recordChanges)await recordChanges.writeGroup(uid,op,[],{finish:true});
-              return;
-            }
-            if(recordChanges && await recordChanges.writeGroup(uid,op,snap.docs))continue;
+            const snap = await collection.where('exercise','==',op.matchExercise).limit(400).get({source:'server'});
+            if (!snap.docs.length) return;
             const batch = db.batch();
             snap.docs.forEach(doc => op.data === null ? batch.delete(doc.ref) : batch.update(doc.ref,op.data));
             await batch.commit();
@@ -73,9 +65,6 @@
         if (op.data === null) await ref.delete();
         else await ref.set(withTimestamps(op.collection, op.data), {merge: op.merge});
       }});
-    if(root.MFRecordChanges)recordChanges=root.MFRecordChanges.createService({db,storage,currentUid:()=>auth.currentUser?.uid,
-      isDeleting:uid=>outbox.isDeleting(uid),clean,online:()=>navigator.onLine,onRead:onReadSnapshot,
-      onCommit:(uid,commit)=>{if(uid===auth.currentUser?.uid){const entries=pendingCommits.get(uid)||[];entries.push(commit);pendingCommits.set(uid,entries);}}});
     const retry = () => {
       const uid=auth.currentUser?.uid;
       if(uid && !outbox.isDeleting(uid)) {
@@ -105,7 +94,6 @@
         .catch(error => { onStatus(null,error); throw error; });
     }
     function snapshot(snap, collection, uid, id) {
-      if(recordChanges)snap=recordChanges.filterSnapshot(uid,collection,snap);
       const doc = (d) => ({id:d.id, exists:true, data:() => withTimestamps(collection,d.data)});
       if (id !== undefined) {
         const items = outbox.overlay(uid, collection, snap.exists ? [{id, data:snap.data()}] : []);
@@ -119,7 +107,7 @@
       onStatus('hide');
       if (uid && Object.keys(outbox.read(uid).ops).length) waiting(uid, false);
     }
-    return {account, outbox, write, snapshot, retry, restoreStatus, lastWorkout,recordChanges};
+    return {account, outbox, write, snapshot, retry, restoreStatus, lastWorkout};
   }
   root.MFAppSync = {install};
 })(window);
