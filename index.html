@@ -633,6 +633,24 @@ html.light-mode-on .rest-timer-pause-btn:active{
 html.light-mode-on .announcement-dot{
   border-color: #fff;
 }
+/* 🔥 안 읽은 공지가 있을 때 점 주위로 은은하게 퍼졌다 사라지는 링 — 정적인 점이라
+   지나치기 쉬워서, 시선을 끄는 움직임을 추가(iOS 알림 배지 느낌) */
+.announcement-dot.visible::after{
+  content: '';
+  position: absolute;
+  inset: -1.5px;
+  border-radius: 50%;
+  background: #ff3b30;
+  animation: announcement-dot-ring 1.8s ease-out infinite;
+  pointer-events: none;
+}
+@keyframes announcement-dot-ring{
+  0% { transform: scale(1); opacity: 0.55; }
+  100% { transform: scale(2.6); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce){
+  .announcement-dot.visible::after{ animation: none; display: none; }
+}
 
 /* 🔥 얇은 헤더에 박힌 아이콘이 아니라, 반투명 유리(Acrylic/Glassmorphism) 재질의
    원형 버튼이 떠 있는 느낌으로 — backdrop-filter로 뒤가 흐릿하게 비치는 코팅 유리 질감 */
@@ -5462,6 +5480,45 @@ html.light-mode-on .exercise-ref-modal-box {
   white-space: pre-line;
 }
 
+/* 🔥 새 공지가 생기면 기기당 딱 1번, 하단에 잠깐 띄워서 종 아이콘의 빨간 점을
+   아예 못 볼 수도 있는 경우를 보완함 — 탭하면 공지 패널이 바로 열림 */
+.announcement-toast{
+  position: fixed;
+  left: 50%;
+  top: calc(var(--topBarRowH) + env(safe-area-inset-top) + 8px);
+  transform: translateX(-50%) translateY(-10px);
+  width: calc(100% - 48px);
+  max-width: 330px;
+  background: var(--c-bg-elevated, #1c1c1c);
+  border: 1px solid var(--c-border, rgba(255,255,255,0.1));
+  border-radius: 14px;
+  padding: 13px 16px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  /* 🔥 휴식 스톱워치 미니 알약(.rest-timer-mini)도 같은 헤더 밑 자리에 뜰 수 있는데,
+     그 경우 복잡하게 자리를 나누는 대신 공지를 그 위에 그냥 겹쳐 띄움(z-index로
+     우선) — 토스트는 5초면 자동으로 사라지니 잠깐 겹쳐도 금방 정리됨 */
+  z-index: 150000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.28s ease, transform 0.28s ease;
+}
+.announcement-toast.visible{
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
+}
+.announcement-toast-label{
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--c-accent-gold, #FFD700);
+  margin-bottom: 3px;
+}
+.announcement-toast-title{
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--c-text-primary, #fff);
+}
+
 /* 🔥 종목 "+" 추가 모달 — 참고 링크 패널(.exercise-ref-modal-box)과 동일한 틀을
    재사용하되, 입력창이 위(헤더 바로 아래)에 오고 추천 목록이 그 아래 스크롤 영역 */
 .add-exercise-modal-box {
@@ -10040,6 +10097,13 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
   </div>
 </div>
 
+<!-- 🔥 공지 패널(위 #announcementModal)을 아직 못 봤을 수 있는 유저를 위한 하단
+     토스트 — 새 공지당 기기 1회만 뜨고, 탭하면 공지 패널이 열림 -->
+<div id="announcementToast" class="announcement-toast">
+  <div class="announcement-toast-label">새 공지</div>
+  <div class="announcement-toast-title" id="announcementToastTitle"></div>
+</div>
+
 <!-- 🔥 종목 "+" 추가 시 뜨는 모달 — 부위별 추천 종목을 입력과 동시에 필터링해서 보여줌 -->
 <div id="addExerciseModal" class="modal hidden">
   <div class="add-exercise-modal-box">
@@ -11306,7 +11370,8 @@ const LS_KEYS = {
   myRoutineTemplates: "mf_my_routine_templates_v1", // 내가 만든 루틴 템플릿
   myRoutineCollapsedGroups: "mf_my_routine_collapsed_groups_v1", // 루틴 상자 접기/펼치기 최근 사용 상태
   exerciseRefLinks: "mf_exercise_ref_links_v1", // 종목별 참고 링크(유튜브 등) 목록
-  announcementReads: "mf_announcement_reads_v1" // 읽은 공지 id 목록
+  announcementReads: "mf_announcement_reads_v1", // 읽은 공지 id 목록
+  announcementToastShown: "mf_announcement_toast_shown_v1" // 하단 토스트로 이미 알려준 공지 id 목록(기기별, 서버 동기화 안 함)
 };
 
 function lsGet(key, fallback){
@@ -11595,6 +11660,103 @@ function updateAnnouncementDot(){
 }
 updateAnnouncementDot(); // 🔥 로그인 확정 전에도 로컬 캐시 기준으로 일단 바로 반영
 
+/* 🔥 종 아이콘 빨간 점을 못 보고 지나칠 수 있어서, 새 공지가 생기면 기기당 딱 1번만
+   하단에 토스트로 띄워줌 — "이미 띄웠는지"는 기기별 로컬에만 저장(서버 동기화 안 함,
+   그냥 한 번 알려주기용이라 계정 전체에 맞출 필요 없음) */
+let announcementToastShownIds = lsGet(LS_KEYS.announcementToastShown, []);
+const announcementToastEl = document.getElementById('announcementToast');
+const announcementToastTitleEl = document.getElementById('announcementToastTitle');
+let announcementToastHideTimer = null;
+
+function maybeShowAnnouncementToast(){
+  const target = ANNOUNCEMENTS.find(a => !announcementReadIds.includes(a.id) && !announcementToastShownIds.includes(a.id));
+  if (!target) return;
+  announcementToastShownIds = [...announcementToastShownIds, target.id];
+  lsSet(LS_KEYS.announcementToastShown, announcementToastShownIds);
+
+  announcementToastEl.style.transition = '';
+  announcementToastEl.style.transform = '';
+  announcementToastDragged = false; // 🔥 이전 토스트를 스와이프로 닫은 잔상이 다음 토스트의 탭까지 막지 않게 초기화
+  announcementToastTitleEl.textContent = target.title;
+  announcementToastEl.classList.add('visible');
+  restartAnnouncementToastHideTimer();
+}
+
+function restartAnnouncementToastHideTimer(){
+  clearTimeout(announcementToastHideTimer);
+  announcementToastHideTimer = setTimeout(() => announcementToastEl.classList.remove('visible'), 7000);
+}
+
+function dismissAnnouncementToast(){
+  clearTimeout(announcementToastHideTimer);
+  announcementToastEl.style.transition = 'opacity 0.22s ease, transform 0.22s ease';
+  announcementToastEl.style.transform = 'translateX(-50%) translateY(-60px)';
+  announcementToastEl.classList.remove('visible');
+}
+
+announcementToastEl.addEventListener('click', () => {
+  if (announcementToastDragged) { announcementToastDragged = false; return; } // 🔥 스와이프로 닫은 직후의 클릭(탭으로 오인)은 무시
+  announcementToastEl.style.transition = '';
+  announcementToastEl.style.transform = '';
+  announcementToastEl.classList.remove('visible');
+  clearTimeout(announcementToastHideTimer);
+  openAnnouncementModal();
+});
+
+/* 🔥 위로 스와이프하면 손가락 따라 끌려 올라가며 닫힘(iOS 알림 배너와 동일한 제스처).
+   자동으로 사라지는 것과 동일하게 "닫힘" 취급 — 다시 뜨거나 하진 않음(원래도 1회성) */
+let announcementToastStartY = 0, announcementToastTracking = false, announcementToastDragging = false, announcementToastDragged = false;
+const ANNOUNCEMENT_TOAST_SWIPE_COMMIT = 10, ANNOUNCEMENT_TOAST_SWIPE_DISMISS = 28;
+
+announcementToastEl.addEventListener('touchstart', (e) => {
+  const t = e.touches[0];
+  announcementToastStartY = t.clientY;
+  announcementToastTracking = true;
+  announcementToastDragging = false;
+  clearTimeout(announcementToastHideTimer); // 🔥 만지작거리는 동안은 자동으로 안 사라지게 일시정지
+  announcementToastEl.style.transition = 'none';
+}, { passive: true });
+
+announcementToastEl.addEventListener('touchmove', (e) => {
+  if (!announcementToastTracking) return;
+  const t = e.touches[0];
+  const dy = t.clientY - announcementToastStartY;
+
+  if (!announcementToastDragging) {
+    if (dy < -ANNOUNCEMENT_TOAST_SWIPE_COMMIT) { announcementToastDragging = true; }
+    else if (dy > ANNOUNCEMENT_TOAST_SWIPE_COMMIT) { announcementToastTracking = false; return; } // 아래로는 반응 안 함
+    else return;
+  }
+
+  e.preventDefault();
+  const moveY = Math.min(0, dy); // 위로만 끌려감
+  announcementToastEl.style.transform = `translateX(-50%) translateY(${moveY}px)`;
+}, { passive: false });
+
+function endAnnouncementToastTouch(e){
+  if (!announcementToastTracking) return;
+  const wasDragging = announcementToastDragging;
+  announcementToastTracking = false;
+  announcementToastDragging = false;
+  announcementToastEl.style.transition = 'opacity 0.22s ease, transform 0.22s ease';
+
+  if (!wasDragging) { announcementToastEl.style.transform = ''; return; }
+
+  const t = e.changedTouches[0];
+  const dy = t.clientY - announcementToastStartY;
+  if (dy < -ANNOUNCEMENT_TOAST_SWIPE_DISMISS) {
+    announcementToastDragged = true; // 클릭 이벤트가 바로 뒤따라와도 "열기"로 오인하지 않게
+    dismissAnnouncementToast();
+  } else {
+    announcementToastEl.style.transform = ''; // 살짝만 끌었으면 원위치
+    restartAnnouncementToastHideTimer();
+  }
+}
+announcementToastEl.addEventListener('touchend', endAnnouncementToastTouch);
+announcementToastEl.addEventListener('touchcancel', endAnnouncementToastTouch);
+
+maybeShowAnnouncementToast(); // 🔥 로그인 확정 전 로컬 캐시 기준으로도 일단 1차로 바로 띄움(게스트는 이게 유일한 트리거)
+
 async function ensureAnnouncementReadsSynced(){
   if (announcementReadsSyncedFromServer) return;
   const user = auth.currentUser;
@@ -11611,6 +11773,7 @@ async function ensureAnnouncementReadsSynced(){
   }
   announcementReadsSyncedFromServer = true;
   updateAnnouncementDot();
+  maybeShowAnnouncementToast(); // 🔥 로그인 사용자는 서버 동기화된(=다른 기기 포함) 정확한 상태로 다시 한번 체크
 }
 
 async function markAllAnnouncementsRead(){
@@ -12787,7 +12950,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.32";
+const APP_VERSION = "1.0.34";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
