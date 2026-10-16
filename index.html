@@ -6186,6 +6186,11 @@ html.light-mode-on .graphWrap {
     line-height:1.5;
     color:rgba(255,255,255,0.92);
 }
+/* 🔥 과거 기록 줄을 탭해서 입력창에 값을 채웠을 때 잠깐 밝아졌다 돌아오는 피드백 */
+.record-line-tapped{
+    color: var(--c-accent-gold, #FFD700) !important;
+    transition: color 0.2s ease;
+}
 
 
 /* 🔥 number input +/- 버튼 제거 */
@@ -12154,7 +12159,7 @@ function renderAccessoryRecords(exerciseName, opts) {
     const p = row.packedItem;
     return `
       <div style="display:flex; align-items:center; line-height:1.6;">
-        <div class="acc-record-line record-set" data-id="${p.ids[p.ids.length - 1]}" style="flex:1; text-align:left;">
+        <div class="acc-record-line record-set" data-id="${p.ids[p.ids.length - 1]}" data-weight="${p.weight}" data-reps="${p.reps}" style="flex:1; text-align:left;">
           ${formatSetLine(p.weight, p.reps, p.sets)}
         </div>
         <div style="
@@ -12671,6 +12676,8 @@ function renderActiveBox(){
                     class="record-line"
                     data-id="${p.ids[p.ids.length - 1]}"
                     data-ids="${p.ids.join(',')}"
+                    data-weight="${p.weight}"
+                    data-reps="${p.reps}"
                     style="flex:1; text-align:left; cursor:pointer;"
                 >
                     ${formatSetLine(p.weight, p.reps, p.sets)}
@@ -12775,7 +12782,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.30";
+const APP_VERSION = "1.0.31";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -13869,42 +13876,77 @@ document.getElementById("calNext").onclick = async () => {
 
 calRender();
 
-   let recordPressTimer = null;
+   let recordPressTimer = null, recordPressFired = false;
+   let recordPressStartX = 0, recordPressStartY = 0;
+   const RECORD_TAP_MOVE_TOLERANCE = 12; // 이 정도 미세한 움직임은 무시(스크롤 의도 아님)
+
+// 🔥 과거 기록 줄을 짧게 탭하면(롱프레스=삭제와 구분) 그 무게/횟수를 그대로
+//    입력창에 채워줌 — 같은 무게로 여러 세트 할 때 매번 다시 타이핑 안 해도 되게
+function fillRecordInputsFrom(line){
+  if (line.dataset.weight === undefined || line.dataset.reps === undefined) return;
+  recordWeight.value = line.dataset.weight;
+  recordReps.value = line.dataset.reps;
+  line.classList.add('record-line-tapped');
+  setTimeout(() => line.classList.remove('record-line-tapped'), 220);
+}
 
 // PC
 document.addEventListener("mousedown", e => {
   const line = e.target.closest(".record-line");
   if (!line) return;
+  recordPressFired = false;
 
   recordPressTimer = setTimeout(() => {
+    recordPressFired = true;
     if (confirm("이 기록을 삭제할까요?")) {
       deleteRecord(line.dataset.id);
     }
   }, 600);
 });
 
-document.addEventListener("mouseup", () => {
+document.addEventListener("mouseup", e => {
   clearTimeout(recordPressTimer);
+  if (!recordPressFired) {
+    const line = e.target.closest(".record-line");
+    if (line) fillRecordInputsFrom(line);
+  }
 });
 
 // 모바일
 document.addEventListener("touchstart", e => {
   const line = e.target.closest(".record-line");
   if (!line) return;
+  recordPressFired = false;
+  const t = e.touches[0];
+  recordPressStartX = t.clientX;
+  recordPressStartY = t.clientY;
 
   recordPressTimer = setTimeout(() => {
+    recordPressFired = true;
     if (confirm("이 기록을 삭제할까요?")) {
       deleteRecord(line.dataset.id);
     }
   }, 600);
 });
 
-document.addEventListener("touchend", () => {
+document.addEventListener("touchend", e => {
   clearTimeout(recordPressTimer);
+  if (!recordPressFired) {
+    const line = e.target.closest(".record-line");
+    if (line) fillRecordInputsFrom(line);
+  }
 });
 
-document.addEventListener("touchmove", () => {
-  clearTimeout(recordPressTimer);
+document.addEventListener("touchmove", e => {
+  if (!recordPressTimer) return;
+  const t = e.touches[0];
+  const dx = Math.abs(t.clientX - recordPressStartX);
+  const dy = Math.abs(t.clientY - recordPressStartY);
+  // 미세한 흔들림이 아니라 실제로 움직였을 때만 취소(스크롤 의도로 판단)
+  if (dx > RECORD_TAP_MOVE_TOLERANCE || dy > RECORD_TAP_MOVE_TOLERANCE) {
+    clearTimeout(recordPressTimer);
+    recordPressFired = true; // 스크롤이었으니 손 뗄 때 입력창도 안 채움
+  }
 });
 
 
@@ -21401,44 +21443,69 @@ async function addAccessorySet(opts) {
 }
 
 
-   let accDeleteTimer = null;
+   let accDeleteTimer = null, accDeleteFired = false;
    let accDeleteStartX = 0, accDeleteStartY = 0;
    const ACC_DELETE_MOVE_TOLERANCE = 12; // 이 정도 미세한 움직임은 무시
+
+// 🔥 과거 보조운동 기록 줄을 짧게 탭하면(롱프레스=삭제와 구분) 그 무게/횟수를
+//    그대로 입력창에 채워줌(3대탭 .record-line과 동일한 패턴)
+function fillAccInputsFrom(setEl){
+  if (setEl.dataset.weight === undefined || setEl.dataset.reps === undefined) return;
+  const weightEl = document.getElementById('acc-weight');
+  const repsEl = document.getElementById('acc-reps');
+  if (!weightEl || !repsEl) return;
+  weightEl.value = setEl.dataset.weight;
+  repsEl.value = setEl.dataset.reps;
+  setEl.classList.add('record-line-tapped');
+  setTimeout(() => setEl.classList.remove('record-line-tapped'), 220);
+}
 
 // PC
 document.addEventListener("mousedown", e => {
   const setEl = e.target.closest(".record-set");
   if (!setEl) return;
+  accDeleteFired = false;
 
   accDeleteTimer = setTimeout(() => {
+    accDeleteFired = true;
     if (confirm("이 기록을 삭제할까요?")) {
       deleteAccessoryRecord(setEl.dataset.id);
     }
   }, 600);
 });
 
-document.addEventListener("mouseup", () => {
+document.addEventListener("mouseup", e => {
   clearTimeout(accDeleteTimer);
+  if (!accDeleteFired) {
+    const setEl = e.target.closest(".record-set");
+    if (setEl) fillAccInputsFrom(setEl);
+  }
 });
 
 // 모바일
 document.addEventListener("touchstart", e => {
   const setEl = e.target.closest(".record-set");
   if (!setEl) return;
+  accDeleteFired = false;
 
   const t = e.touches[0];
   accDeleteStartX = t.clientX;
   accDeleteStartY = t.clientY;
 
   accDeleteTimer = setTimeout(() => {
+    accDeleteFired = true;
     if (confirm("이 기록을 삭제할까요?")) {
       deleteAccessoryRecord(setEl.dataset.id);
     }
   }, 600);
 }, { passive: true });
 
-document.addEventListener("touchend", () => {
+document.addEventListener("touchend", e => {
   clearTimeout(accDeleteTimer);
+  if (!accDeleteFired) {
+    const setEl = e.target.closest(".record-set");
+    if (setEl) fillAccInputsFrom(setEl);
+  }
 });
 document.addEventListener("touchmove", e => {
   if (!accDeleteTimer) return;
@@ -21448,6 +21515,7 @@ document.addEventListener("touchmove", e => {
   // 미세한 흔들림이 아니라 실제로 움직였을 때만 취소(스크롤 의도로 판단)
   if (dx > ACC_DELETE_MOVE_TOLERANCE || dy > ACC_DELETE_MOVE_TOLERANCE) {
     clearTimeout(accDeleteTimer);
+    accDeleteFired = true; // 스크롤이었으니 손 뗄 때 입력창도 안 채움
   }
 }, { passive: true });
 
