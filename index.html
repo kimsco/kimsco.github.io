@@ -5485,8 +5485,8 @@ html.light-mode-on .exercise-ref-modal-box {
 .announcement-toast{
   position: fixed;
   left: 50%;
-  bottom: calc(var(--bottomTabH) + 14px);
-  transform: translateX(-50%) translateY(12px);
+  top: calc(var(--topBarRowH) + env(safe-area-inset-top) + 8px);
+  transform: translateX(-50%) translateY(-10px);
   width: calc(100% - 48px);
   max-width: 330px;
   background: var(--c-bg-elevated, #1c1c1c);
@@ -5494,6 +5494,9 @@ html.light-mode-on .exercise-ref-modal-box {
   border-radius: 14px;
   padding: 13px 16px;
   box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  /* 🔥 휴식 스톱워치 미니 알약(.rest-timer-mini)도 같은 헤더 밑 자리에 뜰 수 있는데,
+     그 경우 복잡하게 자리를 나누는 대신 공지를 그 위에 그냥 겹쳐 띄움(z-index로
+     우선) — 토스트는 5초면 자동으로 사라지니 잠깐 겹쳐도 금방 정리됨 */
   z-index: 150000;
   opacity: 0;
   pointer-events: none;
