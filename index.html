@@ -11571,6 +11571,11 @@ exerciseRefUrlInput.addEventListener('keydown', (e) => {
 ================================ */
 const ANNOUNCEMENTS = [
   {
+    id: 'record-tap-to-fill-2026-10',
+    title: '기록 입력, 탭 한 번으로 불러오기',
+    body: '지난 세트 줄을 탭하면 그 무게·횟수가 입력창에 바로 채워져요.\n같은 무게로 여러 세트 할 때 매번 다시 안 쳐도 돼요.'
+  },
+  {
     id: 'rest-stopwatch-2026-10',
     title: '⏱️ 휴식 스톱워치 추가!',
     body: '설정 → 휴식 스톱워치 켜기 → 기록 입력하면 자동 시작.\n세트 사이 얼마나 쉬었는지 바로 보여요.'
@@ -12782,7 +12787,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.31";
+const APP_VERSION = "1.0.32";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
