@@ -11674,17 +11674,87 @@ function maybeShowAnnouncementToast(){
   announcementToastShownIds = [...announcementToastShownIds, target.id];
   lsSet(LS_KEYS.announcementToastShown, announcementToastShownIds);
 
+  announcementToastEl.style.transition = '';
+  announcementToastEl.style.transform = '';
+  announcementToastDragged = false; // 🔥 이전 토스트를 스와이프로 닫은 잔상이 다음 토스트의 탭까지 막지 않게 초기화
   announcementToastTitleEl.textContent = target.title;
   announcementToastEl.classList.add('visible');
+  restartAnnouncementToastHideTimer();
+}
+
+function restartAnnouncementToastHideTimer(){
   clearTimeout(announcementToastHideTimer);
-  announcementToastHideTimer = setTimeout(() => announcementToastEl.classList.remove('visible'), 5000);
+  announcementToastHideTimer = setTimeout(() => announcementToastEl.classList.remove('visible'), 7000);
+}
+
+function dismissAnnouncementToast(){
+  clearTimeout(announcementToastHideTimer);
+  announcementToastEl.style.transition = 'opacity 0.22s ease, transform 0.22s ease';
+  announcementToastEl.style.transform = 'translateX(-50%) translateY(-60px)';
+  announcementToastEl.classList.remove('visible');
 }
 
 announcementToastEl.addEventListener('click', () => {
+  if (announcementToastDragged) { announcementToastDragged = false; return; } // 🔥 스와이프로 닫은 직후의 클릭(탭으로 오인)은 무시
+  announcementToastEl.style.transition = '';
+  announcementToastEl.style.transform = '';
   announcementToastEl.classList.remove('visible');
   clearTimeout(announcementToastHideTimer);
   openAnnouncementModal();
 });
+
+/* 🔥 위로 스와이프하면 손가락 따라 끌려 올라가며 닫힘(iOS 알림 배너와 동일한 제스처).
+   자동으로 사라지는 것과 동일하게 "닫힘" 취급 — 다시 뜨거나 하진 않음(원래도 1회성) */
+let announcementToastStartY = 0, announcementToastTracking = false, announcementToastDragging = false, announcementToastDragged = false;
+const ANNOUNCEMENT_TOAST_SWIPE_COMMIT = 10, ANNOUNCEMENT_TOAST_SWIPE_DISMISS = 28;
+
+announcementToastEl.addEventListener('touchstart', (e) => {
+  const t = e.touches[0];
+  announcementToastStartY = t.clientY;
+  announcementToastTracking = true;
+  announcementToastDragging = false;
+  clearTimeout(announcementToastHideTimer); // 🔥 만지작거리는 동안은 자동으로 안 사라지게 일시정지
+  announcementToastEl.style.transition = 'none';
+}, { passive: true });
+
+announcementToastEl.addEventListener('touchmove', (e) => {
+  if (!announcementToastTracking) return;
+  const t = e.touches[0];
+  const dy = t.clientY - announcementToastStartY;
+
+  if (!announcementToastDragging) {
+    if (dy < -ANNOUNCEMENT_TOAST_SWIPE_COMMIT) { announcementToastDragging = true; }
+    else if (dy > ANNOUNCEMENT_TOAST_SWIPE_COMMIT) { announcementToastTracking = false; return; } // 아래로는 반응 안 함
+    else return;
+  }
+
+  e.preventDefault();
+  const moveY = Math.min(0, dy); // 위로만 끌려감
+  announcementToastEl.style.transform = `translateX(-50%) translateY(${moveY}px)`;
+}, { passive: false });
+
+function endAnnouncementToastTouch(e){
+  if (!announcementToastTracking) return;
+  const wasDragging = announcementToastDragging;
+  announcementToastTracking = false;
+  announcementToastDragging = false;
+  announcementToastEl.style.transition = 'opacity 0.22s ease, transform 0.22s ease';
+
+  if (!wasDragging) { announcementToastEl.style.transform = ''; return; }
+
+  const t = e.changedTouches[0];
+  const dy = t.clientY - announcementToastStartY;
+  if (dy < -ANNOUNCEMENT_TOAST_SWIPE_DISMISS) {
+    announcementToastDragged = true; // 클릭 이벤트가 바로 뒤따라와도 "열기"로 오인하지 않게
+    dismissAnnouncementToast();
+  } else {
+    announcementToastEl.style.transform = ''; // 살짝만 끌었으면 원위치
+    restartAnnouncementToastHideTimer();
+  }
+}
+announcementToastEl.addEventListener('touchend', endAnnouncementToastTouch);
+announcementToastEl.addEventListener('touchcancel', endAnnouncementToastTouch);
+
 maybeShowAnnouncementToast(); // 🔥 로그인 확정 전 로컬 캐시 기준으로도 일단 1차로 바로 띄움(게스트는 이게 유일한 트리거)
 
 async function ensureAnnouncementReadsSynced(){
@@ -12880,7 +12950,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.33";
+const APP_VERSION = "1.0.34";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
