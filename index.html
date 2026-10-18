@@ -10663,12 +10663,21 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
   </div>
   <!-- 🔥 3대/기록 탭에서 세트 저장 시 탑바에 휴식시간을 보여주는 기능 on/off —
        기기별 설정이라 localStorage에만 저장(계정 동기화 없음, lightModeToggle과 동일 패턴) -->
-  <div class="settings-item" style="justify-content:space-between; border-bottom:none;">
+  <div class="settings-item" style="justify-content:space-between; border-bottom:1px solid var(--c-border);">
     <span class="settings-item-label">
       <svg class="settings-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l2.5 2.5"></path><path d="M9 2h6"></path></svg>
       휴식 스톱워치
     </span>
     <div id="restTimerToggle" class="toggle-switch"></div>
+  </div>
+  <!-- 🔥 기록 입력창(kg/회) 탭했을 때 기기 기본 키보드 대신 숫자 패드가 바로 뜨게 할지 —
+       기기별 설정이라 localStorage에만 저장(계정 동기화 없음, lightModeToggle과 동일 패턴) -->
+  <div class="settings-item" style="justify-content:space-between; border-bottom:none;">
+    <span class="settings-item-label">
+      <svg class="settings-item-icon" viewBox="0 0 24 24" style="display:block;"><text x="12" y="17" text-anchor="middle" font-size="14" font-weight="800" font-family="-apple-system, BlinkMacSystemFont, sans-serif" fill="currentColor" transform="translate(0,12) scale(1,1.48) translate(0,-12)">123</text></svg>
+      숫자 키패드 바로 열기
+    </span>
+    <div id="numericKeypadToggle" class="toggle-switch"></div>
   </div>
 </div>
 
@@ -12950,7 +12959,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.36";
+const APP_VERSION = "1.0.37";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -16117,8 +16126,34 @@ document.addEventListener("visibilitychange", () => {
 });
 
 // 🔥 알약바 kg/회 입력창(위와 동일한 6개)에 숫자·마침표 외 입력 차단 적용
-["recordWeight", "recordReps", "acc-weight", "acc-reps", "myRoutineRevealInputWeight", "myRoutineRevealInputReps"]
-  .forEach(id => restrictToDecimalInput(document.getElementById(id)));
+const NUMERIC_KEYPAD_INPUT_IDS = ["recordWeight", "recordReps", "acc-weight", "acc-reps", "myRoutineRevealInputWeight", "myRoutineRevealInputReps"];
+NUMERIC_KEYPAD_INPUT_IDS.forEach(id => restrictToDecimalInput(document.getElementById(id)));
+
+/* 🔥 위 6개 입력창을 탭했을 때 기기 기본 키보드 대신 숫자 패드가 바로 뜨게 할지 —
+   설정 토글로 on/off(기기별, localStorage에만 저장, restTimerToggle과 동일 패턴).
+   꺼져 있으면 기존처럼 기기 기본 키보드(한글 등)가 뜨고 "123"을 눌러야 숫자패드로 바뀜 */
+function applyNumericKeypadSetting(enabled){
+  NUMERIC_KEYPAD_INPUT_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (enabled) el.setAttribute('inputmode', 'decimal');
+    else el.removeAttribute('inputmode');
+  });
+}
+
+const numericKeypadToggle = document.getElementById('numericKeypadToggle');
+numericKeypadToggle.addEventListener('click', () => {
+  const next = !numericKeypadToggle.classList.contains('active');
+  numericKeypadToggle.classList.toggle('active', next);
+  try { localStorage.setItem('mf_numeric_keypad_enabled', next ? '1' : '0'); } catch(e){}
+  applyNumericKeypadSetting(next);
+});
+
+try {
+  const numericKeypadEnabled = localStorage.getItem('mf_numeric_keypad_enabled') === '1';
+  numericKeypadToggle.classList.toggle('active', numericKeypadEnabled);
+  applyNumericKeypadSetting(numericKeypadEnabled);
+} catch(e){ console.error('숫자 키패드 설정 복원 실패', e); }
 
 /* ===============================
    🔥 홈 설정 — 설정 > 일반 최상단
