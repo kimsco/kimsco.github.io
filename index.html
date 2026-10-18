@@ -12959,7 +12959,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.38";
+const APP_VERSION = "1.0.39";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -25222,6 +25222,33 @@ if ("serviceWorker" in navigator) {
     }
   } catch(e){}
 });
+
+// 🔥 Firebase 로그인 확정(onAuthStateChanged)을 기다리지 않고, 이미 기기에 저장된
+// 캐시로 홈 화면을 최대한 빨리 먼저 채움 — 설정 화면의 로그인 상태 선반영(위
+// settingsGuestBadge 주석 참고)과 같은 목적. 로그인 세션 복원이 느릴 때(특히 iOS
+// PWA 콜드스타트) "빈 화면이 잠깐 보였다가 사라락 채워지는" 깜빡임을 없애기 위함.
+// 여기서 쓰는 함수들은 전부 handleAuthSession 안에서도(게스트/로그인 양쪽 다) 다시
+// 호출되는 그대로라 두 번 불러도 안전함 — 두 번째 호출이 서버 동기화 포함해서
+// 정확한 값으로 다시 덮어씀(바뀐 게 없으면 그냥 같은 값으로 조용히 끝남).
+// 🔥 반드시 파일 맨 끝에 둬야 함 — userWeight 등 여기서 참조하는 전역 변수들이
+// 스크립트 곳곳에 흩어져 선언돼있어서, 더 위쪽에 두면 아직 선언 전인(TDZ) 변수를
+// 건드려서 ReferenceError가 남. onAuthStateChanged 콜백은 항상 비동기라 자연히
+// 스크립트 전체가 다 실행된 뒤에만 호출되는데, 그 타이밍을 동기 코드로 흉내내려면
+// 이렇게 스크립트의 가장 마지막 줄이어야 안전함
+try {
+  loadAllFromLocal();
+  checkInactivityOverlay();
+  loadBodyweightRoutineRecords();
+  loadUserSpecFromLocal();
+  loadFoodTemplatesFromLocal();
+  loadMealsFromLocal();
+  loadWaterFromLocal();
+  loadWeightFromLocal();
+  loadMyRoutineTemplatesFromLocal();
+  scheduleLoadedViews();
+  renderDateAgendaPanel();
+  renderHomeTab();
+} catch(e) { console.error('초기 로컬 캐시 선반영 실패', e); }
 </script>
 
 </body>
