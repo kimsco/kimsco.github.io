@@ -3945,8 +3945,8 @@ html.light-mode-on #tab3 #calendarToggle.toggle-switch.active::after {
   background: rgb(197,197,197);
 }
 html.light-mode-on #tab3 .date-agenda {
-  background: rgb(235,235,235);
-  border-color: rgba(0,0,0,0.07);
+  background: transparent;
+  border: none;
 }
 html.light-mode-on #tab3 .date-agenda-header {
   border-bottom-color: rgba(0,0,0,0.08);
@@ -5862,20 +5862,20 @@ html.light-mode-on .settings-delete-account-text:active {
    ✅ 날짜별 운동 목록 (달력 아래, 1년 진행률 위)
 ================================ */
 .date-agenda{
-  margin: 18px 4px 0;
-  padding: 14px 14px 6px;
-  background: #141414;
-  border: 1px solid rgba(255,255,255,0.07);
-  border-radius: 14px;
+  margin: 22px 4px 0;
+  padding: 0 4px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
 }
 .date-agenda:empty{ display: none; }
 .date-agenda-header{
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  margin-bottom: 10px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
+  margin-bottom: 18px;
+  padding-bottom: 0;
+  border-bottom: none;
 }
 .date-agenda-date{
   font-size: 15px;
@@ -5893,8 +5893,8 @@ html.light-mode-on .settings-delete-account-text:active {
   color: #777;
 }
 .date-agenda-item{
-  padding: 9px 2px;
-  border-bottom: 1px solid rgba(255,255,255,0.04);
+  padding: 0 0 20px;
+  border-bottom: none;
 }
 .date-agenda-item:last-child{ border-bottom: none; }
 .date-agenda-dot{
@@ -12959,7 +12959,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.40";
+const APP_VERSION = "1.0.41";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -22746,7 +22746,7 @@ function renderDateAgendaPanel(){
       ${groups.map(g => `
         <div class="date-agenda-item">
           <div class="date-agenda-item-body">
-            <div class="date-agenda-item-name"><span class="date-agenda-dot date-agenda-dot-${g.accent}"></span>${escapeHtml(g.exercise)}</div>
+            <div class="date-agenda-item-name">${escapeHtml(g.exercise)}</div>
             ${g.lines.map(line => `<div class="date-agenda-item-sets">${dateAgendaLineLabel(g, line)}</div>`).join("")}
           </div>
         </div>
