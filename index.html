@@ -5502,26 +5502,7 @@ html.light-mode-on .exercise-ref-modal-box {
   width: calc(100% - 48px);
   max-width: 330px;
   --rtimer-card-h: 28px;
-  background:
-    linear-gradient(rgb(18,18,20), rgb(18,18,20)) padding-box,
-    conic-gradient(from 315deg at 50% 50%,
-      rgba(255,255,255,0.32) 0deg,
-      rgba(255,255,255,0.32) 90deg,
-      rgba(255,255,255,0.32) 180deg,
-      rgba(255,255,255,0.08) 270deg,
-      rgba(255,255,255,0.32) 360deg
-    ) no-repeat left center / var(--rtimer-card-h) 100% border-box,
-    conic-gradient(from 315deg at 50% 50%,
-      rgba(255,255,255,0.32) 0deg,
-      rgba(255,255,255,0.08) 90deg,
-      rgba(255,255,255,0.32) 180deg,
-      rgba(255,255,255,0.32) 270deg,
-      rgba(255,255,255,0.32) 360deg
-    ) no-repeat right center / var(--rtimer-card-h) 100% border-box,
-    linear-gradient(to right, rgba(255,255,255,0.32), rgba(255,255,255,0.32))
-      no-repeat top center / calc(100% - 2 * var(--rtimer-card-h)) 1.5px border-box,
-    linear-gradient(to right, rgba(255,255,255,0.32), rgba(255,255,255,0.32))
-      no-repeat bottom center / calc(100% - 2 * var(--rtimer-card-h)) 1.5px border-box;
+  background: linear-gradient(rgb(18,18,20),rgb(18,18,20)) padding-box;
   border: 1.5px solid transparent;
   border-radius: 14px;
   padding: 12.5px 15.5px;
@@ -5534,27 +5515,20 @@ html.light-mode-on .exercise-ref-modal-box {
   pointer-events: none;
   transition: opacity 0.28s ease, transform 0.28s ease;
 }
+/* One continuous masked edge avoids joins between corner and straight patches. */
+.announcement-toast::before{
+  content:"";position:absolute;inset:-1.5px;border-radius:inherit;padding:1.5px;
+  background:conic-gradient(from 315deg,rgba(255,255,255,.32),rgba(255,255,255,.08),rgba(255,255,255,.32),rgba(255,255,255,.08),rgba(255,255,255,.32));
+  -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+  -webkit-mask-composite:xor;
+  mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+  mask-composite:exclude;pointer-events:none;
+}
 html.light-mode-on .announcement-toast{
-  background:
-    linear-gradient(rgb(255,255,255), rgb(255,255,255)) padding-box,
-    conic-gradient(from 315deg at 50% 50%,
-      rgba(0,0,0,0.16) 0deg,
-      rgba(0,0,0,0.16) 90deg,
-      rgba(0,0,0,0.16) 180deg,
-      rgba(0,0,0,0.04) 270deg,
-      rgba(0,0,0,0.16) 360deg
-    ) no-repeat left center / var(--rtimer-card-h) 100% border-box,
-    conic-gradient(from 315deg at 50% 50%,
-      rgba(0,0,0,0.16) 0deg,
-      rgba(0,0,0,0.04) 90deg,
-      rgba(0,0,0,0.16) 180deg,
-      rgba(0,0,0,0.16) 270deg,
-      rgba(0,0,0,0.16) 360deg
-    ) no-repeat right center / var(--rtimer-card-h) 100% border-box,
-    linear-gradient(to right, rgba(0,0,0,0.16), rgba(0,0,0,0.16))
-      no-repeat top center / calc(100% - 2 * var(--rtimer-card-h)) 1.5px border-box,
-    linear-gradient(to right, rgba(0,0,0,0.16), rgba(0,0,0,0.16))
-      no-repeat bottom center / calc(100% - 2 * var(--rtimer-card-h)) 1.5px border-box;
+  background:linear-gradient(#fff,#fff) padding-box;
+}
+html.light-mode-on .announcement-toast::before{
+  background:conic-gradient(from 315deg,rgba(0,0,0,.16),rgba(0,0,0,.04),rgba(0,0,0,.16),rgba(0,0,0,.04),rgba(0,0,0,.16));
 }
 .announcement-toast.visible{
   opacity: 1;
@@ -6297,12 +6271,16 @@ html.light-mode-on .graphWrap {
     line-height:1.5;
     color:rgba(255,255,255,0.92);
 }
-/* 🔥 과거 기록 줄을 탭해서 입력창에 값을 채웠을 때 잠깐 밝아졌다 돌아오는 피드백 */
-.record-line-tapped{
-    color: var(--c-accent-gold, #FFD700) !important;
-    transition: color 0.2s ease;
+/* Keep normal text in flow; draw only the bold selected glyphs above it. */
+.record-tap-text{display:inline-block;position:relative;}
+.record-line-tapped .record-tap-text{color:transparent;}
+.record-line-tapped .record-tap-text::after{
+  content:attr(data-tap-label);
+  position:absolute;left:0;top:0;white-space:pre;
+  color:var(--c-text-primary,#fff);font-weight:800;
+  transform:scale(1.045);transform-origin:left center;
+  pointer-events:none;
 }
-
 
 /* 🔥 number input +/- 버튼 제거 */
 input[type="number"]::-webkit-outer-spin-button,
@@ -11738,6 +11716,8 @@ updateAnnouncementDot(); // 🔥 로그인 확정 전에도 로컬 캐시 기준
    그냥 한 번 알려주기용이라 계정 전체에 맞출 필요 없음) */
 let announcementToastShownIds = lsGet(LS_KEYS.announcementToastShown, []);
 const announcementToastEl = document.getElementById('announcementToast');
+// Share the root stacking context with the header, outside transformed app screens.
+document.body.appendChild(announcementToastEl);
 const announcementToastTitleEl = document.getElementById('announcementToastTitle');
 let announcementToastHideTimer = null;
 
@@ -11881,6 +11861,8 @@ function renderAnnouncementList(){
 }
 
 async function openAnnouncementModal(){
+  announcementToastEl.classList.remove('visible');
+  clearTimeout(announcementToastHideTimer);
   renderAnnouncementList();
   announcementModal.classList.remove('hidden');
   document.documentElement.classList.add('exercise-ref-modal-open','announcement-modal-open');
@@ -13023,7 +13005,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.45";
+const APP_VERSION = "1.0.46";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -14123,12 +14105,23 @@ calRender();
 
 // 🔥 과거 기록 줄을 짧게 탭하면(롱프레스=삭제와 구분) 그 무게/횟수를 그대로
 //    입력창에 채워줌 — 같은 무게로 여러 세트 할 때 매번 다시 타이핑 안 해도 되게
+function showRecordTapFeedback(line){
+  let text=line.querySelector('.record-tap-text');
+  if(!text){
+    text=document.createElement('span');text.className='record-tap-text';
+    while(line.firstChild)text.appendChild(line.firstChild);
+    line.appendChild(text);
+  }
+  text.dataset.tapLabel=text.textContent;
+  clearTimeout(line._recordTapTimer);
+  line.classList.add('record-line-tapped');
+  line._recordTapTimer=setTimeout(()=>line.classList.remove('record-line-tapped'),220);
+}
 function fillRecordInputsFrom(line){
   if (line.dataset.weight === undefined || line.dataset.reps === undefined) return;
   recordWeight.value = line.dataset.weight;
   recordReps.value = line.dataset.reps;
-  line.classList.add('record-line-tapped');
-  setTimeout(() => line.classList.remove('record-line-tapped'), 220);
+  showRecordTapFeedback(line);
 }
 
 // PC
@@ -21723,8 +21716,7 @@ function fillAccInputsFrom(setEl){
   if (!weightEl || !repsEl) return;
   weightEl.value = setEl.dataset.weight;
   repsEl.value = setEl.dataset.reps;
-  setEl.classList.add('record-line-tapped');
-  setTimeout(() => setEl.classList.remove('record-line-tapped'), 220);
+  showRecordTapFeedback(setEl);
 }
 
 // PC
