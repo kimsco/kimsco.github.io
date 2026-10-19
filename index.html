@@ -1608,6 +1608,18 @@ html.exercise-ref-modal-open .topBar,
 html.exercise-ref-modal-open .bottomTab {
   visibility: hidden;
 }
+/* Keep both bars in the announcement backdrop; other modal behavior stays scoped. */
+html.exercise-ref-modal-open.announcement-modal-open .topBar,
+html.exercise-ref-modal-open.announcement-modal-open .bottomTab {
+  visibility: visible;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  pointer-events: none;
+}
+#announcementModal {
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
 /* 🔥 이 모달들이 열려있는 동안 뒤의 .app(실제 스크롤 주체)이 같이 스크롤되던 문제 —
    바텀시트(body.sheet-open .app)와 동일한 잠금 방식 재사용 */
 html.exercise-ref-modal-open .app {
@@ -11871,14 +11883,14 @@ function renderAnnouncementList(){
 async function openAnnouncementModal(){
   renderAnnouncementList();
   announcementModal.classList.remove('hidden');
-  document.documentElement.classList.add('exercise-ref-modal-open'); // 🔥 사파리 backdrop-filter z-index 버그 회피(기존 참고링크 패널과 동일한 공용 클래스 재사용)
+  document.documentElement.classList.add('exercise-ref-modal-open','announcement-modal-open');
   await ensureAnnouncementReadsSynced();
   await markAllAnnouncementsRead(); // 🔥 열면 전부 읽음 처리(개별 항목 클릭 아님)
 }
 
 function closeAnnouncementModal(){
   announcementModal.classList.add('hidden');
-  document.documentElement.classList.remove('exercise-ref-modal-open');
+  document.documentElement.classList.remove('exercise-ref-modal-open','announcement-modal-open');
 }
 
 document.getElementById('openAnnouncementBtn').addEventListener('click', openAnnouncementModal);
@@ -13011,7 +13023,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.44";
+const APP_VERSION = "1.0.45";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
