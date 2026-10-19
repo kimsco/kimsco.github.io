@@ -10126,7 +10126,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
 
 <!-- 🔥 공지 패널(위 #announcementModal)을 아직 못 봤을 수 있는 유저를 위한 하단
      토스트 — 새 공지당 기기 1회만 뜨고, 탭하면 공지 패널이 열림 -->
-<div id="announcementToast" class="announcement-toast">
+<div id="announcementToast" class="announcement-toast" hidden aria-hidden="true">
   <div class="announcement-toast-label">새 공지</div>
   <div class="announcement-toast-title" id="announcementToastTitle"></div>
 </div>
@@ -11712,17 +11712,7 @@ const announcementToastTitleEl = document.getElementById('announcementToastTitle
 let announcementToastHideTimer = null;
 
 function maybeShowAnnouncementToast(){
-  const target = ANNOUNCEMENTS.find(a => !announcementReadIds.includes(a.id) && !announcementToastShownIds.includes(a.id));
-  if (!target) return;
-  announcementToastShownIds = [...announcementToastShownIds, target.id];
-  lsSet(LS_KEYS.announcementToastShown, announcementToastShownIds);
-
-  announcementToastEl.style.transition = '';
-  announcementToastEl.style.transform = '';
-  announcementToastDragged = false; // 🔥 이전 토스트를 스와이프로 닫은 잔상이 다음 토스트의 탭까지 막지 않게 초기화
-  announcementToastTitleEl.textContent = target.title;
-  announcementToastEl.classList.add('visible');
-  restartAnnouncementToastHideTimer();
+  // Automatic banners are disabled; announcements remain available from the bell.
 }
 
 function restartAnnouncementToastHideTimer(){
@@ -12995,7 +12985,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.48";
+const APP_VERSION = "1.0.49";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
