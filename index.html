@@ -11059,7 +11059,7 @@ MuscleFlow는 개인의 운동 및 식단 기록을 관리하는 PWA 서비스�
 <script src="/js/history-pages.js?v=1.0.30"></script>
 <script src="/js/app-sync.js?v=1.0.30"></script>
 <script src="/js/rest-stopwatch.js?v=1.0.30"></script>
-<script src="/js/rest-timer-motion.js?v=1.0.30"></script>
+<script src="/js/rest-timer-motion.js?v=1.0.40"></script>
 <script src="/js/workout-summary.js?v=1.0.30"></script>
 <script src="/js/firestore-runtime.js?v=1.0.30"></script>
 <script src="/js/profile-loader.js?v=1.0.30"></script>
@@ -12959,7 +12959,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.39";
+const APP_VERSION = "1.0.40";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -21967,7 +21967,7 @@ const restTimerMiniPlayIcon = document.getElementById("restTimerMiniPlayIcon");
 // 🔥 topBarEl은 이미 위에서(메뉴/설정 드로어 push용) 선언돼있어 재사용
 
 const restTimerMotion=MFRestMotion.create({bar:topBarEl,bg:restTimerCardBg,
-  fullDisplay:restTimerDisplay,fullValue:restTimerValueEl,fullButton:restTimerPauseBtn,mini:restTimerMiniDisplay,
+  fullDisplay:restTimerDisplay,fullValue:restTimerValueEl,fullButton:restTimerPauseBtn,fullClose:navDrawerStopIcon,menuIcon:navDrawerMenuIcon,mini:restTimerMiniDisplay,
   readText:()=>restTimerValueEl.textContent,readIcon:()=>restTimerPausedAt?restTimerPlayIcon:restTimerPauseIcon});
 
 // 🔥 카드 배경의 상하좌우 여백을 CSS 고정값이 아니라, 실제로 렌더링된 햄버거 메뉴
@@ -22258,7 +22258,10 @@ function captureRestTimerMotionState(){
     : (restTimerPausedAt?restTimerMiniPlayIcon:restTimerMiniPauseIcon);
   return {pill:MFRestMotion.rect(full?restTimerCardBg:restTimerMiniDisplay),
     time:MFRestMotion.textRect(full?restTimerValueEl:restTimerMiniValueEl),icon:MFRestMotion.rect(icon),
-    weight:full?800:700};
+    weight:full?800:700,close:full?MFRestMotion.rect(navDrawerStopIcon):miniRestTimerCloseRect(MFRestMotion.rect(restTimerMiniDisplay)),closeOpacity:full?1:0};
+}
+function miniRestTimerCloseRect(pill){
+  return {left:pill.left+6,top:pill.top+pill.height/2,width:0,height:0};
 }
 function playRestTimerTransition(toFull, previous){
   const from=previous || captureRestTimerMotionState();
@@ -22274,6 +22277,7 @@ function playRestTimerTransition(toFull, previous){
   document.documentElement.classList.add('rtimer-mini-active');
   const mini={pill:MFRestMotion.rect(restTimerMiniDisplay),time:MFRestMotion.textRect(restTimerMiniValueEl),
     icon:MFRestMotion.rect(restTimerPausedAt?restTimerMiniPlayIcon:restTimerMiniPauseIcon),weight:700};
+  mini.close=miniRestTimerCloseRect(mini.pill);mini.closeOpacity=0;
   // Home icons must not displace the full-size timer button during measurement.
   const announcementDisplay=openAnnouncementBtn.style.display, settingsDisplay=openSettingsBtn.style.display;
   openAnnouncementBtn.style.display='none';openSettingsBtn.style.display='none';
@@ -22287,6 +22291,8 @@ function playRestTimerTransition(toFull, previous){
   positionRestTimerCard();
   const full={pill:MFRestMotion.rect(restTimerCardBg),time:MFRestMotion.textRect(restTimerValueEl),
     icon:MFRestMotion.rect(restTimerPausedAt?restTimerPlayIcon:restTimerPauseIcon),weight:800};
+  const closeButton=MFRestMotion.rect(restTimerMenuBtnEl);
+  full.close={left:closeButton.left+(closeButton.width-22)/2,top:closeButton.top+(closeButton.height-22)/2,width:22,height:22};full.closeOpacity=1;
   openAnnouncementBtn.style.display=announcementDisplay;openSettingsBtn.style.display=settingsDisplay;
   topTitleText.classList.toggle('hidden',toFull);
   navDrawerMenuIcon.classList.toggle('hidden',toFull);navDrawerStopIcon.classList.toggle('hidden',!toFull);
