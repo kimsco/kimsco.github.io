@@ -29,6 +29,7 @@
       fullDisplay.style.visibility='';fullButton.style.visibility='';mini.style.visibility='';
       mini.style.transition='';mini.style.opacity='';
       fullClose.style.visibility='';menuIcon.style.visibility='';
+      fullClose.style.transition='';fullClose.style.opacity='';
       for(const k of ['transition','left','top','width','height','right','bottom']) bg.style[k]='';
       bg.style.removeProperty('--rtimer-card-h');
     }
