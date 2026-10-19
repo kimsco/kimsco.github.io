@@ -5489,10 +5489,30 @@ html.light-mode-on .exercise-ref-modal-box {
   transform: translateX(-50%) translateY(-10px);
   width: calc(100% - 48px);
   max-width: 330px;
-  background: var(--c-bg-elevated, #1c1c1c);
-  border: 1px solid var(--c-border, rgba(255,255,255,0.1));
+  --rtimer-card-h: 28px;
+  background:
+    linear-gradient(rgb(18,18,20), rgb(18,18,20)) padding-box,
+    conic-gradient(from 315deg at 50% 50%,
+      rgba(255,255,255,0.32) 0deg,
+      rgba(255,255,255,0.32) 90deg,
+      rgba(255,255,255,0.32) 180deg,
+      rgba(255,255,255,0.08) 270deg,
+      rgba(255,255,255,0.32) 360deg
+    ) no-repeat left center / var(--rtimer-card-h) 100% border-box,
+    conic-gradient(from 315deg at 50% 50%,
+      rgba(255,255,255,0.32) 0deg,
+      rgba(255,255,255,0.08) 90deg,
+      rgba(255,255,255,0.32) 180deg,
+      rgba(255,255,255,0.32) 270deg,
+      rgba(255,255,255,0.32) 360deg
+    ) no-repeat right center / var(--rtimer-card-h) 100% border-box,
+    linear-gradient(to right, rgba(255,255,255,0.32), rgba(255,255,255,0.32))
+      no-repeat top center / calc(100% - 2 * var(--rtimer-card-h)) 1.5px border-box,
+    linear-gradient(to right, rgba(255,255,255,0.32), rgba(255,255,255,0.32))
+      no-repeat bottom center / calc(100% - 2 * var(--rtimer-card-h)) 1.5px border-box;
+  border: 1.5px solid transparent;
   border-radius: 14px;
-  padding: 13px 16px;
+  padding: 12.5px 15.5px;
   box-shadow: 0 8px 24px rgba(0,0,0,0.4);
   /* 🔥 휴식 스톱워치 미니 알약(.rest-timer-mini)도 같은 헤더 밑 자리에 뜰 수 있는데,
      그 경우 복잡하게 자리를 나누는 대신 공지를 그 위에 그냥 겹쳐 띄움(z-index로
@@ -5501,6 +5521,28 @@ html.light-mode-on .exercise-ref-modal-box {
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.28s ease, transform 0.28s ease;
+}
+html.light-mode-on .announcement-toast{
+  background:
+    linear-gradient(rgb(255,255,255), rgb(255,255,255)) padding-box,
+    conic-gradient(from 315deg at 50% 50%,
+      rgba(0,0,0,0.16) 0deg,
+      rgba(0,0,0,0.16) 90deg,
+      rgba(0,0,0,0.16) 180deg,
+      rgba(0,0,0,0.04) 270deg,
+      rgba(0,0,0,0.16) 360deg
+    ) no-repeat left center / var(--rtimer-card-h) 100% border-box,
+    conic-gradient(from 315deg at 50% 50%,
+      rgba(0,0,0,0.16) 0deg,
+      rgba(0,0,0,0.04) 90deg,
+      rgba(0,0,0,0.16) 180deg,
+      rgba(0,0,0,0.16) 270deg,
+      rgba(0,0,0,0.16) 360deg
+    ) no-repeat right center / var(--rtimer-card-h) 100% border-box,
+    linear-gradient(to right, rgba(0,0,0,0.16), rgba(0,0,0,0.16))
+      no-repeat top center / calc(100% - 2 * var(--rtimer-card-h)) 1.5px border-box,
+    linear-gradient(to right, rgba(0,0,0,0.16), rgba(0,0,0,0.16))
+      no-repeat bottom center / calc(100% - 2 * var(--rtimer-card-h)) 1.5px border-box;
 }
 .announcement-toast.visible{
   opacity: 1;
@@ -11645,6 +11687,11 @@ exerciseRefUrlInput.addEventListener('keydown', (e) => {
 ================================ */
 const ANNOUNCEMENTS = [
   {
+    id: 'announcement-style-test1-2026-10',
+    title: '테스트1',
+    body: '공지 배너 디자인 확인용 테스트입니다.'
+  },
+  {
     id: 'record-tap-to-fill-2026-10',
     title: '기록 입력, 탭 한 번으로 불러오기',
     body: '지난 세트 줄을 탭하면 그 무게·횟수가 입력창에 바로 채워져요.\n같은 무게로 여러 세트 할 때 매번 다시 안 쳐도 돼요.'
@@ -12959,7 +13006,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.41";
+const APP_VERSION = "1.0.42";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
