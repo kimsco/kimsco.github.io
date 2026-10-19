@@ -11086,7 +11086,7 @@ MuscleFlow는 개인의 운동 및 식단 기록을 관리하는 PWA 서비스�
 <script src="/js/history-pages.js?v=1.0.30"></script>
 <script src="/js/app-sync.js?v=1.0.30"></script>
 <script src="/js/rest-stopwatch.js?v=1.0.30"></script>
-<script src="/js/rest-timer-motion.js?v=1.0.40"></script>
+<script src="/js/rest-timer-motion.js?v=1.0.50"></script>
 <script src="/js/workout-summary.js?v=1.0.30"></script>
 <script src="/js/firestore-runtime.js?v=1.0.30"></script>
 <script src="/js/profile-loader.js?v=1.0.30"></script>
@@ -12985,7 +12985,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.49";
+const APP_VERSION = "1.0.50";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -22091,6 +22091,7 @@ function currentActiveTabTarget(){
 // 실제 경과시간 계산 자체는 타임스탬프 기반이라 이 함수를 자주 안 불러도 항상 정확함
 function syncRestTimerUI(){
   restTimerMotion.cancel();
+  navDrawerStopIcon.style.transition='';navDrawerStopIcon.style.opacity='';
   const target = currentActiveTabTarget();
   const onTimerTab = REST_TIMER_TABS.includes(target);
   const showFull = restTimerEnabled && restTimerActive && onTimerTab;
@@ -22176,6 +22177,8 @@ function playRestTimerEntranceAnimation(){
     topBarEl.classList.add('rtimer-card-active');
     // 🔥 타이머가 활성화된 3대/기록 탭에선 햄버거(메뉴) 대신 X(타이머 중지) 아이콘을
     // 보여줌 — syncRestTimerUI()를 거치지 않는 입장 애니메이션 경로라 여기서도 동일하게 처리
+    navDrawerStopIcon.style.transition='none';
+    navDrawerStopIcon.style.opacity='0';
     navDrawerMenuIcon.classList.add('hidden');
     navDrawerStopIcon.classList.remove('hidden');
     // 🔥 unhide와 동시에(사이에 어떤 reflow도 안 끼게) 반지름 0인 시작 상태 클래스부터
@@ -22203,6 +22206,8 @@ function playRestTimerEntranceAnimation(){
 
         restTimerDisplay.style.transition = 'opacity 0.2s ease';
         restTimerPauseBtn.style.transition = 'opacity 0.2s ease';
+        navDrawerStopIcon.style.transition = 'opacity 0.2s ease';
+        navDrawerStopIcon.style.opacity = '';
         restTimerDisplay.style.opacity = '';
         restTimerPauseBtn.style.opacity = '';
       }, CONTENT_FADE_DELAY);
@@ -22224,6 +22229,8 @@ function playRestTimerExitAnimation(onDone){
   restTimerPauseBtn.style.transition = 'opacity 0.2s ease';
   restTimerDisplay.style.opacity = '0';
   restTimerPauseBtn.style.opacity = '0';
+  navDrawerStopIcon.style.transition = 'opacity 0.2s ease';
+  navDrawerStopIcon.style.opacity = '0';
   restTimerCardBg.classList.add('rtimer-card-bleed-in'); // clip-path가 기본(400px)에서 0으로 트랜지션
 
   setTimeout(() => {
@@ -22235,6 +22242,9 @@ function playRestTimerExitAnimation(onDone){
     restTimerPauseBtn.style.opacity = '';
 
     topBarEl.classList.remove('rtimer-card-active');
+    navDrawerStopIcon.classList.add('hidden');
+    navDrawerMenuIcon.classList.remove('hidden');
+    navDrawerStopIcon.style.transition='';navDrawerStopIcon.style.opacity='';
     restTimerCardBg.classList.add('hidden');
     restTimerCardBg.classList.remove('rtimer-card-bleed-in');
 
