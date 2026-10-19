@@ -138,6 +138,19 @@ html, body {
     overscroll-behavior: none;
 }
 
+/* Disable native selection/dragging; preserve editing in actual input controls. */
+* {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+input, textarea, [contenteditable]:not([contenteditable="false"]) {
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
+}
+img, a { -webkit-user-drag: none; }
+
 body {
     background: #000;
 
@@ -8594,6 +8607,12 @@ html:not(.light-mode-on) #tab1 .home-card { background: #101010; border-color: #
 #googleLoginStatus[hidden] { display:none !important; }
 #loginSheetGoogleBtn:disabled { opacity:.6; cursor:wait; }
 </style>
+<script>
+document.addEventListener('dragstart', event => {
+  if (event.target instanceof Element && event.target.closest('input, textarea, [contenteditable]:not([contenteditable="false"])')) return;
+  event.preventDefault();
+});
+</script>
 </head>
 
 <body style="background-color:#000000;">
@@ -12986,7 +13005,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.53";
+const APP_VERSION = "1.0.54";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
