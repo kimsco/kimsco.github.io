@@ -8527,6 +8527,8 @@ html.light-mode-on .my-routine-group-box {
 #tab1 .home-card-label { font-size: 12px; font-weight: 700; letter-spacing: 0.5px; color: rgba(255,255,255,0.4); }
 
 #tab1 .home-today-card { padding: 20px; display: flex; align-items: center; justify-content: space-between; }
+#tab1 .home-card.home-today-card { background: transparent; border-color: transparent; border-radius: 0; box-shadow: none; }
+html.light-mode-on #tab1 .home-card.home-today-card { background: transparent !important; box-shadow: none !important; }
 #tab1 .home-today-card .home-card-label { margin-bottom: 8px; }
 #tab1 .home-today-muscle { font-size: 24px; font-weight: 800; }
 #tab1 .home-today-muscle .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #e0203f; margin-right: 8px; vertical-align: middle; }
@@ -12985,7 +12987,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.50";
+const APP_VERSION = "1.0.51";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
