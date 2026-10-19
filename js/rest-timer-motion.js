@@ -21,13 +21,14 @@
     }
     return 3*(1-t)*t*t+t*t*t;
   }
-  function create({bar,bg,fullDisplay,fullValue,fullButton,mini,readIcon,readText}){
+  function create({bar,bg,fullDisplay,fullValue,fullButton,fullClose,menuIcon,mini,readIcon,readText}){
     let frameId=0,layer=null,state=null;
     function cancel(){
       cancelAnimationFrame(frameId);frameId=0;
       layer?.remove();layer=null;state=null;
       fullDisplay.style.visibility='';fullButton.style.visibility='';mini.style.visibility='';
       mini.style.transition='';mini.style.opacity='';
+      fullClose.style.visibility='';menuIcon.style.visibility='';
       for(const k of ['transition','left','top','width','height','right','bottom']) bg.style[k]='';
       bg.style.removeProperty('--rtimer-card-h');
     }
@@ -44,14 +45,21 @@
       const icon=document.createElement('div');icon.className='mf-rest-motion-icon';
       icon.style.cssText='position:absolute;display:flex;align-items:center;justify-content:center;transform-origin:center;width:22px;height:22px';
       icon.style.color=getComputedStyle(fullButton).color;
+      const close=document.createElement('div');close.className='mf-rest-motion-close';
+      close.style.cssText='position:absolute;display:flex;align-items:center;justify-content:center;transform-origin:center;width:22px;height:22px';
+      close.style.color=getComputedStyle(fullClose).color;
+      const closeSvg=fullClose.cloneNode(true);closeSvg.removeAttribute('id');closeSvg.classList.remove('hidden');closeSvg.style.visibility='';close.appendChild(closeSvg);
+      fullClose.style.visibility='hidden';menuIcon.style.visibility='hidden';
       let iconSource;
-      layer.append(time,icon);bar.appendChild(layer);
+      layer.append(time,icon,close);bar.appendChild(layer);
       fullDisplay.style.visibility='hidden';fullButton.style.visibility='hidden';mini.style.visibility='hidden';
       bg.style.transition='none';bg.style.right='auto';bg.style.bottom='auto';
       const startAt=performance.now();
       function draw(t){
         const b=rect(bar);
-        state={pill:mix(from.pill,to.pill,t),time:mix(from.time,to.time,t),icon:mix(from.icon,to.icon,t),weight:from.weight+(to.weight-from.weight)*t};
+        state={pill:mix(from.pill,to.pill,t),time:mix(from.time,to.time,t),icon:mix(from.icon,to.icon,t),weight:from.weight+(to.weight-from.weight)*t,
+          close:mix(from.close,to.close,t),closeOpacity:from.closeOpacity+(to.closeOpacity-from.closeOpacity)*t};
+        close.style.opacity=String(state.closeOpacity);
         for(const key of ['left','top','width','height']){
           const origin=key==='left'?b.left:key==='top'?b.top:0;
           bg.style[key]=(state.pill[key]-origin)+'px';
@@ -59,7 +67,7 @@
         bg.style.setProperty('--rtimer-card-h',state.pill.height+'px');
         time.textContent=readText();
         time.style.fontWeight=String(Math.round(from.weight+(to.weight-from.weight)*t));
-        for(const [el,r,w,h] of [[time,state.time,to.fullTime.width,to.fullTime.height],[icon,state.icon,22,22]]){
+        for(const [el,r,w,h] of [[time,state.time,to.fullTime.width,to.fullTime.height],[icon,state.icon,22,22],[close,state.close,22,22]]){
           el.style.left=(r.left+r.width/2-b.left-w/2)+'px';
           el.style.top=(r.top+r.height/2-b.top-h/2)+'px';
           el.style.transform=`scale(${r.width/w},${r.height/h})`;

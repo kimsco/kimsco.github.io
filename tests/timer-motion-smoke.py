@@ -25,7 +25,7 @@ with sync_playwright() as p:
    const first=restTimerMotion.snapshot();
    while(restTimerMotion.snapshot()){
      const s=restTimerMotion.snapshot();
-     frames.push({state:s,time:MFRestMotion.textRect(document.querySelector('.mf-rest-motion-time')),icon:MFRestMotion.rect(document.querySelector('.mf-rest-motion-icon'))});
+     frames.push({state:s,time:MFRestMotion.textRect(document.querySelector('.mf-rest-motion-time')),icon:MFRestMotion.rect(document.querySelector('.mf-rest-motion-icon')),close:MFRestMotion.rect(document.querySelector('.mf-rest-motion-close')),closeOpacity:Number(getComputedStyle(document.querySelector('.mf-rest-motion-close')).opacity)});
      await new Promise(requestAnimationFrame);
    }
    return {before,first,frames,after:captureRestTimerMotionState()};
@@ -33,17 +33,21 @@ with sync_playwright() as p:
  def center(r):return (r['left']+r['width']/2,r['top']+r['height']/2)
  def check(t):
   assert len(t['frames'])>=5
-  for key in ['pill','time','icon']:
+  for key in ['pill','time','icon','close']:
    for prop in ['left','top','width','height']:
     assert abs(t['before'][key][prop]-t['first'][key][prop])<.1,(key,prop,t)
   start,end=t['before'],t['after']
+  assert abs(end['closeOpacity']-t['frames'][-1]['closeOpacity'])<.15
+  for f in t['frames']:
+   assert abs(f['closeOpacity']-f['state']['closeOpacity'])<.01
+   assert f['state']['close']['width']>=0
   for f in t['frames']:
    state=f['state'];progress=(state['pill']['top']-start['pill']['top'])/(end['pill']['top']-start['pill']['top'])
-   for key in ['time','icon']:
+   for key in ['time','icon','close']:
     actual=center(f[key]);a,z=center(start[key]),center(end[key])
     expected=[a[i]+(z[i]-a[i])*progress for i in range(2)]
     assert max(abs(actual[i]-expected[i]) for i in range(2))<1,(key,actual,expected)
-  for key in ['time','icon']:
+  for key in ['time','icon','close']:
    assert abs(center(t['frames'][-1][key])[1]-center(end[key])[1])<2
  for light in [False,True]:
   page.evaluate('(v)=>applyLightMode(v)',light)
@@ -66,7 +70,7 @@ with sync_playwright() as p:
    return results;
  }""")
  for pair in reversals:
-  for key in ['pill','time','icon']:
+  for key in ['pill','time','icon','close']:
    assert max(abs(pair['before'][key][prop]-pair['after'][key][prop]) for prop in ['left','top','width','height'])<.1
  page.wait_for_timeout(400)
  assert page.locator('.mf-rest-motion').count()==0
