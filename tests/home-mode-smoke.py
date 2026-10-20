@@ -24,7 +24,7 @@ try:
   assert abs(page.locator('#homeModeSwitch').bounding_box()['x']-top['x']-25)<.2
   page.evaluate("setAppPush(0)")
   assert float(page.locator('#homeModeSwitch').evaluate('(el)=>getComputedStyle(el).opacity'))==1
-  page.wait_for_timeout(5200)
+  page.wait_for_timeout(3800)
   assert abs(float(page.locator('#homeModeSwitch').evaluate('(el)=>getComputedStyle(el).opacity'))-.5)<.01
   page.evaluate("document.querySelector('.app').scrollTop=180")
   page.wait_for_timeout(260)
@@ -39,6 +39,18 @@ try:
   assert not page.locator('#homeModeSwitch').is_visible()
   page.locator('.bottomTab .tabBtn[data-target="tab1"]').click()
   assert page.locator('#homeModeSwitch').is_visible()
+
+  page.locator('#homeModeFocus').click()
+  assert float(page.locator('#homeModeSwitch').evaluate('(el)=>getComputedStyle(el).opacity'))==1
+  page.wait_for_timeout(800)
+  assert float(page.locator('#homeModeSwitch').evaluate('(el)=>getComputedStyle(el).opacity'))==1
+  page.locator('.bottomTab .tabBtn[data-target="tab2"]').click()
+  page.wait_for_timeout(3200)
+  page.locator('.bottomTab .tabBtn[data-target="tab1"]').click();page.wait_for_timeout(850)
+  assert abs(float(page.locator('#homeModeSwitch').evaluate('(el)=>getComputedStyle(el).opacity'))-.5)<.01
+  page.locator('#homeModeBasic').click()
+  assert float(page.locator('#homeModeSwitch').evaluate('(el)=>getComputedStyle(el).opacity'))==1
+  page.wait_for_timeout(450)
 
   trace='''async on=>{
    (on?homeModeFocus:homeModeBasic).click();const frames=[];
