@@ -12998,7 +12998,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.62";
+const APP_VERSION = "1.0.63";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -16268,7 +16268,7 @@ function applySeriousMode(on,{animate=true,persist=true}={}){
   if(!animate || matchMedia('(prefers-reduced-motion: reduce)').matches || from===target){paintHomeMode(target);return;}
   const start=performance.now();
   function step(now){
-    const t=Math.min(1,(now-start)/360),eased=t*t*(3-2*t);
+    const t=Math.min(1,(now-start)/360),eased=1-Math.pow(1-t,3);
     paintHomeMode(from+(target-from)*eased);
     if(t<1)homeModeFrame=requestAnimationFrame(step);else homeModeFrame=0;
   }
