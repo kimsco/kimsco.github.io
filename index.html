@@ -2108,7 +2108,8 @@ html.mf-restore-settings .bottomTab {
 }
 .home-mode-switch button[aria-selected="true"]{color:#fff;}
 .home-mode-switch button:focus-visible{outline:2px solid #888;outline-offset:3px;}
-.home-mode-viewport{overflow:hidden;width:100%;position:relative;}
+.home-mode-viewport{overflow:hidden;width:calc(100% + 54px);margin-inline:-27px;position:relative;}
+#homeNormalContent{padding-inline:27px;}
 .home-mode-track{display:flex;align-items:flex-start;width:200%;transform:translateX(calc(var(--home-mode-progress,0) * -50%));}
 .home-mode-track>div{flex:0 0 50%;width:50%;min-width:0;box-sizing:border-box;}
 #inactivityOverlay.hidden {
@@ -12997,7 +12998,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.61";
+const APP_VERSION = "1.0.62";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
