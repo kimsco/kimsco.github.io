@@ -18,7 +18,7 @@ try:
   page.wait_for_timeout(260)
   scrolled=page.locator('#homeModeSwitch').bounding_box()
   assert abs(top['y']-scrolled['y'])<.1 and abs(top['x']-scrolled['x'])<.1
-  assert abs(float(page.locator('#homeModeSwitch').evaluate('(el)=>getComputedStyle(el).opacity'))-.7)<.01
+  assert abs(float(page.locator('#homeModeSwitch').evaluate('(el)=>getComputedStyle(el).opacity'))-.5)<.01
   page.screenshot(path='/tmp/home-mode-floating-scroll.png')
   page.evaluate("document.querySelector('.app').scrollTop=0")
   page.wait_for_timeout(260)
@@ -54,6 +54,9 @@ try:
   page.evaluate('applySeriousMode(true)');page.wait_for_timeout(450);page.reload();page.wait_for_timeout(700)
   assert page.evaluate('homeModeProgress')==1 and page.locator('#homeModeFocus').get_attribute('aria-selected')=='true'
   assert page.locator('#homeNormalContent').evaluate('(el)=>el.inert')
+  page.evaluate('applySeriousMode(false,{animate:false})');page.reload();page.wait_for_timeout(700)
+  assert page.evaluate('homeModeProgress')==0 and page.locator('#homeModeBasic').get_attribute('aria-selected')=='true'
+  assert page.locator('#homeSeriousModeScreen').evaluate('(el)=>el.inert')
   page.emulate_media(reduced_motion='reduce')
   page.locator('#homeModeFocus').focus();page.keyboard.press('ArrowLeft')
   assert page.evaluate('homeModeProgress')==0 and page.evaluate('homeModeFrame')==0
