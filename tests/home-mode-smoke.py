@@ -12,6 +12,9 @@ try:
   page=c.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)));page.goto('http://127.0.0.1:8197/');page.wait_for_timeout(650)
   assert page.locator('#homeGreeting').count()==0
   assert page.locator('#homeModeSwitch').is_visible()
+  viewport=page.locator('#homeModeViewport').bounding_box()
+  assert abs(viewport['x'])<.1 and abs(viewport['width']-390)<.1,viewport
+  assert abs(page.locator('.home-title-row').bounding_box()['x']-27)<.1
   top=page.locator('#homeModeSwitch').bounding_box()
   assert top['y']<75,top
   for opening in [True,False]:
