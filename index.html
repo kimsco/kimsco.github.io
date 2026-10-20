@@ -4718,7 +4718,6 @@ html.light-mode-on #tab1 {
   color: #1a1a1a;
 }
 html.light-mode-on #tab1 .home-card,
-html.light-mode-on #tab1 .home-quick-btn,
 html.light-mode-on #tab1 .home-big3-badge,
 html.light-mode-on #tab1 .home-weight-pill {
   background: #ffffff;
@@ -4759,8 +4758,6 @@ html.light-mode-on #tab1 .home-macro-pill .l { color: rgba(0,0,0,0.4); }
 html.light-mode-on #tab1 .home-diet-input-row input { color: #1a1a1a; border-color: #ddd; }
 html.light-mode-on #tab1 .home-diet-input-row input::placeholder { color: rgba(0,0,0,0.3); }
 html.light-mode-on #tab1 .home-diet-input-row button { background: #1a1a1a; color: #fff; }
-html.light-mode-on #tab1 .home-quick-btn { color: rgba(0,0,0,0.75); }
-html.light-mode-on #tab1 .home-quick-btn .home-quick-icon { color: rgba(0,0,0,0.75); }
 
 /* 🔥 식단 > 통계(#dietPanel-stats) 라이트모드: #tab1과 동일하게 필터를 전혀 안 받는 화면.
    골드(#FFD700)/경고 빨강(#ff5252)은 이미 리터럴 값이라 반전 대상이 아니었으므로
@@ -8589,10 +8586,6 @@ html:not(.light-mode-on) #tab1 .home-card { background: #101010; border-color: #
 #tab1 .home-part-days { font-size: 16px; font-weight: 800; color: #fff; margin-top: 2px; }
 #tab1 .home-part-sub { font-size: 10px; color: rgba(255,255,255,0.4); }
 
-#tab1 .home-quick-row { display: flex; gap: 10px; margin-bottom: 14px; }
-#tab1 .home-quick-btn { flex: 1; width: auto; margin: 0; background: #181818; border: 1px solid #222; border-radius: 14px; padding: 14px 10px; text-align: center; font-size: 12px; font-weight: 700; font-family: inherit; color: rgba(255,255,255,0.85); cursor: pointer; }
-#tab1 .home-quick-btn .home-quick-icon { display: flex; align-items: center; justify-content: center; margin-bottom: 6px; color: rgba(255,255,255,0.85); }
-#tab1 .home-quick-btn .home-quick-icon svg { display: block; margin: 0 auto; }
 
 
 /* Incremental summary cards; use existing theme variables. */
@@ -8861,6 +8854,20 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
     <div class="home-week-row" id="homeWeekRow"></div>
   </div>
 
+  <div class="home-card home-parts-card">
+    <div class="home-parts-head">
+      <div class="home-card-label">부위별 마지막 운동</div>
+      <div class="home-parts-head-sub">마지막 운동 후 경과일</div>
+    </div>
+    <div class="home-parts-row" id="homePartsRow"></div>
+  </div>
+
+  <div class="home-card home-quote-card">
+    <div class="home-quote-open">“</div>
+    <div class="home-quote-close">”</div>
+    <div class="home-quote-headline">같은 벽을 보고도 누군가는 멈추고, 누군가는 올라갈 길을 찾는다.</div>
+    <div class="home-quote-body">불가능이라는 말 앞에서 누군가는 포기하고, 누군가는 도전할 이유를 찾는다.<br>결국 당신의 한계를 결정하는 것은 현실이 아니라 그 현실을 마주하는 당신의 태도다.</div>
+  </div>
   <div class="home-card home-diet-card">
     <div class="home-diet-head">
       <div class="home-card-label">오늘 식단</div>
@@ -8873,49 +8880,6 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
     </div>
   </div>
 
-  <div class="home-card home-parts-card">
-    <div class="home-parts-head">
-      <div class="home-card-label">부위별 마지막 운동</div>
-      <div class="home-parts-head-sub">마지막 운동 후 경과일</div>
-    </div>
-    <div class="home-parts-row" id="homePartsRow"></div>
-  </div>
-
-  <div class="home-quick-row">
-    <button class="home-quick-btn" id="homeQuickBig3" type="button">
-      <span class="home-quick-icon"><svg viewBox="0 0 48 48" fill="currentColor" width="22" height="22">
-        <rect x="0" y="21.5" width="1.8" height="5" rx="0.9"/>
-        <rect x="2.2" y="14" width="4.6" height="20" rx="1.3"/>
-        <rect x="8.2" y="9" width="4.6" height="30" rx="1.3"/>
-        <rect x="13.6" y="21.5" width="20.8" height="5" rx="1"/>
-        <rect x="35.2" y="9" width="4.6" height="30" rx="1.3"/>
-        <rect x="41.2" y="14" width="4.6" height="20" rx="1.3"/>
-        <rect x="46.2" y="21.5" width="1.8" height="5" rx="0.9"/>
-      </svg></span>
-      3대 기록
-    </button>
-    <button class="home-quick-btn" id="homeQuickOneRM" type="button">
-      <span class="home-quick-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" width="22" height="22">
-        <path d="M8 7L11.5 3H16V21H11.5V8L8 12Z"></path>
-      </svg></span>
-      1RM 계산기
-    </button>
-    <button class="home-quick-btn" id="homeQuickRoutine" type="button">
-      <span class="home-quick-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" width="22" height="22">
-        <rect x="4" y="4" width="12" height="5" rx="1.5"></rect>
-        <rect x="7" y="10.5" width="12" height="5" rx="1.5"></rect>
-        <rect x="4" y="17" width="12" height="5" rx="1.5"></rect>
-      </svg></span>
-      루틴
-    </button>
-  </div>
-
-  <div class="home-card home-quote-card">
-    <div class="home-quote-open">“</div>
-    <div class="home-quote-close">”</div>
-    <div class="home-quote-headline">같은 벽을 보고도 누군가는 멈추고, 누군가는 올라갈 길을 찾는다.</div>
-    <div class="home-quote-body">불가능이라는 말 앞에서 누군가는 포기하고, 누군가는 도전할 이유를 찾는다.<br>결국 당신의 한계를 결정하는 것은 현실이 아니라 그 현실을 마주하는 당신의 태도다.</div>
-  </div>
 </div>
 </div>
 
@@ -13005,7 +12969,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.54";
+const APP_VERSION = "1.0.55";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -13995,17 +13959,6 @@ document.getElementById("homeWeightPill").addEventListener("click", () => {
 
 document.getElementById("homeDietQuickBtn").addEventListener("click", () => {
   document.getElementById("quickAddMealBtn")?.click();
-});
-
-document.getElementById("homeQuickBig3").addEventListener("click", () => {
-  // 🔥 좌측 메뉴 드로어의 "3대 총합"과 동일한 화면으로 연결
-  openThreeSummary();
-});
-document.getElementById("homeQuickOneRM").addEventListener("click", () => {
-  openOneRMCalc();
-});
-document.getElementById("homeQuickRoutine").addEventListener("click", () => {
-  openMyRoutine();
 });
 
    // 🔥 여러 부위를 중복 선택할 수 있도록, 탭할 때마다 팝업을 닫지 않고
