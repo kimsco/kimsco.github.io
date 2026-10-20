@@ -14,6 +14,12 @@ try:
   assert page.locator('#homeModeSwitch').is_visible()
   top=page.locator('#homeModeSwitch').bounding_box()
   assert top['y']<75,top
+  for opening in [True,False]:
+   samples=page.evaluate('''async opening=>{const out=[];const base=document.getElementById('homeModeSwitch').getBoundingClientRect().left-Number(new DOMMatrix(getComputedStyle(document.querySelector('.app')).transform).m41);opening?openNavDrawer():closeNavDrawer();for(let i=0;i<22;i++){await new Promise(requestAnimationFrame);out.push([document.getElementById('homeModeSwitch').getBoundingClientRect().left-base,new DOMMatrix(getComputedStyle(document.querySelector('.app')).transform).m41]);}return out;}''',opening)
+   assert all(abs(pill-app)<.2 for pill,app in samples),samples
+  page.evaluate("setAppPushTransition('none');setAppPush(25)")
+  assert abs(page.locator('#homeModeSwitch').bounding_box()['x']-top['x']-25)<.2
+  page.evaluate("setAppPush(0)")
   page.evaluate("document.querySelector('.app').scrollTop=180")
   page.wait_for_timeout(260)
   scrolled=page.locator('#homeModeSwitch').bounding_box()
