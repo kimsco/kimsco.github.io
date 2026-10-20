@@ -17,6 +17,8 @@ try:
   assert abs(page.locator('.home-title-row').bounding_box()['x']-27)<.1
   top=page.locator('#homeModeSwitch').bounding_box()
   assert top['y']<75,top
+  spinner=page.locator('#homePullSpinner').bounding_box()
+  assert abs(spinner['y']-(top['y']+top['height'])-10)<.1,spinner
   for opening in [True,False]:
    samples=page.evaluate('''async opening=>{const out=[];const base=document.getElementById('homeModeSwitch').getBoundingClientRect().left-Number(new DOMMatrix(getComputedStyle(document.querySelector('.app')).transform).m41);opening?openNavDrawer():closeNavDrawer();for(let i=0;i<22;i++){await new Promise(requestAnimationFrame);out.push([document.getElementById('homeModeSwitch').getBoundingClientRect().left-base,new DOMMatrix(getComputedStyle(document.querySelector('.app')).transform).m41]);}return out;}''',opening)
    assert all(abs(pill-app)<.2 for pill,app in samples),samples

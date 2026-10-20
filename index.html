@@ -8841,7 +8841,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
      #homePullSpinner를 화면 상단에 고정으로 따로 둠(이 박스가 늘어나는 만큼 스피너도 같이
      아래로 밀려 내려가 보이는 걸 방지 — 스피너는 항상 같은 자리에 고정) -->
 <div id="homePullRefresh" style="height:0; overflow:hidden;"></div>
-<div id="homePullSpinner" style="position:fixed; left:50%; transform:translateX(-50%); top:calc(var(--topBarH) + env(safe-area-inset-top) + 18px); width:390px; max-width:100%; display:flex; align-items:center; justify-content:center; pointer-events:none; opacity:0; transition:opacity 0.15s ease; z-index:10;">
+<div id="homePullSpinner" style="position:fixed; left:50%; transform:translateX(-50%); top:calc(var(--topBarH) + env(safe-area-inset-top) + 54px); width:390px; max-width:100%; display:flex; align-items:center; justify-content:center; pointer-events:none; opacity:0; transition:opacity 0.15s ease; z-index:10;">
   <div class="ios-spinner"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
 </div>
 <div class="home-mode-slot" aria-hidden="true"></div>
@@ -12998,7 +12998,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.65";
+const APP_VERSION = "1.0.66";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
