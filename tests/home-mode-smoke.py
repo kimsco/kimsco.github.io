@@ -12,6 +12,22 @@ try:
   page=c.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)));page.goto('http://127.0.0.1:8197/');page.wait_for_timeout(650)
   assert page.locator('#homeGreeting').count()==0
   assert page.locator('#homeModeSwitch').is_visible()
+  top=page.locator('#homeModeSwitch').bounding_box()
+  assert top['y']<75,top
+  page.evaluate("document.querySelector('.app').scrollTop=180")
+  page.wait_for_timeout(260)
+  scrolled=page.locator('#homeModeSwitch').bounding_box()
+  assert abs(top['y']-scrolled['y'])<.1 and abs(top['x']-scrolled['x'])<.1
+  assert abs(float(page.locator('#homeModeSwitch').evaluate('(el)=>getComputedStyle(el).opacity'))-.7)<.01
+  page.screenshot(path='/tmp/home-mode-floating-scroll.png')
+  page.evaluate("document.querySelector('.app').scrollTop=0")
+  page.wait_for_timeout(260)
+  assert float(page.locator('#homeModeSwitch').evaluate('(el)=>getComputedStyle(el).opacity'))==1
+  page.locator('.bottomTab .tabBtn[data-target="tab2"]').click()
+  assert not page.locator('#homeModeSwitch').is_visible()
+  page.locator('.bottomTab .tabBtn[data-target="tab1"]').click()
+  assert page.locator('#homeModeSwitch').is_visible()
+
   trace='''async on=>{
    (on?homeModeFocus:homeModeBasic).click();const frames=[];
    while(homeModeFrame){
