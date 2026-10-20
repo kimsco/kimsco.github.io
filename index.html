@@ -2090,7 +2090,7 @@ html.mf-restore-settings .bottomTab {
 .home-mode-switch{
   position:fixed;left:50%;top:calc(var(--topBarH) + env(safe-area-inset-top) + 8px);
   transform:translateX(-50%);display:flex;width:156px;height:36px;margin:0;z-index:99998;
-  opacity:var(--home-mode-opacity,1);transition:opacity .18s ease;
+  opacity:var(--home-mode-opacity,1);transition:opacity .8s ease;
   padding:3px;box-sizing:border-box;border:1px solid #303030;
   border-radius:999px;background:#1a1a1a;isolation:isolate;
 }
@@ -12998,7 +12998,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.63";
+const APP_VERSION = "1.0.64";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -16232,16 +16232,20 @@ const homeModeSwitch=document.getElementById('homeModeSwitch');
 const homeModeViewport=document.getElementById('homeModeViewport');
 const homeModeBasic=document.getElementById('homeModeBasic');
 const homeModeFocus=document.getElementById('homeModeFocus');
-const homeModeApp=document.querySelector('.app');
 const homeModeHome=document.getElementById('tab1');
 document.body.appendChild(homeModeSwitch);
+let homeModeFadeTimer=0,homeModeFaded=false;
 function updateHomeModeFloating(){
   homeModeSwitch.hidden=!homeModeHome.classList.contains('active');
-  const scroll=Math.max(0,homeModeApp.scrollTop,window.scrollY);
-  homeModeSwitch.style.setProperty('--home-mode-opacity',String(1-Math.min(1,scroll/48)*.5));
+  if(homeModeSwitch.hidden){
+    clearTimeout(homeModeFadeTimer);homeModeFadeTimer=0;
+  }else if(!homeModeFaded && !homeModeFadeTimer){
+    homeModeFadeTimer=setTimeout(()=>{
+      homeModeFadeTimer=0;homeModeFaded=true;
+      homeModeSwitch.style.setProperty('--home-mode-opacity','0.5');
+    },5000);
+  }
 }
-homeModeApp.addEventListener('scroll',updateHomeModeFloating,{passive:true});
-window.addEventListener('scroll',updateHomeModeFloating,{passive:true});
 const homeModeTabObserver=new MutationObserver(updateHomeModeFloating);
 homeModeTabObserver.observe(homeModeHome,{attributes:true,attributeFilter:['class']});
 updateHomeModeFloating();
@@ -20511,7 +20515,7 @@ function setAppPushTransition(css){
   const appEl = document.querySelector('.app');
   if (appEl) appEl.style.transition = css;
   setChromePushTransition(css);
-  homeModeSwitch.style.transition = css === 'none' ? 'none' : `${css}, opacity .18s ease`;
+  homeModeSwitch.style.transition = css === 'none' ? 'opacity .8s ease' : `${css}, opacity .8s ease`;
 }
 
 function openNavDrawer(){
