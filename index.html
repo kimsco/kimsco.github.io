@@ -2085,12 +2085,27 @@ html.mf-restore-settings .bottomTab {
   padding: 40px 32px;
   box-sizing: border-box;
 }
-#homeSeriousModeScreen.hidden {
-  display: none;
+/* The home panels share one continuous horizontal track. */
+.home-mode-switch{
+  position:relative;display:flex;width:180px;height:36px;margin:0 auto 20px;
+  padding:3px;box-sizing:border-box;border:1px solid var(--c-border);
+  border-radius:999px;background:var(--c-bg-elevated);isolation:isolate;
 }
-#homeNormalContent.hidden {
-  display: none;
+.home-mode-thumb{
+  position:absolute;left:3px;top:3px;bottom:3px;width:calc(50% - 3px);
+  border-radius:999px;background:var(--c-text-primary);
+  transform:translateX(calc(var(--home-mode-progress,0) * 100%));z-index:-1;
 }
+.home-mode-switch button{
+  flex:1;margin:0;padding:0;border:0;border-radius:999px;background:transparent;
+  color:var(--c-text-secondary);font:700 13px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  cursor:pointer;transition:color .18s ease;
+}
+.home-mode-switch button[aria-selected="true"]{color:var(--c-bg);}
+.home-mode-switch button:focus-visible{outline:2px solid var(--c-text-primary);outline-offset:3px;}
+.home-mode-viewport{overflow:hidden;width:100%;position:relative;}
+.home-mode-track{display:flex;align-items:flex-start;width:200%;transform:translateX(calc(var(--home-mode-progress,0) * -50%));}
+.home-mode-track>div{flex:0 0 50%;width:50%;min-width:0;box-sizing:border-box;}
 #inactivityOverlay.hidden {
   display: none;
 }
@@ -8823,12 +8838,14 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
 <div id="homePullSpinner" style="position:fixed; left:50%; transform:translateX(-50%); top:calc(var(--topBarH) + env(safe-area-inset-top) + 18px); width:390px; max-width:100%; display:flex; align-items:center; justify-content:center; pointer-events:none; opacity:0; transition:opacity 0.15s ease; z-index:10;">
   <div class="ios-spinner"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
 </div>
-<!-- 🔥 진심모드 ON: 기존 홈 화면(박스/날짜/체중 등) 대신 검정 화면에 문구 하나만 표시 -->
-<div id="homeSeriousModeScreen" class="hidden" style="background:#000; min-height: calc(100vh - var(--topBarH) - var(--bottomTabH) - env(safe-area-inset-top));">
-  <div style="font-family:'Nanum Myeongjo','AppleMyungjo','Batang',serif; font-size:21px; font-weight:700; line-height:1.7; text-align:center; color:#eee;">두려우면 하지 말고,<br>하게되면 두려워하지 마라</div>
+<div class="home-mode-switch" id="homeModeSwitch" role="tablist" aria-label="홈 화면 모드">
+  <span class="home-mode-thumb" aria-hidden="true"></span>
+  <button id="homeModeBasic" role="tab" type="button" aria-selected="true" aria-controls="homeNormalContent">기본</button>
+  <button id="homeModeFocus" role="tab" type="button" aria-selected="false" aria-controls="homeSeriousModeScreen" tabindex="-1">집중</button>
 </div>
-<div id="homeNormalContent">
-  <div class="home-greeting" id="homeGreeting"></div>
+<div class="home-mode-viewport" id="homeModeViewport">
+<div class="home-mode-track" id="homeModeTrack">
+<div id="homeNormalContent" role="tabpanel" aria-labelledby="homeModeBasic">
   <div class="home-title-row">
     <div class="home-big3-badge" id="homeBig3Badge">3대 <b id="homeBig3Total">0kg</b></div>
     <div class="home-weight-pill" id="homeWeightPill" role="button" aria-label="체중 입력">
@@ -8880,6 +8897,11 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
     </div>
   </div>
 
+</div>
+<div id="homeSeriousModeScreen" role="tabpanel" aria-labelledby="homeModeFocus" style="background:#000; min-height: calc(100vh - var(--topBarH) - var(--bottomTabH) - env(safe-area-inset-top) - 76px);">
+  <div style="font-family:'Nanum Myeongjo','AppleMyungjo','Batang',serif; font-size:21px; font-weight:700; line-height:1.7; text-align:center; color:#eee;">두려우면 하지 말고,<br>하게되면 두려워하지 마라</div>
+</div>
+</div>
 </div>
 </div>
 
@@ -12969,7 +12991,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.55";
+const APP_VERSION = "1.0.56";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -13782,13 +13804,6 @@ function computeWeekActivity(){
 }
 
 function renderHomeTab(){
-  const greetingEl = document.getElementById("homeGreeting");
-  if (greetingEl) {
-    const now = new Date();
-    const weekday = ["일", "월", "화", "수", "목", "금", "토"][now.getDay()];
-    greetingEl.innerHTML = `${now.getFullYear()}년 ${now.getMonth() + 1}월 ${now.getDate()}일 <b>${weekday}요일</b>`;
-  }
-
   // 3대 총합
   const big3Total = (parseInt(benchRM.value) || 0) + (parseInt(squatRM.value) || 0) + (parseInt(deadRM.value) || 0);
   const big3TotalEl = document.getElementById("homeBig3Total");
@@ -16206,23 +16221,51 @@ document.getElementById("unitSettingsMenuBtn").addEventListener("click", () => {
 const seriousModeToggle = document.getElementById("seriousModeToggle");
 const homeSeriousModeScreen = document.getElementById("homeSeriousModeScreen");
 const homeNormalContent = document.getElementById("homeNormalContent");
-// 🔥 진심모드 ON: 홈 탭의 기존 박스/날짜/체중 등을 다 숨기고 검정 화면만 보여줌
-// (지금은 빈 화면 — 이 안에 넣을 콘텐츠는 나중에 별도로 작업 예정)
-function applySeriousMode(on){
-  homeSeriousModeScreen.classList.toggle("hidden", !on);
-  homeNormalContent.classList.toggle("hidden", on);
+const homeModeSwitch=document.getElementById('homeModeSwitch');
+const homeModeViewport=document.getElementById('homeModeViewport');
+const homeModeBasic=document.getElementById('homeModeBasic');
+const homeModeFocus=document.getElementById('homeModeFocus');
+let homeModeProgress=0,homeModeFrame=0,homeModeTarget=false;
+function paintHomeMode(progress){
+  homeModeProgress=progress;
+  document.getElementById('tab1').style.setProperty('--home-mode-progress',String(progress));
+  const normalHeight=homeNormalContent.getBoundingClientRect().height;
+  const focusHeight=homeSeriousModeScreen.getBoundingClientRect().height;
+  if(normalHeight && focusHeight)homeModeViewport.style.height=(normalHeight+(focusHeight-normalHeight)*progress)+'px';
 }
-try {
-  const seriousModeOn = localStorage.getItem("mf_serious_mode") === "1";
-  seriousModeToggle.classList.toggle("active", seriousModeOn);
-  applySeriousMode(seriousModeOn);
-} catch(e){}
-seriousModeToggle.addEventListener("click", () => {
-  const next = !seriousModeToggle.classList.contains("active");
-  seriousModeToggle.classList.toggle("active", next);
-  applySeriousMode(next);
-  try { localStorage.setItem("mf_serious_mode", next ? "1" : "0"); } catch(e){}
+function applySeriousMode(on,{animate=true,persist=true}={}){
+  on=!!on;homeModeTarget=on;cancelAnimationFrame(homeModeFrame);homeModeFrame=0;
+  seriousModeToggle.classList.toggle('active',on);
+  document.documentElement.classList.toggle('home-focus-active',on);
+  homeModeBasic.setAttribute('aria-selected',String(!on));homeModeFocus.setAttribute('aria-selected',String(on));
+  homeModeBasic.tabIndex=on?-1:0;homeModeFocus.tabIndex=on?0:-1;
+  homeNormalContent.inert=on;homeSeriousModeScreen.inert=!on;
+  homeNormalContent.setAttribute('aria-hidden',String(on));homeSeriousModeScreen.setAttribute('aria-hidden',String(!on));
+  if(persist)try{localStorage.setItem('mf_serious_mode',on?'1':'0');}catch(e){}
+  if(currentActiveTabTarget()==='tab1')document.querySelector('.app').scrollTop=0;
+  const target=on?1:0,from=homeModeProgress;
+  if(!animate || matchMedia('(prefers-reduced-motion: reduce)').matches || from===target){paintHomeMode(target);return;}
+  const start=performance.now();
+  function step(now){
+    const t=Math.min(1,(now-start)/360),eased=t*t*(3-2*t);
+    paintHomeMode(from+(target-from)*eased);
+    if(t<1)homeModeFrame=requestAnimationFrame(step);else homeModeFrame=0;
+  }
+  homeModeFrame=requestAnimationFrame(step);
+}
+let savedHomeMode=false;
+try{savedHomeMode=localStorage.getItem('mf_serious_mode')==='1';}catch(e){}
+applySeriousMode(savedHomeMode,{animate:false,persist:false});
+seriousModeToggle.addEventListener('click',()=>applySeriousMode(!homeModeTarget));
+homeModeBasic.addEventListener('click',()=>applySeriousMode(false));
+homeModeFocus.addEventListener('click',()=>applySeriousMode(true));
+homeModeSwitch.addEventListener('keydown',event=>{
+  if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;
+  event.preventDefault();const on=event.key==='ArrowRight'||event.key==='End';
+  applySeriousMode(on);(on?homeModeFocus:homeModeBasic).focus();
 });
+const homeModeResizeObserver=new ResizeObserver(()=>paintHomeMode(homeModeProgress));
+homeModeResizeObserver.observe(homeNormalContent);homeModeResizeObserver.observe(homeSeriousModeScreen);
 
 /* ===============================
    🔥 3일 이상 기록하지 않은 사용자에게 전면에 뜨는 페이지
@@ -20813,7 +20856,7 @@ document.querySelectorAll(".nav-drawer-item").forEach(item => {
   }
 
   document.addEventListener('touchstart', (e) => {
-    if (refreshing || !isTab1Active() || !appEl || appEl.scrollTop > 0 || anyBlockingOverlayOpen() || !homeSeriousModeScreen.classList.contains('hidden')) { tracking = false; return; }
+    if (refreshing || !isTab1Active() || !appEl || appEl.scrollTop > 0 || anyBlockingOverlayOpen() || document.documentElement.classList.contains('home-focus-active')) { tracking = false; return; }
     const t = e.touches[0];
     startX = t.clientX; startY = t.clientY;
     tracking = true; dragging = false;
