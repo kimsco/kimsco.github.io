@@ -12998,7 +12998,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.64";
+const APP_VERSION = "1.0.65";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -16234,18 +16234,23 @@ const homeModeBasic=document.getElementById('homeModeBasic');
 const homeModeFocus=document.getElementById('homeModeFocus');
 const homeModeHome=document.getElementById('tab1');
 document.body.appendChild(homeModeSwitch);
-let homeModeFadeTimer=0,homeModeFaded=false;
+let homeModeFadeTimer=0;
+function resetHomeModeFade(){
+  clearTimeout(homeModeFadeTimer);
+  const transition=homeModeSwitch.style.transition;
+  homeModeSwitch.style.transition='none';
+  homeModeSwitch.style.setProperty('--home-mode-opacity','1');
+  void homeModeSwitch.offsetWidth;
+  homeModeSwitch.style.transition=transition;
+  homeModeFadeTimer=setTimeout(()=>{
+    homeModeFadeTimer=0;
+    homeModeSwitch.style.setProperty('--home-mode-opacity','0.5');
+  },3000);
+}
 function updateHomeModeFloating(){
   homeModeSwitch.hidden=!homeModeHome.classList.contains('active');
-  if(homeModeSwitch.hidden){
-    clearTimeout(homeModeFadeTimer);homeModeFadeTimer=0;
-  }else if(!homeModeFaded && !homeModeFadeTimer){
-    homeModeFadeTimer=setTimeout(()=>{
-      homeModeFadeTimer=0;homeModeFaded=true;
-      homeModeSwitch.style.setProperty('--home-mode-opacity','0.5');
-    },5000);
-  }
 }
+resetHomeModeFade();
 const homeModeTabObserver=new MutationObserver(updateHomeModeFloating);
 homeModeTabObserver.observe(homeModeHome,{attributes:true,attributeFilter:['class']});
 updateHomeModeFloating();
@@ -16259,7 +16264,9 @@ function paintHomeMode(progress){
   if(normalHeight && focusHeight)homeModeViewport.style.height=(normalHeight+(focusHeight-normalHeight)*progress)+'px';
 }
 function applySeriousMode(on,{animate=true,persist=true}={}){
-  on=!!on;homeModeTarget=on;cancelAnimationFrame(homeModeFrame);homeModeFrame=0;
+  on=!!on;
+  if(on!==homeModeTarget && persist)resetHomeModeFade();
+  homeModeTarget=on;cancelAnimationFrame(homeModeFrame);homeModeFrame=0;
   seriousModeToggle.classList.toggle('active',on);
   document.documentElement.classList.toggle('home-focus-active',on);
   homeModeBasic.setAttribute('aria-selected',String(!on));homeModeFocus.setAttribute('aria-selected',String(on));
