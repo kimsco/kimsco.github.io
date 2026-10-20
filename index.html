@@ -2087,22 +2087,22 @@ html.mf-restore-settings .bottomTab {
 }
 /* The home panels share one continuous horizontal track. */
 .home-mode-switch{
-  position:relative;display:flex;width:180px;height:36px;margin:0 auto 20px;
-  padding:3px;box-sizing:border-box;border:1px solid var(--c-border);
-  border-radius:999px;background:var(--c-bg-elevated);isolation:isolate;
+  position:relative;display:flex;width:156px;height:36px;margin:0 auto 20px;
+  padding:3px;box-sizing:border-box;border:1px solid #303030;
+  border-radius:999px;background:#1a1a1a;isolation:isolate;
 }
 .home-mode-thumb{
   position:absolute;left:3px;top:3px;bottom:3px;width:calc(50% - 3px);
-  border-radius:999px;background:var(--c-text-primary);
+  border-radius:999px;background:#3b3b3b;
   transform:translateX(calc(var(--home-mode-progress,0) * 100%));z-index:-1;
 }
 .home-mode-switch button{
   flex:1;margin:0;padding:0;border:0;border-radius:999px;background:transparent;
-  color:var(--c-text-secondary);font:700 13px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  color:#d1d1d1;font:700 13px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
   cursor:pointer;transition:color .18s ease;
 }
-.home-mode-switch button[aria-selected="true"]{color:var(--c-bg);}
-.home-mode-switch button:focus-visible{outline:2px solid var(--c-text-primary);outline-offset:3px;}
+.home-mode-switch button[aria-selected="true"]{color:#fff;}
+.home-mode-switch button:focus-visible{outline:2px solid #888;outline-offset:3px;}
 .home-mode-viewport{overflow:hidden;width:100%;position:relative;}
 .home-mode-track{display:flex;align-items:flex-start;width:200%;transform:translateX(calc(var(--home-mode-progress,0) * -50%));}
 .home-mode-track>div{flex:0 0 50%;width:50%;min-width:0;box-sizing:border-box;}
