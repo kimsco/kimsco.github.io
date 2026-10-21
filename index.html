@@ -2098,6 +2098,10 @@ html.mf-restore-settings .bottomTab {
   color:#eee;transform:translateY(-1.7em);
 }
 .home-focus-quote-original { font-family:'Nanum Myeongjo','AppleMyungjo','Batang',serif; }
+.home-focus-quote-plain {
+  width:100%;font-size:16px;font-weight:500;line-height:2.4;
+  text-align:left;color:#c6c6c6;
+}
 /* The home panels share one continuous horizontal track. */
 .home-mode-switch{
   position:fixed;left:50%;top:calc(var(--topBarH) + env(safe-area-inset-top) + 8px);
@@ -8922,7 +8926,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
     <div class="home-focus-quote home-focus-quote-original">두려우면 하지 말고,<br>하게되면 두려워하지 마라</div>
   </div>
   <div class="home-focus-quote-page">
-    <div class="home-focus-quote">두려우면 하지 말고,<br>하게되면 두려워하지 마라</div>
+    <div class="home-focus-quote home-focus-quote-plain">두려우면 하지 말고,<br>하게되면 두려워하지 마라</div>
   </div>
 </div>
 </div>
@@ -13015,7 +13019,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.67";
+const APP_VERSION = "1.0.68";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
