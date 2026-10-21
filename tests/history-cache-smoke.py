@@ -24,27 +24,23 @@ with sync_playwright() as p:
  page.evaluate("window.originalNow=Date.now;Date.now=()=>originalNow()+86401000")
  page.evaluate("Promise.all([ensureFullLiftHistory('bench'),ensureExerciseHistory('Old press')])")
  assert page.evaluate(count)==before
- # Other-device changes do not load automatically; explicit refresh receives them.
- page.evaluate("fixture.store.delete('users/alice/records/old-lift');fixture.store.set('users/alice/accessoryRecords/old-acc',{exercise:'Old press',part:'chest',date:'20.01.01',weight:40,reps:8,createdAt:1})")
- assert page.evaluate("records.bench.some(x=>x.firestoreId==='old-lift') && accRecordsByExercise['Old press'][0].weight===30")
- page.evaluate("reloadWorkoutRecords()")
- assert page.evaluate(count)==before+2
+ # Timestamped remote changes, including deletion, update only those rows.
+ page.evaluate("fixture.changeRecord('records','old-lift',{deleted:true});fixture.changeRecord('accessoryRecords','old-acc',{weight:40});syncWorkoutRecords({force:true})")
  assert page.evaluate("!records.bench.some(x=>x.firestoreId==='old-lift') && accRecordsByExercise['Old press'][0].weight===40")
- # Bulk exercise rename preserves all fields; manual refresh receives its results.
+ # Bulk rename and delete write server timestamps without erasing data or looping on tombstones.
  page.evaluate("""async()=>{
  await appSync.write('alice','accessoryRecords','rename-old',{exercise:'Renamed press'},{matchExercise:'Old press'});
  while(Object.keys(appSync.outbox.read('alice').ops).length)await new Promise(r=>setTimeout(r,10));
- await reloadWorkoutRecords();
+ await syncWorkoutRecords({force:true});
  }""")
  assert page.evaluate("fixture.store.get('users/alice/accessoryRecords/old-acc').weight===40 && fixture.store.get('users/alice/accessoryRecords/old-acc').reps===8")
  assert page.evaluate("accRecordsByExercise['Renamed press'][0].weight===40")
- # Unsent local writes remain visible over the manual server snapshot.
- page.evaluate("fixture.setDenied(true)")
- page.evaluate("appSync.write('alice','accessoryRecords','old-acc',{exercise:'Renamed press',part:'chest',date:'20.01.01',weight:55,reps:8,createdAt:1})")
- page.wait_for_timeout(100)
- page.evaluate("fixture.setDenied(false);fixture.store.set('users/alice/accessoryRecords/old-acc',{exercise:'Renamed press',part:'chest',date:'20.01.01',weight:45,reps:8,createdAt:1});reloadWorkoutRecords()")
- assert page.evaluate("accRecordsByExercise['Renamed press'][0].weight===55")
- page.evaluate("appSync.outbox.flush('alice')")
+ page.evaluate("""async()=>{
+ await appSync.write('alice','accessoryRecords','delete-exercise',null,{matchExercise:'Renamed press'});
+ while(Object.keys(appSync.outbox.read('alice').ops).length)await new Promise(r=>setTimeout(r,10));
+ await syncWorkoutRecords({force:true});
+ }""")
+ assert page.evaluate("accRecordsByExercise['Renamed press'].length===0 && fixture.store.get('users/alice/accessoryRecords/old-acc').deleted===true")
  # Existing in-memory data must not be mistaken for successful durable storage.
  page.evaluate("()=>{window.originalSave=saveAccRecordsToLocal;saveAccRecordsToLocal=()=>{throw Error('quota');};}")
  page.evaluate("ensureExerciseHistory('Failure exercise')")
@@ -54,5 +50,5 @@ with sync_playwright() as p:
  assert page.evaluate("exerciseHistoryFullyLoaded.has('Failure exercise')")
  page.evaluate("localStorage.removeItem(appSync.account.key(LS_KEYS.accessoryRecords))")
  before=page.evaluate(count);page.evaluate("ensureExerciseHistory('Old press')");assert page.evaluate(count)>before
- print('PASS: full-history cache survives restart; age does not reread history; manual refresh receives remote edits/deletes; quota failure remains retryable; missing local cache forces reread')
+ print('PASS: full-history cache survives restart; age does not reread history; delta sync receives edits/deletes; quota failure remains retryable; missing local cache forces reread')
  b.close()

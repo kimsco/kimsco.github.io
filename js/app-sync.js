@@ -25,6 +25,8 @@
       storage.setItem(noticeKey(uid), '1');
       if (notify && first && uid === auth.currentUser?.uid) onStatus('waiting');
     }
+    const recordCollections=new Set(['records','accessoryRecords']);
+    const stampRecord=(data)=>({...data,deleted:false,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});
     const lastWorkout=root.MFLastWorkout.createService({db,storage,currentUid:()=>auth.currentUser?.uid,
       isDeleting:uid=>outbox.isDeleting(uid),onChange:()=>root.dispatchEvent(new Event('mf-last-workout-change'))});
     const outbox = root.MFSync.createOutbox({storage, currentUid: () => auth.currentUser?.uid,
@@ -52,17 +54,27 @@
         if (op.collection === 'calendar') return lastWorkout.send(uid,op);
         const collection = db.collection('users').doc(uid).collection(op.collection);
         if (op.matchExercise) {
+          let cursor=null;
           while (true) {
-            if (auth.currentUser?.uid !== uid) throw new Error('Account changed');
-            const snap = await collection.where('exercise','==',op.matchExercise).limit(400).get({source:'server'});
-            if (!snap.docs.length) return;
-            const batch=db.batch();
-            snap.docs.forEach(doc=>op.data===null?batch.delete(doc.ref):batch.update(doc.ref,op.data));
-            await batch.commit();
+            if (auth.currentUser?.uid !== uid) throw Error('Account changed');
+            let query=collection.where('exercise','==',op.matchExercise).orderBy(firebase.firestore.FieldPath.documentId()).limit(400);
+            if(cursor)query=query.startAfter(cursor);
+            const snap=await query.get({source:'server'});
+            if(!snap.docs.length)return;
+            const batch=db.batch();let writes=0;
+            for(const doc of snap.docs){
+              if(doc.data().deleted===true)continue;
+              batch.set(doc.ref,op.data===null?{deleted:true,updatedAt:firebase.firestore.FieldValue.serverTimestamp()}:stampRecord(op.data),{merge:true});writes++;
+            }
+            if(writes)await batch.commit();
+            cursor=snap.docs.at(-1).id;
+            if(snap.docs.length<400)return;
           }
         }
         const ref = collection.doc(op.id);
-        if (op.data === null) await ref.delete();
+        if(recordCollections.has(op.collection)){
+          await ref.set(op.data===null?{deleted:true,updatedAt:firebase.firestore.FieldValue.serverTimestamp()}:stampRecord(withTimestamps(op.collection,op.data)),{merge:op.data===null || op.merge});
+        }else if (op.data === null) await ref.delete();
         else await ref.set(withTimestamps(op.collection, op.data), {merge: op.merge});
       }});
     const retry = () => {
@@ -85,6 +97,7 @@
     function write(uid, collection, id, data, options) {
       return stateLock(uid, () => {
         const result = outbox.enqueue(uid, collection, id, data === null ? null : clean(data), options);
+        if(recordCollections.has(collection))root.dispatchEvent(new CustomEvent("mf-record-local-write",{detail:{uid,ops:outbox.read(uid).ops}}));
         if (!navigator.onLine) {
           waiting(uid, false);
           if (uid === auth.currentUser?.uid) onStatus('waiting');
@@ -96,10 +109,11 @@
     function snapshot(snap, collection, uid, id) {
       const doc = (d) => ({id:d.id, exists:true, data:() => withTimestamps(collection,d.data)});
       if (id !== undefined) {
-        const items = outbox.overlay(uid, collection, snap.exists ? [{id, data:snap.data()}] : []);
+        const items = outbox.overlay(uid, collection, snap.exists && (!recordCollections.has(collection) || snap.data().deleted!==true) ? [{id, data:snap.data()}] : []);
         return items.find(d => d.id === id) ? doc(items.find(d => d.id === id)) : {id,exists:false};
       }
-      const items = outbox.overlay(uid, collection, snap.docs.map(d => ({id:d.id,data:d.data()}))).map(doc);
+      const rows=snap.docs.map(d=>({id:d.id,data:d.data()})).filter(d=>!recordCollections.has(collection) || d.data.deleted!==true);
+      const items = outbox.overlay(uid, collection, rows).map(doc);
       return {docs:items, empty:!items.length, forEach(fn) {items.forEach(fn);}};
     }
     function restoreStatus(uid) {

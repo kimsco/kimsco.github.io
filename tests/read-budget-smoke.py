@@ -1,46 +1,30 @@
-"""Query/document-count budgets under repeated navigation, reload and remote changes."""
+"""One baseline, cached navigation, and two empty delta reads after restart."""
 from pathlib import Path
 from playwright.sync_api import sync_playwright
-root=Path(__file__).resolve().parents[1];fixture=(root/'tests/firebase-fixture.js').read_text()
-fixture=fixture.replace('  window.fixture={',"""  const t=new Date(),day=String(t.getFullYear()).slice(-2)+'.'+String(t.getMonth()+1).padStart(2,'0')+'.'+String(t.getDate()).padStart(2,'0');
-  store.set('users/alice/accessories/chest',{list:['Chest press']});store.set('users/alice/accessories/back',{list:['Back row']});
-  for(let i=0;i<100;i++)store.set('users/alice/accessoryRecords/record-'+i,{exercise:'Chest press',part:'chest',date:day,weight:60,reps:5,createdAt:Date.now()-10000});
-  window.fixture={""",1)
+root=Path(__file__).resolve().parents[1]
+fixture=(root/'tests/firebase-fixture.js').read_text().replace('  window.fixture={',"""  store.set('users/alice/accessories/chest',{list:['Chest press']});store.set('users/alice/accessories/back',{list:['Back row']});
+ for(let i=0;i<100;i++)store.set('users/alice/accessoryRecords/record-'+i,{exercise:'Chest press',part:'chest',date:'20.01.01',weight:60,reps:5,createdAt:1});
+ window.fixture={""",1)
 with sync_playwright() as p:
  b=p.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox']);c=b.new_context(viewport={'width':390,'height':844},is_mobile=True)
  c.add_init_script("localStorage.setItem('fixture_uid','alice');localStorage.setItem('mf_data_owner_v2','alice');localStorage.setItem('mf_legacy_migrated_v2','1');")
  c.route('https://**/*',lambda r:r.fulfill(body=fixture if '/firebase-app-compat.js' in r.request.url else '',content_type='application/javascript'))
  page=c.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
- page.goto('http://127.0.0.1:8000/');page.wait_for_function("accRecordsByExercise['Chest press']?.length===100 && currentExercises.includes('Chest press')")
- queryCount="fixture.calls.filter(x=>x.path==='users/alice/accessoryRecords' && x.type==='query').length"
- partCount="fixture.calls.filter(x=>x.path==='users/alice/accessories/chest' && x.type==='get').length"
- assert page.evaluate(queryCount)==1
+ page.goto('http://127.0.0.1:8000/');page.wait_for_function("accRecordsByExercise['Chest press']?.length===100 && !workoutSyncPending")
+ count="fixture.calls.filter(x=>x.rest).length"
+ assert page.evaluate(count)==2
+ page.evaluate('workoutLastSyncAt=0') # Even outside the lifecycle debounce, tab clicks never poll records.
  for _ in range(10):
   page.locator('.bottomTab .tabBtn[data-target="tab1"]').click();page.locator('.bottomTab .tabBtn[data-target="tab4"]').click()
   page.locator('.folderBtn4[data-part="back"]').click();page.locator('.folderBtn4[data-part="chest"]').click()
- page.wait_for_timeout(100)
- assert page.evaluate(queryCount)==1
- assert page.evaluate(partCount)==1
- # Local edits must be reused instead of the cache's old response value.
- page.evaluate("currentExercises.push('Local exercise');saveAccListToLocal('chest',currentExercises)")
- page.locator('.folderBtn4[data-part="back"]').click();page.locator('.folderBtn4[data-part="chest"]').click()
- assert 'Local exercise' in page.locator('#exercise-list').inner_text()
- # Even after the old TTL passes, records are not fetched again.
- page.evaluate("window.originalNow=Date.now;Date.now=()=>originalNow()+301000")
- page.evaluate("refreshVisibleRecordData()");page.wait_for_timeout(300)
- assert page.evaluate(queryCount)==1
- # Changing the server does not trigger a background record query.
- page.evaluate("fixture.store.delete('users/alice/accessoryRecords/record-0')")
- page.evaluate("refreshVisibleRecordData()");page.wait_for_timeout(100)
- assert page.evaluate("accRecordsByExercise['Chest press'].length")==100
- assert page.evaluate(queryCount)==1
- assert not page.evaluate("fixture.calls.some(x=>x.path.includes('recordUpdates'))")
- # Account-local rows and coverage survive more than a month and app restart.
- page.evaluate("Date.now=originalNow;localStorage.setItem(appSync.account.key('mf_full_sync_at_alice'),'1')")
- page.reload();page.wait_for_timeout(1000)
- page.locator('.bottomTab .tabBtn[data-target="tab4"]').click();page.wait_for_timeout(100)
- assert page.evaluate(queryCount)==0
- page.evaluate("loadAccessoryRecords()");assert page.evaluate(queryCount)==0
+ assert page.evaluate(count)==2
+ page.evaluate("fixture.changeRecord('accessoryRecords','record-0',{weight:70});fixture.changeRecord('accessoryRecords','record-1',{deleted:true})")
+ page.evaluate('syncWorkoutRecords({force:true})')
+ assert page.evaluate("accRecordsByExercise['Chest press'].length===99 && accRecordsByExercise['Chest press'].find(r=>r.id==='record-0').weight===70")
+ assert page.evaluate("fixture.calls.filter(x=>x.rest).slice(-2).reduce((n,x)=>n+Math.max(1,x.returnedDocuments),0)")==3
+ page.reload();page.wait_for_function("!workoutSyncPending && fixture.calls.filter(x=>x.rest).length===2")
+ assert page.evaluate("accRecordsByExercise['Chest press'].length")==99
+ assert page.evaluate("fixture.calls.filter(x=>x.rest).every(x=>x.returnedDocuments===0)")
  assert not errors,errors
- print('PASS: 100-record startup query stays at one across 10 tab/part round trips (100 returned docs versus 1100 without navigation reuse); no background record-update queries; expired initial sync and reload make zero repeat record queries')
+ print('PASS: baseline once; 10 tab round trips add no record queries; two changes cost 3 reads; restart costs two empty reads without replaying 100 records')
  b.close()

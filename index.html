@@ -2153,7 +2153,7 @@ html.mf-restore-settings .bottomTab {
   padding:3px;box-sizing:border-box;border:1px solid #303030;
   border-radius:999px;background:#1a1a1a;isolation:isolate;
 }
-.home-mode-switch[hidden],#manualRecordSyncBtn[hidden]{display:none;}
+.home-mode-switch[hidden]{display:none;}
 .home-mode-slot{height:40px;}
 .home-mode-thumb{
   position:absolute;left:3px;top:3px;bottom:3px;width:calc(50% - 3px);
@@ -10753,10 +10753,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
   <button id="mySpecMenuBtn" class="settings-item" style="width:100%; text-align:left; background:none; color:var(--c-text-primary); cursor:pointer; border-bottom:none;">
     <img src="icons/setting-profile.png" class="settings-item-icon" alt="">내 정보 수정
   </button>
-  <button id="manualRecordSyncBtn" class="settings-item" hidden style="width:100%;text-align:left;background:none;color:var(--c-text-primary);cursor:pointer;border-top:1px solid var(--c-border);border-bottom:none;">
-    <svg class="settings-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7v5h-5M4 17v-5h5"></path><path d="M6 7a7 7 0 0 1 12-1l2 3M4 15l2 3a7 7 0 0 0 12-1"></path></svg>
-    <span><span id="manualRecordSyncLabel" style="display:block;">운동 기록 다시 불러오기</span><span style="display:block;margin-top:5px;font-size:12px;font-weight:400;color:var(--c-text-secondary);">서버에 저장된 전체 운동 기록을 불러옵니다.</span></span>
-  </button>
+
 </div>
 
 <!-- ✅ 카드 3: 일반 -->
@@ -11171,7 +11168,8 @@ MuscleFlow는 개인의 운동 및 식단 기록을 관리하는 PWA 서비스�
 <script src="/js/last-workout.js?v=1.0.30"></script>
 <script src="/js/read-cache.js?v=1.0.30"></script>
 <script src="/js/history-pages.js?v=1.0.73"></script>
-<script src="/js/app-sync.js?v=1.0.74"></script>
+<script src="/js/record-sync.js?v=1.0.75"></script>
+<script src="/js/app-sync.js?v=1.0.75"></script>
 <script src="/js/rest-stopwatch.js?v=1.0.30"></script>
 <script src="/js/rest-timer-motion.js?v=1.0.50"></script>
 <script src="/js/workout-summary.js?v=1.0.30"></script>
@@ -12767,85 +12765,66 @@ function getRecentWindowStartDateStr(baseDate = new Date()){
 }
 
 // First install receives a recent window. Loaded rows and past-page coverage persist;
-// only unseen dates or an explicit manual refresh require further reads.
+// only unseen dates or server-timestamp deltas require further reads.
 const RECORDS_INITIAL_WINDOW_DAYS = 30;
 const HISTORY_CACHE_TTL_MS = Infinity; // Successful history coverage lasts as long as its local rows.
-function reuseRecordBootstrap(uid){
-  if(lsGet('mf_record_cache_migrated_v1',false))return;
-  lsSet('mf_record_cache_migrated_v1',true);
-  const at=Number(lsGet(`mf_full_sync_at_${uid}`,0));
-  if(!at)return;
-  for(const [name,cache] of [['recentLiftRecords',LS_KEYS.records],['recentAccessoryRecords',LS_KEYS.accessoryRecords]]){
-    const key=`mf_account_v2:${uid}:read_fresh:${name}`;
-    if(lsGet(cache,null)!==null && !localStorage.getItem(key))localStorage.setItem(key,String(at));
-  }
-}
-function hasRecordBootstrap(uid){
-  return [['recentLiftRecords',LS_KEYS.records],['recentAccessoryRecords',LS_KEYS.accessoryRecords]].every(([name,cache])=>
-    lsGet(cache,null)!==null && Number(localStorage.getItem(`mf_account_v2:${uid}:read_fresh:${name}`))>0);
-}
-let manualRecordSyncPending=null;
-const manualRecordSyncBtn=document.getElementById('manualRecordSyncBtn');
-function reloadWorkoutRecords(){
-  if(manualRecordSyncPending)return manualRecordSyncPending;
-  const uid=auth.currentUser?.uid;
-  if(!uid || accountDeletionBusy)return Promise.reject(Error('로그인 후 이용해주세요.'));
-  const check=()=>{if(auth.currentUser?.uid!==uid || appSync.account.owner!==uid || accountDeletionBusy)throw Error('Account changed');};
-  const startedOps={...appSync.outbox.read(uid).ops};
-  const task=(async()=>{
-    if(!navigator.onLine)throw Error('인터넷 연결 후 다시 시도해주세요.');
-    const snapshots=await Promise.all(['records','accessoryRecords'].map(name=>
-      db.collection('users').doc(uid).collection(name).get({source:'server'})));
-    check();
-    const ops={...startedOps,...appSync.outbox.read(uid).ops};
-    const nextRecords={bench:[],squat:[],dead:[],ohp:[]};
-    const nextAccessory=Object.fromEntries(Object.keys(accRecordsByExercise).map(name=>[name,[]]));
-    for(let i=0;i<snapshots.length;i++){
-      const collection=i===0?'records':'accessoryRecords',rows=new Map();
-      readCache.noteSnapshot(snapshots[i]);
-      snapshots[i].docs.forEach(doc=>rows.set(doc.id,doc.data()));
-      // Preserve unsent/in-flight local edits; acknowledged old tombstones do not
-      // override the current server snapshot during an explicit manual refresh.
-      for(const op of Object.values(ops)){
-        if(op.collection!==collection)continue;
-        if(op.matchExercise){
-          for(const [id,data] of rows)if(data.exercise===op.matchExercise){
-            if(op.data===null)rows.delete(id);else rows.set(id,{...data,...op.data});
-          }
-        }else if(op.data===null)rows.delete(op.id);
-        else rows.set(op.id,op.merge?{...rows.get(op.id),...op.data}:op.data);
-      }
-      for(const [id,row] of rows){
-        const ms=row.createdAt?.toMillis?.() || Number(row.createdAt) || 0;
-        if(i===0 && nextRecords[row.lift])nextRecords[row.lift].push({...row,firestoreId:id,sets:1,createdAt:ms,firstAt:ms,lastAt:ms,updatedAt:ms});
-        if(i===1 && row.exercise){nextAccessory[row.exercise] ||= [];nextAccessory[row.exercise].push({...row,id,createdAt:ms,_sortMs:ms});}
-      }
+let workoutRecordSync=null,workoutSyncPending=null,workoutSyncOwner=null,workoutLastSyncAt=0;
+function applyWorkoutSnapshot(uid,snapshots,ops){
+  if(auth.currentUser?.uid!==uid || appSync.account.owner!==uid || accountDeletionBusy)throw Error('Account changed');
+  const nextRecords={...records},nextAccessory={...accRecordsByExercise};
+  for(const snap of snapshots){
+    const lift=snap.collection==='records',source=lift?records:accRecordsByExercise,idField=lift?'firestoreId':'id';
+    const rows=new Map();
+    let localIndex=0;
+    for(const list of Object.values(source))for(const row of list){
+      const id=row[idField] || `local_legacy_${localIndex++}`;
+      if(!snap.full || String(id).startsWith('local_'))rows.set(id,row);
     }
-    check();
-    const oldRecords={...records},oldAccessory=accRecordsByExercise;
-    try{
-      Object.assign(records,nextRecords);accRecordsByExercise=nextAccessory;
-      saveRecordsToLocal();saveAccRecordsToLocal();
-      const stamp=String(Date.now()),prefix=`mf_account_v2:${uid}:read_fresh:`;
-      localStorage.setItem(prefix+'recentLiftRecords',stamp);
-      localStorage.setItem(prefix+'recentAccessoryRecords',stamp);
-      for(const name of Object.keys(records)){localStorage.setItem(prefix+'liftHistory:'+name,stamp);liftFullHistoryLoaded[name]=true;}
-      for(const name of Object.keys(accRecordsByExercise)){localStorage.setItem(prefix+'exerciseHistory:'+name,stamp);exerciseHistoryFullyLoaded.add(name);}
-    }catch(error){Object.assign(records,oldRecords);accRecordsByExercise=oldAccessory;throw error;}
-    scheduleLoadedViews(uid);renderExercises();
-    if(currentExerciseName)renderAccessoryRecords(currentExerciseName);
-    return true;
-  })().finally(()=>{if(manualRecordSyncPending===task)manualRecordSyncPending=null;});
-  manualRecordSyncPending=task;return task;
+    for(const doc of snap.docs){if(doc.data.deleted===true)rows.delete(doc.id);else rows.set(doc.id,doc.data);}
+    for(const op of Object.values(ops)){
+      if(op.collection!==snap.collection)continue;
+      if(op.matchExercise){for(const [id,data]of rows)if(data.exercise===op.matchExercise){if(op.data===null)rows.delete(id);else rows.set(id,{...data,...op.data});}}
+      else if(op.data===null)rows.delete(op.id);
+      else rows.set(op.id,op.merge?{...rows.get(op.id),...op.data}:op.data);
+    }
+    const target=lift?nextRecords:nextAccessory;
+    for(const name of Object.keys(target))target[name]=[];
+    for(const [id,row]of rows){
+      const name=lift?row.lift:row.exercise;if(!name || !row.date || row.deleted===true)continue;
+      const ms=row.createdAt?.toMillis?.() || Number(row.createdAt) || 0;
+      target[name] ||= [];
+      target[name].push(lift?{...row,firestoreId:id,sets:1,createdAt:ms,firstAt:ms,lastAt:ms,updatedAt:ms}:{...row,id,createdAt:ms,_sortMs:ms});
+    }
+  }
+  const previous={...records},previousAcc=accRecordsByExercise;
+  try{
+    Object.assign(records,nextRecords);accRecordsByExercise=nextAccessory;
+    saveRecordsToLocal();saveAccRecordsToLocal();
+    lsSet('mf_record_history_complete_v1',true);
+    const prefix=`mf_account_v2:${uid}:read_fresh:`,at=String(Date.now());
+    localStorage.setItem(prefix+'recentLiftRecords',at);localStorage.setItem(prefix+'recentAccessoryRecords',at);
+  }catch(error){Object.assign(records,previous);accRecordsByExercise=previousAcc;throw error;}
+  scheduleLoadedViews(uid);renderExercises();if(currentExerciseName)renderAccessoryRecords(currentExerciseName);
 }
-manualRecordSyncBtn.addEventListener('click',async()=>{
-  if(manualRecordSyncPending)return;
-  const label=document.getElementById('manualRecordSyncLabel');
-  manualRecordSyncBtn.disabled=true;label.textContent='불러오는 중…';
-  try{await reloadWorkoutRecords();label.textContent='기록을 불러왔어요';}
-  catch(error){label.textContent='운동 기록 다시 불러오기';alert('기록을 불러오지 못했어요. 인터넷 연결과 기기 저장 공간을 확인한 뒤 다시 시도해주세요.');}
-  finally{manualRecordSyncBtn.disabled=false;setTimeout(()=>{if(!manualRecordSyncPending)label.textContent='운동 기록 다시 불러오기';},3000);}
-});
+function syncWorkoutRecords({force=false}={}){
+  const uid=auth.currentUser?.uid;
+  if(!uid || appSync.account.owner!==uid || accountDeletionBusy || appSync.outbox.isDeleting(uid) || !navigator.onLine)return Promise.resolve(false);
+  if(workoutSyncPending && workoutSyncOwner===uid)return workoutSyncPending;
+  if(!force && workoutSyncOwner===uid && Date.now()-workoutLastSyncAt<30000)return Promise.resolve(false);
+  workoutRecordSync ||= MFRecordSync.create({auth,projectId:firebaseConfig.projectId,storage:localStorage,
+    isDeleting:uid=>accountDeletionBusy || appSync.account.owner!==uid || appSync.outbox.isDeleting(uid),
+    hasLocal:name=>{const data=lsGet(name==='records'?LS_KEYS.records:LS_KEYS.accessoryRecords,null);return !!data && typeof data==='object' && !Array.isArray(data) && (name==='records'?['bench','squat','dead','ohp'].every(lift=>Array.isArray(data[lift])):Object.values(data).every(Array.isArray));},
+    readPending:uid=>appSync.outbox.read(uid).ops,
+    decode:fields=>MFFirestoreRuntime.decodeFields(fields,value=>firebase.firestore.Timestamp.fromMillis(Date.parse(value))),
+    onRead:({count})=>readCache.noteSnapshot({docs:Array.from({length:count})}),apply:applyWorkoutSnapshot});
+  workoutSyncOwner=uid;
+  const pending=workoutRecordSync.sync(uid).then(result=>{if(workoutSyncOwner===uid)workoutLastSyncAt=Date.now();return result;})
+    .catch(error=>{if(workoutSyncOwner===uid)workoutLastSyncAt=0;console.warn('운동 기록 동기화 실패',error);return false;})
+    .finally(()=>{if(workoutSyncPending===pending)workoutSyncPending=null;});
+  workoutSyncPending=pending;return pending;
+}
+window.addEventListener('mf-record-local-write',event=>workoutRecordSync?.noteLocalWrite(event.detail.uid,event.detail.ops));
+window.addEventListener('pageshow',()=>void syncWorkoutRecords());
 
 function getRecordsInitialWindowStartDateStr(baseDate = new Date()){
   const d = new Date(baseDate);
@@ -12878,6 +12857,7 @@ const historyPages=MFHistoryPages.create({
  fullFresh:(uid,kind,name)=>{
    const data=lsGet(kind==='lift'?LS_KEYS.records:LS_KEYS.accessoryRecords,null);
    const at=Number(localStorage.getItem('mf_account_v2:'+uid+':read_fresh:'+(kind==='lift'?'liftHistory:':'exerciseHistory:')+name));
+   if(data!==null && lsGet('mf_record_history_complete_v1',false))return true;
    return Array.isArray(data?.[name]) && at>0 && Date.now()>=at && Date.now()-at<HISTORY_CACHE_TTL_MS;
  },
  query:async(uid,kind,name,{before,date,cursor,limit})=>{
@@ -13105,7 +13085,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.74";
+const APP_VERSION = "1.0.75";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -13338,10 +13318,10 @@ async function handleAuthSession(user){
 
 
 
-    reuseRecordBootstrap(user.uid);
-    if (isFullSyncFresh(user.uid) && hasRecordBootstrap(user.uid)) {
+    const recordLoad=syncWorkoutRecords({force:true});
+    if (isFullSyncFresh(user.uid)) {
       // Small profile/diet resources retain their existing refresh policy.
-      // Workout rows use durable local coverage; other-device edits need manual refresh.
+      // Workout rows sync separately using server-time checkpoints.
       currentPart ||= document.querySelector('.folderBtn4.active')?.dataset.part || 'chest';
       currentExercises = loadAccListFromLocal(currentPart);
       currentExercises = (currentExercises || []).filter(x => typeof x === "string" && x.trim());
@@ -13378,51 +13358,7 @@ async function handleAuthSession(user){
       }
 
         })(),
-        readCache.run(user.uid,'recentLiftRecords',async () => {
-      /* records: 처음엔 화면에 실제로 보여줄 만큼(최근 30일)만 읽고,
-         그보다 과거 기록은 스크롤로 더 볼 때 ensureFullLiftHistory가 온디맨드로 채움 */
-  try {
-    const snap = await db
-      .collection("users")
-      .doc(user.uid)
-      .collection("records")
-      .where("date", ">=", getRecordsInitialWindowStartDateStr())
-      .get().then(snap => privateSnapshot(snap, "records", user.uid));
-
-    // Preserve loaded history; snapshots overlay pending writes/tombstones.
-    for (const lift of ["bench","squat","dead","ohp"]) records[lift] = (records[lift] || []).filter(r => !r.firestoreId || !appSync.outbox.read(user.uid).deleted[`records/${r.firestoreId}`]);
-
-    snap.forEach(doc => {
-      const d = doc.data();
-      if (!d || !d.lift) return;
-
-      const item = {
-    firestoreId: doc.id,
-    sessionId:d.sessionId, isWarmup:d.isWarmup,
-    date: d.date,
-    weight: d.weight,
-    reps: d.reps,
-    sets: 1,
-    createdAt: d.createdAt?.toMillis?.() || 0,
-    firstAt:  d.createdAt?.toMillis?.() || 0,
-    lastAt:   d.createdAt?.toMillis?.() || 0,
-    updatedAt: d.createdAt?.toMillis?.() || 0
-  };
-
-      if (records[d.lift]) {
-        const idx = records[d.lift].findIndex(r => r.firestoreId === doc.id);
-        if (idx < 0) records[d.lift].push(item); else records[d.lift][idx] = item;
-      }
-    });
-
-    renderActiveBox();
-    saveRecordsToLocal();
-    scheduleLoadedViews(user.uid);
-  } catch (e) {
-    console.error("load records err", e);throw e;
-  }
-
-        },{ttlMs:Infinity,reuse:()=>undefined,hasLocal:()=>lsGet(LS_KEYS.records,null)!==null}),
+        Promise.resolve(), // workout records load through server-time delta sync
         (async () => {
       /* 달력: 이번 달치만 우선 로드 — 다른 달은 이전/다음달 버튼 누를 때 온디맨드로 불러옴 */
       try {
@@ -13433,7 +13369,7 @@ async function handleAuthSession(user){
       }
 
         })(),
-        loadAccessoryRecords(),
+        Promise.resolve(), // same recordLoad above
         loadUserSpecFromFirestore(user.uid),
         loadFoodTemplatesFromFirestore(user.uid),
         loadMealsFromFirestore(user.uid),
@@ -13451,6 +13387,7 @@ async function handleAuthSession(user){
 
       if(initialResults[4].status==='fulfilled' && initialResults[4].value===true)markFullSyncNow(user.uid);
     }
+    await recordLoad;
 
   } else {
     // ✅ 게스트: 로컬에서 전부 복원
@@ -14062,6 +13999,7 @@ async function finishWorkout(){
 async function refreshHomeTab(){
   const user = (typeof auth !== "undefined" && auth.currentUser) ? auth.currentUser : null;
   if (user) {
+    await syncWorkoutRecords({force:true});
     try {
       const y = calCurrent.getFullYear(), m = calCurrent.getMonth() + 1;
       await appSync.lastWorkout.load(user.uid,{force:true});
@@ -17604,6 +17542,7 @@ function ensureExerciseHistory(name){
 async function fetch_ensureExerciseHistory(name){
   const uid=auth.currentUser?.uid;
   if(!uid){exerciseHistoryFullyLoaded.add(name);return false;}
+  if(!accRecordsByExercise[name])accRecordsByExercise[name]=[];
   let changed=false;
   while(!historyPages.done('accessory',name)){
     changed=await historyPages.next('accessory',name,getRecordsInitialWindowStartDateStr()) || changed;
@@ -21395,66 +21334,8 @@ async function deleteExercise(exerciseName) {
 
    
 
-function loadAccessoryRecords(){
-  const user=auth.currentUser;
-  if(!user || user.uid!==appSync.account.owner)return Promise.resolve();
-  return readCache.run(user.uid,'recentAccessoryRecords',()=>fetchAccessoryRecords(user.uid),{ttlMs:Infinity,reuse:()=>undefined,hasLocal:()=>lsGet(LS_KEYS.accessoryRecords,null)!==null}).catch(e=>console.error('보조운동 조회 실패',e));
-}
-async function fetchAccessoryRecords(uid) {
-  const user = auth.currentUser;
-  if (!user) return;
-
-  const startedAt=Date.now();
-  const windowStart=getRecordsInitialWindowStartDateStr();
-  try {
-    // 🔥 orderBy('createdAt')는 serverTimestamp()가 아직 서버에서 확정되지 않은
-    //    (또는 오프라인 캐시에 null로 남아있는) 문서를 조용히 결과에서 빼버릴 수 있어서,
-    //    가끔 방금 기록한 세트가 안 보이는 원인이 됐음. 정렬 없이 전부 받아온 뒤
-    //    클라이언트에서 직접 정렬하도록 변경
-    const snap = await db
-      .collection('users')
-      .doc(user.uid)
-      .collection('accessoryRecords')
-      .where('date', '>=', windowStart)
-      .get({source:'server'}).then(snap => privateSnapshot(snap, "accessoryRecords", user.uid));
-
-    if(auth.currentUser?.uid!==uid || appSync.account.owner!==uid || accountDeletionBusy)throw Error('Account changed');
-    // 🔥 여기서 accRecordsByExercise를 통째로 교체하면, "이전 기록 더 보기"
-    //    스크롤로 이미 병합해둔 과거(3개월 밖) 기록이 기록 탭 재진입마다 날아가고,
-    //    exerciseHistoryFullyLoaded 플래그는 true로 남아있어 다시는 재조회도 안 되는
-    //    버그가 있었다 — 종목별로 기존 배열에 dedupe 병합하는 방식으로 변경.
-    const receivedIds=new Set(snap.docs.map(doc=>doc.id));
-    for (const name of Object.keys(accRecordsByExercise)) {
-      accRecordsByExercise[name] = accRecordsByExercise[name].filter(r => !appSync.outbox.read(uid).deleted[`accessoryRecords/${r.id}`] && (r.date<windowStart || !r.id || String(r.id).startsWith('local_') || receivedIds.has(r.id) || Number(r.createdAt)>=startedAt || r._sortMs>=startedAt));
-    }
-    snap.forEach(doc => {
-      const d = doc.data();
-      if (!d.exercise) return;
-
-      if (!accRecordsByExercise[d.exercise]) {
-        accRecordsByExercise[d.exercise] = [];
-      }
-
-      const list = accRecordsByExercise[d.exercise];
-      const idx = list.findIndex(r => r.id === doc.id);
-      const item = { id: doc.id, ...d, _sortMs: d.createdAt?.toMillis?.() ?? 0 };
-      if (idx === -1) list.push(item); else list[idx] = item;
-    });
-
-    Object.values(accRecordsByExercise).forEach(list => list.sort((a, b) => (a._sortMs || 0) - (b._sortMs || 0)));
-    saveAccRecordsToLocal(); // 🔥 로컬 저장 누락 버그 수정(재조회 생략 캐시가 비어있던 원인)
-
-    scheduleLoadedViews(user.uid);
-    renderExercises(); // 목록
-    if (currentExerciseName) {
-      renderAccessoryRecords(currentExerciseName); // 카드
-    }
-  } catch (e) {
-    // 🔥 여기서 실패해도 로그인 흐름의 나머지(내 정보/식단/루틴 로드 등)가
-    //    전부 멈추지 않도록 여기서 막고 로그만 남김
-    throw e;
-  }
-}
+// Tab navigation reuses local rows; startup/foreground/refresh trigger delta reads.
+function loadAccessoryRecords(){return workoutSyncPending || Promise.resolve(false);}
 
 
 const backBtn = document.getElementById('exercise-back-btn'); // 뒤로가기 버튼 ID
@@ -22587,6 +22468,7 @@ function refreshGoogleLoginOnReturn(event){
 window.addEventListener('pageshow',refreshGoogleLoginOnReturn);
 window.addEventListener('focus',refreshGoogleLoginOnReturn);
 function refreshVisibleRecordData(){
+  void syncWorkoutRecords();
   if(auth.currentUser && !accountDeletionBusy && currentActiveTabTarget()==='tab4'){
     loadAccessoryRecords();if(currentPart)loadExercises(currentPart);
   }
@@ -23850,7 +23732,6 @@ function applySpecToUI(){
 /* 🔥 설정 화면 계정 행에 표시할 사용자명 갱신
    (직접 입력한 이름이 있으면 그걸, 없으면 "사용자명" 기본값 표시) */
 function renderSettingsIdentity(isLoggedIn){
-  document.getElementById("manualRecordSyncBtn").hidden=!isLoggedIn;
   // 🔥 게스트일 땐 이름 배지 자체를 아예 숨기고 "로그인 하기" 한 줄만 다른 목록들과
   //    동일한 크기로 보이게 함(카드 자체가 flush라 이 배지가 숨겨지면 로그인 행이
   //    바로 카드 위쪽 패딩 없이 한 칸짜리 카드처럼 자연스럽게 보임). 로그인 상태일
