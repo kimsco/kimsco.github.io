@@ -25,6 +25,7 @@
       storage.setItem(noticeKey(uid), '1');
       if (notify && first && uid === auth.currentUser?.uid) onStatus('waiting');
     }
+    const recordUpdates=root.MFRecordUpdates.create({db,firebase,storage,currentUid:()=>auth.currentUser?.uid});
     const lastWorkout=root.MFLastWorkout.createService({db,storage,currentUid:()=>auth.currentUser?.uid,
       isDeleting:uid=>outbox.isDeleting(uid),onChange:()=>root.dispatchEvent(new Event('mf-last-workout-change'))});
     const outbox = root.MFSync.createOutbox({storage, currentUid: () => auth.currentUser?.uid,
@@ -56,11 +57,10 @@
             if (auth.currentUser?.uid !== uid) throw new Error('Account changed');
             const snap = await collection.where('exercise','==',op.matchExercise).limit(400).get({source:'server'});
             if (!snap.docs.length) return;
-            const batch = db.batch();
-            snap.docs.forEach(doc => op.data === null ? batch.delete(doc.ref) : batch.update(doc.ref,op.data));
-            await batch.commit();
+            for(const doc of snap.docs)await recordUpdates.commit(uid,{...op,id:doc.id,data:op.data===null?null:{...clean(doc.data()),...op.data},merge:false,revision:op.revision+'_'+doc.id});
           }
         }
+        if(['records','accessoryRecords'].includes(op.collection))return recordUpdates.commit(uid,op);
         const ref = collection.doc(op.id);
         if (op.data === null) await ref.delete();
         else await ref.set(withTimestamps(op.collection, op.data), {merge: op.merge});
@@ -107,7 +107,7 @@
       onStatus('hide');
       if (uid && Object.keys(outbox.read(uid).ops).length) waiting(uid, false);
     }
-    return {account, outbox, write, snapshot, retry, restoreStatus, lastWorkout};
+    return {account, outbox, write, snapshot, retry, restoreStatus, lastWorkout, recordUpdates};
   }
   root.MFAppSync = {install};
 })(window);
