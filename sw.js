@@ -1,4 +1,4 @@
-const CACHE = "mf-v101"; // 🔥 아래 food-db-full.json 삭제 + 로고 이미지가 그동안 세 차례 더
+const CACHE = "mf-v102"; // 🔥 아래 food-db-full.json 삭제 + 로고 이미지가 그동안 세 차례 더
                          // 교체(#764/#765/#768)됐지만 이 캐시 이름을 안 올려서 새 서비스워커가
                          // 설치되지 않고 있었음(바로 아래 참고) — 올려서 처음부터 다시 받아오게 함
 const ASSETS = [
@@ -53,6 +53,11 @@ self.addEventListener("activate", e => {
 
 self.addEventListener("fetch", e => {
   const url = e.request.url;
+
+  // Startup version probes must bypass both HTTP and worker caches.
+  if (new URL(url).origin === self.location.origin && new URL(url).searchParams.has('startup_check')) {
+    return e.respondWith(fetch(e.request, { cache: 'no-store' }));
+  }
 
   // Worker API는 항상 네트워크에서 받기 (캐시 무시)
   if (url.includes(".workers.dev")) {
