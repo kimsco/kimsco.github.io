@@ -4704,10 +4704,10 @@ html.light-mode-on #settingsOverlay .toggle-switch {
 html.light-mode-on #settingsOverlay .toggle-switch::after {
   background: rgb(33,33,33);
 }
-html.light-mode-on #lightModeToggle.toggle-switch.active {
+html.light-mode-on #settingsOverlay .toggle-switch.active {
   background: rgb(0,0,0);
 }
-html.light-mode-on #lightModeToggle.toggle-switch.active::after {
+html.light-mode-on #settingsOverlay .toggle-switch.active::after {
   background: rgb(197,197,197);
 }
 
@@ -13019,7 +13019,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.68";
+const APP_VERSION = "1.0.69";
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
   appVersionDisplay.textContent = APP_VERSION;
@@ -22004,35 +22004,9 @@ function applyLightMode(on){
   // 있을 수 있어 안전하게 try/catch로 감쌈(이때는 통계 화면이 열려있지도 않음)
   try { if (typeof renderDietStats === "function") renderDietStats(); } catch(e){}
 }
+// Apply the theme in place so settings, scroll positions and pending work survive.
 lightModeToggle.addEventListener("click", () => {
-  // 🔥 상태바 스타일(apple-mobile-web-app-status-bar-style)은 앱 로드 시점에만 다시 읽히므로,
-  // 여기서 필터만 토글하지 않고 저장 후 강제로 새로고침해서 <head>의 재적용 스크립트를 다시 태움
-  const next = !lightModeToggle.classList.contains("active");
-  // 🔥 클래스는 여기서 바로 토글해 구슬이 슬라이드를 시작하도록 함(0.25s 트랜지션).
-  //    화면 테마 전환은 슬라이드가 "도착"할 때가 아니라 "중간 지점"에 딱 한번에
-  //    바뀌도록(페이드 아님, 순간 전환) — 아래 setTimeout 지연을 트랜지션의 절반
-  //    시점(125ms)으로 맞춰서, 구슬이 반쯤 이동한 상태에서 화면 전체가 확 바뀜
-  lightModeToggle.classList.toggle("active", next);
-  try {
-    localStorage.setItem("mf_light_mode", next ? "1" : "0");
-    // 🔥 리로드하면 원래 홈 탭(#tab1)으로 초기화되고 설정 화면도 닫혀버려서, 토글 누르던
-    // 자리에서 갑자기 딴 데로 튕기는 것처럼 느껴짐 — 있던 탭과 "설정 화면이 열려있었다"는
-    // 상태를 저장해뒀다가 리로드 직후 그대로 복원해서 제자리(설정 화면) 유지
-    const activeTabBtn = document.querySelector('.bottomTab .tabBtn.active');
-    sessionStorage.setItem("mf_reload_restore_tab", activeTabBtn ? activeTabBtn.dataset.target : "");
-    sessionStorage.setItem("mf_reload_restore_settings", "1");
-    // 🔥 상태바 스타일(apple-mobile-web-app-status-bar-style)은 앱 로드 시점에만 다시 읽히므로,
-    // 여기서 필터만 토글하지 않고 저장 후 강제로 새로고침해서 <head>의 재적용 스크립트를 다시 태움
-    sessionStorage.setItem("mf_status_bar_kick", "1");
-  } catch(e){}
-  // 🔥 그냥 reload()하면 서비스워커의 "네트워크 우선" 규칙 때문에 2만 줄짜리 index.html을
-  // 통째로 다시 다운로드해서 토글 반응이 네트워크 속도만큼 느렸음 — 모드 전환은 방금까지
-  // 쓰던 것과 똑같은 HTML을 다시 여는 것뿐이므로, ?modeswitch=1 쿼리를 붙여 서비스워커가
-  // 캐시에서 즉시 응답하게 함(sw.js에 대응 규칙 있음). 쿼리는 로드 직후 주소에서 지워서
-  // 사용자가 직접 하는 새로고침은 여전히 네트워크 우선(최신 배포 반영)으로 동작.
-  setTimeout(() => {
-    location.replace(location.pathname + "?modeswitch=1");
-  }, 125);
+  applyLightMode(!lightModeToggle.classList.contains("active"));
 });
 // 저장된 설정 있으면 페이지 로드 시 바로 반영
 try {
