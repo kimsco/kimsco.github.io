@@ -104,17 +104,27 @@ try:
   assert page.locator('#homeSeriousModeScreen').evaluate('(el)=>el.inert')
   page.evaluate('applyHomeMode(true,{animate:false})')
   quotes=page.locator('.home-focus-quote')
-  assert quotes.count()==2 and quotes.nth(0).text_content()==quotes.nth(1).text_content()
+  assert quotes.count()==6 and quotes.nth(0).text_content()==quotes.nth(1).text_content()
   assert quotes.nth(0).evaluate('(el)=>getComputedStyle(el).fontFamily')!=quotes.nth(1).evaluate('(el)=>getComputedStyle(el).fontFamily')
   assert quotes.nth(1).evaluate('(el)=>getComputedStyle(el).fontFamily')==page.locator('body').evaluate('(el)=>getComputedStyle(el).fontFamily')
   assert quotes.nth(0).is_hidden() and quotes.nth(1).is_visible()
   assert quotes.nth(1).evaluate('(el)=>getComputedStyle(el).fontSize')=='17px'
   page.screenshot(path='/tmp/home-focus-second-quote.png')
+  plain=page.locator('.home-focus-quote-plain')
+  assert plain.count()==5
+  for i in range(5):
+   page.evaluate('(i)=>homeSeriousModeScreen.scrollTo(0,homeSeriousModeScreen.clientHeight*i)',i)
+   page.wait_for_timeout(300)
+   assert abs(page.evaluate('homeSeriousModeScreen.scrollTop/homeSeriousModeScreen.clientHeight')-i)<.01
+   assert plain.nth(i).evaluate('(el)=>getComputedStyle(el).fontSize')=='17px'
+  assert '편안함은 아무것도 가르치지 못한다.' in plain.nth(4).text_content()
+
   # Settings only selects the quote style, independently of the selected home panel.
   page.evaluate("document.getElementById('seriousModeToggle').click()")
   assert page.evaluate('homeModeTarget') and quotes.nth(0).is_visible() and quotes.nth(1).is_hidden()
   page.evaluate('homeSeriousModeScreen.scrollTo(0,homeSeriousModeScreen.clientHeight)');page.wait_for_timeout(300)
   assert page.evaluate('homeSeriousModeScreen.scrollTop')==0
+  assert page.locator('.home-focus-quote-page:not([hidden])').count()==1
   page.reload();page.wait_for_timeout(700)
   assert page.evaluate('homeModeProgress')==1 and page.evaluate('seriousQuoteMode')
   assert quotes.nth(0).is_visible() and quotes.nth(1).is_hidden()
