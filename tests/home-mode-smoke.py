@@ -91,37 +91,50 @@ try:
      assert abs(f['f']-f['width']*(1-f['p']))<.2,f
      assert abs(f['thumb']-f['thumbWidth']*f['p'])<.2,f
     assert page.evaluate('homeModeProgress')==(1 if on else 0)
-    assert page.locator('#seriousModeToggle').evaluate("el=>el.classList.contains('active')")==on
+    assert page.locator('#seriousModeToggle').evaluate("el=>el.classList.contains('active')")==False
     page.screenshot(path='/tmp/home-'+('focus' if on else 'basic')+'-'+('light' if light else 'dark')+'.png')
-   page.evaluate('applySeriousMode(true)');page.wait_for_timeout(100)
-   before=page.evaluate('homeModeProgress');page.evaluate('applySeriousMode(false)');assert abs(page.evaluate('homeModeProgress')-before)<.15
+   page.evaluate('applyHomeMode(true)');page.wait_for_timeout(100)
+   before=page.evaluate('homeModeProgress');page.evaluate('applyHomeMode(false)');assert abs(page.evaluate('homeModeProgress')-before)<.15
    page.wait_for_timeout(450);assert page.evaluate('homeModeProgress')==0
-  page.evaluate('applySeriousMode(true)');page.wait_for_timeout(450);page.reload();page.wait_for_timeout(700)
+  page.evaluate('applyHomeMode(true)');page.wait_for_timeout(450);page.reload();page.wait_for_timeout(700)
   assert page.evaluate('homeModeProgress')==1 and page.locator('#homeModeFocus').get_attribute('aria-selected')=='true'
   assert page.locator('#homeNormalContent').evaluate('(el)=>el.inert')
-  page.evaluate('applySeriousMode(false,{animate:false})');page.reload();page.wait_for_timeout(700)
+  page.evaluate('applyHomeMode(false,{animate:false})');page.reload();page.wait_for_timeout(700)
   assert page.evaluate('homeModeProgress')==0 and page.locator('#homeModeBasic').get_attribute('aria-selected')=='true'
   assert page.locator('#homeSeriousModeScreen').evaluate('(el)=>el.inert')
-  page.evaluate('applySeriousMode(true,{animate:false})')
+  page.evaluate('applyHomeMode(true,{animate:false})')
   quotes=page.locator('.home-focus-quote')
-  assert quotes.count()==2 and quotes.nth(0).inner_text()==quotes.nth(1).inner_text()
+  assert quotes.count()==2 and quotes.nth(0).text_content()==quotes.nth(1).text_content()
   assert quotes.nth(0).evaluate('(el)=>getComputedStyle(el).fontFamily')!=quotes.nth(1).evaluate('(el)=>getComputedStyle(el).fontFamily')
   assert quotes.nth(1).evaluate('(el)=>getComputedStyle(el).fontFamily')==page.locator('body').evaluate('(el)=>getComputedStyle(el).fontFamily')
-  page.evaluate('homeSeriousModeScreen.scrollTo(0,homeSeriousModeScreen.clientHeight)');page.wait_for_timeout(300)
-  assert page.evaluate('Math.abs(homeSeriousModeScreen.scrollTop-homeSeriousModeScreen.clientHeight)')<1
-  assert page.evaluate("document.querySelector('.app').scrollTop")==0
+  assert quotes.nth(0).is_hidden() and quotes.nth(1).is_visible()
+  assert quotes.nth(1).evaluate('(el)=>getComputedStyle(el).fontSize')=='17px'
   page.screenshot(path='/tmp/home-focus-second-quote.png')
-  page.evaluate('homeSeriousModeScreen.scrollTo(0,0)');page.wait_for_timeout(300)
+  # Settings only selects the quote style, independently of the selected home panel.
+  page.evaluate("document.getElementById('seriousModeToggle').click()")
+  assert page.evaluate('homeModeTarget') and quotes.nth(0).is_visible() and quotes.nth(1).is_hidden()
+  page.evaluate('homeSeriousModeScreen.scrollTo(0,homeSeriousModeScreen.clientHeight)');page.wait_for_timeout(300)
   assert page.evaluate('homeSeriousModeScreen.scrollTop')==0
+  page.reload();page.wait_for_timeout(700)
+  assert page.evaluate('homeModeProgress')==1 and page.evaluate('seriousQuoteMode')
+  assert quotes.nth(0).is_visible() and quotes.nth(1).is_hidden()
+  page.evaluate('applyHomeMode(false,{animate:false})')
+  assert page.evaluate('seriousQuoteMode')
+  page.evaluate("document.getElementById('seriousModeToggle').click()")
+  assert page.evaluate('homeModeProgress')==0 and not page.evaluate('seriousQuoteMode')
+  page.reload();page.wait_for_timeout(700)
+  assert page.evaluate('homeModeProgress')==0 and not page.evaluate('seriousQuoteMode')
+  page.evaluate('applyHomeMode(true,{animate:false})')
+  assert quotes.nth(1).is_visible() and quotes.nth(0).is_hidden()
   page.emulate_media(reduced_motion='reduce')
   page.locator('#homeModeFocus').focus();page.keyboard.press('ArrowLeft')
   assert page.evaluate('homeModeProgress')==0 and page.evaluate('homeModeFrame')==0
   page.keyboard.press('ArrowRight');assert page.evaluate('homeModeProgress')==1
-  page.evaluate('applySeriousMode(false,{animate:false})')
+  page.evaluate('applyHomeMode(false,{animate:false})')
   page.locator('.bottomTab .tabBtn[data-target="tab2"]').click();page.locator('.bottomTab .tabBtn[data-target="tab1"]').click();page.wait_for_timeout(300)
   assert page.locator('.home-diet-card').count()==1
   page.locator('#homeDietQuickBtn').scroll_into_view_if_needed();page.locator('#homeDietQuickBtn').click();assert page.locator('#quickAddMealModal').is_visible()
   assert not errors,errors
-  print('PASS: pill and adjoining pages share frame progress in both themes; rapid reversal, reload persistence, settings synchronization, inert panel and diet action preserved')
+  print('PASS: pill and adjoining pages share frame progress in both themes; rapid reversal, reload persistence, independent quote setting, inert panel and diet action preserved')
   b.close()
 finally:p.terminate();p.wait()

@@ -2136,6 +2136,7 @@ html.mf-restore-settings .bottomTab {
   display:flex;align-items:center;justify-content:center;
   scroll-snap-align:start;scroll-snap-stop:always;
 }
+.home-focus-quote-page[hidden] { display:none; }
 .home-focus-quote {
   font-size:19px;font-weight:700;line-height:1.7;text-align:center;
   color:#eee;transform:translateY(-1.7em);
@@ -13085,7 +13086,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.76";
+const APP_VERSION = "1.0.77";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -16307,17 +16308,16 @@ function paintHomeMode(progress){
   const focusHeight=homeSeriousModeScreen.getBoundingClientRect().height;
   if(normalHeight && focusHeight)homeModeViewport.style.height=(normalHeight+(focusHeight-normalHeight)*progress)+'px';
 }
-function applySeriousMode(on,{animate=true,persist=true}={}){
+function applyHomeMode(on,{animate=true,persist=true}={}){
   on=!!on;
   if(on!==homeModeTarget && persist)resetHomeModeFade();
   homeModeTarget=on;cancelAnimationFrame(homeModeFrame);homeModeFrame=0;
-  seriousModeToggle.classList.toggle('active',on);
   document.documentElement.classList.toggle('home-focus-active',on);
   homeModeBasic.setAttribute('aria-selected',String(!on));homeModeFocus.setAttribute('aria-selected',String(on));
   homeModeBasic.tabIndex=on?-1:0;homeModeFocus.tabIndex=on?0:-1;
   homeNormalContent.inert=on;homeSeriousModeScreen.inert=!on;
   homeNormalContent.setAttribute('aria-hidden',String(on));homeSeriousModeScreen.setAttribute('aria-hidden',String(!on));
-  if(persist)try{localStorage.setItem('mf_serious_mode',on?'1':'0');}catch(e){}
+  if(persist)try{localStorage.setItem('mf_home_mode',on?'1':'0');}catch(e){}
   if(currentActiveTabTarget()==='tab1')document.querySelector('.app').scrollTop=0;
   const target=on?1:0,from=homeModeProgress;
   if(!animate || matchMedia('(prefers-reduced-motion: reduce)').matches || from===target){paintHomeMode(target);return;}
@@ -16329,16 +16329,34 @@ function applySeriousMode(on,{animate=true,persist=true}={}){
   }
   homeModeFrame=requestAnimationFrame(step);
 }
-let savedHomeMode=false;
-try{savedHomeMode=localStorage.getItem('mf_serious_mode')==='1';}catch(e){}
-applySeriousMode(savedHomeMode,{animate:false,persist:false});
-seriousModeToggle.addEventListener('click',()=>applySeriousMode(!homeModeTarget));
-homeModeBasic.addEventListener('click',()=>applySeriousMode(false));
-homeModeFocus.addEventListener('click',()=>applySeriousMode(true));
+let seriousQuoteMode=false;
+function applySeriousMode(on,{persist=true}={}){
+  seriousQuoteMode=!!on;
+  seriousModeToggle.classList.toggle('active',seriousQuoteMode);
+  for(const page of homeSeriousModeScreen.querySelectorAll('.home-focus-quote-page')){
+    const original=!!page.querySelector('.home-focus-quote-original');
+    page.hidden=original!==seriousQuoteMode;
+  }
+  homeSeriousModeScreen.scrollTop=0;
+  if(persist)try{localStorage.setItem('mf_serious_mode',seriousQuoteMode?'1':'0');}catch(e){}
+}
+let savedHomeMode=false,savedSeriousMode=false;
+try{
+  savedSeriousMode=localStorage.getItem('mf_serious_mode')==='1';
+  // Preserve the previously selected home panel when upgrading from the coupled switch.
+  const saved=localStorage.getItem('mf_home_mode');
+  savedHomeMode=saved===null?savedSeriousMode:saved==='1';
+  if(saved===null)localStorage.setItem('mf_home_mode',savedHomeMode?'1':'0');
+}catch(e){}
+applySeriousMode(savedSeriousMode,{persist:false});
+applyHomeMode(savedHomeMode,{animate:false,persist:false});
+seriousModeToggle.addEventListener('click',()=>applySeriousMode(!seriousQuoteMode));
+homeModeBasic.addEventListener('click',()=>applyHomeMode(false));
+homeModeFocus.addEventListener('click',()=>applyHomeMode(true));
 homeModeSwitch.addEventListener('keydown',event=>{
   if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;
   event.preventDefault();const on=event.key==='ArrowRight'||event.key==='End';
-  applySeriousMode(on);(on?homeModeFocus:homeModeBasic).focus();
+  applyHomeMode(on);(on?homeModeFocus:homeModeBasic).focus();
 });
 const homeModeResizeObserver=new ResizeObserver(()=>paintHomeMode(homeModeProgress));
 homeModeResizeObserver.observe(homeNormalContent);homeModeResizeObserver.observe(homeSeriousModeScreen);
