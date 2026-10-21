@@ -13,8 +13,8 @@ test('pages contain exactly four complete workout dates, resume and do not read 
 test('local save failure does not advance cursor; retry receives same four dates',async()=>{
  const f=fixture(),s=create(f.options);f.setFail(true);await assert.rejects(s.next('accessory','press','26.01.01'));assert.equal(f.saved.size,0);const count=f.reads.length;f.setFail(false);await s.next('accessory','press','26.01.01');assert.equal(f.reads[count].cursor,null);
 });
-test('24h expiry, missing cache and full-history freshness are respected',async()=>{
- const f=fixture(),s=create(f.options);await s.next('lift','bench','26.01.01');let count=f.reads.length;f.setTime(86402000);await s.next('lift','bench','26.01.02');assert.equal(f.reads[count].cursor,null);count=f.reads.length;f.setLocal(false);await s.next('lift','bench','26.01.02');assert.equal(f.reads[count].cursor,null);count=f.reads.length;f.setFull(true);await s.next('lift','bench','26.01.02');assert.equal(f.reads.length,count);
+test('history coverage survives age; missing cache and full-history completion are respected',async()=>{
+ const f=fixture(),s=create(f.options);await s.next('lift','bench','26.01.01');let count=f.reads.length;f.setTime(86402000);await s.next('lift','bench','26.01.02');assert.notEqual(f.reads[count].cursor,null);count=f.reads.length;f.setLocal(false);await s.next('lift','bench','26.01.02');assert.equal(f.reads[count].cursor,null);count=f.reads.length;f.setFull(true);await s.next('lift','bench','26.01.02');assert.equal(f.reads.length,count);
 });
 test('concurrent page requests share one query; account switch cannot persist another account page',async()=>{
  const f=fixture();let release,applied=0;f.options.query=()=>new Promise(r=>release=r);f.options.apply=async()=>{applied++;};const s=create(f.options);

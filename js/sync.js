@@ -2,7 +2,7 @@
 (function(root) {
   'use strict';
   const PRIVATE_COLLECTIONS = Object.freeze(['records', 'accessoryRecords', 'calendar', 'threeRM',
-    'accessories', 'profile', 'foodTemplates', 'meals', 'myRoutineTemplates', 'meta', 'diets', 'recordChanges']);
+    'accessories', 'profile', 'foodTemplates', 'meals', 'myRoutineTemplates', 'meta', 'diets', 'recordChanges', 'recordUpdates']);
   const PUBLIC_KEYS = new Set(['mf_dex_folders_v1', 'mf_dex_posts_v1', 'mf_dex_pending_ids_v1']);
   function createAccountStorage(storage) {
     let owner = storage.getItem('mf_data_owner_v2') || 'guest';

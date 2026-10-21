@@ -1,7 +1,7 @@
 /* Durable account-scoped cursors; write cache before advancing the server page. */
 (function(root){
  'use strict';
- function create({storage,currentUid,hasLocal,fullFresh,query,apply,now=()=>Date.now(),ttlMs=86400000,daysPerPage=4,dayChunkSize=100}){
+ function create({storage,currentUid,hasLocal,fullFresh,query,apply,now=()=>Date.now(),ttlMs=Infinity,daysPerPage=4,dayChunkSize=100}){
   const pending=new Map();
   const key=(uid,kind,name)=>'mf_account_v2:'+uid+':read_fresh:historyPage:'+JSON.stringify([kind,name]);
   function state(uid,kind,name){

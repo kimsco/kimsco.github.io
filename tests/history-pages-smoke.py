@@ -28,6 +28,11 @@ with sync_playwright() as p:
  page.evaluate("historyPages.next('lift','bench',getRecordsInitialWindowStartDateStr())")
  assert page.evaluate("records.bench.length")==144
  assert not page.evaluate("liftFullHistoryLoaded.bench")
+ # Opening a graph after loading the list never downloads covered history again.
+ count="fixture.calls.filter(x=>x.type==='query' && x.path==='users/alice/accessoryRecords').length"
+ before=page.evaluate(count)
+ page.evaluate("ensureExerciseHistory('Old press')")
+ assert page.evaluate(count)==before
  # Failed page/index request surfaces a retry control and does not loop.
  page.evaluate("()=>{fixture.setDenied(true);const el=document.createElement('div');el.style.cssText='position:fixed;inset:0;overflow:auto;z-index:999999;background:black';document.body.appendChild(el);setupRecordInfiniteScroll(el,0,0,true,()=>{},()=>historyPages.next('accessory','Denied exercise',getRecordsInitialWindowStartDateStr()));}")
  page.wait_for_function("document.querySelector('.record-scroll-sentinel button')")
