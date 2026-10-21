@@ -83,6 +83,17 @@ try:
   page.evaluate('applySeriousMode(false,{animate:false})');page.reload();page.wait_for_timeout(700)
   assert page.evaluate('homeModeProgress')==0 and page.locator('#homeModeBasic').get_attribute('aria-selected')=='true'
   assert page.locator('#homeSeriousModeScreen').evaluate('(el)=>el.inert')
+  page.evaluate('applySeriousMode(true,{animate:false})')
+  quotes=page.locator('.home-focus-quote')
+  assert quotes.count()==2 and quotes.nth(0).inner_text()==quotes.nth(1).inner_text()
+  assert quotes.nth(0).evaluate('(el)=>getComputedStyle(el).fontFamily')!=quotes.nth(1).evaluate('(el)=>getComputedStyle(el).fontFamily')
+  assert quotes.nth(1).evaluate('(el)=>getComputedStyle(el).fontFamily')==page.locator('body').evaluate('(el)=>getComputedStyle(el).fontFamily')
+  page.evaluate('homeSeriousModeScreen.scrollTo(0,homeSeriousModeScreen.clientHeight)');page.wait_for_timeout(300)
+  assert page.evaluate('Math.abs(homeSeriousModeScreen.scrollTop-homeSeriousModeScreen.clientHeight)')<1
+  assert page.evaluate("document.querySelector('.app').scrollTop")==0
+  page.screenshot(path='/tmp/home-focus-second-quote.png')
+  page.evaluate('homeSeriousModeScreen.scrollTo(0,0)');page.wait_for_timeout(300)
+  assert page.evaluate('homeSeriousModeScreen.scrollTop')==0
   page.emulate_media(reduced_motion='reduce')
   page.locator('#homeModeFocus').focus();page.keyboard.press('ArrowLeft')
   assert page.evaluate('homeModeProgress')==0 and page.evaluate('homeModeFrame')==0
