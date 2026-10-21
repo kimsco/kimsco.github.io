@@ -10,6 +10,25 @@ try:
   b=pw.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox']);c=b.new_context(viewport={'width':390,'height':844},is_mobile=True,has_touch=True)
   fixture=(root/'tests/firebase-fixture.js').read_text();c.route('https://**/*',lambda r:r.fulfill(body=fixture if '/firebase-app-compat.js' in r.request.url else '',content_type='application/javascript'))
   page=c.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)));page.goto('http://127.0.0.1:8197/');page.wait_for_timeout(650)
+  page.evaluate("window.__themeDocumentMarker='same-document';document.querySelector('.app').scrollTop=110;document.getElementById('openSettingsBtn').click()")
+  page.wait_for_timeout(400)
+  page.evaluate("document.querySelector('.settings-body').scrollTop=160")
+  before=page.evaluate("[document.querySelector('.app').scrollTop,document.querySelector('.settings-body').scrollTop]")
+  assert before[1]>0,before
+  for light in [True,False,True,False]:
+   page.evaluate("document.getElementById('lightModeToggle').click()")
+   page.wait_for_timeout(300)
+   assert page.evaluate("window.__themeDocumentMarker")=='same-document'
+   assert page.locator('#settingsOverlay').is_visible()
+   assert page.evaluate("[document.querySelector('.app').scrollTop,document.querySelector('.settings-body').scrollTop]")==before
+   assert page.locator('html').evaluate("(el)=>el.classList.contains('light-mode-on')")==light
+   assert page.evaluate("localStorage.getItem('mf_light_mode')")==('1' if light else '0')
+   assert page.locator('meta[name="theme-color"]').get_attribute('content')==('#ffffff' if light else '#000000')
+   colors=page.evaluate("""async()=>{const mode=document.getElementById('lightModeToggle'),other=document.getElementById('restTimerToggle'),active=other.classList.contains('active');other.classList.toggle('active',mode.classList.contains('active'));await new Promise(r=>setTimeout(r,300));const result=[getComputedStyle(mode).backgroundColor,getComputedStyle(other).backgroundColor,getComputedStyle(mode,'::after').backgroundColor,getComputedStyle(other,'::after').backgroundColor];other.classList.toggle('active',active);return result;}""")
+   assert colors[0]==colors[1] and colors[2]==colors[3],colors
+  page.evaluate("document.getElementById('closeSettingsBtn').click()")
+  page.wait_for_timeout(400)
+  page.evaluate("document.querySelector('.app').scrollTop=0;resetHomeModeFade()")
   assert page.locator('#homeGreeting').count()==0
   assert page.locator('#homeModeSwitch').is_visible()
   viewport=page.locator('#homeModeViewport').bounding_box()
