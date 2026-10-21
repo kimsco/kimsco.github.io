@@ -94,7 +94,7 @@ with sync_playwright() as p:
     page.wait_for_timeout(3100)
     page.evaluate('appSync.retry()');page.wait_for_timeout(100)
     assert page.locator('#syncStatus').is_hidden()
-    assert page.evaluate('(id)=>fixture.store.has("users/alice/records/"+id)',identity) is False
+    assert page.evaluate('(id)=>fixture.store.get("users/alice/records/"+id)?.deleted===true',identity)
     assert not errors,errors
     # Restart in a different account: alice data/stopwatch must never appear.
     page.evaluate("localStorage.setItem('fixture_uid','bob')")

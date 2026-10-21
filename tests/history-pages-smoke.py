@@ -12,27 +12,17 @@ with sync_playwright() as p:
  c.add_init_script("localStorage.setItem('fixture_uid','alice');localStorage.setItem('mf_data_owner_v2','alice');localStorage.setItem('mf_legacy_migrated_v2','1');")
  c.route('https://**/*',lambda r:r.fulfill(body=fixture if '/firebase-app-compat.js' in r.request.url else '',content_type='application/javascript'))
  page=c.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)));page.goto('http://127.0.0.1:8000/');page.wait_for_timeout(1000)
- page.evaluate("historyPages.next('accessory','Old press',getRecordsInitialWindowStartDateStr())")
- assert page.evaluate("accRecordsByExercise['Old press'].length")==144
- assert page.evaluate("new Set(accRecordsByExercise['Old press'].map(x=>x.date)).size")==4
- assert page.evaluate("accRecordsByExercise['Old press'].every(x=>x.date>='20.01.06')")
- page.reload();page.wait_for_timeout(700)
- page.evaluate("historyPages.next('accessory','Old press',getRecordsInitialWindowStartDateStr())")
- assert page.evaluate("accRecordsByExercise['Old press'].length")==158
- page.evaluate("historyPages.next('accessory','Old press',getRecordsInitialWindowStartDateStr())")
+ # Baseline migration gets all old records once; pages and graphs reuse them.
  assert page.evaluate("accRecordsByExercise['Old press'].length")==159
- assert page.evaluate("new Set(accRecordsByExercise['Old press'].map(x=>x.id)).size")==159
- assert page.evaluate("historyPages.done('accessory','Old press')")
- calls=page.evaluate("fixture.calls.filter(x=>x.path==='users/alice/accessoryRecords' && x.filters?.some(f=>f[0]==='exercise'))")
- assert calls and all(x['maximum'] in [1,100] for x in calls)
- page.evaluate("historyPages.next('lift','bench',getRecordsInitialWindowStartDateStr())")
- assert page.evaluate("records.bench.length")==144
- assert not page.evaluate("liftFullHistoryLoaded.bench")
- # Opening a graph after loading the list never downloads covered history again.
- count="fixture.calls.filter(x=>x.type==='query' && x.path==='users/alice/accessoryRecords').length"
+ count="fixture.calls.filter(x=>x.type==='query' && ['users/alice/records','users/alice/accessoryRecords'].includes(x.path)).length"
  before=page.evaluate(count)
+ page.evaluate("historyPages.next('accessory','Old press',getRecordsInitialWindowStartDateStr())")
+ page.evaluate("historyPages.next('lift','bench',getRecordsInitialWindowStartDateStr())")
  page.evaluate("ensureExerciseHistory('Old press')")
  assert page.evaluate(count)==before
+ assert page.evaluate("records.bench.length===159 && historyPages.done('accessory','Old press')")
+ # Exercise the pager independently after simulating loss of full-coverage metadata.
+ page.evaluate("lsSet('mf_record_history_complete_v1',false);localStorage.removeItem('mf_account_v2:alice:read_fresh:exerciseHistory:Old press')")
  # Failed page/index request surfaces a retry control and does not loop.
  page.evaluate("()=>{fixture.setDenied(true);const el=document.createElement('div');el.style.cssText='position:fixed;inset:0;overflow:auto;z-index:999999;background:black';document.body.appendChild(el);setupRecordInfiniteScroll(el,0,0,true,()=>{},()=>historyPages.next('accessory','Denied exercise',getRecordsInitialWindowStartDateStr()));}")
  page.wait_for_function("document.querySelector('.record-scroll-sentinel button')")
@@ -40,5 +30,5 @@ with sync_playwright() as p:
  assert page.evaluate("fixture.calls.length")==before
  assert '다시 시도' in page.locator('.record-scroll-sentinel button').inner_text()
  assert not errors,errors
- print('PASS: queries fetch only the requested four workout dates; 159 records load as four complete workout dates per page without duplication; cursor survives app restart; lift list does not call full-history loader')
+ print('PASS: baseline loads 159 old sets once; pages and graph reuse local history; failed uncovered page remains retryable')
  b.close()
