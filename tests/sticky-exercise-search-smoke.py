@@ -53,6 +53,26 @@ try:
     assert page.locator('#exercise-screen').evaluate('el=>el.scrollTop')==0
     assert page.locator('#exercise-screen').evaluate("el=>el.style.getPropertyValue('--search-progress')")=='0'
    page.evaluate('loadExercises=originalLoadExercises')
+   # A pull-return gets exactly one subtle rebound; normal scrolling does not.
+   page.evaluate("""()=>{window.reboundCount=0;const row=document.querySelector('#exercise-screen > .search-wrap');row.addEventListener('animationstart',()=>reboundCount++);window.pullEvent=(type,dy)=>{const target=document.querySelector('#exercise-list .exercise-card');const touch=new Touch({identifier:1,target,clientX:100,clientY:250+dy});target.dispatchEvent(new TouchEvent(type,{bubbles:true,touches:type==='touchend'||type==='touchcancel'?[]:[touch],changedTouches:[touch]}));};}""")
+   page.evaluate("pullEvent('touchstart',0);pullEvent('touchmove',50);pullEvent('touchmove',0);pullEvent('touchmove',50);pullEvent('touchmove',0);pullEvent('touchend',0)")
+   values=page.evaluate("""async()=>{const row=document.querySelector('#exercise-screen > .search-wrap'),out=[];for(let i=0;i<28;i++){await new Promise(requestAnimationFrame);out.push(new DOMMatrixReadOnly(getComputedStyle(row).transform).m42);}return out;}""")
+   assert -3.05<=min(values)<-2 and abs(values[-1])<.01,values
+   assert page.evaluate('reboundCount')==1
+   page.evaluate('document.getElementById("exercise-screen").scrollTop=100');page.wait_for_timeout(100)
+   page.evaluate('document.getElementById("exercise-screen").scrollTop=0');page.wait_for_timeout(100)
+   assert page.evaluate('reboundCount')==1
+   page.evaluate("pullEvent('touchstart',0);pullEvent('touchmove',50);pullEvent('touchcancel',50)");page.wait_for_timeout(100)
+   assert page.evaluate('reboundCount')==1
+   # Model Safari's negative scrollTop: do not rebound until native bounce returns to zero.
+   page.evaluate("""()=>{const screen=document.getElementById('exercise-screen');window.nativeTestTop=0;Object.defineProperty(screen,'scrollTop',{configurable:true,get:()=>nativeTestTop});pullEvent('touchstart',0);pullEvent('touchmove',50);nativeTestTop=-20;screen.dispatchEvent(new Event('scroll'));pullEvent('touchend',50);}""")
+   page.wait_for_timeout(80);assert page.evaluate('reboundCount')==1
+   page.evaluate('nativeTestTop=0;document.getElementById("exercise-screen").dispatchEvent(new Event("scroll"))');page.wait_for_timeout(450)
+   assert page.evaluate('reboundCount')==2
+   page.evaluate('delete document.getElementById("exercise-screen").scrollTop;exerciseSearchRebound.reset()')
+   page.emulate_media(reduced_motion='reduce')
+   page.evaluate("pullEvent('touchstart',0);pullEvent('touchmove',50);pullEvent('touchmove',0);pullEvent('touchend',0)");page.wait_for_timeout(100)
+   assert page.evaluate('reboundCount')==2
    print('PASS sticky search',width,'both themes, fixed position, half-transparent backing, opaque controls, search/sort/add and reset at top')
    c.close()
   b.close()
