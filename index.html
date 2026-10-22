@@ -13149,7 +13149,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.88";
+const APP_VERSION = "1.0.89";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -25211,23 +25211,24 @@ document.querySelectorAll('.folderContent').forEach(el => {
 
 /* 🔥 알약형 저장바: 스크롤한 만큼 서서히 작아지다가,
    일정 거리(임계점)를 넘기면 완전히 축소되고,
-   반대로 올리면 첫 36px은 비례 확대하고, 이후 탄성 있게 원래 크기로 복귀
+   양방향 모두 첫 36px은 작게 비례 반응하고, 이후 목표 크기로 탄성 복귀
    (3대탭 + 기록탭 보조운동 상세화면, 둘 다 이 함수로 연결) */
 function wireFloatingSaveBar(bar, scrollEls){
   if (!bar || !scrollEls.length) return null;
 
-  const THRESHOLD = 50;      // 이 거리(px)만큼 스크롤하면 완전히 축소
+  const THRESHOLD = 50;      // 0~50은 확대/축소 상태를 나타내는 내부 범위
   const MIN_SCALE = 0.8;
   const MIN_OPACITY = 0.55;
-  const EXPAND_GROWTH_RATIO = 0.6; // 펼침 전 비례 확대량은 스크롤의 60%만 반영
-  const EXPAND_TRIGGER = 36; // 되올린 첫 36px은 비례 확대, 이후 탄성 복귀
-  let expansionTravel = 0, springUntil = 0;
+  const EXPAND_GROWTH_RATIO = 0.6; // 탄성 전 양방향 크기 변화는 스크롤의 60%만 반영
+  const EXPAND_TRIGGER = 36; // 양방향으로 36px 이동하면 목표 크기로 탄성 복귀
+  let expansionTravel = 0, collapseTravel = 0, springUntil = 0, springDirection = 0;
   let collapseAmount = 0;    // 0(완전 확대) ~ THRESHOLD(완전 축소)
   const lastTops = new WeakMap();
 
   function render(withTransition, spring=false){
     const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
     springUntil=spring && !reduced?performance.now()+520:0;
+    springDirection=springUntil?(collapseAmount===0?-1:1):0;
     const p = collapseAmount / THRESHOLD;
     const scale = 1 - p * (1 - MIN_SCALE);
     const opacity = 1 - p * (1 - MIN_OPACITY);
@@ -25247,25 +25248,32 @@ function wireFloatingSaveBar(bar, scrollEls){
       lastTops.set(el, current);
 
       if (delta === 0) return;
-      if (delta < 0 && performance.now() < springUntil) return;
-      if (delta > 0) {
-        expansionTravel = 0;
-        if (performance.now() < springUntil) {
-          // 다시 내리면 현재 보이는 크기부터 축소하여 애니메이션 중 점프 방지.
-          const scale = new DOMMatrixReadOnly(getComputedStyle(bar).transform).m11;
-          collapseAmount = Math.max(0,Math.min(THRESHOLD,(1-scale)/(1-MIN_SCALE)*THRESHOLD));
-        }
-        springUntil = 0;
-      }
       if (current <= 4) {
-        expansionTravel = 0;
-        // 맨 위 근처면 무조건 완전히 확대 (부드럽게)
+        expansionTravel = collapseTravel = 0;
         collapseAmount = 0;
         render(true);
         return;
       }
-
+      const direction=delta>0?1:-1;
+      if (performance.now() < springUntil) {
+        if (direction===springDirection) return;
+        // 방향을 바꾸면 현재 보이는 크기부터 이어서 움직여 점프를 방지.
+        const scale = new DOMMatrixReadOnly(getComputedStyle(bar).transform).m11;
+        collapseAmount = Math.max(0,Math.min(THRESHOLD,(1-scale)/(1-MIN_SCALE)*THRESHOLD));
+        expansionTravel = collapseTravel = 0;
+      }
+      springUntil = 0;
+      if (delta > 0) expansionTravel = 0;else collapseTravel = 0;
       const prevAmount = collapseAmount;
+      if (delta > 0 && prevAmount < THRESHOLD) {
+        collapseTravel += delta;
+        if (collapseTravel >= EXPAND_TRIGGER) {
+          collapseAmount = THRESHOLD;
+          collapseTravel = 0;
+          render(true,true);
+          return;
+        }
+      } else if (prevAmount === THRESHOLD) collapseTravel = 0;
       if (delta < 0 && prevAmount > 0) {
         expansionTravel -= delta;
         if (expansionTravel >= EXPAND_TRIGGER) {
@@ -25275,7 +25283,7 @@ function wireFloatingSaveBar(bar, scrollEls){
           return;
         }
       } else if (prevAmount === 0) expansionTravel = 0;
-      collapseAmount = Math.max(0, Math.min(THRESHOLD, collapseAmount + (delta < 0 ? delta * EXPAND_GROWTH_RATIO : delta)));
+      collapseAmount = Math.max(0, Math.min(THRESHOLD, collapseAmount + delta * EXPAND_GROWTH_RATIO));
 
       // 임계점에 막 도달/이탈하는 순간에만 짧은 스냅 트랜지션, 그 사이 구간은 스크롤에 실시간 추종
       const justHitEdge =
@@ -25289,7 +25297,7 @@ function wireFloatingSaveBar(bar, scrollEls){
   // 🔥 작아진 상태에서 kg/회 입력칸을 누르면(포커스) 부드럽게 원래 크기로 복귀
   bar.querySelectorAll('input[type="text"]').forEach(input => {
     input.addEventListener('focus', () => {
-      expansionTravel = 0;
+      expansionTravel = collapseTravel = 0;
       collapseAmount = 0;
       render(true);
     });
@@ -25298,7 +25306,7 @@ function wireFloatingSaveBar(bar, scrollEls){
   // 🔥 외부(예: 화면 재진입)에서 내부 상태 + 시각적 크기를 완전히 초기화할 수 있도록 노출
   return {
     reset(){
-      expansionTravel = 0;
+      expansionTravel = collapseTravel = 0;
       collapseAmount = 0;
       scrollEls.forEach(el => lastTops.set(el, el.scrollTop || 0));
       render(false);
