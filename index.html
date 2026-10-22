@@ -13149,7 +13149,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.83";
+const APP_VERSION = "1.0.84";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -25358,16 +25358,21 @@ try {
       if(matchMedia('(prefers-reduced-motion:reduce)').matches)return;
       const target=toggle.classList.contains('active')?24:0,start=performance.now();
       toggle.classList.add('glass-moving','glass-settling');
-      const paint=t=>{
-        const eased=1-Math.pow(1-t,3),bump=Math.sin(Math.PI*eased);
-        const scale=(initial,peak)=>1+(initial-1)*(1-eased)+(peak-1)*bump*Math.max(0,1-(initial-1)/(peak-1));
+      const travelMs=Math.abs(target-from.x)<.25?0:250,settleMs=130;
+      const peakX=Math.max(from.sx,1.62),peakY=Math.max(from.sy,1.55);
+      const paint=elapsed=>{
+        const progress=travelMs?Math.min(1,elapsed/travelMs):1;
+        const eased=1-Math.pow(1-progress,3);
+        const down=Math.max(0,Math.min(1,(elapsed-travelMs)/settleMs));
+        const settle=1-Math.pow(1-down,3);
+        const scale=(initial,peak)=>elapsed<travelMs?initial+(peak-initial)*eased:peak+(1-peak)*settle;
         const x=from.x+(target-from.x)*eased;
-        toggle.style.setProperty('--glass-motion-transform',`translateX(${x}px) scale(${scale(from.sx,1.62)},${scale(from.sy,1.55)})`);
+        toggle.style.setProperty('--glass-motion-transform',`translateX(${x}px) scale(${scale(from.sx,peakX)},${scale(from.sy,peakY)})`);
       };
       paint(0);
       const step=now=>{
-        const t=Math.min(1,(now-start)/360);paint(t);
-        if(t<1)frame=requestAnimationFrame(step);else stopMotion();
+        const elapsed=Math.min(travelMs+settleMs,now-start);paint(elapsed);
+        if(elapsed<travelMs+settleMs)frame=requestAnimationFrame(step);else stopMotion();
       };
       frame=requestAnimationFrame(step);
     };
