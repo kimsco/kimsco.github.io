@@ -1463,25 +1463,23 @@ cursor: pointer;
 #exercise-screen .search-wrap {
   padding-left: 7px;
 }
-/* Search stays below the body-part tabs; only the backing becomes translucent. */
+/* A gradual glass backing fades out below the pinned search controls. */
+#tab4 #exercise-screen { --search-rgb:0,0,0;--search-progress:0;--search-blur:0px;--search-fade:0px; }
+html.light-mode-on #tab4 #exercise-screen { --search-rgb:245,245,245; }
 #tab4 #exercise-screen > .search-wrap {
   position:sticky;top:2px;z-index:5;isolation:isolate;
 }
 #tab4 #exercise-screen > .search-wrap::before {
-  content:"";position:absolute;inset:-2px 0 -6px;z-index:-1;
-  background:var(--c-bg);transition:background .22s ease;
+  content:"";position:absolute;inset:-2px 0 calc(-6px - var(--search-fade));z-index:-1;
+  background:rgba(var(--search-rgb),calc(1 - var(--search-progress) * .5));
+  -webkit-backdrop-filter:blur(var(--search-blur));backdrop-filter:blur(var(--search-blur));
+  -webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - var(--search-fade)),transparent 100%);
+  mask-image:linear-gradient(to bottom,#000 calc(100% - var(--search-fade)),transparent 100%);
   pointer-events:none;
 }
-#tab4 #exercise-screen.search-scrolled > .search-wrap::before {
-  background:rgba(0,0,0,.5);
-  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
-}
-html.light-mode-on #tab4 #exercise-screen.search-scrolled > .search-wrap::before {
-  background:rgba(245,245,245,.5);
-}
-#tab4 #exercise-screen.search-scrolled > .search-wrap .exercise-search-box,
-#tab4 #exercise-screen.search-scrolled > .search-wrap #add-exercise-btn {
-  background:transparent;
+#tab4 #exercise-screen > .search-wrap .exercise-search-box,
+#tab4 #exercise-screen > .search-wrap #add-exercise-btn {
+  background:rgba(var(--search-rgb),calc(1 - var(--search-progress)));
 }
 
 /* 🔥 종목 카드 왼쪽 스와이프 — 뒤에 숨어있는 "참고" 버튼을 드래그로 꺼내 보여줌 */
@@ -12142,12 +12140,16 @@ exerciseSortBtn.addEventListener('click', () => {
   renderExercises();
 });
 
-{
+function updateExerciseSearchBacking(){
   const screen=document.getElementById('exercise-screen');
-  const updateSearchBacking=()=>screen.classList.toggle('search-scrolled',screen.scrollTop>4);
-  screen.addEventListener('scroll',updateSearchBacking,{passive:true});
-  updateSearchBacking();
+  const progress=Math.max(0,Math.min(1,screen.scrollTop/48));
+  screen.classList.toggle('search-scrolled',progress>0);
+  screen.style.setProperty('--search-progress',String(progress));
+  screen.style.setProperty('--search-blur',(8*progress)+'px');
+  screen.style.setProperty('--search-fade',(24*progress)+'px');
 }
+document.getElementById('exercise-screen').addEventListener('scroll',updateExerciseSearchBacking,{passive:true});
+updateExerciseSearchBacking();
 const exerciseSearchInput = document.getElementById('exerciseSearchInput');
 exerciseSearchInput.addEventListener('input', (e) => {
   exerciseSearchQuery = e.target.value;
@@ -12188,6 +12190,8 @@ document.querySelectorAll('.folderBtn4').forEach(btn => {
     // 🔥 상세화면이 열려있으면 닫고 목록화면으로
     detailScreen.style.display = 'none';
     exerciseScreen.style.display = 'block';
+    exerciseScreen.scrollTop = 0;
+    updateExerciseSearchBacking();
     currentExerciseName = null;
 
     const accBarEl0 = document.getElementById('recordFloatBarAcc');
@@ -13176,7 +13180,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.92";
+const APP_VERSION = "1.0.93";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
