@@ -28,8 +28,8 @@ try:
     assert after['x']>=0 and after['x']+after['width']<=width+.5
     styles=search.evaluate("el=>({opacity:getComputedStyle(el).opacity,bg:getComputedStyle(el,'::before').backgroundColor,blur:getComputedStyle(el,'::before').backdropFilter})")
     assert styles['opacity']=='1' and '0.5)' in styles['bg'] and styles['blur']=='blur(8px)',styles
-    edge=search.evaluate("el=>{const s=getComputedStyle(el,'::before');const fade=parseFloat(getComputedStyle(el).getPropertyValue('--search-fade'));return parseFloat(s.top)+parseFloat(s.height)-fade-el.getBoundingClientRect().height;}")
-    assert abs(edge)<.1,edge # The fade begins at the control row's bottom edge, with no 6px band.
+    edge=search.evaluate("el=>{const s=getComputedStyle(el,'::before');const fade=parseFloat(getComputedStyle(el).getPropertyValue('--search-fade'));return parseFloat(s.top)+parseFloat(s.height)-fade+el.getBoundingClientRect().top-el.querySelector('.exercise-search-box').getBoundingClientRect().bottom;}")
+    assert abs(edge)<.1,edge # Measure the actual input border, not the taller row created by button margins.
 
     page.screenshot(path='/tmp/sticky-search-'+str(width)+'-'+str(light)+'.png')
     # Real clicks still reach the fixed controls rather than cards behind them.
