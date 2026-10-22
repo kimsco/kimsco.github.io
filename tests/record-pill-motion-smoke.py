@@ -17,7 +17,7 @@ try:
    def scroll(y,wait=40):
     page.evaluate('(y)=>testScroll.scrollTop=y',y);page.wait_for_timeout(wait)
    def scale():return page.evaluate('new DOMMatrixReadOnly(getComputedStyle(testBar).transform).m11')
-   scroll(200,300);assert abs(scale()-.8)<.01
+   scroll(200,650);assert abs(scale()-.8)<.01
    scroll(194);assert abs(scale()-.8144)<.01,scale()
    scroll(188);assert abs(scale()-.8288)<.01
    scroll(176);assert abs(scale()-.8576)<.01
@@ -27,13 +27,26 @@ try:
    frames=page.evaluate("""async()=>{const values=[];for(let i=0;i<40;i++){await new Promise(requestAnimationFrame);values.push(new DOMMatrixReadOnly(getComputedStyle(testBar).transform).m11);}return values;}""")
    assert 1.00001<max(frames)<1.01,max(frames)
    assert abs(scale()-1)<.001
-   scroll(234,300);assert abs(scale()-.8)<.01
+   scroll(234,650);assert abs(scale()-.8)<.01
    scroll(198,30);before=scale();scroll(210,20);assert abs(scale()-before)<.08,(before,scale())
    page.evaluate('testBar.querySelector("input").focus()');page.wait_for_timeout(300);assert abs(scale()-1)<.001
    scroll(280,300);page.evaluate('testController.reset()');assert abs(scale()-1)<.001
-   page.emulate_media(reduced_motion='reduce');scroll(350);assert abs(scale()-.8)<.001
-   scroll(314);assert abs(scale()-1)<.001
-   print('PASS: proportional shrink, initial proportional expansion, 36px spring trigger with restrained initial growth, continued scroll, reversal, focus/reset and reduced motion')
+   # Collapse mirrors expansion: small proportional changes, then a slight undershoot.
+   scroll(300,650);page.evaluate('testController.reset()')
+   scroll(306);assert abs(scale()-.9856)<.01
+   scroll(324);assert abs(scale()-.9424)<.01
+   scroll(336,20);assert page.evaluate('testBar.style.transform')=='scale(0.8)'
+   scroll(340,20)
+   frames=page.evaluate("""async()=>{const out=[];for(let i=0;i<40;i++){await new Promise(requestAnimationFrame);out.push(new DOMMatrixReadOnly(getComputedStyle(testBar).transform).m11);}return out;}""")
+   assert .79<min(frames)<.79999,min(frames)
+   assert abs(scale()-.8)<.001
+   # Reverse a collapsing spring without jumping to its destination first.
+   page.evaluate('testController.reset()');scroll(376,30);before=scale();scroll(370,20)
+   assert abs(scale()-before)<.08,(before,scale())
+   page.evaluate('testController.reset()')
+   page.emulate_media(reduced_motion='reduce');scroll(430);assert abs(scale()-.8)<.001
+   scroll(394);assert abs(scale()-1)<.001
+   print('PASS: symmetric proportional growth/shrink, 36px springs with restrained overshoot/undershoot, continued scroll, reversal, focus/reset and reduced motion')
    c.close()
   b.close()
 finally:server.terminate();server.wait()
