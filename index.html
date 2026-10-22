@@ -12163,15 +12163,15 @@ document.getElementById('exercise-screen').addEventListener('scroll',updateExerc
 updateExerciseSearchBacking();
 function wireExerciseSearchRebound(screen){
   const row=screen.querySelector('.search-wrap'),app=document.querySelector('.app');
-  let touch=null,armed=false,released=false,returning=false,nativeBounce=false,played=false,expiry=0;
+  let touch=null,armed=false,returning=false,nativeBounce=false,played=false;
   const atRest=()=>screen.scrollTop>=-1 && app.scrollTop>=-1;
   function reset(){
-    touch=null;armed=false;released=false;returning=false;nativeBounce=false;played=false;
-    clearTimeout(expiry);row.classList.remove('search-rebounding');
+    touch=null;armed=false;returning=false;nativeBounce=false;played=false;
+    row.classList.remove('search-rebounding');
   }
   function rebound(){
-    if(!armed || played || !atRest())return;
-    armed=false;played=true;clearTimeout(expiry);
+    if(!touch || !returning || !armed || played || !atRest())return;
+    armed=false;played=true;
     if(!screen.getClientRects().length || !document.getElementById('tab4').classList.contains('active') || matchMedia('(prefers-reduced-motion:reduce)').matches)return;
     row.classList.remove('search-rebounding');void row.offsetWidth;
     row.classList.add('search-rebounding');
@@ -12194,14 +12194,15 @@ function wireExerciseSearchRebound(screen){
   },{passive:true});
   function observeReturn(){
     if(touch && (screen.scrollTop<-3 || app.scrollTop<-3)){armed=true;nativeBounce=true;}
-    if(armed && (released || returning))rebound();
+    if(nativeBounce && touch && armed && returning)rebound();
   }
   screen.addEventListener('scroll',observeReturn,{passive:true});
   app.addEventListener('scroll',observeReturn,{passive:true});
   screen.addEventListener('touchend',event=>{
     if(event.touches.length)return;
-    touch=null;released=true;
-    if(armed){rebound();expiry=setTimeout(reset,1500);}
+    // Release-only native bounce must not add a second hop after coming home.
+    // Let an already-started, finger-driven rebound finish normally.
+    touch=null;armed=false;returning=false;nativeBounce=false;
   },{passive:true});
   screen.addEventListener('touchcancel',reset,{passive:true});
   row.addEventListener('animationend',()=>row.classList.remove('search-rebounding'));
@@ -13239,7 +13240,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.96";
+const APP_VERSION = "1.0.97";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
