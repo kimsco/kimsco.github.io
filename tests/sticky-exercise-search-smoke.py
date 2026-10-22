@@ -20,6 +20,9 @@ try:
     page.evaluate('document.getElementById("exercise-screen").scrollTop=0');page.wait_for_timeout(350)
     search=page.locator('#exercise-screen > .search-wrap');before=search.bounding_box()
     assert not page.locator('#exercise-screen').evaluate("el=>el.classList.contains('search-scrolled')")
+    page.evaluate('document.getElementById("exercise-screen").scrollTop=24');page.wait_for_timeout(100)
+    midpoint=search.evaluate("el=>({bg:getComputedStyle(el,'::before').backgroundColor,blur:getComputedStyle(el,'::before').backdropFilter,mask:getComputedStyle(el,'::before').maskImage})")
+    assert '0.75)' in midpoint['bg'] and midpoint['blur']=='blur(4px)' and 'gradient' in midpoint['mask'],midpoint
     page.evaluate('document.getElementById("exercise-screen").scrollTop=250');page.wait_for_timeout(350)
     after=search.bounding_box();assert abs(after['y']-before['y'])<.5,(before,after)
     assert after['x']>=0 and after['x']+after['width']<=width+.5
@@ -35,6 +38,18 @@ try:
     page.locator('#exerciseSearchInput').fill('');page.wait_for_timeout(200)
     page.locator('#add-exercise-btn').click();assert page.locator('#addExerciseModal').is_visible()
     page.evaluate('closeAddExerciseModal()');page.wait_for_timeout(300)
+   # A populated next part must still start at the top; test delayed loads and arm launchers.
+   page.evaluate("window.originalLoadExercises=loadExercises;loadExercises=async part=>{await new Promise(r=>setTimeout(r,60));currentExercises=Array.from({length:40},(_,i)=>part+' '+i);renderExercises();}")
+   for part in ['back','shoulder','arm_tri','chest']:
+    page.evaluate('document.getElementById("exercise-screen").scrollTop=180');page.wait_for_timeout(80)
+    if part=='arm_tri':page.locator('.folderBtn4[data-arm-launcher]').click()
+    elif part=='chest':page.evaluate('document.querySelector(".folderBtn4[data-arm-back]").click()')
+    else:page.locator('.folderBtn4[data-part="'+part+'"]').click()
+    page.wait_for_timeout(250)
+    assert page.evaluate('currentPart')==part
+    assert page.locator('#exercise-screen').evaluate('el=>el.scrollTop')==0
+    assert page.locator('#exercise-screen').evaluate("el=>el.style.getPropertyValue('--search-progress')")=='0'
+   page.evaluate('loadExercises=originalLoadExercises')
    print('PASS sticky search',width,'both themes, fixed position, half-transparent backing, opaque controls, search/sort/add and reset at top')
    c.close()
   b.close()
