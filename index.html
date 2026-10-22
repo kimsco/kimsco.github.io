@@ -13149,7 +13149,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.90";
+const APP_VERSION = "1.0.91";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -21269,69 +21269,74 @@ function getExerciseRefActionEl(card){
   return card.parentElement && card.parentElement.querySelector('.exercise-ref-action');
 }
 
-function closeExerciseSwipe(card){
-  card.classList.remove('swiped');
-  card.style.transform = '';
-  const refBtn = getExerciseRefActionEl(card);
-  if (refBtn) refBtn.classList.remove('revealed');
-  if (openedExerciseSwipeCard === card) openedExerciseSwipeCard = null;
+function settleExerciseSwipe(card, open){
+  clearTimeout(card._swipeCloseTimer);
+  const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  card.style.transition=reduced?'none':'transform .38s cubic-bezier(.22,1.12,.36,1)';
+  card.classList.toggle('swiped',open);
+  card.style.transform=`translateX(${open?-EXERCISE_SWIPE_WIDTH:0}px)`;
+  const refBtn=getExerciseRefActionEl(card);
+  if(open){
+    if(refBtn)refBtn.classList.add('revealed');
+    openedExerciseSwipeCard=card;
+  }else{
+    if(openedExerciseSwipeCard===card)openedExerciseSwipeCard=null;
+    // Keep the revealed backing visible while the card slides home.
+    if(refBtn){
+      if(reduced)refBtn.classList.remove('revealed');
+      else card._swipeCloseTimer=setTimeout(()=>refBtn.classList.remove('revealed'),390);
+    }
+  }
 }
+function closeExerciseSwipe(card){ settleExerciseSwipe(card,false); }
 
 function setupExerciseSwipe(card){
-  let startX = 0, startY = 0, startTranslate = 0, dragging = false, decided = false, isHorizontal = false;
-
-  card.addEventListener('touchstart', (e) => {
-    if (openedExerciseSwipeCard && openedExerciseSwipeCard !== card) closeExerciseSwipe(openedExerciseSwipeCard);
-    const t = e.touches[0];
-    startX = t.clientX;
-    startY = t.clientY;
-    startTranslate = card.classList.contains('swiped') ? -EXERCISE_SWIPE_WIDTH : 0;
-    dragging = true;
-    decided = false;
-    isHorizontal = false;
-    card.style.transition = 'none';
-  }, { passive: true });
-
-  card.addEventListener('touchmove', (e) => {
-    if (!dragging) return;
-    const t = e.touches[0];
-    const dx = t.clientX - startX;
-    const dy = t.clientY - startY;
-
-    if (!decided) {
-      if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return; // 아직 판단하기엔 너무 작은 움직임
-      isHorizontal = Math.abs(dx) > Math.abs(dy);
-      decided = true;
-      // 🔥 가로 스와이프로 확정되는 즉시 참고 버튼에 색을 입힘(그 전까진 투명이라
-      // 카드 모서리 틈으로 비칠 색 자체가 없음)
-      if (isHorizontal) {
-        const refBtn = getExerciseRefActionEl(card);
-        if (refBtn) refBtn.classList.add('revealed');
-      }
+  let startX=0,startY=0,startTranslate=0,currentX=0,dragging=false,decided=false,isHorizontal=false;
+  let samples=[],lastMoveAt=0,suppressTap=false,wasOpen=false;
+  const readX=()=>new DOMMatrixReadOnly(getComputedStyle(card).transform).m41;
+  const rubber=distance=>18*(1-Math.exp(-distance/65));
+  card.addEventListener('click',event=>{
+    if(suppressTap){suppressTap=false;event.preventDefault();event.stopImmediatePropagation();}
+  },true);
+  card.addEventListener('touchstart',e=>{
+    if(e.touches.length!==1)return;
+    if(openedExerciseSwipeCard && openedExerciseSwipeCard!==card)closeExerciseSwipe(openedExerciseSwipeCard);
+    clearTimeout(card._swipeCloseTimer);
+    const t=e.touches[0],now=performance.now();
+    startX=t.clientX;startY=t.clientY;wasOpen=card.classList.contains('swiped');
+    startTranslate=currentX=readX();
+    card.style.transition='none';card.style.transform=`translateX(${currentX}px)`;
+    dragging=true;decided=false;isHorizontal=false;suppressTap=false;
+    samples=[{x:t.clientX,time:now}];lastMoveAt=now;
+  },{passive:true});
+  card.addEventListener('touchmove',e=>{
+    if(!dragging)return;
+    if(e.touches.length!==1){dragging=false;settleExerciseSwipe(card,wasOpen);return;}
+    const t=e.touches[0],dx=t.clientX-startX,dy=t.clientY-startY;
+    if(!decided){
+      if(Math.abs(dx)<6 && Math.abs(dy)<6)return;
+      isHorizontal=Math.abs(dx)>Math.abs(dy);decided=true;
     }
-    if (!isHorizontal) return; // 세로 스크롤은 그대로 통과시킴
-
-    e.preventDefault();
-    let next = startTranslate + dx;
-    next = Math.max(-EXERCISE_SWIPE_WIDTH, Math.min(0, next));
-    card.style.transform = `translateX(${next}px)`;
-  }, { passive: false });
-
-  card.addEventListener('touchend', () => {
-    if (!dragging) return;
-    dragging = false;
-    card.style.transition = '';
-    if (!isHorizontal) { card.style.transform = card.classList.contains('swiped') ? `translateX(-${EXERCISE_SWIPE_WIDTH}px)` : ''; return; }
-
-    const current = card.style.transform.match(/-?\d+(\.\d+)?/);
-    const currentX = current ? parseFloat(current[0]) : 0;
-    if (currentX <= -EXERCISE_SWIPE_WIDTH / 2) {
-      card.classList.add('swiped');
-      card.style.transform = `translateX(-${EXERCISE_SWIPE_WIDTH}px)`;
-      openedExerciseSwipeCard = card;
-    } else {
-      closeExerciseSwipe(card);
-    }
+    if(!isHorizontal)return;
+    suppressTap=true;if(e.cancelable)e.preventDefault();
+    const refBtn=getExerciseRefActionEl(card);if(refBtn)refBtn.classList.add('revealed');
+    const raw=startTranslate+dx;
+    currentX=raw < -EXERCISE_SWIPE_WIDTH ? -EXERCISE_SWIPE_WIDTH-rubber(-EXERCISE_SWIPE_WIDTH-raw) : raw>0?rubber(raw)*.5:raw;
+    card.style.transform=`translateX(${currentX}px)`;
+    lastMoveAt=performance.now();samples.push({x:t.clientX,time:lastMoveAt});
+    samples=samples.filter(sample=>lastMoveAt-sample.time<=90);
+  },{passive:false});
+  card.addEventListener('touchend',()=>{
+    if(!dragging)return;dragging=false;
+    if(!isHorizontal){settleExerciseSwipe(card,wasOpen);return;}
+    const first=samples[0],last=samples.at(-1),elapsed=last.time-first.time;
+    const velocity=performance.now()-lastMoveAt<100 && elapsed>0?(last.x-first.x)/elapsed:0;
+    const moved=last.x-startX;
+    const open=Math.abs(velocity)>.45 && Math.abs(moved)>8?velocity<0:currentX<=-EXERCISE_SWIPE_WIDTH/2;
+    settleExerciseSwipe(card,open);
+  });
+  card.addEventListener('touchcancel',()=>{
+    if(!dragging)return;dragging=false;suppressTap=isHorizontal;settleExerciseSwipe(card,wasOpen);
   });
 }
 
