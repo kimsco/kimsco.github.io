@@ -1469,6 +1469,17 @@ html.light-mode-on #tab4 #exercise-screen { --search-rgb:245,245,245; }
 #tab4 #exercise-screen > .search-wrap {
   position:sticky;top:2px;z-index:5;isolation:isolate;
 }
+#tab4 #exercise-screen > .search-wrap.search-rebounding {
+  animation:exercise-search-rebound .36s cubic-bezier(.22,.61,.36,1) both;
+}
+@keyframes exercise-search-rebound {
+  0% { transform:translateY(0); }
+  32% { transform:translateY(-3px); }
+  100% { transform:translateY(0); }
+}
+@media (prefers-reduced-motion:reduce) {
+  #tab4 #exercise-screen > .search-wrap.search-rebounding { animation:none; }
+}
 #tab4 #exercise-screen > .search-wrap::before {
   content:"";position:absolute;inset:-2px 0 calc(10px - var(--search-fade));z-index:-1;
   background:rgba(var(--search-rgb),calc(1 - var(--search-progress) * .5));
@@ -12150,6 +12161,53 @@ function updateExerciseSearchBacking(){
 }
 document.getElementById('exercise-screen').addEventListener('scroll',updateExerciseSearchBacking,{passive:true});
 updateExerciseSearchBacking();
+function wireExerciseSearchRebound(screen){
+  const row=screen.querySelector('.search-wrap'),app=document.querySelector('.app');
+  let touch=null,armed=false,released=false,returning=false,nativeBounce=false,played=false,expiry=0;
+  const atRest=()=>screen.scrollTop>=-1 && app.scrollTop>=-1;
+  function reset(){
+    touch=null;armed=false;released=false;returning=false;nativeBounce=false;played=false;
+    clearTimeout(expiry);row.classList.remove('search-rebounding');
+  }
+  function rebound(){
+    if(!armed || played || !atRest())return;
+    armed=false;played=true;clearTimeout(expiry);
+    if(!screen.getClientRects().length || !document.getElementById('tab4').classList.contains('active') || matchMedia('(prefers-reduced-motion:reduce)').matches)return;
+    row.classList.remove('search-rebounding');void row.offsetWidth;
+    row.classList.add('search-rebounding');
+  }
+  screen.addEventListener('touchstart',event=>{
+    reset();
+    if(event.touches.length!==1 || screen.scrollTop>2 || event.target.closest('input,button'))return;
+    const t=event.touches[0];touch={x:t.clientX,y:t.clientY,maxPull:0};
+  },{passive:true});
+  screen.addEventListener('touchmove',event=>{
+    if(!touch)return;
+    if(event.touches.length!==1){reset();return;}
+    const t=event.touches[0],dx=t.clientX-touch.x,dy=t.clientY-touch.y;
+    if(Math.abs(dx)>Math.abs(dy) && Math.abs(dx)>8){reset();return;}
+    touch.maxPull=Math.max(touch.maxPull,dy);
+    if(dy>12 && dy>Math.abs(dx))armed=true;
+    returning=touch.maxPull-dy>6;
+    // Browsers without negative scrollTop can still identify crossing the starting point.
+    if(returning && dy<=4 && !nativeBounce)rebound();
+  },{passive:true});
+  function observeReturn(){
+    if(touch && (screen.scrollTop<-3 || app.scrollTop<-3)){armed=true;nativeBounce=true;}
+    if(armed && (released || returning))rebound();
+  }
+  screen.addEventListener('scroll',observeReturn,{passive:true});
+  app.addEventListener('scroll',observeReturn,{passive:true});
+  screen.addEventListener('touchend',event=>{
+    if(event.touches.length)return;
+    touch=null;released=true;
+    if(armed){rebound();expiry=setTimeout(reset,1500);}
+  },{passive:true});
+  screen.addEventListener('touchcancel',reset,{passive:true});
+  row.addEventListener('animationend',()=>row.classList.remove('search-rebounding'));
+  return {reset};
+}
+const exerciseSearchRebound=wireExerciseSearchRebound(document.getElementById('exercise-screen'));
 const exerciseSearchInput = document.getElementById('exerciseSearchInput');
 exerciseSearchInput.addEventListener('input', (e) => {
   exerciseSearchQuery = e.target.value;
@@ -12190,6 +12248,7 @@ document.querySelectorAll('.folderBtn4').forEach(btn => {
     // 🔥 상세화면이 열려있으면 닫고 목록화면으로
     detailScreen.style.display = 'none';
     exerciseScreen.style.display = 'block';
+    exerciseSearchRebound.reset();
     exerciseScreen.scrollTop = 0;
     updateExerciseSearchBacking();
     currentExerciseName = null;
@@ -13180,7 +13239,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.95";
+const APP_VERSION = "1.0.96";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
