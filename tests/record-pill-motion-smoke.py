@@ -35,9 +35,10 @@ try:
    scroll(300,650);page.evaluate('testController.reset()')
    scroll(306);assert abs(scale()-.9856)<.01
    scroll(324);assert abs(scale()-.9424)<.01
-   scroll(336,20);assert page.evaluate('testBar.style.transform')=='scale(0.8)'
+   before=scale();scroll(336,80);assert page.evaluate('testBar.style.transform')=='scale(0.8)'
+   assert before-scale()<.035,(before,scale())
    scroll(340,20)
-   frames=page.evaluate("""async()=>{const out=[];for(let i=0;i<40;i++){await new Promise(requestAnimationFrame);out.push(new DOMMatrixReadOnly(getComputedStyle(testBar).transform).m11);}return out;}""")
+   frames=page.evaluate("""async()=>{const out=[];for(let i=0;i<48;i++){await new Promise(requestAnimationFrame);out.push(new DOMMatrixReadOnly(getComputedStyle(testBar).transform).m11);}return out;}""")
    assert .79<min(frames)<.79999,min(frames)
    assert abs(scale()-.8)<.001
    # Reverse a collapsing spring without jumping to its destination first.
