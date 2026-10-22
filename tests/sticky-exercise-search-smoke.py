@@ -64,10 +64,19 @@ try:
    assert page.evaluate('reboundCount')==1
    page.evaluate("pullEvent('touchstart',0);pullEvent('touchmove',50);pullEvent('touchcancel',50)");page.wait_for_timeout(100)
    assert page.evaluate('reboundCount')==1
-   # Model Safari's negative scrollTop: do not rebound until native bounce returns to zero.
+   # Letting go alone never adds a rebound, even after a small reversal that did not reach the edge.
+   for dy in [50,40]:
+    page.evaluate("pullEvent('touchstart',0);pullEvent('touchmove',50);pullEvent('touchmove',"+str(dy)+");pullEvent('touchend',"+str(dy)+")")
+    page.wait_for_timeout(120);assert page.evaluate('reboundCount')==1
+   # Native bounce after release must also remain animation-free.
    page.evaluate("""()=>{const screen=document.getElementById('exercise-screen');window.nativeTestTop=0;Object.defineProperty(screen,'scrollTop',{configurable:true,get:()=>nativeTestTop});pullEvent('touchstart',0);pullEvent('touchmove',50);nativeTestTop=-20;screen.dispatchEvent(new Event('scroll'));pullEvent('touchend',50);}""")
    page.wait_for_timeout(80);assert page.evaluate('reboundCount')==1
    page.evaluate('nativeTestTop=0;document.getElementById("exercise-screen").dispatchEvent(new Event("scroll"))');page.wait_for_timeout(450)
+   assert page.evaluate('reboundCount')==1
+   # Direct finger reversal triggers only when the edge is reached while still touching.
+   page.evaluate("pullEvent('touchstart',0);pullEvent('touchmove',50);nativeTestTop=-20;document.getElementById('exercise-screen').dispatchEvent(new Event('scroll'));pullEvent('touchmove',0)")
+   page.wait_for_timeout(80);assert page.evaluate('reboundCount')==1
+   page.evaluate("nativeTestTop=0;document.getElementById('exercise-screen').dispatchEvent(new Event('scroll'));pullEvent('touchend',0)");page.wait_for_timeout(450)
    assert page.evaluate('reboundCount')==2
    page.evaluate('delete document.getElementById("exercise-screen").scrollTop;exerciseSearchRebound.reset()')
    page.emulate_media(reduced_motion='reduce')
