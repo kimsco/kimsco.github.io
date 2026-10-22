@@ -20,6 +20,9 @@ try:
     page.evaluate('(v)=>applyLightMode(v)',light)
     toggle=page.locator('#restTimerToggle');toggle.scroll_into_view_if_needed();page.wait_for_timeout(400)
     before=toggle.evaluate("el=>({active:el.classList.contains('active'),rect:el.closest('.settings-item').getBoundingClientRect().toJSON()})")
+    assert toggle.evaluate("el=>getComputedStyle(el.closest('.settings-item')).overflow")=='visible'
+    dimensions=toggle.evaluate("el=>{const s=getComputedStyle(el,'::after');return [el.offsetWidth,el.offsetHeight,s.width,s.height,s.left,s.top]}")
+    assert dimensions==[64,28,'36px','24px','2px','2px'],dimensions
     r=toggle.bounding_box();page.mouse.move(r['x']+r['width']/2,r['y']+r['height']/2);page.mouse.down();page.wait_for_timeout(150)
     assert toggle.evaluate("el=>el.classList.contains('glass-pressed')")
     assert toggle.evaluate("el=>el.closest('.settings-item').getBoundingClientRect().toJSON()")==before['rect']
