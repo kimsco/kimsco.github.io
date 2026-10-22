@@ -41,6 +41,11 @@ try:
     assert toggle.evaluate("el=>getComputedStyle(el,'::after').transitionDuration")=='0s'
     page.emulate_media(reduced_motion='no-preference');page.wait_for_timeout(700)
     page.screenshot(path='/tmp/settings-glass-'+str(width)+'-'+str(light)+'.png')
+   # One continuous click motion: movement overlaps expansion and shrinks before arrival.
+   trace=page.evaluate("""async()=>{const el=document.getElementById('restTimerToggle');if(el.classList.contains('active')){el.click();await new Promise(r=>setTimeout(r,500));}el.click();const frames=[];for(let i=0;i<28;i++){await new Promise(requestAnimationFrame);const m=new DOMMatrixReadOnly(getComputedStyle(el,'::after').transform);frames.push([m.m41,m.m11,m.m22]);}return frames;}""")
+   assert any(2<x<18 and sx>1.15 for x,sx,sy in trace),trace
+   assert any(20<x<23.9 and 1<sx<1.3 for x,sx,sy in trace),trace
+   assert abs(trace[-1][0]-24)<.1 and abs(trace[-1][1]-1)<.01,trace
    # Horizontal drag previews position, commits once, and never toggles on cancellation.
    page.evaluate("()=>{const el=document.getElementById('restTimerToggle');if(el.classList.contains('active'))el.click();window.dragSettingClicks=0;el.addEventListener('click',()=>window.dragSettingClicks++);}")
    page.wait_for_timeout(700)
