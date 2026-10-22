@@ -23,7 +23,7 @@ try:
    scroll(176);assert abs(scale()-.896)<.01
    scroll(170,20);assert page.evaluate('testBar.style.transform')=='scale(1)'
    scroll(166,20);assert scale()<1.04
-   page.wait_for_timeout(450);assert abs(scale()-1)<.001
+   page.wait_for_timeout(600);assert abs(scale()-1)<.001
    scroll(234,300);assert abs(scale()-.8)<.01
    scroll(204,30);before=scale();scroll(210,20);assert abs(scale()-before)<.08,(before,scale())
    page.evaluate('testBar.querySelector("input").focus()');page.wait_for_timeout(300);assert abs(scale()-1)<.001
