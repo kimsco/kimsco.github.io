@@ -8728,6 +8728,7 @@ html.light-mode-on :is(#settingsOverlay,#homeSettingsOverlay,#unitSettingsOverla
 :is(#settingsOverlay,#homeSettingsOverlay,#unitSettingsOverlay) .settings-glass-toggle:focus-visible {
   outline:2px solid var(--c-text-secondary);outline-offset:5px;
 }
+:is(#settingsOverlay,#homeSettingsOverlay,#unitSettingsOverlay) .settings-glass-toggle.glass-dragging::after { transition:none; }
 @media (prefers-reduced-motion:reduce) {
   :is(#settingsOverlay,#homeSettingsOverlay,#unitSettingsOverlay) .settings-glass-toggle::after {transition:none;}
   :is(#settingsOverlay,#homeSettingsOverlay,#unitSettingsOverlay) .settings-glass-toggle:is(.glass-pressed,.glass-settling)::after {transform:translateX(var(--glass-x));}
@@ -13145,7 +13146,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.81";
+const APP_VERSION = "1.0.82";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -25327,35 +25328,69 @@ try {
   renderHomeTab();
 } catch(e) { console.error('초기 로컬 캐시 선반영 실패', e); }
 
-// Visual feedback only; existing click handlers remain the source of each setting.
+// Drag chooses the final setting; existing click handlers still perform the update.
 (()=>{
   const toggles=[...document.querySelectorAll('.settings-glass-toggle')];
-  const timers=new WeakMap();
+  const cancelAll=[];
   for(const toggle of toggles){
+    let gesture=null,timer=0,suppressClick=false;
     toggle.closest('.settings-item')?.classList.add('settings-glass-row');
     toggle.setAttribute('role','switch');toggle.tabIndex=0;
     const label=toggle.closest('.settings-item')?.querySelector('.settings-item-label');
     if(label)toggle.setAttribute('aria-label',label.textContent.trim());
     const sync=()=>toggle.setAttribute('aria-checked',String(toggle.classList.contains('active')));
     sync();new MutationObserver(sync).observe(toggle,{attributes:true,attributeFilter:['class']});
-    const release=()=>toggle.classList.remove('glass-pressed');
+    const settle=()=>{
+      clearTimeout(timer);toggle.classList.remove('glass-pressed');toggle.classList.add('glass-settling');
+      timer=setTimeout(()=>toggle.classList.remove('glass-settling'),240);
+    };
+    const finish=(commit=false)=>{
+      if(!gesture)return;
+      const g=gesture;gesture=null;
+      toggle.classList.remove('glass-dragging','glass-pressed');
+      if(g.dragging || !commit)suppressClick=true;
+      if(commit && g.dragging){
+        const wanted=g.position>=12;
+        if(wanted!==toggle.classList.contains('active'))toggle.click();else settle();
+      }
+      toggle.style.removeProperty('--glass-x');
+      if(toggle.hasPointerCapture(g.id))toggle.releasePointerCapture(g.id);
+    };
+    cancelAll.push(()=>finish(false));
     toggle.addEventListener('pointerdown',event=>{
-      if(event.isPrimary && event.button===0){clearTimeout(timers.get(toggle));toggle.classList.remove('glass-settling');toggle.classList.add('glass-pressed');}
+      if(!event.isPrimary || event.button!==0 || gesture)return;
+      suppressClick=false;clearTimeout(timer);toggle.classList.remove('glass-settling');toggle.classList.add('glass-pressed');
+      const position=toggle.classList.contains('active')?24:0;
+      gesture={id:event.pointerId,x:event.clientX,y:event.clientY,start:position,position,dragging:false};
+      toggle.setPointerCapture(event.pointerId);
     });
-    toggle.addEventListener('pointercancel',release);
-    toggle.addEventListener('pointerleave',release);
-    toggle.addEventListener('click',()=>{
-      release();clearTimeout(timers.get(toggle));toggle.classList.add('glass-settling');
-      timers.set(toggle,setTimeout(()=>toggle.classList.remove('glass-settling'),240));
+    toggle.addEventListener('pointermove',event=>{
+      const g=gesture;if(!g || g.id!==event.pointerId)return;
+      const dx=event.clientX-g.x,dy=event.clientY-g.y;
+      if(!g.dragging){
+        if(Math.abs(dy)>6 && Math.abs(dy)>Math.abs(dx)){finish(false);return;}
+        if(Math.abs(dx)<4)return;
+        g.dragging=true;toggle.classList.add('glass-dragging');
+      }
+      g.position=Math.max(0,Math.min(24,g.start+dx));
+      toggle.style.setProperty('--glass-x',g.position+'px');
+      if(event.cancelable)event.preventDefault();
     });
+    toggle.addEventListener('pointerup',event=>{if(gesture?.id===event.pointerId)finish(true);});
+    toggle.addEventListener('pointercancel',()=>finish(false));
+    toggle.addEventListener('lostpointercapture',()=>finish(false));
+    // The compatibility click after dragging must not toggle the value a second time.
+    toggle.addEventListener('click',event=>{
+      if(suppressClick && event.detail!==0){event.preventDefault();event.stopImmediatePropagation();suppressClick=false;}
+    },true);
+    toggle.addEventListener('click',settle);
     toggle.addEventListener('keydown',event=>{
       if(!event.repeat && (event.key===' ' || event.key==='Enter')){event.preventDefault();toggle.click();}
     });
   }
-  const releaseAll=()=>toggles.forEach(toggle=>toggle.classList.remove('glass-pressed'));
-  window.addEventListener('pointerup',releaseAll);
-  window.addEventListener('blur',releaseAll);
-  document.addEventListener('visibilitychange',()=>{if(document.hidden)releaseAll();});
+  const cancel=()=>cancelAll.forEach(fn=>fn());
+  window.addEventListener('blur',cancel);
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)cancel();});
 })();
 </script>
 

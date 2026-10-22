@@ -41,6 +41,39 @@ try:
     assert toggle.evaluate("el=>getComputedStyle(el,'::after').transitionDuration")=='0s'
     page.emulate_media(reduced_motion='no-preference');page.wait_for_timeout(700)
     page.screenshot(path='/tmp/settings-glass-'+str(width)+'-'+str(light)+'.png')
+   # Horizontal drag previews position, commits once, and never toggles on cancellation.
+   page.evaluate("()=>{const el=document.getElementById('restTimerToggle');if(el.classList.contains('active'))el.click();window.dragSettingClicks=0;el.addEventListener('click',()=>window.dragSettingClicks++);}")
+   page.wait_for_timeout(700)
+   toggle=page.locator('#restTimerToggle');toggle.scroll_into_view_if_needed()
+   r=toggle.bounding_box();x=r['x']+20;y=r['y']+14
+   page.mouse.move(x,y);page.mouse.down();page.mouse.move(x+9,y,steps=3)
+   assert toggle.evaluate("el=>el.style.getPropertyValue('--glass-x')")=='9px'
+   assert not toggle.evaluate("el=>el.classList.contains('active')")
+   page.mouse.move(x+24,y,steps=4);page.mouse.up();page.wait_for_timeout(750)
+   assert toggle.get_attribute('aria-checked')=='true'
+   assert page.evaluate('dragSettingClicks')==1
+   # Drag back within the ON half: no write and no compatibility click toggle.
+   page.mouse.move(x+24,y);page.mouse.down();page.mouse.move(x+18,y,steps=3);page.mouse.up();page.wait_for_timeout(750)
+   assert toggle.get_attribute('aria-checked')=='true' and page.evaluate('dragSettingClicks')==1
+   # Capture follows the pointer even outside the switch.
+   page.mouse.move(x+24,y);page.mouse.down();page.mouse.move(x-50,y,steps=5);page.mouse.up();page.wait_for_timeout(750)
+   assert toggle.get_attribute('aria-checked')=='false' and page.evaluate('dragSettingClicks')==2
+   page.mouse.move(x,y);page.mouse.down();page.mouse.move(x+20,y,steps=3)
+   toggle.dispatch_event('pointercancel');page.mouse.move(0,0);page.mouse.up();page.wait_for_timeout(750)
+   assert toggle.get_attribute('aria-checked')=='false' and page.evaluate('dragSettingClicks')==2
+   assert not toggle.evaluate("el=>el.classList.contains('glass-dragging')||el.classList.contains('glass-pressed')")
+   # Real touchscreen events through Chromium's input pipeline.
+   cdp=c.new_cdp_session(page)
+   cdp.send('Input.dispatchTouchEvent',{'type':'touchStart','touchPoints':[{'x':x,'y':y}]})
+   for offset in [6,12,18,24]:
+    cdp.send('Input.dispatchTouchEvent',{'type':'touchMove','touchPoints':[{'x':x+offset,'y':y}]});page.wait_for_timeout(30)
+   cdp.send('Input.dispatchTouchEvent',{'type':'touchEnd','touchPoints':[]});page.wait_for_timeout(750)
+   assert toggle.get_attribute('aria-checked')=='true' and page.evaluate('dragSettingClicks')==3
+   cdp.send('Input.dispatchTouchEvent',{'type':'touchStart','touchPoints':[{'x':x,'y':y}]})
+   for offset in [10,25,45]:
+    cdp.send('Input.dispatchTouchEvent',{'type':'touchMove','touchPoints':[{'x':x,'y':y-offset}]});page.wait_for_timeout(30)
+   cdp.send('Input.dispatchTouchEvent',{'type':'touchEnd','touchPoints':[]});page.wait_for_timeout(750)
+   assert toggle.get_attribute('aria-checked')=='true' and page.evaluate('dragSettingClicks')==3
    print('PASS settings glass',width,'press/release, layout stability, rapid clicks, keyboard, aria, reduced motion and both themes')
    c.close()
   b.close()
