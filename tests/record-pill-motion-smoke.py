@@ -18,19 +18,22 @@ try:
     page.evaluate('(y)=>testScroll.scrollTop=y',y);page.wait_for_timeout(wait)
    def scale():return page.evaluate('new DOMMatrixReadOnly(getComputedStyle(testBar).transform).m11')
    scroll(200,300);assert abs(scale()-.8)<.01
-   scroll(194);assert abs(scale()-.824)<.01,scale()
-   scroll(188);assert abs(scale()-.848)<.01
-   scroll(176);assert abs(scale()-.896)<.01
-   scroll(170,20);assert page.evaluate('testBar.style.transform')=='scale(1)'
-   scroll(166,20);assert scale()<1.04
-   page.wait_for_timeout(600);assert abs(scale()-1)<.001
+   scroll(194);assert abs(scale()-.8144)<.01,scale()
+   scroll(188);assert abs(scale()-.8288)<.01
+   scroll(176);assert abs(scale()-.8576)<.01
+   scroll(170);assert abs(scale()-.872)<.01
+   scroll(164,20);assert page.evaluate('testBar.style.transform')=='scale(1)'
+   scroll(160,20);assert scale()<1.04
+   frames=page.evaluate("""async()=>{const values=[];for(let i=0;i<40;i++){await new Promise(requestAnimationFrame);values.push(new DOMMatrixReadOnly(getComputedStyle(testBar).transform).m11);}return values;}""")
+   assert 1.00001<max(frames)<1.01,max(frames)
+   assert abs(scale()-1)<.001
    scroll(234,300);assert abs(scale()-.8)<.01
-   scroll(204,30);before=scale();scroll(210,20);assert abs(scale()-before)<.08,(before,scale())
+   scroll(198,30);before=scale();scroll(210,20);assert abs(scale()-before)<.08,(before,scale())
    page.evaluate('testBar.querySelector("input").focus()');page.wait_for_timeout(300);assert abs(scale()-1)<.001
    scroll(280,300);page.evaluate('testController.reset()');assert abs(scale()-1)<.001
    page.emulate_media(reduced_motion='reduce');scroll(350);assert abs(scale()-.8)<.001
-   scroll(320);assert abs(scale()-1)<.001
-   print('PASS: proportional shrink, initial proportional expansion, 30px spring trigger, continued scroll, reversal, focus/reset and reduced motion')
+   scroll(314);assert abs(scale()-1)<.001
+   print('PASS: proportional shrink, initial proportional expansion, 36px spring trigger with restrained initial growth, continued scroll, reversal, focus/reset and reduced motion')
    c.close()
   b.close()
 finally:server.terminate();server.wait()
