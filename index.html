@@ -13149,7 +13149,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.85";
+const APP_VERSION = "1.0.86";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -25211,7 +25211,7 @@ document.querySelectorAll('.folderContent').forEach(el => {
 
 /* 🔥 알약형 저장바: 스크롤한 만큼 서서히 작아지다가,
    일정 거리(임계점)를 넘기면 완전히 축소되고,
-   반대로 올리면 첫 12px은 비례 확대하고, 이후 탄성 있게 원래 크기로 복귀
+   반대로 올리면 첫 30px은 비례 확대하고, 이후 탄성 있게 원래 크기로 복귀
    (3대탭 + 기록탭 보조운동 상세화면, 둘 다 이 함수로 연결) */
 function wireFloatingSaveBar(bar, scrollEls){
   if (!bar || !scrollEls.length) return null;
@@ -25219,7 +25219,7 @@ function wireFloatingSaveBar(bar, scrollEls){
   const THRESHOLD = 50;      // 이 거리(px)만큼 스크롤하면 완전히 축소
   const MIN_SCALE = 0.8;
   const MIN_OPACITY = 0.55;
-  const EXPAND_TRIGGER = 12; // 되올린 첫 12px은 비례 확대, 이후 탄성 복귀
+  const EXPAND_TRIGGER = 30; // 되올린 첫 30px은 비례 확대, 이후 탄성 복귀
   let expansionTravel = 0, springUntil = 0;
   let collapseAmount = 0;    // 0(완전 확대) ~ THRESHOLD(완전 축소)
   const lastTops = new WeakMap();

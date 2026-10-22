@@ -19,16 +19,18 @@ try:
    def scale():return page.evaluate('new DOMMatrixReadOnly(getComputedStyle(testBar).transform).m11')
    scroll(200,300);assert abs(scale()-.8)<.01
    scroll(194);assert abs(scale()-.824)<.01,scale()
-   scroll(188,20);assert page.evaluate('testBar.style.transform')=='scale(1)'
-   scroll(184,20);assert scale()<1.04
+   scroll(188);assert abs(scale()-.848)<.01
+   scroll(176);assert abs(scale()-.896)<.01
+   scroll(170,20);assert page.evaluate('testBar.style.transform')=='scale(1)'
+   scroll(166,20);assert scale()<1.04
    page.wait_for_timeout(450);assert abs(scale()-1)<.001
    scroll(234,300);assert abs(scale()-.8)<.01
-   scroll(220,30);before=scale();scroll(226,20);assert abs(scale()-before)<.08,(before,scale())
+   scroll(204,30);before=scale();scroll(210,20);assert abs(scale()-before)<.08,(before,scale())
    page.evaluate('testBar.querySelector("input").focus()');page.wait_for_timeout(300);assert abs(scale()-1)<.001
    scroll(280,300);page.evaluate('testController.reset()');assert abs(scale()-1)<.001
    page.emulate_media(reduced_motion='reduce');scroll(350);assert abs(scale()-.8)<.001
-   scroll(338);assert abs(scale()-1)<.001
-   print('PASS: proportional shrink, initial proportional expansion, 12px spring trigger, continued scroll, reversal, focus/reset and reduced motion')
+   scroll(320);assert abs(scale()-1)<.001
+   print('PASS: proportional shrink, initial proportional expansion, 30px spring trigger, continued scroll, reversal, focus/reset and reduced motion')
    c.close()
   b.close()
 finally:server.terminate();server.wait()
