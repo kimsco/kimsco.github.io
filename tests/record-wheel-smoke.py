@@ -66,6 +66,20 @@ try:
     wheel.evaluate("el=>el.scrollTop=90*parseFloat(getComputedStyle(el).getPropertyValue('--record-wheel-row'))");page.wait_for_timeout(80)
     page.screenshot(path='/tmp/record-wheel-seven-'+str(width)+'-'+str(light)+'.png')
     page.keyboard.press('Enter');assert overlay.is_hidden() and weight.input_value()=='50'
+   # Empty inputs hide their placeholder; tapping a different number dismisses without choosing it.
+   weight.fill('');page.evaluate('document.activeElement.blur()');r=weight.bounding_box()
+   mouse_open(r['x']+r['width']/2,r['y']+r['height']/2)
+   assert weight.evaluate("el=>getComputedStyle(el,'::placeholder').opacity")=='0'
+   wheel.evaluate("el=>el.scrollTop=90*parseFloat(getComputedStyle(el).getPropertyValue('--record-wheel-row'))");page.wait_for_timeout(200)
+   option=page.locator('.record-wheel-option').nth(89);assert option.inner_text()=='55'
+   box=option.bounding_box();page.touchscreen.tap(box['x']+box['width']/2,box['y']+box['height']/2)
+   assert overlay.is_hidden() and weight.input_value()=='50'
+   assert weight.evaluate("el=>getComputedStyle(el,'::placeholder').opacity")!='0'
+   # Mouse taps also dismiss without jumping to the tapped number.
+   r=weight.bounding_box();mouse_open(r['x']+20,r['y']+20);page.wait_for_timeout(220)
+   option=page.locator('.record-wheel-option').nth(89);box=option.bounding_box()
+   page.mouse.click(box['x']+box['width']/2,box['y']+box['height']/2)
+   assert overlay.is_hidden() and weight.input_value()=='50'
    # An off-grid direct value remains untouched when aborting with Escape.
    weight.fill('2.5');page.evaluate('document.activeElement.blur()');r=weight.bounding_box();x=r['x']+20;y=r['y']+20
    mouse_open(x,y);page.keyboard.press('Escape')
