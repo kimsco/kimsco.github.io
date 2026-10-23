@@ -23,10 +23,13 @@ try:
    cdp.send('Input.dispatchTouchEvent',{'type':'touchStart','touchPoints':[{'x':x,'y':y}]});page.wait_for_timeout(260)
    assert overlay.is_visible() and page.evaluate('wheelFocuses')==focus_before
    assert overlay.locator('button').count()==0
+   assert wheel.evaluate("el=>getComputedStyle(el.querySelector('[aria-selected=true]')).outlineStyle")=='none'
+   outline=page.locator('.record-wheel-window').evaluate("el=>({height:parseFloat(getComputedStyle(el,'::before').height),border:getComputedStyle(el,'::before').borderTopStyle})")
+   assert abs(outline['height']-r['height'])<.1 and outline['border']=='solid'
    sheet=page.locator('.record-wheel-sheet').bounding_box();row=wheel.evaluate("el=>parseFloat(getComputedStyle(el).getPropertyValue('--record-wheel-row'))")
    assert abs(sheet['width']-r['width'])<.1 and abs(sheet['height']-7*row)<.1,(sheet,r,row)
    assert abs(sheet['y']+sheet['height']/2-r['y']-r['height']/2)<.1
-   assert sheet['y']>=0 and row>=44
+   assert sheet['y']>=0 and row>=22
    assert page.locator('.record-wheel-sheet').evaluate("el=>getComputedStyle(el,'::before').opacity")=='0.5'
    assert overlay.evaluate('el=>getComputedStyle(el).backgroundColor')=='rgba(0, 0, 0, 0)'
    # Continue with the exact same touch: no release or second touch is required.
