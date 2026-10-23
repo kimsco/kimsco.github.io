@@ -20,7 +20,7 @@ try:
    weight.tap();assert weight.evaluate('el=>el===document.activeElement') and overlay.is_hidden()
    page.evaluate('document.activeElement.blur()');page.wait_for_timeout(50);focus_before=page.evaluate('wheelFocuses')
    r=weight.bounding_box();x=r['x']+r['width']/2;y=r['y']+r['height']/2;cdp=c.new_cdp_session(page)
-   cdp.send('Input.dispatchTouchEvent',{'type':'touchStart','touchPoints':[{'x':x,'y':y}]});page.wait_for_timeout(520)
+   cdp.send('Input.dispatchTouchEvent',{'type':'touchStart','touchPoints':[{'x':x,'y':y}]});page.wait_for_timeout(410)
    assert overlay.is_visible() and page.evaluate('wheelFocuses')==focus_before
    assert overlay.locator('button').count()==0
    sheet=page.locator('.record-wheel-sheet').bounding_box();row=wheel.evaluate("el=>parseFloat(getComputedStyle(el).getPropertyValue('--record-wheel-row'))")
