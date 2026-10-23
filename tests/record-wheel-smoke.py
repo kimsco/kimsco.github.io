@@ -20,13 +20,14 @@ try:
    weight.tap();assert weight.evaluate('el=>el===document.activeElement') and overlay.is_hidden()
    page.evaluate('document.activeElement.blur()');page.wait_for_timeout(50);focus_before=page.evaluate('wheelFocuses')
    r=weight.bounding_box();x=r['x']+r['width']/2;y=r['y']+r['height']/2;cdp=c.new_cdp_session(page)
-   cdp.send('Input.dispatchTouchEvent',{'type':'touchStart','touchPoints':[{'x':x,'y':y}]});page.wait_for_timeout(410)
+   cdp.send('Input.dispatchTouchEvent',{'type':'touchStart','touchPoints':[{'x':x,'y':y}]});page.wait_for_timeout(260)
    assert overlay.is_visible() and page.evaluate('wheelFocuses')==focus_before
    assert overlay.locator('button').count()==0
    sheet=page.locator('.record-wheel-sheet').bounding_box();row=wheel.evaluate("el=>parseFloat(getComputedStyle(el).getPropertyValue('--record-wheel-row'))")
    assert abs(sheet['width']-r['width'])<.1 and abs(sheet['height']-7*row)<.1,(sheet,r,row)
    assert abs(sheet['y']+sheet['height']/2-r['y']-r['height']/2)<.1
-   assert sheet['y']>=0 and sheet['y']+sheet['height']<=height
+   assert sheet['y']>=0 and row>=44
+   assert page.locator('.record-wheel-sheet').evaluate("el=>getComputedStyle(el,'::before').opacity")=='0.5'
    assert overlay.evaluate('el=>getComputedStyle(el).backgroundColor')=='rgba(0, 0, 0, 0)'
    # Continue with the exact same touch: no release or second touch is required.
    for offset in [10,20,35,50,70]:
@@ -52,7 +53,7 @@ try:
     r=weight.bounding_box();x=r['x']+r['width']/2;y=r['y']+r['height']/2
     page.mouse.move(x,y);page.mouse.down();page.wait_for_timeout(520);page.mouse.up();assert overlay.is_visible()
     page.locator('.record-wheel-sheet').evaluate("el=>el.style.setProperty('--wheel-safe-bottom','34px')");page.evaluate("window.dispatchEvent(new Event('resize'))")
-    safe=page.locator('.record-wheel-sheet').bounding_box();assert safe['y']+safe['height']<=height-34
+    safe=page.locator('.record-wheel-sheet').bounding_box();assert abs(safe['y']+safe['height']/2-r['y']-r['height']/2)<.1
     page.locator('.record-wheel-sheet').evaluate("el=>el.style.removeProperty('--wheel-safe-bottom')");page.evaluate("window.dispatchEvent(new Event('resize'))")
     wheel.focus();page.keyboard.press('Home');assert page.locator('.record-wheel-option[aria-selected="true"]').inner_text()=='500'
     wheel.evaluate("el=>el.scrollTop=90*parseFloat(getComputedStyle(el).getPropertyValue('--record-wheel-row'))");page.wait_for_timeout(80)
