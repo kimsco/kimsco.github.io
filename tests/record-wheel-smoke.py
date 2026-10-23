@@ -50,16 +50,30 @@ try:
    for light in [True,False]:
     page.evaluate('(v)=>applyLightMode(v)',light);r=weight.bounding_box();page.mouse.move(r['x']+20,r['y']+20);page.mouse.down();page.wait_for_timeout(520);page.mouse.up()
     sheet=page.locator('.record-wheel-sheet').bounding_box();assert sheet['x']>=0 and sheet['x']+sheet['width']<=width+.1
-    wr=wheel.bounding_box();wx=wr['x']+wr['width']/2;wy=wr['y']+150
+    assert abs(sheet['width']-r['width'])<.1 and abs(sheet['x']-r['x'])<.1,(sheet,r)
+    assert abs(sheet['height']-r['height']*3)<.1 and abs(sheet['y']+sheet['height']/2-r['y']-r['height']/2)<.1,(sheet,r)
+    assert overlay.evaluate("el=>getComputedStyle(el).backgroundColor")=='rgba(0, 0, 0, 0)'
+    assert weight.evaluate("el=>getComputedStyle(el).visibility")=='hidden'
+
+    wr=wheel.bounding_box();wx=wr['x']+wr['width']/2;wy=wr['y']+wr['height']*.75
     cdp.send('Input.dispatchTouchEvent',{'type':'touchStart','touchPoints':[{'x':wx,'y':wy}]})
-    for offset in [12,24,40,60,80]:
+    for offset in [8,16,28,40,55]:
      cdp.send('Input.dispatchTouchEvent',{'type':'touchMove','touchPoints':[{'x':wx,'y':wy-offset}]});page.wait_for_timeout(30)
     cdp.send('Input.dispatchTouchEvent',{'type':'touchEnd','touchPoints':[]});page.wait_for_timeout(900)
     assert wheel.evaluate('el=>el.scrollTop')>44
     wheel.focus();page.keyboard.press('End');assert page.locator('.record-wheel-option[aria-selected="true"]').inner_text()=='500'
     page.keyboard.press('Home');assert page.locator('.record-wheel-option[aria-selected="true"]').inner_text()=='0'
+    wheel.evaluate('el=>el.scrollTop=5*44');page.wait_for_timeout(80)
     page.screenshot(path='/tmp/record-wheel-'+str(width)+'-'+str(light)+'.png')
     page.locator('[data-wheel-cancel]').click();assert weight.input_value()=='2.5'
+    assert weight.evaluate("el=>getComputedStyle(el).visibility")=='visible'
+   # A collapsed input still anchors the wheel to its actual displayed dimensions.
+   page.evaluate("document.getElementById('recordFloatBarTab2').style.transform='scale(.8)'");page.wait_for_timeout(300)
+   r=weight.bounding_box();page.mouse.move(r['x']+r['width']/2,r['y']+r['height']/2);page.mouse.down();page.wait_for_timeout(520);page.mouse.up()
+   sheet=page.locator('.record-wheel-sheet').bounding_box()
+   assert abs(sheet['width']-r['width'])<.1 and abs(sheet['height']-3*r['height'])<.2,(sheet,r)
+   page.locator('[data-wheel-cancel]').click();assert weight.input_value()=='2.5'
+   page.evaluate("document.getElementById('recordFloatBarTab2').style.transform='scale(1)'");page.wait_for_timeout(300)
    # Existing save remains the only operation that creates a workout set.
    weight.fill('55');page.locator('#recordAdd').click();page.wait_for_timeout(400)
    assert page.evaluate('records.bench.length')==before+1
