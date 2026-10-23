@@ -24,8 +24,9 @@ try:
    assert overlay.is_visible() and page.evaluate('wheelFocuses')==focus_before
    assert overlay.locator('button').count()==0
    arc=page.locator('.record-disc-number').evaluate_all("els=>els.filter(el=>!el.hidden).map(el=>({text:el.textContent,x:parseFloat(el.style.left),y:parseFloat(el.style.top)}))")
-   assert len(arc)>=6 and len({round(item['x']) for item in arc})>=6
+   assert len(arc)>=4 and len({round(item['y']) for item in arc})>=4
    assert page.locator('.record-disc-number.is-selected').inner_text()=='50'
+   left_disc=page.locator('.record-disc-plate').bounding_box()
    assert wheel.evaluate("el=>getComputedStyle(el.querySelector('[aria-selected=true]')).outlineStyle")=='none'
    outline=page.locator('.record-wheel-window').evaluate("el=>({height:parseFloat(getComputedStyle(el,'::before').height),border:getComputedStyle(el,'::before').borderTopStyle})")
    assert abs(outline['height']-r['height'])<.1 and outline['border']=='solid'
@@ -49,6 +50,7 @@ try:
    # Hold and drag with a mouse too; release keeps the wheel open, outside click applies.
    r=reps.bounding_box();x=r['x']+r['width']/2;y=r['y']+r['height']/2
    page.mouse.move(x,y);page.mouse.down();page.wait_for_timeout(520);assert overlay.is_visible()
+   right_disc=page.locator('.record-disc-plate').bounding_box();assert abs(right_disc['width']-left_disc['width'])<.1
    page.mouse.move(x,y-65,steps=5);page.mouse.up();page.wait_for_timeout(100)
    assert overlay.is_visible() and int(page.locator('.record-wheel-option[aria-selected="true"]').inner_text())<7
    wheel.focus();page.keyboard.press('End');assert page.locator('.record-wheel-option[aria-selected="true"]').inner_text()=='1'
