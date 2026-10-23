@@ -36,13 +36,17 @@
  let source=null,values=[],selected=0,paintFrame=0,anchorFrame=0,rowSize=44,background=[];
  const sheet=overlay.querySelector('.record-wheel-sheet');
  const face=overlay.querySelector('.record-disc-face'),plate=face.querySelector('.record-disc-plate'),numbers=face.querySelector('.record-disc-numbers');
- let discX=0,discY=0,discRadius=100;
+ let discX=0,discY=0,discRadius=100,discSide=1;
  function position(){
   if(!source || overlay.hidden)return;
   const r=source.getBoundingClientRect();
   sheet.style.setProperty('--wheel-input-height',r.height+'px');
-  discX=r.left+r.width/2;discY=r.top+r.height/2;discRadius=Math.max(65,Math.min(145,discX-10,innerWidth-discX-10));
-  Object.assign(plate.style,{width:discRadius*2+'px',height:discRadius*2+'px',left:discX-discRadius+'px',top:discY-discRadius*2+'px'});
+  discX=r.left+r.width/2;discY=r.top+r.height/2;
+  const configIndex=configs.findIndex(config=>config[0]===source.id),pairStart=configIndex-configIndex%2;
+  const pair=configs.slice(pairStart,pairStart+2).map(config=>document.getElementById(config[0]).getBoundingClientRect());
+  const appLeft=Math.max(0,(innerWidth-390)/2),appRight=innerWidth-appLeft;
+  discRadius=Math.max(60,Math.min(150,pair[0].left+pair[0].width/2-appLeft,appRight-pair[1].left-pair[1].width/2));discSide=configIndex%2===0?1:-1;
+  Object.assign(plate.style,{width:discRadius*2+'px',height:discRadius*2+'px',left:discX-discSide*discRadius-discRadius+'px',top:discY-discRadius+'px',transform:discSide===1?'none':'scaleX(-1)',clipPath:'polygon(50% 50%,50% 0,100% 0,100% 78.87%)'});
   paintDisc();
   const center=r.top+r.height/2,computed=getComputedStyle(sheet);
   const topEdge=4+(parseFloat(computed.getPropertyValue('--wheel-safe-top'))||0),bottomEdge=innerHeight-4-(parseFloat(computed.getPropertyValue('--wheel-safe-bottom'))||0);
@@ -55,11 +59,11 @@
  function paintDisc(){
   const progress=list.scrollTop/rowSize;
   [...numbers.children].forEach((label,i)=>{
-   const distance=i-progress,visible=Math.abs(distance)<=3.25;
+   const distance=i-progress,angle=distance*Math.PI/6,visible=angle>=-Math.PI/2-.01 && angle<=Math.PI/6+.01;
    label.hidden=!visible;if(!visible)return;
-   const angle=distance*.85,x=discX+Math.sin(angle)*discRadius,y=discY+(Math.cos(angle)-1)*discRadius;
+   const x=discX+discSide*(Math.cos(angle)-1)*discRadius,y=discY+Math.sin(angle)*discRadius;
    label.classList.toggle('is-selected',i===selected);
-   Object.assign(label.style,{left:x-32+'px',top:y-18+'px',width:'64px',opacity:String(Math.max(0,1-Math.abs(distance)/3.5)),transform:`rotate(${-angle*28}deg) scale(${1-Math.abs(distance)*.07})`});
+   Object.assign(label.style,{left:x-32+'px',top:y-18+'px',width:'64px',opacity:String(Math.max(0,1-Math.abs(distance)/3.5)),transform:`rotate(${discSide*angle*20}deg) scale(${1-Math.abs(distance)*.07})`});
   });
  }
  function paint(){
@@ -122,7 +126,7 @@
  }
  function move(x,y){
   if(!gesture)return;gesture.lastY=y;gesture.lastX=x;
-  if(gesture.fired){list.scrollTop=Math.max(0,Math.min((values.length-1)*rowSize,gesture.wheelStartIndex*rowSize-(y-gesture.originY)-(x-gesture.originX)*.8));paint();return;}
+  if(gesture.fired){list.scrollTop=Math.max(0,Math.min((values.length-1)*rowSize,gesture.wheelStartIndex*rowSize-(y-gesture.originY)-(x-gesture.originX)*discSide*.35));paint();return;}
   if(Math.hypot(x-gesture.x,y-gesture.y)>10){clearTimeout(timer);gesture.cancelled=true;}
  }
  function end(){
