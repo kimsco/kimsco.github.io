@@ -12,9 +12,9 @@
  #recordWheelTitle{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);}
  .record-wheel-source{color:transparent!important;caret-color:transparent!important;}
  .record-wheel-list:focus-visible{outline:none;}
- .record-wheel-list:focus-visible .record-wheel-option[aria-selected=true]{outline:1px solid var(--c-text-secondary,#999);outline-offset:-2px;border-radius:999px;}
+
  .record-wheel-window{height:calc(var(--record-wheel-row)*7);position:relative;width:100%;}
- .record-wheel-window::before{content:'';position:absolute;top:calc(var(--record-wheel-row)*3);left:0;right:0;height:var(--wheel-input-height,44px);transform:translateY(-50%);margin-top:calc(var(--record-wheel-row)/2);box-sizing:border-box;border:0;border-radius:999px;background:transparent;pointer-events:none;}
+ .record-wheel-window::before{content:'';position:absolute;top:calc(var(--record-wheel-row)*3);left:0;right:0;height:var(--wheel-input-height,44px);transform:translateY(-50%);margin-top:calc(var(--record-wheel-row)/2);box-sizing:border-box;border:1px solid rgba(255,255,255,.65);border-radius:999px;background:transparent;pointer-events:none;}
  .record-wheel-unit{display:none;}
  .record-wheel-list{position:relative;height:calc(var(--record-wheel-row)*7);box-sizing:border-box;overflow-y:auto;overscroll-behavior:contain;scroll-snap-type:y mandatory;scrollbar-width:none;padding:calc(var(--record-wheel-row)*3) 0;touch-action:pan-y;-webkit-mask-image:linear-gradient(transparent,#000 42.85%,#000 57.15%,transparent);mask-image:linear-gradient(transparent,#000 42.85%,#000 57.15%,transparent);}
  .record-wheel-list.is-direct-drag{scroll-snap-type:none;}
@@ -35,7 +35,7 @@
   sheet.style.setProperty('--wheel-input-height',r.height+'px');
   const center=r.top+r.height/2,computed=getComputedStyle(sheet);
   const topEdge=4+(parseFloat(computed.getPropertyValue('--wheel-safe-top'))||0),bottomEdge=innerHeight-4-(parseFloat(computed.getPropertyValue('--wheel-safe-bottom'))||0);
-  const nextSize=Math.max(44,Math.min((r.height||44)*1.5,66,(center-topEdge)/3.5));
+  const nextSize=Math.max(44,Math.min((r.height||44)*1.5,66,(center-topEdge)/3.5))/2;
   if(Math.abs(nextSize-rowSize)>.1){rowSize=nextSize;sheet.style.setProperty('--record-wheel-row',rowSize+'px');list.scrollTop=selected*rowSize;}
   sheet.classList.toggle('wheel-narrow',r.width<100);sheet.style.width=r.width+'px';sheet.style.left=Math.max(0,Math.min(innerWidth-r.width,r.left))+'px';
   sheet.style.top=Math.max(topEdge,center-rowSize*3.5)+'px';
