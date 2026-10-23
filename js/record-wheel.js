@@ -10,6 +10,7 @@
  @keyframes record-wheel-unfold{from{clip-path:inset(42.85% 0);opacity:.3;}to{clip-path:inset(0);opacity:1;}}
  @media(prefers-reduced-motion:reduce){.record-wheel-sheet{animation:none;}}
  #recordWheelTitle{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);}
+ .recordFloatBar[tabindex="-1"]:focus{outline:none;}
  .record-wheel-source{color:transparent!important;caret-color:transparent!important;}
  .record-wheel-source::placeholder{color:transparent!important;opacity:0!important;}
  .record-wheel-list:focus-visible{outline:none;}

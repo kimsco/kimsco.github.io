@@ -45,6 +45,7 @@ try:
    chosen=page.locator('.record-wheel-option[aria-selected="true"]').inner_text()
    page.touchscreen.tap(5,200);assert overlay.is_hidden() and weight.input_value()==chosen
    assert not weight.evaluate('el=>el===document.activeElement')
+   assert weight.evaluate("el=>getComputedStyle(el.closest('.recordFloatBar')).outlineStyle")=='none'
    assert page.evaluate('records.bench.length')==before
    # Hold and drag with a mouse too; release keeps the wheel open, outside click applies.
    r=reps.bounding_box();x=r['x']+r['width']/2;y=r['y']+r['height']/2
