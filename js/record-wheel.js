@@ -55,8 +55,8 @@
  function open(input,config){
   if(!overlay.hidden)close(false);
   document.activeElement?.blur();source=input;input.style.opacity='';input.classList.add('record-wheel-source');
-  const [,step,min,max,title,unit]=config;values=Array.from({length:(max-min)/step+1},(_,i)=>min+i*step);
-  const current=Number.parseFloat(input.value);selected=Number.isFinite(current)?Math.max(0,Math.min(values.length-1,Math.round((current-min)/step))):0;
+  const [,step,min,max,title,unit]=config;values=Array.from({length:(max-min)/step+1},(_,i)=>max-i*step);
+  const current=Number.parseFloat(input.value);selected=values.length-1-(Number.isFinite(current)?Math.max(0,Math.min(values.length-1,Math.round((current-min)/step))):0);
   overlay.querySelector('#recordWheelTitle').textContent=title+' ('+unit+')';list.setAttribute('aria-label',title);
   list.replaceChildren(...values.map((value,i)=>{const row=document.createElement('div');row.className='record-wheel-option';row.id='record-wheel-option-'+i;row.setAttribute('role','option');row.textContent=value;row.addEventListener('click',()=>{list.scrollTop=i*rowSize;paint();});return row;}));
   overlay.hidden=false;list.classList.toggle('is-direct-drag',!!gesture?.fired);position();list.scrollTop=selected*rowSize;paint();
