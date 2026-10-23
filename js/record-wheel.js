@@ -107,7 +107,7 @@
   if(!gesture || gesture.cancelled)return;gesture.lastY=y;
   if(!gesture.fired){
    const dx=Math.abs(x-gesture.x),dy=Math.abs(y-gesture.y);
-   if(dy>=4 && dy>=dx){gesture.fired=true;open(gesture.input,gesture.config);gesture.originY=gesture.y;gesture.wheelStartIndex=selected;}
+   if(dy>=4 && dy>=dx){gesture.fired=true;open(gesture.input,gesture.config);gesture.originY=y;gesture.wheelStartIndex=selected;}
    else if(dx>8){gesture.cancelled=true;return;}
   }
   if(gesture.fired){list.scrollTop=Math.max(0,Math.min((values.length-1)*rowSize,gesture.wheelStartIndex*rowSize-(y-gesture.originY)));paint();return;}
