@@ -23,8 +23,10 @@ try:
    page.evaluate('document.activeElement.blur()');page.wait_for_timeout(50);focus_before=page.evaluate('wheelFocuses')
    r=weight.bounding_box();x=r['x']+r['width']/2;y=r['y']+r['height']/2;cdp=c.new_cdp_session(page)
    cdp.send('Input.dispatchTouchEvent',{'type':'touchStart','touchPoints':[{'x':x,'y':y}]});assert overlay.is_hidden()
-   cdp.send('Input.dispatchTouchEvent',{'type':'touchMove','touchPoints':[{'x':x,'y':y-5}]})
+   cdp.send('Input.dispatchTouchEvent',{'type':'touchMove','touchPoints':[{'x':x,'y':y-25}]})
    assert overlay.is_visible() and page.evaluate('wheelFocuses')==focus_before
+   assert page.locator('.record-wheel-option[aria-selected="true"]').inner_text()=='50'
+   assert wheel.evaluate("el=>Math.abs(el.scrollTop-90*parseFloat(getComputedStyle(el).getPropertyValue('--record-wheel-row')))")<1
    assert overlay.locator('button').count()==0
    assert wheel.evaluate("el=>getComputedStyle(el.querySelector('[aria-selected=true]')).outlineStyle")=='none'
    outline=page.locator('.record-wheel-window').evaluate("el=>({height:parseFloat(getComputedStyle(el,'::before').height),border:getComputedStyle(el,'::before').borderTopStyle})")
@@ -36,7 +38,7 @@ try:
    assert page.locator('.record-wheel-sheet').evaluate("el=>getComputedStyle(el,'::before').opacity")=='0.5'
    assert overlay.evaluate('el=>getComputedStyle(el).backgroundColor')=='rgba(0, 0, 0, 0)'
    # Continue with the exact same touch: no release or second touch is required.
-   for offset in [10,20,35,50,70]:
+   for offset in [30,40,55,70,90]:
     cdp.send('Input.dispatchTouchEvent',{'type':'touchMove','touchPoints':[{'x':x,'y':y-offset}]});page.wait_for_timeout(30)
    assert int(page.locator('.record-wheel-option[aria-selected="true"]').inner_text())<50
    cdp.send('Input.dispatchTouchEvent',{'type':'touchEnd','touchPoints':[]});page.wait_for_timeout(100)
