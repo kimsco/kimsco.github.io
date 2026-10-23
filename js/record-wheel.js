@@ -6,7 +6,7 @@
  .record-wheel-overlay{position:fixed;inset:0;z-index:300000;background:transparent;overscroll-behavior:contain;}
  .record-wheel-overlay[hidden]{display:none;}
  .record-wheel-sheet{--record-wheel-row:44px;--wheel-safe-top:env(safe-area-inset-top,0px);--wheel-safe-bottom:env(safe-area-inset-bottom,0px);position:fixed;box-sizing:border-box;color:var(--c-text-primary,#fff);animation:record-wheel-unfold .18s cubic-bezier(.22,1,.36,1) both;}
- .record-wheel-sheet::before{content:'';position:absolute;inset:0;background:var(--wheel-fill,#202020);opacity:1;pointer-events:none;-webkit-mask-image:linear-gradient(transparent,#000 25%,#000 75%,transparent);mask-image:linear-gradient(transparent,#000 25%,#000 75%,transparent);}
+ .record-wheel-sheet::before{content:'';position:absolute;inset:0;background:var(--wheel-fill,#202020);opacity:.5;pointer-events:none;-webkit-mask-image:linear-gradient(transparent,#000 25%,#000 calc(50% - var(--wheel-input-height)/2),transparent calc(50% - var(--wheel-input-height)/2),transparent calc(50% + var(--wheel-input-height)/2),#000 calc(50% + var(--wheel-input-height)/2),#000 75%,transparent);mask-image:linear-gradient(transparent,#000 25%,#000 calc(50% - var(--wheel-input-height)/2),transparent calc(50% - var(--wheel-input-height)/2),transparent calc(50% + var(--wheel-input-height)/2),#000 calc(50% + var(--wheel-input-height)/2),#000 75%,transparent);}
  @keyframes record-wheel-unfold{from{clip-path:inset(42.85% 0);opacity:.3;}to{clip-path:inset(0);opacity:1;}}
  @media(prefers-reduced-motion:reduce){.record-wheel-sheet{animation:none;}}
  #recordWheelTitle{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);}
@@ -35,10 +35,10 @@
   sheet.style.setProperty('--wheel-input-height',r.height+'px');
   const center=r.top+r.height/2,computed=getComputedStyle(sheet);
   const topEdge=4+(parseFloat(computed.getPropertyValue('--wheel-safe-top'))||0),bottomEdge=innerHeight-4-(parseFloat(computed.getPropertyValue('--wheel-safe-bottom'))||0);
-  const nextSize=Math.max(18,Math.min((r.height||44)*1.2,(center-topEdge)/3.5,(bottomEdge-center)/3.5));
+  const nextSize=Math.max(44,Math.min((r.height||44)*1.5,66,(center-topEdge)/3.5));
   if(Math.abs(nextSize-rowSize)>.1){rowSize=nextSize;sheet.style.setProperty('--record-wheel-row',rowSize+'px');list.scrollTop=selected*rowSize;}
   sheet.classList.toggle('wheel-narrow',r.width<100);sheet.style.width=r.width+'px';sheet.style.left=Math.max(0,Math.min(innerWidth-r.width,r.left))+'px';
-  sheet.style.top=Math.max(topEdge,Math.min(bottomEdge-rowSize*7,center-rowSize*3.5))+'px';
+  sheet.style.top=Math.max(topEdge,center-rowSize*3.5)+'px';
  }
  window.addEventListener('resize',position);window.visualViewport?.addEventListener('resize',position);
  function paint(){
@@ -90,7 +90,7 @@
  function cancelGesture(){clearTimeout(timer);if(gesture?.fired && !overlay.hidden)background.forEach(([el])=>{el.inert=true;});gesture=null;}
  function begin(input,config,x,y,kind){
   cancelGesture();gesture={input,config,x,y,kind,lastY:y,fired:false,cancelled:false};
-  timer=setTimeout(()=>{if(gesture && !gesture.cancelled){gesture.fired=true;open(input,config);gesture.originY=gesture.lastY;gesture.wheelStartIndex=selected;}},350);
+  timer=setTimeout(()=>{if(gesture && !gesture.cancelled){gesture.fired=true;open(input,config);gesture.originY=gesture.lastY;gesture.wheelStartIndex=selected;}},200);
  }
  function move(x,y){
   if(!gesture)return;gesture.lastY=y;
