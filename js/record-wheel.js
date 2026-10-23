@@ -11,6 +11,7 @@
  @media(prefers-reduced-motion:reduce){.record-wheel-sheet{animation:none;}}
  #recordWheelTitle{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);}
  .record-wheel-source{color:transparent!important;caret-color:transparent!important;}
+ .record-wheel-source::placeholder{color:transparent!important;opacity:0!important;}
  .record-wheel-list:focus-visible{outline:none;}
 
  .record-wheel-window{height:calc(var(--record-wheel-row)*7);position:relative;width:100%;}
@@ -55,7 +56,7 @@
  }
  function open(input,config){
   if(!overlay.hidden)close(false);
-  document.activeElement?.blur();
+  wheelTap=null;document.activeElement?.blur();
   // Flatten the input and its ancestor backgrounds to the same opaque wheel tint.
   const canvas=document.createElement('canvas');canvas.width=canvas.height=1;const ctx=canvas.getContext('2d');
   ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--c-bg').trim()||'#000';ctx.fillRect(0,0,1,1);
@@ -66,13 +67,23 @@
   const [,step,min,max,title,unit]=config;values=Array.from({length:(max-min)/step+1},(_,i)=>max-i*step);
   const current=Number.parseFloat(input.value);selected=values.length-1-(Number.isFinite(current)?Math.max(0,Math.min(values.length-1,Math.round((current-min)/step))):0);
   overlay.querySelector('#recordWheelTitle').textContent=title+' ('+unit+')';list.setAttribute('aria-label',title);
-  list.replaceChildren(...values.map((value,i)=>{const row=document.createElement('div');row.className='record-wheel-option';row.id='record-wheel-option-'+i;row.setAttribute('role','option');row.textContent=value;row.addEventListener('click',()=>{list.scrollTop=i*rowSize;paint();});return row;}));
+  list.replaceChildren(...values.map((value,i)=>{const row=document.createElement('div');row.className='record-wheel-option';row.id='record-wheel-option-'+i;row.setAttribute('role','option');row.textContent=value;return row;}));
   overlay.hidden=false;list.classList.toggle('is-direct-drag',!!gesture?.fired);position();list.scrollTop=selected*rowSize;paint();
   const until=performance.now()+400;
   const follow=now=>{position();if(now<until && source)anchorFrame=requestAnimationFrame(follow);};anchorFrame=requestAnimationFrame(follow);
   background=[...document.body.children].filter(el=>el!==overlay && !['SCRIPT','STYLE'].includes(el.tagName)).map(el=>[el,el.inert]);background.forEach(([el])=>{if(!gesture?.fired || !el.contains(input))el.inert=true;});
   list.focus({preventScroll:true});
  }
+ let wheelTap=null;
+ list.addEventListener('pointerdown',event=>{wheelTap={x:event.clientX,y:event.clientY,scrollTop:list.scrollTop,moved:false};});
+ list.addEventListener('pointermove',event=>{if(wheelTap && Math.hypot(event.clientX-wheelTap.x,event.clientY-wheelTap.y)>4)wheelTap.moved=true;});
+ list.addEventListener('pointercancel',()=>{if(wheelTap)wheelTap.moved=true;});
+ list.addEventListener('click',event=>{
+  if(!event.target.closest('.record-wheel-option'))return;
+  event.preventDefault();event.stopPropagation();
+  if(!wheelTap || (!wheelTap.moved && Math.abs(list.scrollTop-wheelTap.scrollTop)<2))close(true);
+  wheelTap=null;
+ });
  list.addEventListener('scroll',()=>{cancelAnimationFrame(paintFrame);paintFrame=requestAnimationFrame(paint);},{passive:true});
  list.addEventListener('keydown',event=>{
   let index=selected;
