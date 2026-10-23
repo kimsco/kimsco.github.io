@@ -13240,7 +13240,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.97";
+const APP_VERSION = "1.0.98";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -16277,7 +16277,7 @@ function setupPillBarKeyboardFix(bar, inputs) {
     window.visualViewport.addEventListener("resize", reposition);
   }
   inputs.forEach(input => {
-    input.addEventListener("touchstart", () => {
+    const focusPillInput = () => {
       clearTimeout(releaseTimer);
       isActive = true;
       input.style.opacity = "0";
@@ -16293,7 +16293,9 @@ function setupPillBarKeyboardFix(bar, inputs) {
       const currentKeyboardHeight = vv ? Math.max(0, window.innerHeight - vv.height) : 0;
       const keyboardAlreadyOpen = currentKeyboardHeight > 80;
       releaseTimer = setTimeout(() => { input.style.opacity = ""; }, keyboardAlreadyOpen ? 80 : 1000);
-    });
+    };
+    input.addEventListener("touchstart", focusPillInput);
+    input.addEventListener("mf-short-tap", focusPillInput);
     input.addEventListener("blur", () => {
       clearTimeout(releaseTimer);
       releaseTimer = setTimeout(() => {
@@ -25560,5 +25562,6 @@ try {
 })();
 </script>
 
+<script src="/js/record-wheel.js?v=1.0.98"></script>
 </body>
 </html>
