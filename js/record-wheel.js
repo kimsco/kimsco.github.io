@@ -22,17 +22,28 @@
  .record-wheel-option{height:var(--record-wheel-row);line-height:var(--record-wheel-row);text-align:center;scroll-snap-align:center;font-size:20px;font-weight:400;color:inherit;opacity:.5;cursor:pointer;user-select:none;}
  .record-wheel-option[aria-selected=true]{font-weight:700;opacity:1;}
  .record-wheel-sheet.wheel-narrow .record-wheel-option{font-size:18px;}
+ .record-wheel-sheet::before{display:none;}
+ .record-wheel-list{opacity:0;mask-image:none;-webkit-mask-image:none;}
+ .record-disc-face{position:fixed;inset:0;pointer-events:none;overflow:hidden;}
+ .record-disc-plate{pointer-events:auto;touch-action:none;position:absolute;border-radius:50%;background:var(--wheel-fill,#202020);opacity:.5;border:1px solid rgba(160,160,160,.15);box-sizing:border-box;}
+ .record-disc-number{pointer-events:auto;touch-action:none;position:absolute;text-align:center;font-size:20px;line-height:36px;height:36px;transform-origin:center;white-space:nowrap;color:var(--c-text-primary,#fff);}
+ .record-disc-number.is-selected{font-weight:700;}
  `;document.head.append(style);
  const overlay=document.createElement('div');overlay.className='record-wheel-overlay';overlay.hidden=true;
- overlay.innerHTML='<section class="record-wheel-sheet" role="dialog" aria-modal="true" aria-labelledby="recordWheelTitle"><span id="recordWheelTitle"></span><div class="record-wheel-window"><div class="record-wheel-list" role="listbox" tabindex="0"></div></div></section>';
+ overlay.innerHTML='<div class="record-disc-face" aria-hidden="true"><div class="record-disc-plate"></div><div class="record-disc-numbers"></div></div><section class="record-wheel-sheet" role="dialog" aria-modal="true" aria-labelledby="recordWheelTitle"><span id="recordWheelTitle"></span><div class="record-wheel-window"><div class="record-wheel-list" role="listbox" tabindex="0"></div></div></section>';
  document.body.append(overlay);
  const list=overlay.querySelector('.record-wheel-list');
  let source=null,values=[],selected=0,paintFrame=0,anchorFrame=0,rowSize=44,background=[];
  const sheet=overlay.querySelector('.record-wheel-sheet');
+ const face=overlay.querySelector('.record-disc-face'),plate=face.querySelector('.record-disc-plate'),numbers=face.querySelector('.record-disc-numbers');
+ let discX=0,discY=0,discRadius=100;
  function position(){
   if(!source || overlay.hidden)return;
   const r=source.getBoundingClientRect();
   sheet.style.setProperty('--wheel-input-height',r.height+'px');
+  discX=r.left+r.width/2;discY=r.top+r.height/2;discRadius=Math.max(65,Math.min(145,discX-10,innerWidth-discX-10));
+  Object.assign(plate.style,{width:discRadius*2+'px',height:discRadius*2+'px',left:discX-discRadius+'px',top:discY-discRadius*2+'px'});
+  paintDisc();
   const center=r.top+r.height/2,computed=getComputedStyle(sheet);
   const topEdge=4+(parseFloat(computed.getPropertyValue('--wheel-safe-top'))||0),bottomEdge=innerHeight-4-(parseFloat(computed.getPropertyValue('--wheel-safe-bottom'))||0);
   const nextSize=Math.max(44,Math.min((r.height||44)*1.5,66,(center-topEdge)/3.5))/2;
@@ -41,10 +52,20 @@
   sheet.style.top=Math.max(topEdge,center-rowSize*3.5)+'px';
  }
  window.addEventListener('resize',position);window.visualViewport?.addEventListener('resize',position);
+ function paintDisc(){
+  const progress=list.scrollTop/rowSize;
+  [...numbers.children].forEach((label,i)=>{
+   const distance=i-progress,visible=Math.abs(distance)<=3.25;
+   label.hidden=!visible;if(!visible)return;
+   const angle=distance*.85,x=discX+Math.sin(angle)*discRadius,y=discY+(Math.cos(angle)-1)*discRadius;
+   label.classList.toggle('is-selected',i===selected);
+   Object.assign(label.style,{left:x-32+'px',top:y-18+'px',width:'64px',opacity:String(Math.max(0,1-Math.abs(distance)/3.5)),transform:`rotate(${-angle*28}deg) scale(${1-Math.abs(distance)*.07})`});
+  });
+ }
  function paint(){
   selected=Math.max(0,Math.min(values.length-1,Math.round(list.scrollTop/rowSize)));
   [...list.children].forEach((row,i)=>{row.setAttribute('aria-selected',String(i===selected));const distance=Math.max(-3,Math.min(3,i-list.scrollTop/rowSize));row.style.transform=`perspective(300px) rotateX(${distance*-10}deg) scale(${1-Math.abs(distance)*.055})`;});
-  list.setAttribute('aria-activedescendant','record-wheel-option-'+selected);
+  list.setAttribute('aria-activedescendant','record-wheel-option-'+selected);paintDisc();
  }
  function close(apply){
   if(overlay.hidden)return;
@@ -61,12 +82,13 @@
   ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--c-bg').trim()||'#000';ctx.fillRect(0,0,1,1);
   const layers=[];for(let el=input;el;el=el.parentElement)layers.push(getComputedStyle(el).backgroundColor);
   layers.reverse().forEach(color=>{ctx.fillStyle=color;ctx.fillRect(0,0,1,1);});
-  const [red,green,blue]=ctx.getImageData(0,0,1,1).data;sheet.style.setProperty('--wheel-fill',`rgb(${red},${green},${blue})`);
+  const [red,green,blue]=ctx.getImageData(0,0,1,1).data;sheet.style.setProperty('--wheel-fill',`rgb(${red},${green},${blue})`);face.style.setProperty('--wheel-fill',`rgb(${red},${green},${blue})`);
   source=input;input.style.opacity='';input.classList.add('record-wheel-source');
   const [,step,min,max,title,unit]=config;values=Array.from({length:(max-min)/step+1},(_,i)=>max-i*step);
   const current=Number.parseFloat(input.value);selected=values.length-1-(Number.isFinite(current)?Math.max(0,Math.min(values.length-1,Math.round((current-min)/step))):0);
   overlay.querySelector('#recordWheelTitle').textContent=title+' ('+unit+')';list.setAttribute('aria-label',title);
   list.replaceChildren(...values.map((value,i)=>{const row=document.createElement('div');row.className='record-wheel-option';row.id='record-wheel-option-'+i;row.setAttribute('role','option');row.textContent=value;row.addEventListener('click',()=>{list.scrollTop=i*rowSize;paint();});return row;}));
+  numbers.replaceChildren(...values.map(value=>{const label=document.createElement('span');label.className='record-disc-number';label.textContent=value;return label;}));
   overlay.hidden=false;list.classList.toggle('is-direct-drag',!!gesture?.fired);position();list.scrollTop=selected*rowSize;paint();
   const until=performance.now()+400;
   const follow=now=>{position();if(now<until && source)anchorFrame=requestAnimationFrame(follow);};anchorFrame=requestAnimationFrame(follow);
@@ -87,14 +109,20 @@
   if(event.key==='Tab'){event.preventDefault();event.stopPropagation();list.focus();}
  });
  let gesture=null,timer=0;
+ function resumeDisc(x,y,kind){
+  cancelGesture();gesture={fired:true,kind,originX:x,originY:y,lastX:x,lastY:y,wheelStartIndex:selected};list.classList.add('is-direct-drag');
+ }
+ face.addEventListener('touchstart',event=>{if(event.touches.length!==1)return;event.preventDefault();const t=event.touches[0];resumeDisc(t.clientX,t.clientY,'touch');},{passive:false});
+ face.addEventListener('pointerdown',event=>{if(event.pointerType==='mouse' && event.button===0){event.preventDefault();resumeDisc(event.clientX,event.clientY,'mouse');}});
+
  function cancelGesture(){clearTimeout(timer);if(gesture?.fired && !overlay.hidden)background.forEach(([el])=>{el.inert=true;});gesture=null;}
  function begin(input,config,x,y,kind){
-  cancelGesture();gesture={input,config,x,y,kind,lastY:y,fired:false,cancelled:false};
-  timer=setTimeout(()=>{if(gesture && !gesture.cancelled){gesture.fired=true;open(input,config);gesture.originY=gesture.lastY;gesture.wheelStartIndex=selected;}},200);
+  cancelGesture();gesture={input,config,x,y,kind,lastY:y,lastX:x,fired:false,cancelled:false};
+  timer=setTimeout(()=>{if(gesture && !gesture.cancelled){gesture.fired=true;open(input,config);gesture.originY=gesture.lastY;gesture.originX=gesture.lastX;gesture.wheelStartIndex=selected;}},200);
  }
  function move(x,y){
-  if(!gesture)return;gesture.lastY=y;
-  if(gesture.fired){list.scrollTop=Math.max(0,Math.min((values.length-1)*rowSize,gesture.wheelStartIndex*rowSize-(y-gesture.originY)));paint();return;}
+  if(!gesture)return;gesture.lastY=y;gesture.lastX=x;
+  if(gesture.fired){list.scrollTop=Math.max(0,Math.min((values.length-1)*rowSize,gesture.wheelStartIndex*rowSize-(y-gesture.originY)-(x-gesture.originX)*.8));paint();return;}
   if(Math.hypot(x-gesture.x,y-gesture.y)>10){clearTimeout(timer);gesture.cancelled=true;}
  }
  function end(){
