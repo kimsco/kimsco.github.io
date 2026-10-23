@@ -23,6 +23,9 @@ try:
    cdp.send('Input.dispatchTouchEvent',{'type':'touchStart','touchPoints':[{'x':x,'y':y}]});page.wait_for_timeout(260)
    assert overlay.is_visible() and page.evaluate('wheelFocuses')==focus_before
    assert overlay.locator('button').count()==0
+   arc=page.locator('.record-disc-number').evaluate_all("els=>els.filter(el=>!el.hidden).map(el=>({text:el.textContent,x:parseFloat(el.style.left),y:parseFloat(el.style.top)}))")
+   assert len(arc)>=6 and len({round(item['x']) for item in arc})>=6
+   assert page.locator('.record-disc-number.is-selected').inner_text()=='50'
    assert wheel.evaluate("el=>getComputedStyle(el.querySelector('[aria-selected=true]')).outlineStyle")=='none'
    outline=page.locator('.record-wheel-window').evaluate("el=>({height:parseFloat(getComputedStyle(el,'::before').height),border:getComputedStyle(el,'::before').borderTopStyle})")
    assert abs(outline['height']-r['height'])<.1 and outline['border']=='solid'
