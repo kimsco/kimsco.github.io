@@ -13246,7 +13246,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.113";
+const APP_VERSION = "1.0.114";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -25327,6 +25327,7 @@ function wireFloatingSaveBar(bar, scrollEls){
   const EXPAND_GROWTH_RATIO = 0.6; // 탄성 전 양방향 크기 변화는 스크롤의 60%만 반영
   const EXPAND_TRIGGER = 36; // 양방향으로 36px 이동하면 목표 크기로 탄성 복귀
   let expansionTravel = 0, collapseTravel = 0, springUntil = 0, springDirection = 0;
+  let wakeUntil=0,wakeTouch=false,wakeMouse=false,swallowClick=false;
   let collapseAmount = 0;    // 0(완전 확대) ~ THRESHOLD(완전 축소)
   const lastTops = new WeakMap();
 
@@ -25353,7 +25354,7 @@ function wireFloatingSaveBar(bar, scrollEls){
       const delta = current - (lastTops.get(el) || 0);
       lastTops.set(el, current);
 
-      if (delta === 0) return;
+      if (delta === 0 || performance.now()<wakeUntil) return;
       if (current <= 4) {
         expansionTravel = collapseTravel = 0;
         collapseAmount = 0;
@@ -25400,6 +25401,39 @@ function wireFloatingSaveBar(bar, scrollEls){
     }, { passive: true });
   });
 
+  // A collapsed bar consumes the entire first press, including drag/save, to expand only.
+  function needsWake(){
+    const scale=new DOMMatrixReadOnly(getComputedStyle(bar).transform).m11;
+    return collapseAmount>.5 || scale<.995 || performance.now()<wakeUntil;
+  }
+  function wake(){
+    expansionTravel=collapseTravel=0;collapseAmount=0;
+    scrollEls.forEach(el=>lastTops.set(el,el.scrollTop||0));
+    const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+    wakeUntil=performance.now()+(reduced?0:520);
+    render(true,true);swallowClick=true;
+  }
+  function consume(event){if(event.cancelable)event.preventDefault();event.stopImmediatePropagation();}
+  bar.addEventListener('touchstart',event=>{
+    wakeTouch=needsWake();
+    if(wakeTouch){wake();consume(event);}else swallowClick=false;
+  },{capture:true,passive:false});
+  bar.addEventListener('touchmove',event=>{if(wakeTouch)consume(event);},{capture:true,passive:false});
+  bar.addEventListener('touchend',event=>{if(wakeTouch){consume(event);if(!event.touches.length)wakeTouch=false;}},{capture:true,passive:false});
+  bar.addEventListener('touchcancel',()=>{wakeTouch=false;},{capture:true});
+  bar.addEventListener('pointerdown',event=>{
+    if(event.pointerType!=='mouse' || event.button!==0)return;
+    wakeMouse=needsWake();
+    if(wakeMouse){wake();bar.setPointerCapture(event.pointerId);consume(event);}else swallowClick=false;
+  },{capture:true});
+  bar.addEventListener('pointermove',event=>{if(wakeMouse)consume(event);},{capture:true});
+  bar.addEventListener('pointerup',event=>{if(wakeMouse){consume(event);wakeMouse=false;}},{capture:true});
+  bar.addEventListener('pointercancel',()=>{wakeMouse=false;},{capture:true});
+  bar.addEventListener('click',event=>{
+    if(swallowClick){swallowClick=false;consume(event);return;}
+    if(needsWake()){wake();swallowClick=false;consume(event);}
+  },{capture:true});
+
   // 🔥 작아진 상태에서 kg/회 입력칸을 누르면(포커스) 부드럽게 원래 크기로 복귀
   bar.querySelectorAll('input[type="text"]').forEach(input => {
     input.addEventListener('focus', () => {
@@ -25412,6 +25446,7 @@ function wireFloatingSaveBar(bar, scrollEls){
   // 🔥 외부(예: 화면 재진입)에서 내부 상태 + 시각적 크기를 완전히 초기화할 수 있도록 노출
   return {
     reset(){
+      wakeUntil=0;wakeTouch=wakeMouse=swallowClick=false;
       expansionTravel = collapseTravel = 0;
       collapseAmount = 0;
       scrollEls.forEach(el => lastTops.set(el, el.scrollTop || 0));
@@ -25569,6 +25604,6 @@ try {
 })();
 </script>
 
-<script src="/js/record-wheel.js?v=1.0.113"></script>
+<script src="/js/record-wheel.js?v=1.0.114"></script>
 </body>
 </html>
