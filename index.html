@@ -1034,6 +1034,7 @@ html.light-mode-on .announcement-dot{
     border-radius: 50%;
     animation: record-spin 0.7s linear infinite;
 }
+.exercise-list-loading .record-loading-spinner { border-color:var(--c-border,rgba(255,255,255,.15));border-top-color:var(--c-text-secondary,#999); }
 @keyframes record-spin {
     to { transform: rotate(360deg); }
 }
@@ -9141,7 +9142,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
   <button id="add-exercise-btn" class="add-btn">+</button>
 </div>
 
-  <div id="exercise-list"></div>
+  <div id="exercise-list" aria-busy="true"><div class="record-scroll-sentinel exercise-list-loading" role="status" aria-label="종목 불러오는 중"><div class="record-loading-spinner" aria-hidden="true"></div></div></div>
 </div>
 
    <div id="exercise-detail-screen" style="display:none;">
@@ -12136,6 +12137,11 @@ let accRecordsByExercise = {}; // 🔥 DB에서 가져올 예정
 
 let currentExerciseName = null; // 🔥 지금 보고 있는 종목
 let exerciseLoadingPart=null;
+function showExerciseListLoading(target){
+  if(!target)return;
+  target.setAttribute('aria-busy','true');
+  target.innerHTML='<div class="record-scroll-sentinel exercise-list-loading" role="status" aria-label="종목 불러오는 중"><div class="record-loading-spinner" aria-hidden="true"></div></div>';
+}
 let currentPart = null;        // 🔥 지금 선택된 종목
 
 const exerciseListEl = document.getElementById('exercise-list');
@@ -12261,7 +12267,7 @@ document.querySelectorAll('.folderBtn4').forEach(btn => {
     if (appEl0) appEl0.style.overflowY = 'auto';
 
     // 🔥 클릭 즉시 이전 목록을 지우고 로딩 표시 (체감 딜레이 방지)
-    exerciseListEl.innerHTML = `<div style="color:var(--c-text-secondary);font-size:13px;">불러오는 중...</div>`;
+    showExerciseListLoading(exerciseListEl);
 
     // Firestore에서 해당 종목 불러오기
     const requestedPart=currentPart;
@@ -13240,7 +13246,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.112";
+const APP_VERSION = "1.0.113";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -21286,14 +21292,15 @@ function renderExercises(opts) {
   const targetEl = opts.listElId ? document.getElementById(opts.listElId) : exerciseListEl;
   const onOpenDetail = opts.onOpenDetail || openExerciseDetail;
   if (!targetEl) return;
+  targetEl.setAttribute('aria-busy','false');
 
   // ✅ 루프 전에 딱 1번만 정리
   currentExercises = (currentExercises || [])
     .filter(x => typeof x === 'string' && x.trim());
 
   if (!currentExercises.length) {
-    targetEl.innerHTML =
-      `<div style="color:var(--c-text-secondary);font-size:13px;">${exerciseLoadingPart!==null && exerciseLoadingPart===currentPart ? "불러오는 중..." : "아직 추가된 종목이 없습니다"}</div>`;
+    if(exerciseLoadingPart!==null && exerciseLoadingPart===currentPart)showExerciseListLoading(targetEl);
+    else targetEl.innerHTML='<div style="color:var(--c-text-secondary);font-size:13px;">아직 추가된 종목이 없습니다</div>';
     return;
   }
 
@@ -21774,10 +21781,9 @@ async function loadExercises(part,opts){
   const isCurrent=()=>sequence===exerciseLoadSequence && currentPart===part && owner===appSync.account.owner;
   if(!isCurrent() || (user && user.uid!==owner))return;
   const cached=lsGet(LS_KEYS.accessoriesList(part),null);
-  exerciseLoadingPart=user && cached===null ? part : null;
   currentExercises=(cached||[]).filter(x=>typeof x==='string' && x.trim());
-  if(user && cached===null && target)target.innerHTML='<div style="color:var(--c-text-secondary);font-size:13px;">불러오는 중...</div>';
-  else renderExercises(opts);
+  exerciseLoadingPart=user && !currentExercises.length ? part : null;
+  renderExercises(opts);
   if(!user)return;
   try{
     const list=await readExerciseList(user.uid,part);
@@ -21787,7 +21793,8 @@ async function loadExercises(part,opts){
     renderExercises(opts);
   }catch(e){
     if(isCurrent())exerciseLoadingPart=null;
-    if(isCurrent() && cached===null && target)target.innerHTML='<div style="color:var(--c-text-secondary);font-size:13px;">종목을 불러오지 못했습니다. 연결 후 부위를 다시 선택해주세요.</div>';
+    if(isCurrent() && target)target.setAttribute('aria-busy','false');
+    if(isCurrent() && !(cached||[]).length && target)target.innerHTML='<div style="color:var(--c-text-secondary);font-size:13px;">종목을 불러오지 못했습니다. 연결 후 부위를 다시 선택해주세요.</div>';
     console.error('종목 조회 실패',e);
   }
 }
@@ -25562,6 +25569,6 @@ try {
 })();
 </script>
 
-<script src="/js/record-wheel.js?v=1.0.112"></script>
+<script src="/js/record-wheel.js?v=1.0.113"></script>
 </body>
 </html>
