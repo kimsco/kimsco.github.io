@@ -26,7 +26,7 @@ try:
    cdp.send('Input.dispatchTouchEvent',{'type':'touchMove','touchPoints':[{'x':x,'y':y-25}]})
    assert overlay.is_visible() and page.evaluate('wheelFocuses')==focus_before
    assert page.locator('.record-wheel-option[aria-selected="true"]').inner_text()=='50'
-   assert wheel.evaluate("el=>Math.abs(el.scrollTop-90*parseFloat(getComputedStyle(el).getPropertyValue('--record-wheel-row')))")<1
+   assert wheel.evaluate("el=>Math.abs(el.scrollTop-10*parseFloat(getComputedStyle(el).getPropertyValue('--record-wheel-row')))")<1
    assert overlay.locator('button').count()==0
    assert wheel.evaluate("el=>getComputedStyle(el.querySelector('[aria-selected=true]')).outlineStyle")=='none'
    outline=page.locator('.record-wheel-window').evaluate("el=>({height:parseFloat(getComputedStyle(el,'::before').height),border:getComputedStyle(el,'::before').borderTopStyle})")
@@ -40,7 +40,7 @@ try:
    # Continue with the exact same touch: no release or second touch is required.
    for offset in [30,40,55,70,90]:
     cdp.send('Input.dispatchTouchEvent',{'type':'touchMove','touchPoints':[{'x':x,'y':y-offset}]});page.wait_for_timeout(30)
-   assert int(page.locator('.record-wheel-option[aria-selected="true"]').inner_text())<50
+   assert int(page.locator('.record-wheel-option[aria-selected="true"]').inner_text())>50
    cdp.send('Input.dispatchTouchEvent',{'type':'touchEnd','touchPoints':[]});page.wait_for_timeout(100)
    assert overlay.is_visible()
    assert weight.input_value()=='50' and page.evaluate('records.bench.length')==before
@@ -54,9 +54,9 @@ try:
    page.mouse.move(x,y);page.mouse.down();page.wait_for_timeout(250);assert overlay.is_hidden()
    page.mouse.move(x,y-5);assert overlay.is_visible()
    page.mouse.move(x,y-65,steps=5);page.mouse.up();page.wait_for_timeout(100)
-   assert overlay.is_visible() and int(page.locator('.record-wheel-option[aria-selected="true"]').inner_text())<7
-   wheel.focus();page.keyboard.press('End');assert page.locator('.record-wheel-option[aria-selected="true"]').inner_text()=='1'
-   page.keyboard.press('ArrowUp');assert page.locator('.record-wheel-option[aria-selected="true"]').inner_text()=='2'
+   assert overlay.is_visible() and int(page.locator('.record-wheel-option[aria-selected="true"]').inner_text())>7
+   wheel.focus();page.keyboard.press('Home');assert page.locator('.record-wheel-option[aria-selected="true"]').inner_text()=='1'
+   page.keyboard.press('ArrowDown');assert page.locator('.record-wheel-option[aria-selected="true"]').inner_text()=='2'
    page.mouse.click(5,200);assert reps.input_value()=='2'
    for light in [True,False]:
     page.evaluate('(v)=>applyLightMode(v)',light)
@@ -65,22 +65,22 @@ try:
     page.locator('.record-wheel-sheet').evaluate("el=>el.style.setProperty('--wheel-safe-bottom','34px')");page.evaluate("window.dispatchEvent(new Event('resize'))")
     safe=page.locator('.record-wheel-sheet').bounding_box();assert abs(safe['y']+safe['height']/2-r['y']-r['height']/2)<.1
     page.locator('.record-wheel-sheet').evaluate("el=>el.style.removeProperty('--wheel-safe-bottom')");page.evaluate("window.dispatchEvent(new Event('resize'))")
-    wheel.focus();page.keyboard.press('Home');assert page.locator('.record-wheel-option[aria-selected="true"]').inner_text()=='500'
-    wheel.evaluate("el=>el.scrollTop=90*parseFloat(getComputedStyle(el).getPropertyValue('--record-wheel-row'))");page.wait_for_timeout(80)
+    wheel.focus();page.keyboard.press('End');assert page.locator('.record-wheel-option[aria-selected="true"]').inner_text()=='500'
+    wheel.evaluate("el=>el.scrollTop=10*parseFloat(getComputedStyle(el).getPropertyValue('--record-wheel-row'))");page.wait_for_timeout(80)
     page.screenshot(path='/tmp/record-wheel-seven-'+str(width)+'-'+str(light)+'.png')
     page.keyboard.press('Enter');assert overlay.is_hidden() and weight.input_value()=='50'
    # Empty inputs hide their placeholder; tapping a different number dismisses without choosing it.
    weight.fill('');page.evaluate('document.activeElement.blur()');r=weight.bounding_box()
    mouse_open(r['x']+r['width']/2,r['y']+r['height']/2)
    assert weight.evaluate("el=>getComputedStyle(el,'::placeholder').opacity")=='0'
-   wheel.evaluate("el=>el.scrollTop=90*parseFloat(getComputedStyle(el).getPropertyValue('--record-wheel-row'))");page.wait_for_timeout(200)
-   option=page.locator('.record-wheel-option').nth(89);assert option.inner_text()=='55'
+   wheel.evaluate("el=>el.scrollTop=10*parseFloat(getComputedStyle(el).getPropertyValue('--record-wheel-row'))");page.wait_for_timeout(200)
+   option=page.locator('.record-wheel-option').nth(11);assert option.inner_text()=='55'
    box=option.bounding_box();page.touchscreen.tap(box['x']+box['width']/2,box['y']+box['height']/2)
    assert overlay.is_hidden() and weight.input_value()=='50'
    assert weight.evaluate("el=>getComputedStyle(el,'::placeholder').opacity")!='0'
    # Mouse taps also dismiss without jumping to the tapped number.
    r=weight.bounding_box();mouse_open(r['x']+20,r['y']+20);page.wait_for_timeout(220)
-   option=page.locator('.record-wheel-option').nth(89);box=option.bounding_box()
+   option=page.locator('.record-wheel-option').nth(11);box=option.bounding_box()
    page.mouse.click(box['x']+box['width']/2,box['y']+box['height']/2)
    assert overlay.is_hidden() and weight.input_value()=='50'
    # An off-grid direct value remains untouched when aborting with Escape.
@@ -99,7 +99,7 @@ try:
    page.locator('.bottomTab .tabBtn[data-target="tab4"]').click();page.wait_for_timeout(300)
    page.evaluate("openExerciseDetail('휠 테스트');document.getElementById('acc-weight').value='25'")
    acc=page.locator('#acc-weight');r=acc.bounding_box();mouse_open(r['x']+20,r['y']+20)
-   assert overlay.is_visible();wheel.evaluate("el=>el.scrollTop=92*parseFloat(getComputedStyle(el).getPropertyValue('--record-wheel-row'))");page.wait_for_timeout(80)
+   assert overlay.is_visible();wheel.evaluate("el=>el.scrollTop=8*parseFloat(getComputedStyle(el).getPropertyValue('--record-wheel-row'))");page.wait_for_timeout(80)
    page.mouse.click(5,200);assert acc.input_value()=='40' and page.evaluate("accRecordsByExercise['휠 테스트'].length")==0
    print('PASS: same-finger touch/mouse hold-drag, seven rows, no buttons, inline geometry, outside apply, keyboard/escape, short taps and explicit saves')
    c.close()
