@@ -83,17 +83,17 @@ try:
    option=page.locator('.record-wheel-option').nth(11);box=option.bounding_box()
    page.mouse.click(box['x']+box['width']/2,box['y']+box['height']/2)
    assert overlay.is_hidden() and weight.input_value()=='50'
-   # Idle: wait 1.5s, fade for 1s, then commit. The overlay still receives touches while fading.
+   # Idle: wait 0.6s, fade for 0.6s, then commit. The overlay still receives touches while fading.
    r=weight.bounding_box();mouse_open(r['x']+20,r['y']+20)
-   page.wait_for_timeout(1800)
+   page.wait_for_timeout(800)
    opacity=float(overlay.evaluate('el=>getComputedStyle(el).opacity'))
    assert overlay.is_visible() and 0<opacity<1,opacity
    assert page.locator('#recordAdd').evaluate("el=>{const r=el.getBoundingClientRect();return !!document.elementFromPoint(r.x+r.width/2,r.y+r.height/2).closest('.record-wheel-overlay')}")
    chosen=page.locator('.record-wheel-option[aria-selected="true"]').inner_text()
-   page.wait_for_timeout(1000);assert overlay.is_hidden() and weight.input_value()==chosen
+   page.wait_for_timeout(700);assert overlay.is_hidden() and weight.input_value()==chosen
    assert page.evaluate('records.bench.length')==before
    # Re-grabbing during the fade restores opacity and prevents closing while held.
-   r=weight.bounding_box();mouse_open(r['x']+20,r['y']+20);page.wait_for_timeout(1800)
+   r=weight.bounding_box();mouse_open(r['x']+20,r['y']+20);page.wait_for_timeout(800)
    page.mouse.move(r['x']+r['width']/2,r['y']+r['height']/2);page.mouse.down();page.wait_for_timeout(2700)
    assert overlay.is_visible() and overlay.evaluate('el=>getComputedStyle(el).opacity')=='1'
    page.mouse.up();page.keyboard.press('Escape')
