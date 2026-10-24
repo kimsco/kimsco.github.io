@@ -102,9 +102,11 @@ try:
    mouse_open(x,y);page.keyboard.press('Escape')
    assert overlay.is_hidden() and weight.input_value()=='2.5'
    page.mouse.move(x,y);page.mouse.down();page.mouse.move(x+20,y);page.wait_for_timeout(520);page.mouse.up();assert overlay.is_hidden()
-   # Collapsed fields still have seven rows and match the displayed input width.
+   # The first drag on a collapsed bar expands only; the next drag opens the wheel.
    page.evaluate("document.getElementById('recordFloatBarTab2').style.transform='scale(.8)'");page.wait_for_timeout(300)
-   r=weight.bounding_box();mouse_open(r['x']+r['width']/2,r['y']+r['height']/2)
+   r=weight.bounding_box();page.mouse.move(r['x']+r['width']/2,r['y']+r['height']/2);page.mouse.down();page.mouse.move(r['x']+r['width']/2,r['y']-20);page.mouse.up()
+   assert overlay.is_hidden() and not weight.evaluate('el=>el===document.activeElement')
+   page.wait_for_timeout(600);r=weight.bounding_box();mouse_open(r['x']+r['width']/2,r['y']+r['height']/2)
    sheet=page.locator('.record-wheel-sheet').bounding_box();row=wheel.evaluate("el=>parseFloat(getComputedStyle(el).getPropertyValue('--record-wheel-row'))")
    assert abs(sheet['width']-r['width'])<.1 and abs(sheet['height']-7*row)<.1
    page.keyboard.press('Escape');assert weight.input_value()=='2.5'

@@ -45,6 +45,18 @@ try:
    page.evaluate('testController.reset()');scroll(376,30);before=scale();scroll(370,20)
    assert abs(scale()-before)<.08,(before,scale())
    page.evaluate('testController.reset()')
+   # First touch on any collapsed control expands only, including the save button.
+   page.evaluate("document.activeElement.blur();testBar.querySelector('input').style.width='100px';window.saveClicks=0;const button=document.createElement('button');button.textContent='저장';button.onclick=()=>saveClicks++;testBar.append(button);")
+   scroll(500,700);assert abs(scale()-.8)<.01
+   page.locator('body > div input').last.tap();page.wait_for_timeout(600)
+   assert abs(scale()-1)<.001 and not page.evaluate("testBar.contains(document.activeElement)")
+   page.locator('body > div input').last.tap();assert page.evaluate("document.activeElement===testBar.querySelector('input')")
+   page.evaluate('document.activeElement.blur()');scroll(560,700)
+   page.locator('body > div button').last.tap();assert page.evaluate('saveClicks')==0
+   page.wait_for_timeout(600);assert abs(scale()-1)<.001
+   page.locator('body > div button').last.tap();assert page.evaluate('saveClicks')==1
+   page.evaluate('testController.reset()')
+   scroll(394,100);page.evaluate('testController.reset()')
    page.emulate_media(reduced_motion='reduce');scroll(430);assert abs(scale()-.8)<.001
    scroll(394);assert abs(scale()-1)<.001
    print('PASS: symmetric proportional growth/shrink, 36px springs with restrained overshoot/undershoot, continued scroll, reversal, focus/reset and reduced motion')
