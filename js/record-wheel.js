@@ -5,6 +5,7 @@
  const style=document.createElement('style');style.textContent=`
  .record-wheel-overlay{position:fixed;inset:0;z-index:300000;background:transparent;overscroll-behavior:contain;}
  .record-wheel-overlay[hidden]{display:none;}
+ .record-wheel-overlay.is-fading{opacity:0;transition:opacity 1s linear;}
  .record-wheel-sheet{--record-wheel-row:44px;--wheel-safe-top:env(safe-area-inset-top,0px);--wheel-safe-bottom:env(safe-area-inset-bottom,0px);position:fixed;box-sizing:border-box;color:var(--c-text-primary,#fff);animation:record-wheel-unfold .18s cubic-bezier(.22,1,.36,1) both;}
  .record-wheel-sheet::before{content:'';position:absolute;inset:0;background:var(--wheel-fill,#202020);opacity:.5;pointer-events:none;-webkit-mask-image:linear-gradient(transparent,#000 25%,#000 calc(50% - var(--wheel-input-height)/2),transparent calc(50% - var(--wheel-input-height)/2),transparent calc(50% + var(--wheel-input-height)/2),#000 calc(50% + var(--wheel-input-height)/2),#000 75%,transparent);mask-image:linear-gradient(transparent,#000 25%,#000 calc(50% - var(--wheel-input-height)/2),transparent calc(50% - var(--wheel-input-height)/2),transparent calc(50% + var(--wheel-input-height)/2),#000 calc(50% + var(--wheel-input-height)/2),#000 75%,transparent);}
  @keyframes record-wheel-unfold{from{clip-path:inset(42.85% 0);opacity:.3;}to{clip-path:inset(0);opacity:1;}}
@@ -31,6 +32,22 @@
  const list=overlay.querySelector('.record-wheel-list');
  let source=null,values=[],selected=0,paintFrame=0,anchorFrame=0,rowSize=44,background=[];
  const sheet=overlay.querySelector('.record-wheel-sheet');
+ let idleTimer=0,fadeTimer=0,wheelPointerDown=false,wheelTouchDown=false;
+ function stopFade(){clearTimeout(idleTimer);clearTimeout(fadeTimer);overlay.classList.remove('is-fading');}
+ function scheduleFade(){
+  stopFade();if(overlay.hidden || gesture?.fired || wheelPointerDown || wheelTouchDown)return;
+  idleTimer=setTimeout(()=>{
+   overlay.classList.add('is-fading');
+   fadeTimer=setTimeout(()=>close(true),1000);
+  },1500);
+ }
+ overlay.addEventListener('pointerdown',()=>{wheelPointerDown=true;stopFade();},{capture:true});
+ overlay.addEventListener('touchstart',()=>{wheelTouchDown=true;stopFade();},{capture:true,passive:true});
+ overlay.addEventListener('touchend',event=>{wheelTouchDown=event.touches.length>0;if(!wheelTouchDown)scheduleFade();},{passive:true});
+ overlay.addEventListener('touchcancel',()=>{wheelTouchDown=false;wheelPointerDown=false;scheduleFade();},{passive:true});
+ document.addEventListener('pointerup',()=>{if(wheelPointerDown){wheelPointerDown=false;scheduleFade();}});
+ document.addEventListener('pointercancel',()=>{if(wheelPointerDown){wheelPointerDown=false;scheduleFade();}});
+
  function position(){
   if(!source || overlay.hidden)return;
   const r=source.getBoundingClientRect();
@@ -49,6 +66,7 @@
   list.setAttribute('aria-activedescendant','record-wheel-option-'+selected);
  }
  function close(apply){
+  stopFade();wheelPointerDown=false;wheelTouchDown=false;
   if(overlay.hidden)return;
   paint();const input=source;if(input)input.classList.remove('record-wheel-source');source=null;overlay.hidden=true;cancelAnimationFrame(paintFrame);cancelAnimationFrame(anchorFrame);
   background.forEach(([el,inert])=>{el.inert=inert;});background=[];
@@ -57,7 +75,7 @@
  }
  function open(input,config){
   if(!overlay.hidden)close(false);
-  wheelTap=null;document.activeElement?.blur();
+  stopFade();wheelTap=null;document.activeElement?.blur();
   // Flatten the input and its ancestor backgrounds to the same opaque wheel tint.
   const canvas=document.createElement('canvas');canvas.width=canvas.height=1;const ctx=canvas.getContext('2d');
   ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--c-bg').trim()||'#000';ctx.fillRect(0,0,1,1);
@@ -85,11 +103,11 @@
   if(!wheelTap || (!wheelTap.moved && Math.abs(list.scrollTop-wheelTap.scrollTop)<2))close(true);
   wheelTap=null;
  });
- list.addEventListener('scroll',()=>{cancelAnimationFrame(paintFrame);paintFrame=requestAnimationFrame(paint);},{passive:true});
+ list.addEventListener('scroll',()=>{cancelAnimationFrame(paintFrame);paintFrame=requestAnimationFrame(paint);scheduleFade();},{passive:true});
  list.addEventListener('keydown',event=>{
   let index=selected;
   if(event.key==='ArrowDown')index++;else if(event.key==='ArrowUp')index--;else if(event.key==='Home')index=0;else if(event.key==='End')index=values.length-1;else return;
-  event.preventDefault();list.scrollTop=Math.max(0,Math.min(values.length-1,index))*rowSize;paint();
+  event.preventDefault();list.scrollTop=Math.max(0,Math.min(values.length-1,index))*rowSize;paint();scheduleFade();
  });
  overlay.addEventListener('click',event=>{if(event.target===overlay)close(true);});
  overlay.addEventListener('touchmove',event=>{if(!event.target.closest('.record-wheel-list') && event.cancelable)event.preventDefault();},{passive:false});
@@ -114,7 +132,7 @@
  }
  function end(){
   if(!gesture)return;const g=gesture;cancelGesture();
-  if(g.fired){paint();list.classList.remove('is-direct-drag');list.scrollTop=selected*rowSize;list.focus({preventScroll:true});}
+  if(g.fired){paint();list.classList.remove('is-direct-drag');list.scrollTop=selected*rowSize;list.focus({preventScroll:true});scheduleFade();}
   if(!g.fired && !g.cancelled){g.input.dispatchEvent(new Event('mf-short-tap'));if(document.activeElement!==g.input)g.input.focus({preventScroll:true});}
  }
  for(const config of configs){
