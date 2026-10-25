@@ -5,7 +5,10 @@
  const style=document.createElement('style');style.textContent=`
  .record-wheel-overlay{position:fixed;inset:0;z-index:300000;background:transparent;overscroll-behavior:contain;}
  .record-wheel-overlay[hidden]{display:none;}
- .record-wheel-overlay.is-fading{opacity:0;transition:opacity .6s linear;}
+ .record-wheel-overlay.is-fading .record-wheel-sheet::before,
+ .record-wheel-overlay.is-fading .record-wheel-window::before,
+ .record-wheel-overlay.is-fading .record-wheel-option:not([aria-selected=true]){opacity:0;transition:opacity .6s linear;}
+ .record-wheel-overlay.is-fading .record-wheel-option[aria-selected=true]{font-size:var(--wheel-source-font-size,18px);font-weight:var(--wheel-source-font-weight,400);transition:font-size .6s linear,font-weight .6s linear;}
  .record-wheel-sheet{--record-wheel-row:44px;--wheel-safe-top:env(safe-area-inset-top,0px);--wheel-safe-bottom:env(safe-area-inset-bottom,0px);position:fixed;box-sizing:border-box;color:var(--c-text-primary,#fff);animation:record-wheel-unfold .18s cubic-bezier(.22,1,.36,1) both;}
  .record-wheel-sheet::before{content:'';position:absolute;inset:0;background:var(--wheel-fill,#202020);opacity:.5;pointer-events:none;-webkit-mask-image:linear-gradient(transparent,#000 25%,#000 calc(50% - var(--wheel-input-height)/2),transparent calc(50% - var(--wheel-input-height)/2),transparent calc(50% + var(--wheel-input-height)/2),#000 calc(50% + var(--wheel-input-height)/2),#000 75%,transparent);mask-image:linear-gradient(transparent,#000 25%,#000 calc(50% - var(--wheel-input-height)/2),transparent calc(50% - var(--wheel-input-height)/2),transparent calc(50% + var(--wheel-input-height)/2),#000 calc(50% + var(--wheel-input-height)/2),#000 75%,transparent);}
  @keyframes record-wheel-unfold{from{clip-path:inset(42.85% 0);opacity:.3;}to{clip-path:inset(0);opacity:1;}}
@@ -82,6 +85,7 @@
   const layers=[];for(let el=input;el;el=el.parentElement)layers.push(getComputedStyle(el).backgroundColor);
   layers.reverse().forEach(color=>{ctx.fillStyle=color;ctx.fillRect(0,0,1,1);});
   const [red,green,blue]=ctx.getImageData(0,0,1,1).data;sheet.style.setProperty('--wheel-fill',`rgb(${red},${green},${blue})`);
+  const inputStyle=getComputedStyle(input);sheet.style.setProperty('--wheel-source-font-size',inputStyle.fontSize);sheet.style.setProperty('--wheel-source-font-weight',inputStyle.fontWeight);
   source=input;input.style.opacity='';input.classList.add('record-wheel-source');
   const [,step,min,max,title,unit]=config;values=Array.from({length:(max-min)/step+1},(_,i)=>min+i*step);
   const current=Number.parseFloat(input.value);selected=Number.isFinite(current)?Math.max(0,Math.min(values.length-1,Math.round((current-min)/step))):0;
