@@ -45,7 +45,12 @@ try:
    assert overlay.is_visible()
    assert weight.input_value()=='50' and page.evaluate('records.bench.length')==before
    chosen=page.locator('.record-wheel-option[aria-selected="true"]').inner_text()
-   page.touchscreen.tap(5,200);assert overlay.is_hidden() and weight.input_value()==chosen
+   page.touchscreen.tap(5,200);assert overlay.is_visible()
+   page.wait_for_timeout(120)
+   fade_opacity=float(page.locator('.record-wheel-sheet').evaluate("el=>getComputedStyle(el,'::before').opacity"))
+   assert 0<fade_opacity<.5 and page.locator('.record-wheel-option[aria-selected="true"]').evaluate('el=>getComputedStyle(el).opacity')=='1'
+   assert page.locator('#recordAdd').evaluate("el=>{const r=el.getBoundingClientRect();return !!document.elementFromPoint(r.x+r.width/2,r.y+r.height/2).closest('.record-wheel-overlay')}")
+   page.wait_for_timeout(230);assert overlay.is_hidden() and weight.input_value()==chosen
    assert not weight.evaluate('el=>el===document.activeElement')
    assert weight.evaluate("el=>getComputedStyle(el.closest('.recordFloatBar')).outlineStyle")=='none'
    assert page.evaluate('records.bench.length')==before
@@ -57,7 +62,7 @@ try:
    assert overlay.is_visible() and int(page.locator('.record-wheel-option[aria-selected="true"]').inner_text())>7
    wheel.focus();page.keyboard.press('Home');assert page.locator('.record-wheel-option[aria-selected="true"]').inner_text()=='1'
    page.keyboard.press('ArrowDown');assert page.locator('.record-wheel-option[aria-selected="true"]').inner_text()=='2'
-   page.mouse.click(5,200);assert reps.input_value()=='2'
+   page.mouse.click(5,200);page.wait_for_timeout(350);assert reps.input_value()=='2'
    for light in [True,False]:
     page.evaluate('(v)=>applyLightMode(v)',light)
     r=weight.bounding_box();x=r['x']+r['width']/2;y=r['y']+r['height']/2
@@ -120,7 +125,7 @@ try:
    page.evaluate("openExerciseDetail('휠 테스트');document.getElementById('acc-weight').value='25'")
    acc=page.locator('#acc-weight');r=acc.bounding_box();mouse_open(r['x']+20,r['y']+20)
    assert overlay.is_visible();wheel.evaluate("el=>el.scrollTop=8*parseFloat(getComputedStyle(el).getPropertyValue('--record-wheel-row'))");page.wait_for_timeout(80)
-   page.mouse.click(5,200);assert acc.input_value()=='40' and page.evaluate("accRecordsByExercise['휠 테스트'].length")==0
+   page.mouse.click(5,200);page.wait_for_timeout(350);assert acc.input_value()=='40' and page.evaluate("accRecordsByExercise['휠 테스트'].length")==0
    print('PASS: same-finger touch/mouse hold-drag, seven rows, no buttons, inline geometry, outside apply, keyboard/escape, short taps and explicit saves')
    c.close()
   b.close()
