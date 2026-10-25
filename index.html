@@ -13251,7 +13251,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.117";
+const APP_VERSION = "1.0.118";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -25628,7 +25628,7 @@ try {
  <div class="push-test-content">
   <div style="display:flex;align-items:center;gap:16px;"><button id="pushTestCloseBtn" aria-label="알림 테스트 닫기">‹</button><h2 id="pushTestTitle">알림 테스트</h2></div>
   <p>아이폰은 iOS 16.4 이상에서 홈 화면에 추가한 앱으로 열어주세요. 운동 리마인더는 아직 발송하지 않습니다.</p>
-  <div class="push-test-actions"><button id="pushPermissionBtn">알림 허용</button><button id="pushLocalTestBtn" disabled>기기 테스트 알림</button></div>
+  <div class="push-test-actions"><button id="pushPermissionBtn">알림 허용</button><button id="pushLocalTestBtn" disabled>기기 테스트 알림</button><button id="pushCheckBtn" disabled>연결 상태 확인</button></div>
   <p>기기 테스트는 알림 표시만 확인합니다. 앱을 닫았을 때의 원격 푸시는 아래에서 따로 확인해주세요.</p>
   <div id="pushTestStatus" role="status" aria-live="polite"></div>
   <details>
@@ -25637,6 +25637,8 @@ try {
    <label for="pushVapidKey">공개 VAPID 키</label>
    <input id="pushVapidKey" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="웹 푸시 인증서의 공개 키">
    <button id="pushRegisterBtn" disabled>이 기기 푸시 등록</button>
+   <p>전송해도 수신되지 않으면 아래 버튼으로 이 기기의 푸시 연결만 새로 만들 수 있습니다. 기존 토큰은 사용할 수 없게 되므로 새 토큰을 복사해 전송해주세요. 운동 기록과 로그인은 유지됩니다.</p>
+   <button id="pushRenewBtn" disabled>푸시 연결 다시 만들기</button>
    <p>등록 후 아래 토큰을 Firebase의 메시지 작성 → 알림 → 테스트 메시지 전송 → FCM 등록 토큰에 붙여넣으세요. 앱을 닫거나 화면을 잠근 뒤 전송하면 실제 수신을 확인할 수 있습니다.</p>
    <label for="pushDeviceToken">이 기기의 FCM 등록 토큰</label>
    <textarea id="pushDeviceToken" readonly aria-label="이 기기의 FCM 등록 토큰"></textarea>
@@ -25645,6 +25647,6 @@ try {
   </details>
  </div>
 </section>
-<script src="/js/push-test.js?v=1.0.117"></script>
+<script src="/js/push-test.js?v=1.0.118"></script>
 </body>
 </html>

@@ -14,10 +14,10 @@ try:
    context.route('https://**/*',lambda r:r.fulfill(body=fixture if '/firebase-app-compat.js' in r.request.url else '',content_type='application/javascript'))
    page=context.new_page();page.on('pageerror',lambda e:print('PAGE ERROR',e));page.goto('http://127.0.0.1:8201/');page.wait_for_timeout(700)
    page.evaluate("""()=>{
-    window.permissionCalls=0;window.localNotices=[];window.tokenCalls=0;
+    window.permissionCalls=0;window.localNotices=[];window.tokenCalls=0;window.deleteCalls=0;window.pushReceipt=null;window.pushSubscription={};
     window.Notification={permission:'default',requestPermission:async()=>{permissionCalls++;Notification.permission='granted';return 'granted';}};
-    navigator.serviceWorker.getRegistration=async()=>({active:{},showNotification:async(title,options)=>localNotices.push({title,...options})});
-    firebase.messaging=()=>({getToken:async options=>{tokenCalls++;if(!options.serviceWorkerRegistration.active)throw Error('missing existing worker');return 'fixture-only-device-token';}});
+    navigator.serviceWorker.getRegistration=async()=>({active:{postMessage:(message,ports)=>ports[0].postMessage({pushReady:true,workerVersion:'fixture-worker',receipt:pushReceipt})},pushManager:{getSubscription:async()=>pushSubscription},showNotification:async(title,options)=>localNotices.push({title,...options})});
+    firebase.messaging=()=>({getToken:async options=>{tokenCalls++;if(!options.serviceWorkerRegistration.active)throw Error('missing existing worker');return deleteCalls?'fixture-new-device-token':'fixture-only-device-token';},deleteToken:async()=>{deleteCalls++;return true;}});
     Object.defineProperty(navigator,'clipboard',{value:{writeText:async value=>window.copied=value},configurable:true});
    }""")
    page.evaluate('document.getElementById("openSettingsBtn").click()');page.wait_for_timeout(350)
@@ -34,6 +34,23 @@ try:
    page.locator('#pushCopyTokenBtn').click();assert page.evaluate('copied')=='fixture-only-device-token'
    assert page.evaluate("localStorage.getItem('mf_push_vapid_public_v1')")==key
    assert not page.evaluate("Object.values(localStorage).some(v=>v.includes('fixture-only-device-token'))")
+   page.locator('#pushCheckBtn').click();page.wait_for_timeout(100)
+   assert '아직 원격 푸시를 받은 기록은 없습니다' in page.locator('#pushTestStatus').inner_text()
+   page.evaluate('pushReceipt={receivedAt:Date.now(),displayed:true}')
+   page.locator('#pushCheckBtn').click();page.wait_for_timeout(100)
+   assert '도착했고' in page.locator('#pushTestStatus').inner_text()
+   page.evaluate('pushReceipt={receivedAt:Date.now(),displayed:false}')
+   page.locator('#pushCheckBtn').click();page.wait_for_timeout(100)
+   assert '표시에 실패' in page.locator('#pushTestStatus').inner_text()
+   page.evaluate('pushSubscription=null');page.locator('#pushCheckBtn').click();page.wait_for_timeout(100)
+   assert '구독이 없습니다' in page.locator('#pushTestStatus').inner_text()
+   page.evaluate("pushSubscription={options:{applicationServerKey:new Uint8Array([4,...Array(64).fill(1)]).buffer}}")
+   page.locator('#pushRegisterBtn').click();page.wait_for_timeout(100)
+   assert '키가 다릅니다' in page.locator('#pushTestStatus').inner_text() and page.locator('#pushDeviceToken').input_value()==''
+   page.evaluate('pushSubscription={}')
+   page.locator('#pushRenewBtn').click();page.wait_for_timeout(100)
+   assert page.evaluate('deleteCalls')==1 and page.locator('#pushDeviceToken').input_value()=='fixture-new-device-token'
+
    page.locator('#pushTestCloseBtn').click();assert page.locator('#pushTestOverlay').is_hidden()
    page.evaluate("Notification.permission='denied'");page.locator('#pushTestMenuBtn').click()
    assert page.locator('#pushRegisterBtn').is_disabled() and '차단' in page.locator('#pushTestStatus').inner_text()

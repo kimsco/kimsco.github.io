@@ -1,4 +1,4 @@
-const CACHE = "mf-v147"; // 🔥 아래 food-db-full.json 삭제 + 로고 이미지가 그동안 세 차례 더
+const CACHE = "mf-v148"; // 🔥 아래 food-db-full.json 삭제 + 로고 이미지가 그동안 세 차례 더
                          // 교체(#764/#765/#768)됐지만 이 캐시 이름을 안 올려서 새 서비스워커가
                          // 설치되지 않고 있었음(바로 아래 참고) — 올려서 처음부터 다시 받아오게 함
 const ASSETS = [
@@ -11,7 +11,7 @@ const ASSETS = [
   "/js/history-pages.js?v=1.0.73",
   "/js/record-sync.js?v=1.0.75",
   "/js/record-wheel.js?v=1.0.116",
-  "/js/push-test.js?v=1.0.117",
+  "/js/push-test.js?v=1.0.118",
   "/js/app-sync.js?v=1.0.75",
   "/js/last-workout.js?v=1.0.30",
   "/js/rest-stopwatch.js?v=1.0.30",
@@ -136,6 +136,19 @@ self.addEventListener("fetch", e => {
   );
 });
 
+const PUSH_RECEIPT_URL='/__ttt_push_receipt';
+async function pushReceipt(value){
+  try{
+    const cache=await caches.open(CACHE);
+    if(value){await cache.put(PUSH_RECEIPT_URL,new Response(JSON.stringify(value),{headers:{'Content-Type':'application/json'}}));return value;}
+    const response=await cache.match(PUSH_RECEIPT_URL);return response?await response.json():null;
+  }catch(_){return null;}
+}
+self.addEventListener('message',event=>{
+  if(event.data?.type!=='TTT_PUSH_HEALTH' || !event.ports?.[0])return;
+  event.waitUntil(pushReceipt().then(receipt=>event.ports[0].postMessage({pushReady:true,workerVersion:CACHE,receipt})));
+});
+
 // FCM delivers standard Web Push to this existing worker; no extra worker or backend.
 self.addEventListener('push',event=>{
   let payload={};try{payload=event.data?.json()||{};}catch(_){}
@@ -144,7 +157,9 @@ self.addEventListener('push',event=>{
   const body=String(notification.body||data.body||'새 알림이 도착했습니다.').slice(0,500);
   let target='/';
   try{const candidate=new URL(payload.fcmOptions?.link||data.url||'/',self.location.origin);if(candidate.origin===self.location.origin)target=candidate.href;}catch(_){}
-  event.waitUntil(self.registration.showNotification(title,{body,icon:'/icons/icon-192.png',tag:payload.fcmMessageId||payload.messageId||'ttt-push',data:{url:target}}));
+  const receivedAt=Date.now();
+  event.waitUntil(self.registration.showNotification(title,{body,icon:'/icons/icon-192.png',tag:payload.fcmMessageId||payload.messageId||'ttt-push',data:{url:target}})
+    .then(()=>pushReceipt({receivedAt,displayed:true}),()=>pushReceipt({receivedAt,displayed:false})));
 });
 self.addEventListener('notificationclick',event=>{
   event.notification.close();let target=new URL('/',self.location.origin);
