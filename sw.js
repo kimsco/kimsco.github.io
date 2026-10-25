@@ -1,4 +1,4 @@
-const CACHE = "mf-v146"; // 🔥 아래 food-db-full.json 삭제 + 로고 이미지가 그동안 세 차례 더
+const CACHE = "mf-v147"; // 🔥 아래 food-db-full.json 삭제 + 로고 이미지가 그동안 세 차례 더
                          // 교체(#764/#765/#768)됐지만 이 캐시 이름을 안 올려서 새 서비스워커가
                          // 설치되지 않고 있었음(바로 아래 참고) — 올려서 처음부터 다시 받아오게 함
 const ASSETS = [
@@ -11,6 +11,7 @@ const ASSETS = [
   "/js/history-pages.js?v=1.0.73",
   "/js/record-sync.js?v=1.0.75",
   "/js/record-wheel.js?v=1.0.116",
+  "/js/push-test.js?v=1.0.117",
   "/js/app-sync.js?v=1.0.75",
   "/js/last-workout.js?v=1.0.30",
   "/js/rest-stopwatch.js?v=1.0.30",
@@ -133,4 +134,25 @@ self.addEventListener("fetch", e => {
       });
     })
   );
+});
+
+// FCM delivers standard Web Push to this existing worker; no extra worker or backend.
+self.addEventListener('push',event=>{
+  let payload={};try{payload=event.data?.json()||{};}catch(_){}
+  const notification=payload.notification||{},data=payload.data||{};
+  const title=String(notification.title||data.title||'TTT 알림').slice(0,120);
+  const body=String(notification.body||data.body||'새 알림이 도착했습니다.').slice(0,500);
+  let target='/';
+  try{const candidate=new URL(payload.fcmOptions?.link||data.url||'/',self.location.origin);if(candidate.origin===self.location.origin)target=candidate.href;}catch(_){}
+  event.waitUntil(self.registration.showNotification(title,{body,icon:'/icons/icon-192.png',tag:payload.fcmMessageId||payload.messageId||'ttt-push',data:{url:target}}));
+});
+self.addEventListener('notificationclick',event=>{
+  event.notification.close();let target=new URL('/',self.location.origin);
+  try{const candidate=new URL(event.notification.data?.url||'/',self.location.origin);if(candidate.origin===self.location.origin)target=candidate;}catch(_){}
+  event.waitUntil((async()=>{
+    const windows=await self.clients.matchAll({type:'window',includeUncontrolled:true});
+    const app=windows.find(client=>{try{return new URL(client.url).origin===self.location.origin;}catch(_){return false;}});
+    if(app){if('navigate'in app&&app.url!==target.href)await app.navigate(target.href);return app.focus();}
+    return self.clients.openWindow(target.href);
+  })());
 });
