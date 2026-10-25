@@ -86,8 +86,12 @@ try:
    # Idle: wait 0.6s, fade for 0.6s, then commit. The overlay still receives touches while fading.
    r=weight.bounding_box();mouse_open(r['x']+20,r['y']+20)
    page.wait_for_timeout(800)
-   opacity=float(overlay.evaluate('el=>getComputedStyle(el).opacity'))
-   assert overlay.is_visible() and 0<opacity<1,opacity
+   opacity=float(page.locator('.record-wheel-sheet').evaluate("el=>getComputedStyle(el,'::before').opacity"))
+   assert overlay.is_visible() and 0<opacity<.5,opacity
+   assert overlay.evaluate('el=>getComputedStyle(el).opacity')=='1'
+   assert page.locator('.record-wheel-option[aria-selected="true"]').evaluate('el=>getComputedStyle(el).opacity')=='1'
+   faded=page.locator('.record-wheel-option').nth(11).evaluate('el=>getComputedStyle(el).opacity')
+   assert 0<float(faded)<.5,faded
    assert page.locator('#recordAdd').evaluate("el=>{const r=el.getBoundingClientRect();return !!document.elementFromPoint(r.x+r.width/2,r.y+r.height/2).closest('.record-wheel-overlay')}")
    chosen=page.locator('.record-wheel-option[aria-selected="true"]').inner_text()
    page.wait_for_timeout(700);assert overlay.is_hidden() and weight.input_value()==chosen
