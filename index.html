@@ -10858,9 +10858,6 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
   </button>
   <p id="notificationPermissionHint" hidden role="status" style="margin:0;padding:0 16px 12px;color:var(--c-text-secondary);font-size:13px;line-height:1.6;"></p>
 </div>
-<div class="settings-card settings-card--flush">
-  <button id="pushTestMenuBtn" class="settings-item" style="width:100%;text-align:left;background:none;color:var(--c-text-primary);border:0;cursor:pointer;">알림 테스트 <span style="margin-left:auto;">›</span></button>
-</div>
 
 <!-- ✅ 카드 3: 일반 -->
 <div class="settings-section-label">일반</div>
@@ -11048,6 +11045,7 @@ MuscleFlow는 개인의 운동 및 식단 기록을 관리하는 PWA 서비스�
 [수집하는 정보]
 - 이메일 (Google에서 제공)
 - 사용자 ID (Firebase가 생성)
+- 알림 허용 시 기기별 FCM 토큰과 기기 구분 정보(알림 연결용)
 - 운동 기록 (사용자가 직접 입력: 운동명, 무게, 반복, 세트, 날짜)
 - 식단 기록 (사용자가 직접 입력: 음식명, 단백질, 탄수화물, 지방, 날짜)
 
@@ -11061,6 +11059,7 @@ MuscleFlow는 개인의 운동 및 식단 기록을 관리하는 PWA 서비스�
 - AI 챗봇 질문 응답 (질문만 전송, 개인정보 미포함)
 - 통계 및 차트 데이터 생성
 - 서비스 오류 분석 및 개선
+- 알림을 허용한 기기에 알림을 전달하기 위한 연결 관리
 
 [정보 보호]
 - Firebase Security Rules로 사용자 본인의 데이터만 접근 가능
@@ -11073,6 +11072,7 @@ MuscleFlow는 개인의 운동 및 식단 기록을 관리하는 PWA 서비스�
 
 [제3자 제공]
 - Google Firestore (데이터 저장, 필수)
+- Firebase Cloud Messaging (알림 허용 시 기기 등록 및 알림 전달)
 - Cloudflare Workers (AI 챗봇 프록시)
 - 그 외 제3자에 제공하지 않습니다
         </div>
@@ -11270,7 +11270,7 @@ MuscleFlow는 개인의 운동 및 식단 기록을 관리하는 PWA 서비스�
 <script src="https://www.gstatic.com/firebasejs/13.0.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/13.0.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore-compat.js"></script>
-<script src="/js/sync.js?v=1.0.73"></script>
+<script src="/js/sync.js?v=1.0.122"></script>
 <script src="/js/last-workout.js?v=1.0.30"></script>
 <script src="/js/read-cache.js?v=1.0.30"></script>
 <script src="/js/history-pages.js?v=1.0.73"></script>
@@ -13257,7 +13257,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.121";
+const APP_VERSION = "1.0.122";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -13301,7 +13301,7 @@ if (copySiteUrlBtn) {
 
 /* 로그인 (구글) — 실제 로그인 버튼(설정 화면)이 쓰는 doGoogleLogin()과 동일 로직 재사용 */
 googleLoginBtn.addEventListener('click', () => doGoogleLogin());
-logoutBtn.addEventListener('click', ()=> auth.signOut());
+logoutBtn.addEventListener('click', async()=>{await window.MFNotifications?.detach();await auth.signOut();});
 
 // ✅ 회원 탈퇴 버튼 (설정 화면, 로그아웃 바로 아래)
 // 🔥 설정 화면이 열려있는 동안(.app이 push/fade된 상태) 그 위에 뜨는 모달이라
@@ -13338,6 +13338,8 @@ async function deleteUserAccount() {
     // Check recent-login requirements before erasing any data. Popup cancellation is harmless.
     await user.reauthenticateWithPopup(new firebase.auth.GoogleAuthProvider());
     const checkIdentity = () => { if (auth.currentUser?.uid !== user.uid) throw new Error('계정이 변경되었습니다.'); };
+    checkIdentity();
+    await window.MFNotifications?.detach();
     checkIdentity();
     deletionStarted = true;
     const bounded = promise => Promise.race([promise, new Promise((_,reject) => setTimeout(() => reject(new Error('동기화 대기 시간 초과')), 20000))]);
@@ -22765,6 +22767,7 @@ logoutCancel.addEventListener("click", () => {
 
 logoutConfirm.addEventListener("click", async () => {
   logoutModal.classList.add("hidden");
+  await window.MFNotifications?.detach();
   await auth.signOut();
   closeSettings();
 });
@@ -25616,48 +25619,8 @@ try {
 </script>
 
 <script src="/js/record-wheel.js?v=1.0.116"></script>
-<style>
-#pushTestOverlay[hidden]{display:none;}
-#pushTestOverlay{position:fixed;inset:0;z-index:400000;background:var(--c-bg,#000);color:var(--c-text-primary,#fff);overflow:auto;overscroll-behavior:contain;}
-.push-test-content{box-sizing:border-box;width:min(100%,390px);margin:auto;padding:max(18px,env(safe-area-inset-top)) 20px max(30px,env(safe-area-inset-bottom));font-size:14px;line-height:1.65;}
-.push-test-content h2{font-size:20px;margin:0;}
-.push-test-content p{color:var(--c-text-secondary,#999);}
-.push-test-content button{padding:12px 16px;border:1px solid var(--c-border,#444);border-radius:14px;background:var(--c-bg-elevated,#181818);color:inherit;font:inherit;cursor:pointer;}
-.push-test-content button:disabled{opacity:.4;cursor:default;}
-.push-test-actions{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0;}
-.push-test-content input,.push-test-content textarea{box-sizing:border-box;width:100%;margin:8px 0;padding:12px;border:1px solid var(--c-border,#444);border-radius:12px;background:var(--c-bg-elevated,#181818);color:inherit;font-size:16px;user-select:text;-webkit-user-select:text;}
-.push-test-content textarea{min-height:90px;resize:vertical;}
-.push-test-content summary{cursor:pointer;margin-top:24px;}
-#pushTestStatus{min-height:48px;margin-top:20px;}
-/* 🔥 뒤로가기(‹)는 다른 액션 버튼들과 같은 테두리+배경을 받으면 안 되는데
-   .push-test-content button{...} 규칙이 전부 다 걸어버려서, 설정 화면의
-   #closeSettingsBtn과 동일하게(글자만 있는 뒤로가기) 별도로 다시 지정 */
-#pushTestCloseBtn{all:unset;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:30px;line-height:1;color:var(--c-text-primary,#eee);cursor:pointer;border-radius:8px;flex-shrink:0;}
-#pushTestCloseBtn:active{transform:scale(0.92);background:rgba(var(--c-ink-rgb),0.06);}
-</style>
-<section id="pushTestOverlay" hidden role="dialog" aria-modal="true" aria-labelledby="pushTestTitle">
- <div class="push-test-content">
-  <div style="display:flex;align-items:center;gap:2px;margin-bottom:14px;"><button id="pushTestCloseBtn" aria-label="알림 테스트 닫기">‹</button><h2 class="settings-header-title" id="pushTestTitle" style="margin:0;">알림 테스트</h2></div>
-  <p>아이폰은 iOS 16.4 이상에서 홈 화면에 추가한 앱으로 열어주세요. 운동 리마인더는 아직 발송하지 않습니다.</p>
-  <div class="push-test-actions"><button id="pushPermissionBtn">알림 허용</button><button id="pushLocalTestBtn" disabled>기기 테스트 알림</button><button id="pushCheckBtn" disabled>연결 상태 확인</button></div>
-  <p>기기 테스트는 알림 표시만 확인합니다. 앱을 닫았을 때의 원격 푸시는 아래에서 따로 확인해주세요.</p>
-  <div id="pushTestStatus" role="status" aria-live="polite"></div>
-  <details>
-   <summary>원격 푸시 테스트 준비</summary>
-   <p>Firebase → 프로젝트 설정 → Cloud Messaging → 웹 푸시 인증서에서 키 쌍을 생성하고 공개 키를 입력하세요. 비공개 키나 서비스 계정 파일은 필요 없습니다.</p>
-   <label for="pushVapidKey">공개 VAPID 키</label>
-   <input id="pushVapidKey" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="웹 푸시 인증서의 공개 키">
-   <button id="pushRegisterBtn" disabled>이 기기 푸시 등록</button>
-   <p>전송해도 수신되지 않으면 아래 버튼으로 이 기기의 푸시 연결만 새로 만들 수 있습니다. 기존 토큰은 사용할 수 없게 되므로 새 토큰을 복사해 전송해주세요. 운동 기록과 로그인은 유지됩니다.</p>
-   <button id="pushRenewBtn" disabled>푸시 연결 다시 만들기</button>
-   <p>등록 후 아래 토큰을 Firebase의 메시지 작성 → 알림 → 테스트 메시지 전송 → FCM 등록 토큰에 붙여넣으세요. 앱을 닫거나 화면을 잠근 뒤 전송하면 실제 수신을 확인할 수 있습니다.</p>
-   <label for="pushDeviceToken">이 기기의 FCM 등록 토큰</label>
-   <textarea id="pushDeviceToken" readonly aria-label="이 기기의 FCM 등록 토큰"></textarea>
-   <button id="pushCopyTokenBtn" disabled>토큰 복사</button>
-   <p>공개 키만 이 기기에 저장하며, 토큰과 운동 기록을 별도 서버에 저장하지 않습니다. 토큰은 테스트 전송에만 사용해주세요.</p>
-  </details>
- </div>
-</section>
-<script src="/js/push-test.js?v=1.0.121"></script>
+<script src="/js/push-config.js?v=1.0.122"></script>
+<script src="/js/push-devices.js?v=1.0.122"></script>
+<script src="/js/push.js?v=1.0.122"></script>
 </body>
 </html>
