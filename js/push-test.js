@@ -20,7 +20,7 @@
   const permission='Notification'in window?Notification.permission:'unsupported',granted=permission==='granted';
   if(renderedPermission!==null&&renderedPermission!==permission&&!busy)permissionNotice('');
   renderedPermission=permission;
-  permissionState.textContent=granted?'알림 허용':'알림 미허용';
+  permissionState.textContent=granted?'허용됨':'미허용';
   permissionBox.setAttribute('aria-label',granted?'알림 허용. 알림 권한 설정 안내':'알림 미허용. 눌러서 알림 허용');
   permissionBox.setAttribute('aria-busy',String(busy));permissionBox.disabled=busy;
  }
