@@ -5,7 +5,7 @@ const fs=require('node:fs');
 function fixture(){
  const listeners={},notifications=[],opened=[],receiptStore=new Map();
  const self={location:{origin:'https://example.test'},registration:{showNotification:async(title,options)=>notifications.push({title,...options})},clients:{matchAll:async()=>[],openWindow:async url=>opened.push(url)}};
- self.addEventListener=(name,listener)=>listeners[name]=listener;
+ self.addEventListener=(name,listener)=>{const previous=listeners[name];listeners[name]=previous?event=>{previous(event);listener(event);}:listener;};
  const caches={open:async()=>({put:async(key,value)=>receiptStore.set(key,value),match:async key=>receiptStore.get(key)?.clone()})};
  vm.runInNewContext(fs.readFileSync('sw.js','utf8'),{self,URL,caches,Response});
  return {self,listeners,notifications,opened,receiptStore};
@@ -38,4 +38,19 @@ test('logged-out or different-account pushes hide account-specific content',asyn
  f.listeners.message({data:{type:'TTT_PUSH_SESSION',uid:'bob'},waitUntil:p=>work=p});await work;
  f.listeners.push({data:{json:()=>payload},waitUntil:p=>work=p});await work;
  assert.ok(!JSON.stringify(f.notifications[1]).includes('private'));
+});
+
+test('diagnostics records receipt and display success without message contents',async()=>{
+ const f=fixture();let work,result;
+ f.listeners.push({data:{json:()=>({notification:{title:'secret',body:'private'}})},waitUntil:p=>work=p});await work;
+ f.listeners.message({data:{type:'TTT_PUSH_DIAGNOSTICS'},ports:[{postMessage:value=>result=value}],waitUntil:p=>work=p});await work;
+ assert.equal(result.worker,'mf-v152');assert.equal(result.receipt.status,'shown');assert.ok(result.receipt.receivedAt>0);
+ assert.ok(!JSON.stringify(result).includes('private'));assert.ok(!JSON.stringify(result).includes('secret'));
+});
+test('diagnostics preserves notification failure name',async()=>{
+ const f=fixture();let work,result;
+ f.self.registration.showNotification=async()=>{throw Object.assign(new Error('sensitive detail'),{name:'NotAllowedError'});};
+ f.listeners.push({data:null,waitUntil:p=>work=p});await assert.rejects(work);
+ f.listeners.message({data:{type:'TTT_PUSH_DIAGNOSTICS'},ports:[{postMessage:value=>result=value}],waitUntil:p=>work=p});await work;
+ assert.equal(result.receipt.status,'failed');assert.equal(result.receipt.errorName,'NotAllowedError');assert.ok(!JSON.stringify(result).includes('sensitive'));
 });
