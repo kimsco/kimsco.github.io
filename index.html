@@ -10854,7 +10854,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
 <div class="settings-section-label">알림</div>
 <div class="settings-card settings-card--flush">
   <button id="notificationPermissionBox" class="settings-item" aria-describedby="notificationPermissionHint" style="width:100%;text-align:left;background:none;color:var(--c-text-primary);border:0;cursor:pointer;justify-content:space-between;">
-    <span id="notificationPermissionState" aria-live="polite">알림 미허용</span><span aria-hidden="true">›</span>
+    <span>알림</span><span id="notificationPermissionState" aria-live="polite" style="margin-left:auto;color:var(--c-text-secondary);white-space:nowrap;">미허용</span>
   </button>
   <p id="notificationPermissionHint" hidden role="status" style="margin:0;padding:0 16px 12px;color:var(--c-text-secondary);font-size:13px;line-height:1.6;"></p>
 </div>
@@ -13257,7 +13257,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.120";
+const APP_VERSION = "1.0.121";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -25658,6 +25658,6 @@ try {
   </details>
  </div>
 </section>
-<script src="/js/push-test.js?v=1.0.120"></script>
+<script src="/js/push-test.js?v=1.0.121"></script>
 </body>
 </html>
