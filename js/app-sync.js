@@ -34,6 +34,7 @@
       online: () => navigator.onLine,
       onChange: (uid,state,error) => {
         if (uid !== auth.currentUser?.uid) return;
+        if(!Object.values(state.ops).some(op=>recordCollections.has(op.collection)))root.dispatchEvent(new Event('mf-reminder-outbox'));
         const hasCalendar=Object.values(state.ops).some(op=>op.collection==='calendar');
         if(hasCalendar || calendarPending) root.dispatchEvent(new Event('mf-last-workout-change'));
         calendarPending=hasCalendar;

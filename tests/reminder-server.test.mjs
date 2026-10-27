@@ -1,0 +1,122 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {DatabaseSync} from 'node:sqlite';
+import {readFileSync} from 'node:fs';
+import {createStore, runReminder, koreaDay, TEXT} from '../reminder-server/core.mjs';
+import {createHandler, validSubscription} from '../reminder-server/worker.mjs';
+import {buildPushPayload} from '../reminder-server/node_modules/@block65/webcrypto-web-push/dist/lib/main.js';
+const TIME = Date.parse('2026-10-27T13:00:00Z'), DAY = '2026-10-27', BASIS = '2026-10-27T12:59:00.000000001Z';
+const b64 = bytes => Buffer.from(bytes).toString('base64url');
+const subscription = id => ({endpoint: 'https://web.push.apple.com/' + id, keys: {p256dh: b64([4, ...new Uint8Array(64)]), auth: b64(new Uint8Array(16))}});
+function fixture() {
+ const sqlite = new DatabaseSync(':memory:');sqlite.exec(readFileSync(new URL('../reminder-server/schema.sql',import.meta.url),'utf8'));
+ function prepare(sql) {
+  let values = [];
+  const statement = {bind: (...args) => {values=args;return statement;},
+   run: async () => {const result=sqlite.prepare(sql).run(...values);return {meta:{changes:Number(result.changes)}};},
+   first: async () => sqlite.prepare(sql).get(...values)||null,
+   all: async () => ({results:sqlite.prepare(sql).all(...values)})};return statement;
+ }
+ let batches=Promise.resolve();
+ const db = {prepare,batch: statements => {const work=batches.catch(()=>{}).then(async()=>{sqlite.exec('BEGIN');try{const values=[];for(const s of statements)values.push(await s.run());sqlite.exec('COMMIT');return values;}catch(error){sqlite.exec('ROLLBACK');throw error;}});batches=work;return work;}};
+ const store=createStore(db), sent=[];
+ const send=async(sub,payload)=>{sent.push({sub,payload});return {status:201};};
+ const run=(overrides={})=>runReminder({store,send,time:TIME,enabled:true,...overrides});
+ return {store,db,sqlite,sent,send,run};
+}
+test('Korean day boundary is independent of server timezone',()=>{
+ assert.equal(koreaDay(Date.parse('2026-10-27T14:59:59Z')),'2026-10-27');
+ assert.equal(koreaDay(Date.parse('2026-10-27T15:00:00Z')),'2026-10-28');
+});
+test('22:00 sends exact message only to initialized users without real records',async()=>{
+ const f=fixture();for(const uid of ['inactive','active','unknown'])await f.store.register(uid,'phone',subscription(uid));
+ await f.store.activity('inactive',DAY,false,BASIS);await f.store.activity('active',DAY,true,BASIS);
+ const result=await f.run();assert.equal(result.accepted,1);assert.equal(f.sent[0].payload.data.receiverUid,'inactive');
+ assert.equal(f.sent[0].payload.notification.body,TEXT);assert.ok(!JSON.stringify(f.sent).includes('active/'));
+});
+test('unconfigured/off-hours schedule never sends',async()=>{
+ const f=fixture();await f.store.register('u','p',subscription('a'));await f.store.activity('u',DAY,false,BASIS);
+ await f.run({enabled:false});await f.run({time:TIME-3600000});assert.equal(f.sent.length,0);
+});
+test('prior-day workout does not suppress today; unopened initialized app can receive',async()=>{
+ const f=fixture();await f.store.register('u','p',subscription('a'));await f.store.activity('u','2026-10-26',true,'2026-10-26T12:00:00Z');
+ assert.equal((await f.run()).accepted,1);
+});
+test('last set deletion reverses true, while older other-phone updates cannot overwrite it',async()=>{
+ const f=fixture();await f.store.register('u','p',subscription('a'));await f.store.activity('u',DAY,true,BASIS);
+ assert.equal((await f.run()).accepted,0);
+ await f.store.activity('u',DAY,false,'2026-10-27T12:59:01.000000001Z');
+ await f.store.activity('u',DAY,true,'2026-10-27T12:59:00.999999999Z');
+ assert.equal((await f.run()).accepted,1);
+});
+test('a local bodyweight routine on one phone cannot be erased by another phones cloud-record summary',async()=>{
+ const f=fixture();await f.store.register('u','iphone',subscription('a'));
+ await f.store.activity('u',DAY,false,BASIS,'first-phone',true);
+ await f.store.activity('u',DAY,false,'2026-10-27T12:59:01Z','second-phone',false);
+ assert.equal((await f.run()).accepted,0);
+ await f.store.activity('u',DAY,false,'2026-10-27T12:59:02Z','first-phone',false);
+ assert.equal((await f.run()).accepted,1);
+});
+test('same device/day is delivered once across repeated/concurrent jobs and reconnects',async()=>{
+ const f=fixture();await f.store.register('u','p',subscription('a'));await f.store.activity('u',DAY,false,BASIS);
+ await Promise.all([f.run(),f.run()]);await f.store.register('u','p',subscription('new'));await f.run();assert.equal(f.sent.length,1);
+});
+test('registration and final pre-send activity check are atomic with eligibility',async()=>{
+ const f=fixture();await f.store.register('u','p',subscription('a'));await f.store.activity('u',DAY,false,BASIS);
+ const [candidate]=await f.store.eligible(DAY);
+ await f.store.activity('u',DAY,true,'2026-10-27T12:59:02Z');assert.equal(await f.store.claim(candidate,DAY),null);
+ await f.store.activity('u',DAY,false,'2026-10-27T12:59:03Z');await f.store.register('u','p',subscription('rotated'));
+ assert.equal(await f.store.claim(candidate,DAY),null);
+});
+test('expired endpoints are removed but transient failures are neither deleted nor resent',async()=>{
+ for(const status of [410,404,503]){
+  const f=fixture();await f.store.register('u','p',subscription('a'));await f.store.activity('u',DAY,false,BASIS);
+  await f.run({send:async()=>({status})});await f.run();assert.equal(f.sent.length,0);
+  assert.equal((await f.db.prepare('SELECT COUNT(*) AS n FROM devices').first()).n,status===503?1:0);
+ }
+});
+test('each minute drains next batch without duplicating first ten devices',async()=>{
+ const f=fixture();for(let i=0;i<13;i++){await f.store.register('u'+i,'p',subscription(i));await f.store.activity('u'+i,DAY,false,BASIS);}
+ assert.equal((await f.run()).accepted,10);assert.equal((await f.run({time:TIME+60000})).accepted,3);assert.equal((await f.run({time:TIME+120000})).accepted,0);
+});
+test('API takes UID only from verified token and rejects personal record fields',async()=>{
+ const f=fixture(), handler=createHandler({verify:async()=> 'alice',now:()=>TIME});
+ const request=(path,body,method='POST')=>new Request('https://worker.test'+path,{method,headers:{Origin:'https://kimsco.github.io','Content-Type':'application/json',Authorization:'Bearer test'},body:JSON.stringify(body)});
+ assert.equal((await handler(request('/activity',{day:DAY,hasRecord:true,basis:BASIS,weight:50}),{DB:f.db})).status,400);
+ assert.equal((await handler(request('/activity',{day:DAY,hasRecord:true,basis:BASIS}),{DB:f.db})).status,200);
+ assert.equal((await f.db.prepare('SELECT uid FROM activity').first()).uid,'alice');
+ assert.equal((await handler(request('/activity',{day:'2026-10-26',hasRecord:false,basis:BASIS}),{DB:f.db})).status,400);
+ const denied=createHandler({verify:async()=>{throw Error('bad token');}});
+ assert.equal((await denied(request('/activity',{}),{DB:f.db})).status,401);
+ assert.equal((await handler(new Request('https://worker.test/config',{headers:{Origin:'https://evil.test'}}),{DB:f.db})).status,403);
+});
+test('API removes only the authenticated users device and supports account erasure',async()=>{
+ const f=fixture(), handler=createHandler({verify:async()=> 'alice',now:()=>TIME});
+ await f.store.register('alice','p',subscription('alice'));await f.store.register('bob','p',subscription('bob'));await f.store.activity('alice',DAY,true,BASIS);
+ const request=(path,body)=>new Request('https://worker.test'+path,{method:'DELETE',headers:{Origin:'https://kimsco.github.io'},body:body?JSON.stringify(body):undefined});
+ assert.equal((await handler(request('/device',{id:'p'}),{DB:f.db})).status,200);
+ assert.equal((await f.db.prepare('SELECT uid FROM devices').first()).uid,'bob');
+ await handler(request('/account'),{DB:f.db});assert.equal((await f.db.prepare('SELECT COUNT(*) AS n FROM activity').first()).n,0);
+});
+test('subscription validation forbids arbitrary hosts/credentials/ports and malformed keys',()=>{
+ assert.equal(validSubscription(subscription('a')).endpoint,subscription('a').endpoint);
+ for(const endpoint of ['http://web.push.apple.com/x','https://localhost/x','https://web.push.apple.com.evil.test/x','https://u:p@web.push.apple.com/x','https://web.push.apple.com:8443/x'])assert.throws(()=>validSubscription({...subscription('a'),endpoint}));
+ assert.throws(()=>validSubscription({...subscription('a'),keys:{p256dh:'bad',auth:'bad'}}));
+});
+test('public configuration verifies matching keys and never reveals the private key',async()=>{
+ const f=fixture(),handler=createHandler();
+ const pair=await crypto.subtle.generateKey({name:'ECDSA',namedCurve:'P-256'},true,['sign','verify']);
+ const key=await crypto.subtle.exportKey('jwk',pair.privateKey),publicKey=b64(await crypto.subtle.exportKey('raw',pair.publicKey));
+ const request=()=>new Request('https://worker.test/config',{headers:{Origin:'https://kimsco.github.io'}});
+ const response=await handler(request(),{DB:f.db,VAPID_PUBLIC_KEY:publicKey,VAPID_PRIVATE_KEY:key.d}),result=await response.json();
+ assert.equal(result.ready,true);assert.equal(result.publicKey,publicKey);assert.ok(!JSON.stringify(result).includes(key.d));
+ const broken=await handler(request(),{DB:f.db,VAPID_PUBLIC_KEY:publicKey,VAPID_PRIVATE_KEY:'bad'});assert.equal((await broken.json()).ready,false);
+});
+test('real Web Push library generates Apple-compatible aes128gcm payload and VAPID auth',async()=>{
+ const pair=await crypto.subtle.generateKey({name:'ECDSA',namedCurve:'P-256'},true,['sign','verify']);
+ const privateKey=await crypto.subtle.exportKey('jwk',pair.privateKey),publicKey=await crypto.subtle.exportKey('raw',pair.publicKey);
+ const receiver=await crypto.subtle.generateKey({name:'ECDH',namedCurve:'P-256'},true,['deriveBits']);
+ const sub={endpoint:'https://web.push.apple.com/test',keys:{p256dh:b64(await crypto.subtle.exportKey('raw',receiver.publicKey)),auth:b64(crypto.getRandomValues(new Uint8Array(16)))}};
+ const payload=await buildPushPayload({data:JSON.stringify({notification:{body:TEXT}}),options:{ttl:3600,urgency:'high'}},sub,{subject:'https://kimsco.github.io',publicKey:b64(publicKey),privateKey:privateKey.d});
+ assert.equal(payload.headers['content-encoding'],'aes128gcm');assert.match(payload.headers.authorization,/^vapid t=/);assert.equal(payload.headers.ttl,'3600');assert.equal(payload.body.length,4096);
+});

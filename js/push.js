@@ -35,12 +35,14 @@
    script.onload=()=>{clearTimeout(timer);resolve();};script.onerror=()=>{clearTimeout(timer);script.remove();reject(Error('알림 연결을 불러오지 못했습니다. 인터넷 연결을 확인해주세요.'));};document.head.append(script);
   }).catch(error=>{messagingLoad=null;throw error;});return messagingLoad;
  }
- const registry=MFPushDevices.create({storage:localStorage,currentUid:()=>auth.currentUser?.uid||null,
+ const reminder=MFWorkoutReminder.create({auth,storage:localStorage,config:window.MF_PUSH_CONFIG||{},getWorker:registration,readActivity:(uid,day)=>window.MFReminderRecords?.read(uid,day),syncRecords:()=>window.MFReminderRecords?.sync(),pending:uid=>window.MFReminderRecords?.pending(uid)});
+ const registry=MFPushDevices.create({storage:localStorage,backend:reminder.enabled()?'webpush:'+window.MF_PUSH_CONFIG.reminderApiUrl.replace(/\/$/,''):'firestore',currentUid:()=>auth.currentUser?.uid||null,
   allowed:()=>!supported()&&permission()==='granted'&&!accountDeletionBusy&&!appSync.outbox.isDeleting(auth.currentUser?.uid),online:()=>navigator.onLine,
   lock:(name,fn)=>navigator.locks?navigator.locks.request(name,fn):fn(),
   platform:()=>isiOS()?'ios':/Android/.test(navigator.userAgent)?'android':'web',
   hashToken:async token=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(token)))].map(x=>x.toString(16).padStart(2,'0')).join(''),
   prepareToken:async()=>{
+   if(reminder.enabled())return reminder.prepareToken();
    const vapidKey=publicKey();await loadMessaging();const worker=await registration(),subscription=await worker.pushManager.getSubscription();
    if(subscription?.options?.applicationServerKey){
     const encoded=btoa(String.fromCharCode(...new Uint8Array(subscription.options.applicationServerKey))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
@@ -50,20 +52,21 @@
   },
   unsubscribe:async()=>{const worker=await registration(),subscription=await worker.pushManager.getSubscription();if(subscription){const removed=await bounded(subscription.unsubscribe());if(!removed)throw Error('이전 알림 연결을 해제하지 못했습니다. 다시 시도해주세요.');}},
   saveDevice:async(uid,id,data)=>{
+   if(reminder.enabled())return reminder.register(uid,id,data.token);
    if(auth.currentUser?.uid!==uid||accountDeletionBusy||appSync.outbox.isDeleting(uid))throw Error('계정이 변경되었습니다.');
    await bounded(db.collection('users').doc(uid).collection('pushDevices').doc(id).set({...data,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true}));
   },
-  removeDevice:async(uid,id)=>{if(auth.currentUser?.uid===uid)await bounded(db.collection('users').doc(uid).collection('pushDevices').doc(id).delete());}
+  removeDevice:async(uid,id,backend)=>{if(auth.currentUser?.uid!==uid)return;if(backend.startsWith('webpush:'))await reminder.remove(uid,id,backend.slice(8));else await bounded(db.collection('users').doc(uid).collection('pushDevices').doc(id).delete());}
  });
  function pushOwner(uid){if(lastPushOwner===uid)return;lastPushOwner=uid;void registration().then(worker=>worker.active?.postMessage({type:'TTT_PUSH_SESSION',uid})).catch(()=>{lastPushOwner=undefined;});}
  function sync(changed=false){
-  render();if(changed)pushOwner(null);if(running&&!changed)return running;
+  render();if(changed){reminder.resume();pushOwner(null);}if(running&&!changed)return running;
   const uid=auth.currentUser?.uid||null;
   const task=(changed?registry.accountChanged():registry.sync()).then(()=>{
    if(uid&&auth.currentUser?.uid===uid&&registry.isRegistered()&&permission()==='granted'&&!supported())pushOwner(uid);else pushOwner(null);
    if(isiOS()&&permission()==='granted'&&!auth.currentUser)notice('알림 권한이 허용되어 있습니다. 로그인하면 이 기기의 알림이 자동 연결됩니다.');
   }).catch(error=>{if(isiOS()&&permission()==='granted')notice(error.message||'알림 권한은 허용됐지만 기기 연결을 완료하지 못했습니다. 다시 눌러 재시도해주세요.');}).finally(()=>{if(running===task)running=null;render();});
-  running=task;return task;
+  void reminder.publish().catch(()=>{});running=task;return task;
  }
  async function diagnostics(){
   const worker=await registration(),subscription=await worker.pushManager.getSubscription();
@@ -76,7 +79,10 @@
   const status=!receipt?'아직 수신 기록 없음':receipt.status==='shown'?'표시 요청 성공':receipt.status==='failed'?'표시 실패 ('+receipt.errorName+')':'수신됨, 표시 완료 기록 없음';
   notice('알림 진단 · '+result.worker+' · 기기 구독 '+(subscription?'있음':'없음')+' · 계정 등록 '+(registry.isRegistered()?'완료':'미완료')+' · 최근 수신 '+received+' · '+status);
  }
- window.MFNotifications={detach:()=>{pushOwner(null);return bounded(registry.detach(),14000).catch(()=>{});}};
+ window.MFNotifications={forgetAccount:()=>bounded(reminder.forget(),12000).catch(()=>{}),detach:()=>{pushOwner(null);const work=registry.detach();reminder.freeze();return bounded(work,14000).catch(()=>{});}};
+ window.addEventListener('mf-reminder-snapshot',()=>void reminder.publish().catch(()=>{}));
+ window.addEventListener('mf-reminder-records-changed',()=>void reminder.publish({refresh:true}).catch(()=>{}));
+ window.addEventListener('mf-reminder-outbox',()=>void reminder.publish({refresh:true}).catch(()=>{}));
  box.addEventListener('click',async()=>{
   if(busy)return;const unsupported=supported();if(unsupported){notice(unsupported);return;}
   if(permission()==='denied'){notice('알림이 차단되어 팝업을 다시 띄울 수 없습니다. 기기 또는 브라우저 설정에서 이 앱의 알림을 허용해주세요.');return;}
