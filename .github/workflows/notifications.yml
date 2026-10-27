@@ -1,0 +1,51 @@
+name: 알림 보내기
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'test: 내 폰 테스트 / approved-broadcast: 확인한 내용 전체 발송'
+        required: true
+        type: choice
+        options: [test, approved-broadcast]
+        default: test
+      title:
+        description: '테스트 제목 (전체 발송에서는 테스트 내용을 그대로 사용)'
+        type: string
+      body:
+        description: '테스트 내용 (전체 발송에서는 테스트 내용을 그대로 사용)'
+        type: string
+      test_run_id:
+        description: '전체 발송할 때: 수신 확인한 테스트의 실행 번호'
+        type: string
+      approval:
+        description: '전체 발송할 때만: 폰에서 수신과 내용을 확인한 뒤 SEND 입력'
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: ttt-manual-notifications
+  cancel-in-progress: false
+jobs:
+  send:
+    if: github.ref == 'refs/heads/main' && github.actor == 'kimsco'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: notification-server/package-lock.json
+      - run: npm ci --ignore-scripts --prefix notification-server
+      - run: node notification-server/run.mjs
+        env:
+          FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+          PUSH_TEST_UID: ${{ vars.PUSH_TEST_UID }}
+          PUSH_MODE: ${{ inputs.mode }}
+          PUSH_TITLE: ${{ inputs.title }}
+          PUSH_BODY: ${{ inputs.body }}
+          PUSH_TEST_RUN_ID: ${{ inputs.test_run_id }}
+          PUSH_APPROVAL: ${{ inputs.approval }}

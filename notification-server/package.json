@@ -1,0 +1,14 @@
+{
+  "name": "ttt-notification-sender",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "firebase-admin": "14.5.0"
+  },
+  "scripts": {
+    "test": "node --test ../tests/notification-sender.test.mjs"
+  }
+}

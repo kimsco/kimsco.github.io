@@ -1,1 +1,7 @@
 .claude/
+
+# Server-only credentials and local dependencies
+node_modules/
+notification-server/.env*
+*-adminsdk-*.json
+gha-creds-*.json
