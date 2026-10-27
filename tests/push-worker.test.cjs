@@ -12,6 +12,7 @@ function fixture(){
 }
 test('FCM Web Push shows a notification without Firestore access',async()=>{
  const f=fixture();let work;
+ f.listeners.message({data:{type:'TTT_PUSH_SESSION',uid:'alice'},waitUntil:p=>work=p});await work;
  f.listeners.push({data:{json:()=>({notification:{title:'푸시 테스트',body:'앱을 닫고 확인'},fcmOptions:{link:'https://example.test/?push=1'}})},waitUntil:p=>work=p});await work;
  assert.equal(f.notifications.length,1);assert.equal(f.notifications[0].title,'푸시 테스트');assert.equal(f.notifications[0].body,'앱을 닫고 확인');assert.equal(f.notifications[0].data.url,'https://example.test/?push=1');
 });
@@ -29,13 +30,12 @@ test('notification links stay on this app and clicks focus existing windows',asy
  f.listeners.notificationclick({notification:{data:{url:'/'},close(){}},waitUntil:p=>work=p});await work;assert.ok(focused);assert.equal(f.opened.length,1);
 });
 
-test('health check distinguishes no receipt, received/displayed, and display failure without storing content',async()=>{
- const f=fixture();let work,health;
- const check=async()=>{f.listeners.message({data:{type:'TTT_PUSH_HEALTH'},ports:[{postMessage:value=>health=value}],waitUntil:p=>work=p});await work;return health;};
- assert.equal((await check()).receipt,null);
- f.listeners.push({data:{json:()=>({notification:{title:'private-title',body:'private-body'}})},waitUntil:p=>work=p});await work;
- health=await check();assert.ok(health.pushReady);assert.ok(health.receipt.receivedAt);assert.equal(health.receipt.displayed,true);
- assert.ok(!JSON.stringify(health).includes('private'));
- f.self.registration.showNotification=async()=>{throw Error('denied');};
- f.listeners.push({data:null,waitUntil:p=>work=p});await work;assert.equal((await check()).receipt.displayed,false);
+test('logged-out or different-account pushes hide account-specific content',async()=>{
+ const f=fixture();let work;
+ const payload={notification:{title:'private-title',body:'private-body'},data:{receiverUid:'alice'}};
+ f.listeners.push({data:{json:()=>payload},waitUntil:p=>work=p});await work;
+ assert.ok(!JSON.stringify(f.notifications[0]).includes('private'));
+ f.listeners.message({data:{type:'TTT_PUSH_SESSION',uid:'bob'},waitUntil:p=>work=p});await work;
+ f.listeners.push({data:{json:()=>payload},waitUntil:p=>work=p});await work;
+ assert.ok(!JSON.stringify(f.notifications[1]).includes('private'));
 });
