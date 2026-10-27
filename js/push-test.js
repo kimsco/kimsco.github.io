@@ -5,7 +5,8 @@
  const status=document.getElementById('pushTestStatus'),keyInput=document.getElementById('pushVapidKey'),tokenInput=document.getElementById('pushDeviceToken');
  const permissionButton=document.getElementById('pushPermissionBtn'),localButton=document.getElementById('pushLocalTestBtn'),registerButton=document.getElementById('pushRegisterBtn'),copyButton=document.getElementById('pushCopyTokenBtn');
  const checkButton=document.getElementById('pushCheckBtn'),renewButton=document.getElementById('pushRenewBtn');
- const keyName='mf_push_vapid_public_v1';let lastFocus=null,messagingLoad=null,busy=false,background=[];
+ const permissionBox=document.getElementById('notificationPermissionBox'),permissionState=document.getElementById('notificationPermissionState'),permissionHint=document.getElementById('notificationPermissionHint');
+ const keyName='mf_push_vapid_public_v1';let lastFocus=null,messagingLoad=null,busy=false,background=[],renderedPermission=null;
  try{keyInput.value=localStorage.getItem(keyName)||'';}catch(_){}
  const isiOS=()=>/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
  const standalone=()=>navigator.standalone===true||matchMedia('(display-mode: standalone)').matches;
@@ -15,7 +16,17 @@
   return '';
  }
  function say(message){status.textContent=message;}
+ function updatePermissionBox(){
+  const permission='Notification'in window?Notification.permission:'unsupported',granted=permission==='granted';
+  if(renderedPermission!==null&&renderedPermission!==permission&&!busy)permissionNotice('');
+  renderedPermission=permission;
+  permissionState.textContent=granted?'알림 허용':'알림 미허용';
+  permissionBox.setAttribute('aria-label',granted?'알림 허용. 알림 권한 설정 안내':'알림 미허용. 눌러서 알림 허용');
+  permissionBox.setAttribute('aria-busy',String(busy));permissionBox.disabled=busy;
+ }
+ function permissionNotice(message){permissionHint.textContent=message;permissionHint.hidden=!message;}
  function refresh(){
+  updatePermissionBox();
   const unsupported=supported(),granted=!unsupported&&Notification.permission==='granted';
   checkButton.disabled=busy||!granted;renewButton.disabled=busy||!granted;permissionButton.disabled=busy||!!unsupported;localButton.disabled=busy||!granted;registerButton.disabled=busy||!granted;copyButton.disabled=busy||!tokenInput.value;
   if(unsupported)say(unsupported);
@@ -84,16 +95,30 @@
    else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}
   }
  });
- permissionButton.addEventListener('click',async()=>{
-  if(busy||supported())return;setBusy(true);
+ async function requestPermission(fromSettings=false){
+  if(busy)return;
+  const notify=message=>{say(message);if(fromSettings)permissionNotice(message);};
+  const unsupported=supported();if(unsupported){notify(unsupported);return;}
+  if(Notification.permission==='granted'){notify('알림이 허용되어 있습니다. 끄려면 기기 또는 브라우저 설정에서 이 앱의 알림 권한을 변경해주세요.');return;}
+  if(Notification.permission==='denied'){notify('알림이 차단되어 있어 권한 팝업을 다시 띄울 수 없습니다. 기기 또는 브라우저 설정에서 이 앱의 알림을 허용해주세요.');return;}
+  permissionNotice('');setBusy(true);
   try{
-   // Call directly from the user's click, before any SDK/network await (iOS requirement).
+   // Keep permission request in the original click's user activation; no network/SDK await.
    const permission=await Notification.requestPermission();
-   if(permission==='granted')say('알림 권한을 허용했습니다. 먼저 이 기기에 테스트 알림을 표시할 수 있습니다.');
-   else say(permission==='denied'?'알림이 차단되었습니다. 기기 설정에서 허용할 수 있습니다.':'알림 권한을 허용하지 않았습니다. 원할 때 다시 시도해주세요.');
-  }catch(_){say('알림 권한을 요청하지 못했습니다. 홈 화면에 추가한 앱에서 다시 시도해주세요.');}
+   if(permission==='granted')notify('알림을 허용했습니다.');
+   else notify(permission==='denied'?'알림이 차단되었습니다. 기기 또는 브라우저 설정에서 허용할 수 있습니다.':'알림은 아직 미허용 상태입니다. 원할 때 다시 요청할 수 있습니다.');
+  }catch(_){notify('알림 권한을 요청하지 못했습니다. 홈 화면에 추가한 앱에서 다시 시도해주세요.');}
   finally{setBusy(false);}
- });
+ }
+ permissionBox.addEventListener('click',()=>requestPermission(true));
+ permissionButton.addEventListener('click',()=>requestPermission(false));
+ window.addEventListener('focus',refresh);
+ window.addEventListener('pageshow',refresh);
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh();});
+ const settings=document.getElementById('settingsOverlay');
+ if(settings)new MutationObserver(updatePermissionBox).observe(settings,{attributes:true,attributeFilter:['class']});
+ if(navigator.permissions?.query)navigator.permissions.query({name:'notifications'}).then(state=>state.addEventListener('change',refresh)).catch(()=>{});
+ refresh();
  localButton.addEventListener('click',async()=>{
   if(busy||supported()||Notification.permission!=='granted')return;setBusy(true);
   try{const worker=await registration();await worker.showNotification('TTT 테스트 알림',{body:'이 기기에서 알림 표시를 확인했습니다.',icon:'/icons/icon-192.png',tag:'ttt-local-test',data:{url:'/'}});say('기기 테스트 알림을 표시했습니다. 이것은 원격 푸시 수신 테스트와는 별개입니다.');}

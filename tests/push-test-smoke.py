@@ -21,9 +21,23 @@ try:
     Object.defineProperty(navigator,'clipboard',{value:{writeText:async value=>window.copied=value},configurable:true});
    }""")
    page.evaluate('document.getElementById("openSettingsBtn").click()');page.wait_for_timeout(350)
+   box=page.locator('#notificationPermissionBox');label=page.locator('#notificationPermissionState')
+   assert label.inner_text()=='알림 미허용' and page.evaluate('permissionCalls')==0
+   page.evaluate('()=>{window.originalPermissionRequest=Notification.requestPermission;}')
+   box.click();page.wait_for_timeout(100);assert label.inner_text()=='알림 허용' and page.evaluate('permissionCalls')==1
+   assert page.evaluate('tokenCalls')==0
+   box.click();assert page.evaluate('permissionCalls')==1 and '설정' in page.locator('#notificationPermissionHint').inner_text()
+   page.evaluate("Notification.permission='denied';window.dispatchEvent(new Event('focus'))")
+   assert label.inner_text()=='알림 미허용'
+   box.click();assert page.evaluate('permissionCalls')==1 and '차단' in page.locator('#notificationPermissionHint').inner_text()
+   page.evaluate("()=>{Notification.permission='default';window.dispatchEvent(new Event('pageshow'));Notification.requestPermission=()=>{permissionCalls++;return new Promise(resolve=>{window.finishPermission=()=>resolve('default')});};}")
+   box.click();assert box.is_disabled()
+   page.evaluate('finishPermission()');assert label.inner_text()=='알림 미허용' and box.is_enabled()
+   # Reset the permission stub before exercising the existing test screen too.
+   page.evaluate('permissionCalls=0;Notification.requestPermission=originalPermissionRequest;window.dispatchEvent(new Event("focus"))')
    page.locator('#pushTestMenuBtn').click();page.wait_for_timeout(150);assert page.locator('#pushTestOverlay').is_visible()
    assert page.evaluate('permissionCalls')==0 and page.locator('#pushLocalTestBtn').is_disabled()
-   page.locator('#pushPermissionBtn').click();assert page.evaluate('permissionCalls')==1
+   page.locator('#pushPermissionBtn').click();assert page.evaluate('permissionCalls')==1 and label.inner_text()=='알림 허용'
    page.locator('#pushLocalTestBtn').click();page.wait_for_timeout(80)
    assert page.evaluate('localNotices.length')==1 and '원격 푸시 수신 테스트와는 별개' in page.locator('#pushTestStatus').inner_text()
    page.locator('#pushTestOverlay summary').click();page.locator('#pushRegisterBtn').click()
@@ -60,5 +74,11 @@ try:
   page=context.new_page();page.goto('http://127.0.0.1:8201/');page.wait_for_timeout(700)
   page.evaluate('document.getElementById("openSettingsBtn").click()');page.wait_for_timeout(350);page.locator('#pushTestMenuBtn').click()
   assert '홈 화면에 추가' in page.locator('#pushTestStatus').inner_text() and page.locator('#pushPermissionBtn').is_disabled()
-  print('PASS iPhone browser installation guidance');context.close();browser.close()
+  page.evaluate("()=>{window.permissionCalls=0;window.Notification={permission:'default',requestPermission:async()=>{permissionCalls++;Notification.permission='granted';return 'granted';}};}")
+  page.locator('#pushTestCloseBtn').click();page.locator('#notificationPermissionBox').click()
+  assert page.evaluate('permissionCalls')==0 and '홈 화면에 추가' in page.locator('#notificationPermissionHint').inner_text()
+  page.evaluate("Object.defineProperty(navigator,'standalone',{value:true,configurable:true});window.dispatchEvent(new Event('focus'))")
+  page.locator('#notificationPermissionBox').click();page.wait_for_timeout(100)
+  assert page.locator('#notificationPermissionState').inner_text()=='알림 허용' and page.evaluate('permissionCalls')==1
+  print('PASS iPhone installation guidance and standalone permission request');context.close();browser.close()
 finally:server.terminate();server.wait()
