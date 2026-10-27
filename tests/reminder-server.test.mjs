@@ -103,6 +103,15 @@ test('subscription validation forbids arbitrary hosts/credentials/ports and malf
  for(const endpoint of ['http://web.push.apple.com/x','https://localhost/x','https://web.push.apple.com.evil.test/x','https://u:p@web.push.apple.com/x','https://web.push.apple.com:8443/x'])assert.throws(()=>validSubscription({...subscription('a'),endpoint}));
  assert.throws(()=>validSubscription({...subscription('a'),keys:{p256dh:'bad',auth:'bad'}}));
 });
+test('public configuration verifies matching keys and never reveals the private key',async()=>{
+ const f=fixture(),handler=createHandler();
+ const pair=await crypto.subtle.generateKey({name:'ECDSA',namedCurve:'P-256'},true,['sign','verify']);
+ const key=await crypto.subtle.exportKey('jwk',pair.privateKey),publicKey=b64(await crypto.subtle.exportKey('raw',pair.publicKey));
+ const request=()=>new Request('https://worker.test/config',{headers:{Origin:'https://kimsco.github.io'}});
+ const response=await handler(request(),{DB:f.db,VAPID_PUBLIC_KEY:publicKey,VAPID_PRIVATE_KEY:key.d}),result=await response.json();
+ assert.equal(result.ready,true);assert.equal(result.publicKey,publicKey);assert.ok(!JSON.stringify(result).includes(key.d));
+ const broken=await handler(request(),{DB:f.db,VAPID_PUBLIC_KEY:publicKey,VAPID_PRIVATE_KEY:'bad'});assert.equal((await broken.json()).ready,false);
+});
 test('real Web Push library generates Apple-compatible aes128gcm payload and VAPID auth',async()=>{
  const pair=await crypto.subtle.generateKey({name:'ECDSA',namedCurve:'P-256'},true,['sign','verify']);
  const privateKey=await crypto.subtle.exportKey('jwk',pair.privateKey),publicKey=await crypto.subtle.exportKey('raw',pair.publicKey);

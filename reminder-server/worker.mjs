@@ -19,6 +19,18 @@ function bytes(value) {
   if (typeof value !== 'string' || !/^[A-Za-z0-9_-]+$/.test(value)) throw Error('invalid-subscription');
   return Uint8Array.from(atob(value.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0));
 }
+async function keysReady(env) {
+  if(!env.DB||!env.VAPID_PUBLIC_KEY||!env.VAPID_PRIVATE_KEY)return false;
+  try{
+    const raw=bytes(env.VAPID_PUBLIC_KEY),encode=value=>btoa(String.fromCharCode(...value)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+    if(raw.length!==65||raw[0]!==4||bytes(env.VAPID_PRIVATE_KEY).length!==32)return false;
+    const jwk={kty:'EC',crv:'P-256',x:encode(raw.slice(1,33)),y:encode(raw.slice(33,65))};
+    const privateKey=await crypto.subtle.importKey('jwk',{...jwk,d:env.VAPID_PRIVATE_KEY},{name:'ECDSA',namedCurve:'P-256'},false,['sign']);
+    const publicKey=await crypto.subtle.importKey('jwk',jwk,{name:'ECDSA',namedCurve:'P-256'},false,['verify']);
+    const algorithm={name:'ECDSA',hash:'SHA-256'},probe=new TextEncoder().encode('TTT VAPID setup');
+    return crypto.subtle.verify(algorithm,publicKey,await crypto.subtle.sign(algorithm,privateKey,probe),probe);
+  }catch(_){return false;}
+}
 export function validSubscription(value) {
   const url = new URL(value?.endpoint);
   // iOS-only. Never fetch a user-supplied arbitrary host or redirect (SSRF).
@@ -37,7 +49,7 @@ export function createHandler({verify = verifyUser, now = Date.now} = {}) {
     if (request.headers.get('Origin') !== ORIGIN) return json({error: 'origin'}, 403);
     if (request.method === 'OPTIONS') return json({ok: true});
     const path = new URL(request.url).pathname;
-    if (path === '/config' && request.method === 'GET') return json({schema: 1, publicKey: env.VAPID_PUBLIC_KEY || '', ready: !!(env.DB && env.VAPID_PUBLIC_KEY && env.VAPID_PRIVATE_KEY)});
+    if (path === '/config' && request.method === 'GET') return json({schema: 1, publicKey: env.VAPID_PUBLIC_KEY || '', ready: await keysReady(env)});
     let uid;
     try { uid = await verify(request); } catch (_) { return json({error: 'unauthorized'}, 401); }
     if (!env.DB) return json({error: 'not-configured'}, 503);
