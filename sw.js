@@ -1,4 +1,4 @@
-const CACHE = "mf-v148"; // 🔥 아래 food-db-full.json 삭제 + 로고 이미지가 그동안 세 차례 더
+const CACHE = "mf-v149"; // 🔥 아래 food-db-full.json 삭제 + 로고 이미지가 그동안 세 차례 더
                          // 교체(#764/#765/#768)됐지만 이 캐시 이름을 안 올려서 새 서비스워커가
                          // 설치되지 않고 있었음(바로 아래 참고) — 올려서 처음부터 다시 받아오게 함
 const ASSETS = [
@@ -11,7 +11,7 @@ const ASSETS = [
   "/js/history-pages.js?v=1.0.73",
   "/js/record-sync.js?v=1.0.75",
   "/js/record-wheel.js?v=1.0.116",
-  "/js/push-test.js?v=1.0.118",
+  "/js/push-test.js?v=1.0.120",
   "/js/app-sync.js?v=1.0.75",
   "/js/last-workout.js?v=1.0.30",
   "/js/rest-stopwatch.js?v=1.0.30",
