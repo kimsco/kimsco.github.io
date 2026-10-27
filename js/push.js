@@ -7,12 +7,14 @@
  const isiOS=()=>/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
  const standalone=()=>navigator.standalone===true||matchMedia('(display-mode: standalone)').matches;
  function supported(){
+  if(!isiOS())return /Android/.test(navigator.userAgent)?'안드로이드 알림은 준비 중입니다. 현재는 아이폰에서만 알림을 제공합니다.':'현재 알림은 아이폰에서만 제공합니다.';
   if(isiOS()&&!standalone())return '아이폰은 홈 화면에 추가한 앱에서 알림을 허용해주세요. iOS 16.4 이상이 필요합니다.';
   if(!isSecureContext||!('Notification'in window)||!('serviceWorker'in navigator)||!('PushManager'in window))return '이 브라우저는 웹 푸시를 지원하지 않습니다. 최신 브라우저에서 다시 확인해주세요.';
   return '';
  }
  function notice(message=''){hint.textContent=message;hint.hidden=!message;}
  function render(){
+  if(!isiOS()){label.textContent='준비 중';box.disabled=busy;box.setAttribute('aria-busy',String(busy));box.setAttribute('aria-label','알림 준비 중. 현재는 아이폰에서만 제공');return;}
   const granted=permission()==='granted';label.textContent=granted?'허용됨':'미허용';
   box.disabled=busy;box.setAttribute('aria-busy',String(busy));box.setAttribute('aria-label',granted?'알림 허용됨. 알림 설정 안내':'알림 미허용. 눌러서 알림 허용');
  }
@@ -59,8 +61,8 @@
   const uid=auth.currentUser?.uid||null;
   const task=(changed?registry.accountChanged():registry.sync()).then(()=>{
    if(uid&&auth.currentUser?.uid===uid&&registry.isRegistered()&&permission()==='granted'&&!supported())pushOwner(uid);else pushOwner(null);
-   if(permission()==='granted'&&!auth.currentUser)notice('알림 권한이 허용되어 있습니다. 로그인하면 이 기기의 알림이 자동 연결됩니다.');
-  }).catch(error=>{if(permission()==='granted')notice(error.message||'알림 권한은 허용됐지만 기기 연결을 완료하지 못했습니다. 다시 눌러 재시도해주세요.');}).finally(()=>{if(running===task)running=null;render();});
+   if(isiOS()&&permission()==='granted'&&!auth.currentUser)notice('알림 권한이 허용되어 있습니다. 로그인하면 이 기기의 알림이 자동 연결됩니다.');
+  }).catch(error=>{if(isiOS()&&permission()==='granted')notice(error.message||'알림 권한은 허용됐지만 기기 연결을 완료하지 못했습니다. 다시 눌러 재시도해주세요.');}).finally(()=>{if(running===task)running=null;render();});
   running=task;return task;
  }
  async function diagnostics(){
