@@ -5,3 +5,7 @@ node_modules/
 notification-server/.env*
 *-adminsdk-*.json
 gha-creds-*.json
+
+reminder-server/.env*
+reminder-server/.dev.vars*
+reminder-server/dist/

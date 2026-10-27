@@ -1,7 +1,7 @@
 /* Account-scoped push device registry. No collection reads or notification sending. */
 (function(root){
  'use strict';
- function create({storage,currentUid,allowed,online=()=>true,prepareToken,unsubscribe,saveDevice,removeDevice,hashToken,platform=()=> 'web',now=Date.now,makeId=()=>root.crypto.randomUUID(),lock=(_,fn)=>fn()}){
+ function create({storage,currentUid,allowed,online=()=>true,prepareToken,unsubscribe,saveDevice,removeDevice,hashToken,platform=()=> 'web',now=Date.now,makeId=()=>root.crypto.randomUUID(),lock=(_,fn)=>fn(),backend='firestore'}){
   const deviceKey='mf_push_device_id_v1',bindingKey='mf_push_binding_v1',refreshMs=7*24*60*60*1000;
   let chain=Promise.resolve(),epoch=0,suspended=false;
   const read=key=>{try{return JSON.parse(storage.getItem(key)||'null');}catch(_){return null;}};
@@ -15,7 +15,7 @@
    // Persist before network work: another account must rotate this subscription if interrupted.
    writeBinding({...binding,needsRotation:true});
    await unsubscribe();
-   if(binding.uid===currentUid())await removeDevice(binding.uid,binding.deviceId);
+   if(binding.uid===currentUid())await removeDevice(binding.uid,binding.deviceId,binding.backend||'firestore');
    storage.removeItem(ackKey(binding.uid));writeBinding(null);
   }
   function sync(){
@@ -28,12 +28,12 @@
      return false;
     }
     if(!online())return false;
-    if(binding&&(binding.uid!==uid||binding.needsRotation))await disconnect(binding);
+    if(binding&&(binding.uid!==uid||binding.needsRotation||(binding.backend||'firestore')!==backend))await disconnect(binding);
     if(!valid(uid,version))return false;
     const id=deviceId(),token=await prepareToken();
     if(!token)throw Error('기기 알림 연결을 확인하지 못했습니다.');
     // Record the owner before awaiting a write so an account switch cannot reuse its token.
-    writeBinding({uid,deviceId:id,needsRotation:false});
+    writeBinding({uid,deviceId:id,needsRotation:false,backend});
     if(!valid(uid,version))return false;
     const hash=await hashToken(token),previous=read(ackKey(uid));
     if(!valid(uid,version))return false;
@@ -48,7 +48,7 @@
    suspended=true;epoch++;
    return enqueue(async()=>{await disconnect(read(bindingKey));});
   }
-  function isRegistered(){const uid=currentUid(),binding=read(bindingKey),ack=uid?read(ackKey(uid)):null;return !!uid&&!suspended&&allowed()&&binding?.uid===uid&&!binding.needsRotation&&ack?.deviceId===binding.deviceId;}
+  function isRegistered(){const uid=currentUid(),binding=read(bindingKey),ack=uid?read(ackKey(uid)):null;return !!uid&&!suspended&&allowed()&&binding?.uid===uid&&(binding.backend||'firestore')===backend&&!binding.needsRotation&&ack?.deviceId===binding.deviceId;}
   return {sync,accountChanged,detach,isRegistered};
  }
  const api={create};if(typeof module!=='undefined')module.exports=api;root.MFPushDevices=api;

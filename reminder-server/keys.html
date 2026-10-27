@@ -1,0 +1,16 @@
+<!doctype html><html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TTT 알림 서버 키 설정</title>
+<style>body{font:16px/1.6 system-ui;max-width:680px;margin:32px auto;padding:0 20px;background:#111;color:#eee}button,textarea{box-sizing:border-box;font:inherit;width:100%;padding:12px;margin:8px 0 20px;border-radius:12px}textarea{height:110px;overflow-wrap:anywhere;background:#222;color:#eee;border:1px solid #666}</style>
+<h1>알림 서버 키 설정</h1><p>키는 이 브라우저 안에서 생성됩니다. Google 서비스 계정이나 Firestore 권한을 부여하지 않습니다.</p>
+<button id="generate">새 키 쌍 만들기</button>
+<label>VAPID_PUBLIC_KEY<textarea id="publicKey" readonly></textarea></label>
+<label>VAPID_PRIVATE_KEY<textarea id="privateKey" readonly></textarea></label>
+<p>공개 키와 비공개 키를 Cloudflare Worker의 같은 이름 Secret에 각각 등록하세요. 비공개 키는 채팅이나 GitHub 코드에 올리지 않습니다. 사용 중인 서버 키를 바꾸면 기기의 알림 재연결이 필요합니다.</p>
+<script>
+document.getElementById('generate').onclick=async()=>{
+ const pair=await crypto.subtle.generateKey({name:'ECDSA',namedCurve:'P-256'},true,['sign','verify']);
+ const publicBytes=new Uint8Array(await crypto.subtle.exportKey('raw',pair.publicKey)),privateJwk=await crypto.subtle.exportKey('jwk',pair.privateKey);
+ document.getElementById('publicKey').value=btoa(String.fromCharCode(...publicBytes)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+ document.getElementById('privateKey').value=privateJwk.d;
+};
+</script></html>
