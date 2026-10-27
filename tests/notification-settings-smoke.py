@@ -14,14 +14,15 @@ try:
    firebase.messaging=()=>({getToken:async options=>{fixtureTokenCalls++;if(!options.serviceWorkerRegistration.active)throw Error('No active worker');return fixturePushToken+'-'+(localStorage.getItem('fixture_unsubscribes')||'0');}});
   """
   for width in [320,390]:
-   context=browser.new_context(viewport={'width':width,'height':844})
+   context=browser.new_context(user_agent='Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)',viewport={'width':width,'height':844})
    context.route('https://**/*',lambda r:r.fulfill(body=fixture+extension if '/firebase-app-compat.js' in r.request.url else '',content_type='application/javascript'))
    context.route('**/js/push-config.js*',lambda r:r.fulfill(body="window.MF_PUSH_CONFIG={vapidPublicKey:btoa(String.fromCharCode(4)+String.fromCharCode(...new Uint8Array(64))).replace(/\\+/g,'-').replace(/\\//g,'_').replace(/=/g,'')};",content_type='application/javascript'))
    context.add_init_script("""(()=>{
+    Object.defineProperty(navigator,'standalone',{value:true,configurable:true});
     localStorage.setItem('fixture_uid','alice');localStorage.setItem('mf_data_owner_v2','alice');
     window.fixturePermissionCalls=0;
     window.Notification={permission:localStorage.getItem('fixture_permission')||'default',requestPermission:async()=>{fixturePermissionCalls++;Notification.permission='granted';localStorage.setItem('fixture_permission','granted');return 'granted';}};
-    navigator.serviceWorker.getRegistration=async()=>({active:{postMessage:(message,ports)=>{if(message.type==='TTT_PUSH_DIAGNOSTICS')ports[0].postMessage({worker:'mf-v152',receipt:null});}},pushManager:{getSubscription:async()=>({unsubscribe:async()=>{localStorage.setItem('fixture_unsubscribes',String(Number(localStorage.getItem('fixture_unsubscribes')||0)+1));return true;}})}});
+    navigator.serviceWorker.getRegistration=async()=>({active:{postMessage:(message,ports)=>{if(message.type==='TTT_PUSH_DIAGNOSTICS')ports[0].postMessage({worker:'mf-v153',receipt:null});}},pushManager:{getSubscription:async()=>({unsubscribe:async()=>{localStorage.setItem('fixture_unsubscribes',String(Number(localStorage.getItem('fixture_unsubscribes')||0)+1));return true;}})}});
    })();""")
    page=context.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
    page.goto('http://127.0.0.1:8202/');page.wait_for_timeout(700)
@@ -63,6 +64,30 @@ try:
    assert page.evaluate("Number(localStorage.getItem('fixture_unsubscribes'))")>=2
    assert not errors,errors
    print('PASS permission/auto-register/dedupe/rotation/revoke/logout',width);context.close()
+  # Existing Android installs are retired without prompting, requesting tokens or reading docs.
+  context=browser.new_context(user_agent='Mozilla/5.0 (Linux; Android 14) Chrome/130.0 Mobile Safari/537.36',viewport={'width':390,'height':844})
+  android_seed="fixture.store.set('users/alice/pushDevices/legacy',{token:'legacy-token',enabled:true,platform:'android'});"
+  context.route('https://**/*',lambda r:r.fulfill(body=fixture+extension+android_seed if '/firebase-app-compat.js' in r.request.url else '',content_type='application/javascript'))
+  context.add_init_script("""(()=>{
+   localStorage.setItem('fixture_uid','alice');localStorage.setItem('mf_data_owner_v2','alice');
+   localStorage.setItem('mf_push_binding_v1',JSON.stringify({uid:'alice',deviceId:'legacy',needsRotation:false}));
+   localStorage.setItem('mf_account_v2:alice:push_device_ack',JSON.stringify({hash:'legacy',deviceId:'legacy',savedAt:Date.now()}));
+   window.fixturePermissionCalls=0;window.Notification={permission:'granted',requestPermission:async()=>{fixturePermissionCalls++;return 'granted';}};
+   navigator.serviceWorker.getRegistration=async()=>({active:{postMessage:()=>{}},pushManager:{getSubscription:async()=>({unsubscribe:async()=>{localStorage.setItem('fixture_unsubscribes','1');return true;}})}});
+  })();""")
+  page=context.new_page();page.goto('http://127.0.0.1:8202/');page.wait_for_timeout(800)
+  page.evaluate('document.getElementById("openSettingsBtn").click()');page.wait_for_timeout(350)
+  assert page.locator('#notificationPermissionState').inner_text()=='준비 중'
+  page.locator('#notificationPermissionBox').click()
+  assert '안드로이드 알림은 준비 중' in page.locator('#notificationPermissionHint').inner_text()
+  assert page.evaluate('fixturePermissionCalls')==0 and page.evaluate('fixtureTokenCalls')==0
+  assert page.evaluate("fixture.calls.filter(c=>c.type==='delete'&&c.path==='users/alice/pushDevices/legacy').length")==1
+  assert not page.evaluate("fixture.store.has('users/alice/pushDevices/legacy')")
+  assert page.evaluate("localStorage.getItem('mf_push_binding_v1')") is None
+  assert page.evaluate("localStorage.getItem('fixture_unsubscribes')")=='1'
+  assert not page.evaluate("fixture.calls.some(c=>c.type==='get'&&c.path.includes('/pushDevices/'))")
+  assert page.evaluate('Notification.permission')=='granted'
+  print('PASS Android unavailable with legacy subscription/document cleanup');context.close()
   # iPhone browser guidance and guest permission: no token registration without login.
   context=browser.new_context(user_agent='Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)',viewport={'width':390,'height':844})
   context.route('https://**/*',lambda r:r.fulfill(body=fixture+extension if '/firebase-app-compat.js' in r.request.url else '',content_type='application/javascript'))
