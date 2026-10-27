@@ -1,2 +1,2 @@
-/* Public project setting, not a credential. Fill with the complete Firebase VAPID PUBLIC key. */
-window.MF_PUSH_CONFIG=Object.freeze({vapidPublicKey:''});
+/* Shared Firebase VAPID public key; safe to distribute to clients. */
+window.MF_PUSH_CONFIG=Object.freeze({vapidPublicKey:'BMnl4yuQZHSiYcAYnKi0K5xgrYbMRpMkFjFJf1XkV8aLeMrHqEmxMmhUPZchC67YfwsncXHPL-iGErKBps4V04w'});

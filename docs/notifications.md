@@ -2,7 +2,7 @@
 
 ## 배포 전 필수 설정
 
-`js/push-config.js`의 `vapidPublicKey`에 Firebase 프로젝트 `rmpj-7ca13`의 **완전한 VAPID 공개 키**를 넣어야 한다. 현재 공백은 배포 차단을 위한 미설정 상태다. 이전 캡처에 보인 일부 문자열로 키를 추정하지 않는다. 비공개 VAPID 키나 서비스 계정 JSON을 클라이언트에 넣지 않는다.
+`js/push-config.js`의 `vapidPublicKey`에 Firebase 프로젝트 `rmpj-7ca13`의 공통 VAPID 공개 키를 설정했다. 키는 65바이트 비압축 공개 키 형식으로 검증했다. 비공개 VAPID 키나 서비스 계정 JSON을 클라이언트에 넣지 않는다.
 
 ## 사용자 동작
 
