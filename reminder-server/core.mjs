@@ -1,4 +1,5 @@
 export const TEXT = '오늘은 운동을 가지 않으셨군요. 내일은 분발하세요.';
+export const koreaMinute = ms => {const d=new Date(ms+9*3600000);return d.getUTCHours()*60+d.getUTCMinutes();};
 export const koreaDay = ms => new Date(ms + 9 * 3600000).toISOString().slice(0, 10);
 export function timestamp(value) {
   const match = /^(\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d)(?:\.(\d{1,9}))?Z$/.exec(value || '');
@@ -7,13 +8,15 @@ export function timestamp(value) {
 }
 export function createStore(db) {
   return {
+    async preference(uid){const value=await db.prepare('SELECT minute_of_day FROM preferences WHERE uid=?').bind(uid).first();return {minuteOfDay:value?.minute_of_day??1320};},
+    savePreference:(uid,minute,effectiveDay='0000-01-01')=>db.prepare('INSERT INTO preferences(uid,minute_of_day,effective_day) VALUES(?,?,?) ON CONFLICT(uid) DO UPDATE SET minute_of_day=excluded.minute_of_day,effective_day=excluded.effective_day').bind(uid,minute,effectiveDay).run(),
     register: (uid, id, subscription) => db.prepare(`INSERT INTO devices(uid,device_id,subscription,endpoint)
       SELECT ?,?,?,? WHERE (SELECT COUNT(*) FROM devices WHERE uid=?)<10 OR EXISTS(SELECT 1 FROM devices WHERE uid=? AND device_id=?)
       ON CONFLICT(uid,device_id) DO UPDATE SET subscription=excluded.subscription,endpoint=excluded.endpoint`)
       .bind(uid, id, JSON.stringify(subscription), subscription.endpoint, uid, uid, id).run(),
     remove: (uid, id) => db.prepare('DELETE FROM devices WHERE uid=? AND device_id=?').bind(uid, id).run(),
     async forget(uid) {
-      await db.batch(['devices', 'activity', 'local_activity', 'initialized', 'deliveries'].map(table => db.prepare('DELETE FROM ' + table + ' WHERE uid=?').bind(uid)));
+      await db.batch(['devices', 'activity', 'local_activity', 'initialized', 'deliveries', 'preferences'].map(table => db.prepare('DELETE FROM ' + table + ' WHERE uid=?').bind(uid)));
     },
     async activity(uid, day, hasRecord, basis, deviceId='legacy', hasLocalRecord=false) {
       await db.batch([
@@ -24,18 +27,20 @@ export function createStore(db) {
         db.prepare('INSERT OR IGNORE INTO initialized(uid) VALUES(?)').bind(uid)
       ]);
     },
-    eligible: async day => (await db.prepare(`SELECT d.* FROM devices d
-      JOIN initialized i ON i.uid=d.uid LEFT JOIN activity a ON a.uid=d.uid AND a.day=?
-      WHERE COALESCE(a.has_record,0)=0 AND NOT EXISTS(SELECT 1 FROM local_activity l WHERE l.uid=d.uid AND l.day=? AND l.has_record=1) AND NOT EXISTS(SELECT 1 FROM deliveries x WHERE x.uid=d.uid AND x.device_id=d.device_id AND x.day=?)
-      ORDER BY d.id LIMIT 10`).bind(day, day, day).all()).results,
+    eligible: async (day,minute=1320) => (await db.prepare(`SELECT d.* FROM devices d
+      JOIN initialized i ON i.uid=d.uid LEFT JOIN activity a ON a.uid=d.uid AND a.day=? LEFT JOIN preferences p ON p.uid=d.uid
+      WHERE COALESCE(p.effective_day,'0000-01-01')<=? AND ? BETWEEN COALESCE(p.minute_of_day,1320) AND MIN(COALESCE(p.minute_of_day,1320)+59,1439) AND COALESCE(a.has_record,0)=0 AND NOT EXISTS(SELECT 1 FROM local_activity l WHERE l.uid=d.uid AND l.day=? AND l.has_record=1) AND NOT EXISTS(SELECT 1 FROM deliveries x WHERE x.uid=d.uid AND x.device_id=d.device_id AND x.day=?)
+      ORDER BY d.id LIMIT 10`).bind(day, day, minute, day, day).all()).results,
     // One atomic SQL statement checks current activity and reserves a device/day.
-    claim: (device, day) => db.prepare(`INSERT INTO deliveries(uid,device_id,day,status)
+    claim: (device, day, minute=1320) => db.prepare(`INSERT INTO deliveries(uid,device_id,day,status)
       SELECT ?,?,?,'reserved' WHERE EXISTS(SELECT 1 FROM devices WHERE uid=? AND device_id=? AND endpoint=?)
       AND EXISTS(SELECT 1 FROM initialized WHERE uid=?)
+      AND COALESCE((SELECT effective_day FROM preferences WHERE uid=?),'0000-01-01')<=?
+      AND ? BETWEEN COALESCE((SELECT minute_of_day FROM preferences WHERE uid=?),1320) AND MIN(COALESCE((SELECT minute_of_day FROM preferences WHERE uid=?),1320)+59,1439)
       AND NOT EXISTS(SELECT 1 FROM activity WHERE uid=? AND day=? AND has_record=1)
       AND NOT EXISTS(SELECT 1 FROM local_activity WHERE uid=? AND day=? AND has_record=1)
       ON CONFLICT(uid,device_id,day) DO NOTHING RETURNING uid`)
-      .bind(device.uid, device.device_id, day, device.uid, device.device_id, device.endpoint, device.uid, device.uid, day, device.uid, day).first(),
+      .bind(device.uid, device.device_id, day, device.uid, device.device_id, device.endpoint, device.uid, device.uid, day, minute, device.uid, device.uid, device.uid, day, device.uid, day).first(),
     finish: (device, day, status) => db.prepare('UPDATE deliveries SET status=? WHERE uid=? AND device_id=? AND day=?')
       .bind(status, device.uid, device.device_id, day).run(),
     removeInvalid: device => db.prepare('DELETE FROM devices WHERE uid=? AND device_id=? AND endpoint=?')
@@ -48,12 +53,12 @@ export function createStore(db) {
 }
 export async function runReminder({store, send, time, enabled}) {
   const counts = {accepted: 0, failed: 0, invalid: 0, skipped: 0};
-  // A deployment alone must never enable sending. UTC 13 = Korea 22.
-  if (!enabled || new Date(time).getUTCHours() !== 13) return counts;
-  const day = koreaDay(time);
-  if (new Date(time).getUTCMinutes() === 0) await store.prune(day);
-  for (const device of await store.eligible(day)) {
-    if (!await store.claim(device, day)) { counts.skipped++; continue; }
+  // A deployment alone must never enable sending. Times are stored in Korea minutes.
+  if (!enabled || !Number.isFinite(time)) return counts;
+  const day = koreaDay(time),minute=koreaMinute(time);
+  if (minute===0) await store.prune(day);
+  for (const device of await store.eligible(day,minute)) {
+    if (!await store.claim(device, day,minute)) { counts.skipped++; continue; }
     let status;
     try {
       const response = await send(JSON.parse(device.subscription), {

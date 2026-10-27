@@ -19,3 +19,9 @@ CREATE TABLE IF NOT EXISTS deliveries (
 );
 CREATE INDEX IF NOT EXISTS activity_day ON activity(day);
 CREATE INDEX IF NOT EXISTS deliveries_day ON deliveries(day);
+
+CREATE TABLE IF NOT EXISTS preferences (
+  uid TEXT PRIMARY KEY,
+  minute_of_day INTEGER NOT NULL CHECK(minute_of_day>=0 AND minute_of_day<1440),
+  effective_day TEXT NOT NULL DEFAULT '0000-01-01'
+);

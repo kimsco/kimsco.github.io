@@ -38,6 +38,29 @@ test('unconfigured/off-hours schedule never sends',async()=>{
  const f=fixture();await f.store.register('u','p',subscription('a'));await f.store.activity('u',DAY,false,BASIS);
  await f.run({enabled:false});await f.run({time:TIME-3600000});assert.equal(f.sent.length,0);
 });
+test('different users receive at their own selected Korea time, including midnight',async()=>{
+ const f=fixture();for(const uid of ['early','default','midnight']){await f.store.register(uid,'p',subscription(uid));await f.store.activity(uid,DAY,false,BASIS);}
+ await f.store.savePreference('early',21*60+15);await f.store.savePreference('midnight',0);
+ assert.equal((await f.run({time:Date.parse('2026-10-26T15:00:00Z')})).accepted,1);
+ assert.equal(f.sent.at(-1).payload.data.receiverUid,'midnight');
+ assert.equal((await f.run({time:Date.parse('2026-10-27T12:14:00Z')})).accepted,0);
+ assert.equal((await f.run({time:Date.parse('2026-10-27T12:15:00Z')})).accepted,1);
+ assert.equal(f.sent.at(-1).payload.data.receiverUid,'early');
+ assert.equal((await f.run()).accepted,1);assert.equal(f.sent.at(-1).payload.data.receiverUid,'default');
+});
+test('time change between eligibility and reservation prevents an early send',async()=>{
+ const f=fixture();await f.store.register('u','p',subscription('a'));await f.store.activity('u',DAY,false,BASIS);
+ const [candidate]=await f.store.eligible(DAY,1320);await f.store.savePreference('u',1380);
+ assert.equal(await f.store.claim(candidate,DAY,1320),null);assert.equal((await f.run()).accepted,0);
+ assert.equal((await f.run({time:TIME+3600000})).accepted,1);
+});
+test('saving a time already passed starts tomorrow rather than sending immediately',async()=>{
+ const f=fixture(),handler=createHandler({verify:async()=> 'u',now:()=>TIME});
+ await f.store.register('u','p',subscription('a'));await f.store.activity('u',DAY,false,BASIS);
+ const response=await handler(new Request('https://worker.test/preferences',{method:'PUT',headers:{Origin:'https://kimsco.github.io'},body:JSON.stringify({minuteOfDay:1310})}),{DB:f.db});
+ assert.equal(response.status,200);assert.equal((await f.run()).accepted,0);
+ assert.equal((await f.run({time:TIME+86400000-600000})).accepted,1);
+});
 test('prior-day workout does not suppress today; unopened initialized app can receive',async()=>{
  const f=fixture();await f.store.register('u','p',subscription('a'));await f.store.activity('u','2026-10-26',true,'2026-10-26T12:00:00Z');
  assert.equal((await f.run()).accepted,1);
@@ -97,6 +120,16 @@ test('API removes only the authenticated users device and supports account erasu
  assert.equal((await handler(request('/device',{id:'p'}),{DB:f.db})).status,200);
  assert.equal((await f.db.prepare('SELECT uid FROM devices').first()).uid,'bob');
  await handler(request('/account'),{DB:f.db});assert.equal((await f.db.prepare('SELECT COUNT(*) AS n FROM activity').first()).n,0);
+});
+test('preference API validates minutes, isolates UID, and account deletion clears the preference',async()=>{
+ const f=fixture(),handler=createHandler({verify:async()=> 'alice'});
+ const request=(method,body)=>new Request('https://worker.test/preferences',{method,headers:{Origin:'https://kimsco.github.io'},body:body===undefined?undefined:JSON.stringify(body)});
+ assert.equal((await (await handler(request('GET'),{DB:f.db})).json()).minuteOfDay,1320);
+ assert.equal((await handler(request('PUT',{minuteOfDay:1385}),{DB:f.db})).status,200);
+ assert.equal((await f.store.preference('alice')).minuteOfDay,1385);assert.equal((await f.store.preference('bob')).minuteOfDay,1320);
+ for(const minute of [-1,1440,2.5,'100'])assert.equal((await handler(request('PUT',{minuteOfDay:minute}),{DB:f.db})).status,400);
+ assert.equal((await handler(request('PUT',{minuteOfDay:100,uid:'bob'}),{DB:f.db})).status,400);
+ await f.store.forget('alice');assert.equal((await f.store.preference('alice')).minuteOfDay,1320);
 });
 test('subscription validation forbids arbitrary hosts/credentials/ports and malformed keys',()=>{
  assert.equal(validSubscription(subscription('a')).endpoint,subscription('a').endpoint);

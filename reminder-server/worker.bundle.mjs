@@ -1790,6 +1790,10 @@ async function buildPushPayload(message2, subscription, vapid) {
 
 // core.mjs
 var TEXT = "\uC624\uB298\uC740 \uC6B4\uB3D9\uC744 \uAC00\uC9C0 \uC54A\uC73C\uC168\uAD70\uC694. \uB0B4\uC77C\uC740 \uBD84\uBC1C\uD558\uC138\uC694.";
+var koreaMinute = (ms) => {
+  const d = new Date(ms + 9 * 36e5);
+  return d.getUTCHours() * 60 + d.getUTCMinutes();
+};
 var koreaDay = (ms) => new Date(ms + 9 * 36e5).toISOString().slice(0, 10);
 function timestamp(value) {
   const match = /^(\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d)(?:\.(\d{1,9}))?Z$/.exec(value || "");
@@ -1798,12 +1802,17 @@ function timestamp(value) {
 }
 function createStore(db) {
   return {
+    async preference(uid) {
+      const value = await db.prepare("SELECT minute_of_day FROM preferences WHERE uid=?").bind(uid).first();
+      return { minuteOfDay: value?.minute_of_day ?? 1320 };
+    },
+    savePreference: (uid, minute2, effectiveDay = "0000-01-01") => db.prepare("INSERT INTO preferences(uid,minute_of_day,effective_day) VALUES(?,?,?) ON CONFLICT(uid) DO UPDATE SET minute_of_day=excluded.minute_of_day,effective_day=excluded.effective_day").bind(uid, minute2, effectiveDay).run(),
     register: (uid, id, subscription) => db.prepare(`INSERT INTO devices(uid,device_id,subscription,endpoint)
       SELECT ?,?,?,? WHERE (SELECT COUNT(*) FROM devices WHERE uid=?)<10 OR EXISTS(SELECT 1 FROM devices WHERE uid=? AND device_id=?)
       ON CONFLICT(uid,device_id) DO UPDATE SET subscription=excluded.subscription,endpoint=excluded.endpoint`).bind(uid, id, JSON.stringify(subscription), subscription.endpoint, uid, uid, id).run(),
     remove: (uid, id) => db.prepare("DELETE FROM devices WHERE uid=? AND device_id=?").bind(uid, id).run(),
     async forget(uid) {
-      await db.batch(["devices", "activity", "local_activity", "initialized", "deliveries"].map((table) => db.prepare("DELETE FROM " + table + " WHERE uid=?").bind(uid)));
+      await db.batch(["devices", "activity", "local_activity", "initialized", "deliveries", "preferences"].map((table) => db.prepare("DELETE FROM " + table + " WHERE uid=?").bind(uid)));
     },
     async activity(uid, day2, hasRecord, basis, deviceId = "legacy", hasLocalRecord = false) {
       await db.batch([
@@ -1813,17 +1822,19 @@ function createStore(db) {
         db.prepare("INSERT OR IGNORE INTO initialized(uid) VALUES(?)").bind(uid)
       ]);
     },
-    eligible: async (day2) => (await db.prepare(`SELECT d.* FROM devices d
-      JOIN initialized i ON i.uid=d.uid LEFT JOIN activity a ON a.uid=d.uid AND a.day=?
-      WHERE COALESCE(a.has_record,0)=0 AND NOT EXISTS(SELECT 1 FROM local_activity l WHERE l.uid=d.uid AND l.day=? AND l.has_record=1) AND NOT EXISTS(SELECT 1 FROM deliveries x WHERE x.uid=d.uid AND x.device_id=d.device_id AND x.day=?)
-      ORDER BY d.id LIMIT 10`).bind(day2, day2, day2).all()).results,
+    eligible: async (day2, minute2 = 1320) => (await db.prepare(`SELECT d.* FROM devices d
+      JOIN initialized i ON i.uid=d.uid LEFT JOIN activity a ON a.uid=d.uid AND a.day=? LEFT JOIN preferences p ON p.uid=d.uid
+      WHERE COALESCE(p.effective_day,'0000-01-01')<=? AND ? BETWEEN COALESCE(p.minute_of_day,1320) AND MIN(COALESCE(p.minute_of_day,1320)+59,1439) AND COALESCE(a.has_record,0)=0 AND NOT EXISTS(SELECT 1 FROM local_activity l WHERE l.uid=d.uid AND l.day=? AND l.has_record=1) AND NOT EXISTS(SELECT 1 FROM deliveries x WHERE x.uid=d.uid AND x.device_id=d.device_id AND x.day=?)
+      ORDER BY d.id LIMIT 10`).bind(day2, day2, minute2, day2, day2).all()).results,
     // One atomic SQL statement checks current activity and reserves a device/day.
-    claim: (device, day2) => db.prepare(`INSERT INTO deliveries(uid,device_id,day,status)
+    claim: (device, day2, minute2 = 1320) => db.prepare(`INSERT INTO deliveries(uid,device_id,day,status)
       SELECT ?,?,?,'reserved' WHERE EXISTS(SELECT 1 FROM devices WHERE uid=? AND device_id=? AND endpoint=?)
       AND EXISTS(SELECT 1 FROM initialized WHERE uid=?)
+      AND COALESCE((SELECT effective_day FROM preferences WHERE uid=?),'0000-01-01')<=?
+      AND ? BETWEEN COALESCE((SELECT minute_of_day FROM preferences WHERE uid=?),1320) AND MIN(COALESCE((SELECT minute_of_day FROM preferences WHERE uid=?),1320)+59,1439)
       AND NOT EXISTS(SELECT 1 FROM activity WHERE uid=? AND day=? AND has_record=1)
       AND NOT EXISTS(SELECT 1 FROM local_activity WHERE uid=? AND day=? AND has_record=1)
-      ON CONFLICT(uid,device_id,day) DO NOTHING RETURNING uid`).bind(device.uid, device.device_id, day2, device.uid, device.device_id, device.endpoint, device.uid, device.uid, day2, device.uid, day2).first(),
+      ON CONFLICT(uid,device_id,day) DO NOTHING RETURNING uid`).bind(device.uid, device.device_id, day2, device.uid, device.device_id, device.endpoint, device.uid, device.uid, day2, minute2, device.uid, device.uid, device.uid, day2, device.uid, day2).first(),
     finish: (device, day2, status) => db.prepare("UPDATE deliveries SET status=? WHERE uid=? AND device_id=? AND day=?").bind(status, device.uid, device.device_id, day2).run(),
     removeInvalid: (device) => db.prepare("DELETE FROM devices WHERE uid=? AND device_id=? AND endpoint=?").bind(device.uid, device.device_id, device.endpoint).run(),
     async prune(day2) {
@@ -1834,11 +1845,11 @@ function createStore(db) {
 }
 async function runReminder({ store, send, time, enabled }) {
   const counts = { accepted: 0, failed: 0, invalid: 0, skipped: 0 };
-  if (!enabled || new Date(time).getUTCHours() !== 13) return counts;
-  const day2 = koreaDay(time);
-  if (new Date(time).getUTCMinutes() === 0) await store.prune(day2);
-  for (const device of await store.eligible(day2)) {
-    if (!await store.claim(device, day2)) {
+  if (!enabled || !Number.isFinite(time)) return counts;
+  const day2 = koreaDay(time), minute2 = koreaMinute(time);
+  if (minute2 === 0) await store.prune(day2);
+  for (const device of await store.eligible(day2, minute2)) {
+    if (!await store.claim(device, day2, minute2)) {
       counts.skipped++;
       continue;
     }
@@ -1936,6 +1947,7 @@ function createHandler({ verify: verify2 = verifyUser, now = Date.now } = {}) {
     if (!env.DB) return json({ error: "not-configured" }, 503);
     const store = createStore(env.DB);
     try {
+      if (path === "/preferences" && request.method === "GET") return json(await store.preference(uid));
       if (path === "/account" && request.method === "DELETE") {
         await store.forget(uid);
         return json({ ok: true });
@@ -1943,6 +1955,11 @@ function createHandler({ verify: verify2 = verifyUser, now = Date.now } = {}) {
       const text = await request.text();
       if (text.length > 8192) return json({ error: "too-large" }, 413);
       const body = JSON.parse(text);
+      if (path === "/preferences" && request.method === "PUT") {
+        if (Object.keys(body).some((k) => k !== "minuteOfDay") || !Number.isInteger(body.minuteOfDay) || body.minuteOfDay < 0 || body.minuteOfDay >= 1440) throw Error("invalid-time");
+        await store.savePreference(uid, body.minuteOfDay, koreaDay(now() + (body.minuteOfDay < koreaMinute(now()) ? 864e5 : 0)));
+        return json({ ok: true, minuteOfDay: body.minuteOfDay });
+      }
       if (path === "/activity" && request.method === "POST") {
         if (Object.keys(body).some((k) => !["day", "hasRecord", "hasLocalRecord", "deviceId", "basis"].includes(k)) || body.day !== koreaDay(now()) || typeof body.hasRecord !== "boolean") throw Error("invalid-activity");
         const basis = timestamp(body.basis), ms = Date.parse(basis);

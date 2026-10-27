@@ -17,7 +17,7 @@ try:
    request=route.request
    body=json.loads(request.post_data) if request.post_data else None
    requests.append({'path':request.url.split('reminders.test')[-1],'method':request.method,'body':body})
-   route.fulfill(body=json.dumps({'schema':1,'publicKey':key,'ready':True} if request.url.endswith('/config') else {'ok':True}),content_type='application/json')
+   route.fulfill(body=json.dumps({'schema':1,'publicKey':key,'ready':True} if request.url.endswith('/config') else {'minuteOfDay':1320} if request.url.endswith('/preferences') and request.method=='GET' else {'ok':True}),content_type='application/json')
   context.route('https://reminders.test/**',reminder_route)
   context.route('**/js/push-config.js*',lambda r:r.fulfill(body="window.MF_PUSH_CONFIG={reminderApiUrl:'https://reminders.test'};",content_type='application/javascript'))
   context.add_init_script("""(()=>{
@@ -25,7 +25,7 @@ try:
    localStorage.setItem('mf_push_device_id_v1','legacy');localStorage.setItem('mf_push_binding_v1',JSON.stringify({uid:'alice',deviceId:'legacy',needsRotation:false}));
    Object.defineProperty(navigator,'standalone',{value:true});window.Notification={permission:'granted'};
    window.fixtureUnsubscribe=0;window.fixtureSubscribe=0;window.fixtureCurrentSub={unsubscribe:async()=>{fixtureUnsubscribe++;fixtureCurrentSub=null;return true;}};
-   navigator.serviceWorker.getRegistration=async()=>({active:{postMessage:(message,ports)=>{if(ports?.[0])ports[0].postMessage({worker:'mf-v154',receipt:null});}},pushManager:{
+   navigator.serviceWorker.getRegistration=async()=>({active:{postMessage:(message,ports)=>{if(ports?.[0])ports[0].postMessage({worker:'mf-v155',receipt:null});}},pushManager:{
     getSubscription:async()=>fixtureCurrentSub,subscribe:async(options)=>{fixtureSubscribe++;fixtureCurrentSub={options,unsubscribe:async()=>{fixtureUnsubscribe++;fixtureCurrentSub=null;return true;},toJSON:()=>({endpoint:'https://web.push.apple.com/fixture',keys:{p256dh:'fixture',auth:'fixture'}})};return fixtureCurrentSub;}
    }});
   })();""")
@@ -33,6 +33,7 @@ try:
   page.goto('http://127.0.0.1:8204/');page.wait_for_timeout(1200)
   assert not errors,errors
   assert any(r['path']=='/device' and r['method']=='PUT' for r in requests),requests
+  assert next(i for i,r in enumerate(requests) if r['path']=='/preferences')<next(i for i,r in enumerate(requests) if r['path']=='/device' and r['method']=='PUT')
   assert page.evaluate('fixtureSubscribe')==1 and page.evaluate('fixtureUnsubscribe')==1
   assert page.evaluate("fixture.calls.some(c=>c.type==='delete'&&c.path==='users/alice/pushDevices/legacy')")
   assert not page.evaluate("fixture.calls.some(c=>c.type==='set'&&c.path.includes('/pushDevices/'))")
