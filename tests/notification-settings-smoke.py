@@ -21,7 +21,7 @@ try:
     localStorage.setItem('fixture_uid','alice');localStorage.setItem('mf_data_owner_v2','alice');
     window.fixturePermissionCalls=0;
     window.Notification={permission:localStorage.getItem('fixture_permission')||'default',requestPermission:async()=>{fixturePermissionCalls++;Notification.permission='granted';localStorage.setItem('fixture_permission','granted');return 'granted';}};
-    navigator.serviceWorker.getRegistration=async()=>({active:{},pushManager:{getSubscription:async()=>({unsubscribe:async()=>{localStorage.setItem('fixture_unsubscribes',String(Number(localStorage.getItem('fixture_unsubscribes')||0)+1));return true;}})}});
+    navigator.serviceWorker.getRegistration=async()=>({active:{postMessage:(message,ports)=>{if(message.type==='TTT_PUSH_DIAGNOSTICS')ports[0].postMessage({worker:'mf-v152',receipt:null});}},pushManager:{getSubscription:async()=>({unsubscribe:async()=>{localStorage.setItem('fixture_unsubscribes',String(Number(localStorage.getItem('fixture_unsubscribes')||0)+1));return true;}})}});
    })();""")
    page=context.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
    page.goto('http://127.0.0.1:8202/');page.wait_for_timeout(700)
@@ -33,6 +33,9 @@ try:
    page.locator('#notificationPermissionBox').click()
    page.wait_for_function("fixture.calls.filter(c=>c.type==='set'&&c.path.includes('/pushDevices/')).length===1")
    assert label.inner_text()=='허용됨' and page.evaluate('fixturePermissionCalls')==1
+   page.wait_for_function("document.getElementById('notificationPermissionHint').textContent.includes('아직 수신 기록 없음')")
+   assert '기기 구독 있음' in page.locator('#notificationPermissionHint').inner_text()
+   assert '계정 등록 완료' in page.locator('#notificationPermissionHint').inner_text()
    device_id=page.evaluate("localStorage.getItem('mf_push_device_id_v1')")
    path='users/alice/pushDevices/'+device_id
    saved=page.evaluate('(path)=>fixture.store.get(path)',path)

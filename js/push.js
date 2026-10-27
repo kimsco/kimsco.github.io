@@ -63,6 +63,17 @@
   }).catch(error=>{if(permission()==='granted')notice(error.message||'알림 권한은 허용됐지만 기기 연결을 완료하지 못했습니다. 다시 눌러 재시도해주세요.');}).finally(()=>{if(running===task)running=null;render();});
   running=task;return task;
  }
+ async function diagnostics(){
+  const worker=await registration(),subscription=await worker.pushManager.getSubscription();
+  const result=await bounded(new Promise(resolve=>{
+   const channel=new MessageChannel();channel.port1.onmessage=event=>{channel.port1.close();resolve(event.data);};
+   worker.active.postMessage({type:'TTT_PUSH_DIAGNOSTICS'},[channel.port2]);
+  }),4000);
+  const receipt=result.receipt;
+  const received=receipt?new Date(receipt.receivedAt).toLocaleString():'없음';
+  const status=!receipt?'아직 수신 기록 없음':receipt.status==='shown'?'표시 요청 성공':receipt.status==='failed'?'표시 실패 ('+receipt.errorName+')':'수신됨, 표시 완료 기록 없음';
+  notice('알림 진단 · '+result.worker+' · 기기 구독 '+(subscription?'있음':'없음')+' · 계정 등록 '+(registry.isRegistered()?'완료':'미완료')+' · 최근 수신 '+received+' · '+status);
+ }
  window.MFNotifications={detach:()=>{pushOwner(null);return bounded(registry.detach(),14000).catch(()=>{});}};
  box.addEventListener('click',async()=>{
   if(busy)return;const unsupported=supported();if(unsupported){notice(unsupported);return;}
@@ -71,7 +82,7 @@
   try{
    // Native prompt must stay inside this click, before any SDK/network work.
    const result=permission()==='granted'?'granted':await Notification.requestPermission();render();
-   if(result==='granted'){await sync();if(hint.hidden)notice('알림이 허용되어 있습니다. 끄려면 기기 또는 브라우저 설정에서 이 앱의 알림 권한을 변경해주세요.');}
+   if(result==='granted'){await sync();if(hint.hidden)await diagnostics().catch(()=>notice('알림 진단에 응답이 없습니다. 앱을 다시 열고 재시도해주세요.'));}
    else notice(result==='denied'?'알림이 차단되었습니다. 기기 설정에서 허용할 수 있습니다.':'알림은 미허용 상태입니다. 원할 때 다시 요청할 수 있습니다.');
   }catch(_){notice('알림 권한을 요청하지 못했습니다. 홈 화면에 추가한 앱에서 다시 시도해주세요.');}
   finally{busy=false;render();}

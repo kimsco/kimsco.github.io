@@ -1,4 +1,4 @@
-const CACHE = "mf-v151"; // 🔥 아래 food-db-full.json 삭제 + 로고 이미지가 그동안 세 차례 더
+const CACHE = "mf-v152"; // 🔥 아래 food-db-full.json 삭제 + 로고 이미지가 그동안 세 차례 더
                          // 교체(#764/#765/#768)됐지만 이 캐시 이름을 안 올려서 새 서비스워커가
                          // 설치되지 않고 있었음(바로 아래 참고) — 올려서 처음부터 다시 받아오게 함
 const ASSETS = [
@@ -6,14 +6,14 @@ const ASSETS = [
   "/index.html",
   "/manifest.json",
   "/sw.js",
-  "/js/sync.js?v=1.0.122",
+  "/js/sync.js?v=1.0.123",
   "/js/read-cache.js?v=1.0.30",
   "/js/history-pages.js?v=1.0.73",
   "/js/record-sync.js?v=1.0.75",
   "/js/record-wheel.js?v=1.0.116",
-  "/js/push-config.js?v=1.0.122",
-  "/js/push-devices.js?v=1.0.122",
-  "/js/push.js?v=1.0.122",
+  "/js/push-config.js?v=1.0.123",
+  "/js/push-devices.js?v=1.0.123",
+  "/js/push.js?v=1.0.123",
   "/js/app-sync.js?v=1.0.75",
   "/js/last-workout.js?v=1.0.30",
   "/js/rest-stopwatch.js?v=1.0.30",
@@ -140,6 +140,17 @@ self.addEventListener("fetch", e => {
 
 // Keep account content hidden after logout, even if network unsubscribe is delayed.
 const PUSH_SESSION_URL='/__ttt_push_session';
+const PUSH_RECEIPT_URL='/__ttt_push_receipt';
+async function savePushReceipt(receipt){
+  try{const cache=await caches.open(CACHE);await cache.put(PUSH_RECEIPT_URL,new Response(JSON.stringify(receipt),{headers:{'Content-Type':'application/json'}}));}catch(_){}
+}
+self.addEventListener('message',event=>{
+  if(event.data?.type!=='TTT_PUSH_DIAGNOSTICS')return;
+  event.waitUntil((async()=>{
+    try{const cache=await caches.open(CACHE),response=await cache.match(PUSH_RECEIPT_URL);event.ports?.[0]?.postMessage({worker:CACHE,receipt:response?await response.json():null});}
+    catch(_){event.ports?.[0]?.postMessage({worker:CACHE,error:true});}
+  })());
+});
 let pushSessionWork=Promise.resolve();
 self.addEventListener('message',event=>{
   if(event.data?.type!=='TTT_PUSH_SESSION')return;
@@ -162,8 +173,16 @@ self.addEventListener('push',event=>{
   let target='/';
   try{const candidate=new URL(payload.fcmOptions?.link||data.url||'/',self.location.origin);if(candidate.origin===self.location.origin)target=candidate.href;}catch(_){}
   event.waitUntil((async()=>{
-    const owner=await currentPushOwner(),safe=!!owner&&(!data.receiverUid||data.receiverUid===owner);
-    return self.registration.showNotification(safe?title:'TTT 알림',{body:safe?body:'새 알림이 있습니다. 앱에서 확인해주세요.',icon:'/icons/icon-192.png',tag:payload.fcmMessageId||payload.messageId||'ttt-push',data:{url:safe?target:'/'}});
+    const receipt={receivedAt:Date.now(),status:'received'};
+    await savePushReceipt(receipt);
+    try{
+      const owner=await currentPushOwner(),safe=!!owner&&(!data.receiverUid||data.receiverUid===owner);
+      await self.registration.showNotification(safe?title:'TTT 알림',{body:safe?body:'새 알림이 있습니다. 앱에서 확인해주세요.',icon:'/icons/icon-192.png',tag:payload.fcmMessageId||payload.messageId||'ttt-push',data:{url:safe?target:'/'}});
+      await savePushReceipt({...receipt,status:'shown'});
+    }catch(error){
+      await savePushReceipt({...receipt,status:'failed',errorName:String(error?.name||'Error').slice(0,80)});
+      throw error;
+    }
   })());
 });
 self.addEventListener('notificationclick',event=>{
