@@ -1,0 +1,52 @@
+/* Main settings only: sub-screens keep their existing layouts and controls. */
+#settingsOverlay{--settings-row-h:72px;--settings-card-bg:#181818;--settings-line:rgba(255,255,255,.09);--settings-muted:#8b8688;}
+#settingsOverlay .settings-panel{background:radial-gradient(ellipse 110% 440px at 35% 0,rgba(58,15,20,.42) 0%,rgba(35,9,13,.2) 55%,transparent 100%),#000;color:#f5f5f5;}
+#settingsOverlay .settings-header-bar{gap:12px;padding:calc(18px + env(safe-area-inset-top)) 20px 0;max-width:440px;width:100%;box-sizing:border-box;align-self:center;}
+#settingsOverlay .settings-header-title{font-size:34px;font-weight:750;letter-spacing:-.8px;line-height:44px;margin:0;}
+#settingsOverlay #closeSettingsBtn{width:28px;height:44px;flex:none;font-size:34px;}
+#settingsOverlay .settings-body{width:100%;max-width:440px;align-self:center;min-height:0;padding:44px 20px calc(40px + env(safe-area-inset-bottom));scrollbar-width:none;}
+#settingsOverlay .settings-body::-webkit-scrollbar{display:none;}
+#settingsOverlay .settings-group{margin:0 0 36px;}
+#settingsOverlay .settings-group:last-child{margin-bottom:0;}
+#settingsOverlay .settings-group[hidden]{display:none;}
+#settingsOverlay .settings-section-label{margin:0 0 12px;padding:0 18px;font-size:14px;font-weight:600;color:var(--settings-muted);line-height:20px;}
+#settingsOverlay .settings-card{padding:0 20px;margin:0;border:0;border-radius:26px;background:var(--settings-card-bg);box-shadow:none;}
+#settingsOverlay .settings-item{position:relative;height:72px;width:100%;padding:0;margin:0;border:0!important;border-radius:0;background:none;color:inherit;overflow:visible;font-family:inherit;font-size:16px;font-weight:400;gap:0;line-height:1.4;text-align:left;box-sizing:border-box;}
+#settingsOverlay button.settings-item{appearance:none;-webkit-appearance:none;cursor:pointer;}
+#settingsOverlay .settings-card>.settings-item:not(:last-child)::after,
+#settingsOverlay .settings-profile-edit::before{content:'';position:absolute;left:34px;right:0;bottom:0;height:1px;background:var(--settings-line);pointer-events:none;}
+#settingsOverlay .settings-profile-edit::before{top:0;bottom:auto;}
+#settingsOverlay .settings-item-icon{width:22px;height:22px;flex:0 0 22px;margin:0 12px 0 0;top:0;stroke-width:1.8;vertical-align:middle;}
+#settingsOverlay .settings-item-label{gap:0;min-width:0;}
+#settingsOverlay .settings-chevron,
+#settingsOverlay .row-right{margin-left:auto;padding-left:12px;flex:none;font-size:26px;font-weight:400;line-height:1;color:#777174;}
+#settingsOverlay #notificationPermissionState{margin-left:auto;color:var(--settings-muted);font-size:14px;white-space:nowrap;}
+#settingsOverlay #notificationPermissionBox{justify-content:space-between;}
+#settingsOverlay .settings-profile-identity{display:flex;align-items:center;gap:14px;min-width:0;}
+#settingsOverlay #settingsGuestBadge{padding:24px 0;border:0;min-height:100px;box-sizing:border-box;}
+#settingsOverlay .settings-profile-avatar{width:44px;height:44px;flex:0 0 44px;display:flex;align-items:center;justify-content:center;border-radius:15px;background:#282426;color:#e1d9dc;}
+#settingsOverlay .settings-profile-avatar .settings-item-icon{width:24px;height:24px;flex-basis:24px;margin:0;}
+#settingsOverlay .settings-profile-text{min-width:0;flex:1;}
+#settingsOverlay .settings-name{font-size:20px;font-weight:650;line-height:1.4;overflow-wrap:anywhere;}
+#settingsOverlay .settings-email{font-size:13px;line-height:1.5;margin-top:3px;color:var(--settings-muted);}
+#settingsOverlay #settingsLoginRow{min-height:100px;padding:20px 0;gap:14px;color:inherit;}
+#settingsOverlay #settingsLoginRow .row-left{flex:1;gap:4px;}
+#settingsOverlay #settingsLoginRow .row-title{font-size:19px;font-weight:650;background:none;color:inherit;}
+#settingsOverlay .settings-profile-subtext{font-size:12px;line-height:1.5;color:var(--settings-muted);}
+#settingsOverlay .settings-site-address{color:var(--settings-muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-left:34px;max-width:100%;}
+#settingsOverlay .settings-copy-btn{width:32px;height:32px;flex:none;margin-left:10px;color:var(--settings-muted);background:rgba(255,255,255,.07);}
+#settingsOverlay #appVersionDisplay{font-size:14px!important;}
+#settingsOverlay .settings-account-action{position:relative;box-sizing:border-box;width:100%;height:72px;padding:0;margin:0;border:0;border-radius:0;background:none;color:inherit;text-align:left;font-family:inherit;font-size:16px;font-weight:400;line-height:72px;cursor:pointer;}
+#settingsOverlay .settings-account-action:not(:last-child)::after{content:'';position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--settings-line);}
+#settingsOverlay .settings-delete-account-text{color:#d47d83;}
+#settingsOverlay :is(button.settings-item,.settings-row,.settings-account-action):active{opacity:.65;}
+#settingsOverlay :is(button.settings-item,.settings-row,.settings-account-action,#closeSettingsBtn):focus-visible{outline:2px solid currentColor;outline-offset:3px;border-radius:8px;}
+html.light-mode-on #settingsOverlay{--settings-card-bg:#fff;--settings-line:rgba(35,20,25,.09);--settings-muted:#80777b;}
+html.light-mode-on #settingsOverlay .settings-panel{background:radial-gradient(ellipse 110% 440px at 35% 0,rgba(166,95,103,.09) 0%,rgba(166,95,103,.025) 55%,transparent 100%),#f5f4f4;color:#1c191b;}
+html.light-mode-on #settingsOverlay .settings-card{background:#fff;box-shadow:0 2px 12px rgba(40,15,25,.035);}
+html.light-mode-on #settingsOverlay .settings-profile-avatar{background:#f2eaed;color:#6b565f;}
+html.light-mode-on #settingsOverlay .settings-chevron,
+html.light-mode-on #settingsOverlay .row-right{color:#9c9297;}
+html.light-mode-on #settingsOverlay .settings-delete-account-text{color:#ad4d57;}
+html.light-mode-on #settingsOverlay .settings-copy-btn{background:rgba(30,15,20,.055);}
+@media(min-width:600px){#settingsOverlay .settings-body{padding-left:24px;padding-right:24px;}}
