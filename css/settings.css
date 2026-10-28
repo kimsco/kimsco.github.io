@@ -1,18 +1,15 @@
 /* Main settings only: sub-screens keep their existing layouts and controls. */
 /* 🔥 카드 배경색은 레퍼런스 스크린샷에서 실제 픽셀 샘플링한 값(#1c1c1d) */
 #settingsOverlay{--settings-row-h:52px;--settings-card-bg:#1c1c1d;--settings-line:rgba(255,255,255,.09);--settings-muted:#8b8688;}
-/* 🔥 패널 자체에도 settings-body와 같은 글로우를 고정으로 깔아둠 — 평소엔 body가
-   완전히 덮어서 안 보이지만, iOS 당겨서 바운스(오버스크롤)할 때 body가 살짝
-   아래로 밀리면서 그 틈으로 패널 배경이 비치는데, 거기서 뚝 끊긴 검정이 아니라
-   같은 톤이 이어지도록 하기 위한 "뒤를 받쳐주는" 용도 */
-#settingsOverlay .settings-panel{overscroll-behavior:contain;background:radial-gradient(ellipse 140% 58vh at 35% 0,rgba(100,30,38,.48) 0%,rgba(64,20,25,.24) 55%,transparent 100%),#000;color:#f5f5f5;}
+/* 🔥 글로우는 이제 패널(고정) 쪽에만 둠 — body가 스크롤/바운스되는 동안에도
+   배경은 그 자리에 그대로 고정. body 쪽 배경을 없애서 이 배경이 항상 그대로
+   비쳐 보이게 함(스크롤이나 당겨서 튕기는 바운스 중에도 배경이 전혀 안 움직이니
+   이전처럼 두 레이어가 어긋나며 이상해 보이는 문제 자체가 생길 수 없음) */
+#settingsOverlay .settings-panel{background:radial-gradient(ellipse 140% 58vh at 35% 0,rgba(100,30,38,.48) 0%,rgba(64,20,25,.24) 55%,transparent 100%),#000;color:#f5f5f5;}
 /* 🔥 큰 제목은 settings-body 맨 위 콘텐츠라 스크롤하면 카드들과 같이 올라감(뒤로가기
    버튼이 없어져서 더 이상 옆으로 비킬 필요 없이 다른 콘텐츠와 동일한 좌측 정렬) */
 #settingsOverlay .settings-header-title{font-size:34px;font-weight:750;letter-spacing:-.8px;line-height:44px;margin:0 0 44px;padding:calc(18px + env(safe-area-inset-top)) 0 0;}
-/* 🔥 빨간 글로우 배경도 콘텐츠의 일부로 settings-body에 둬서 스크롤하면 같이 올라가게 함.
-   background-attachment:local이 핵심 — 스크롤 시 콘텐츠와 같은 속도로 같이 움직임(고정 X).
-   세로 크기 58vh = 이전 34vh의 1.7배, 색도 더 밝게. 색은 위 .settings-panel 글로우와 동일 */
-#settingsOverlay .settings-body{width:100%;max-width:440px;align-self:center;min-height:0;padding:0 20px calc(40px + env(safe-area-inset-bottom));scrollbar-width:none;overscroll-behavior-y:contain;background:radial-gradient(ellipse 140% 58vh at 35% 0,rgba(100,30,38,.48) 0%,rgba(64,20,25,.24) 55%,transparent 100%);background-repeat:no-repeat;background-attachment:local;}
+#settingsOverlay .settings-body{width:100%;max-width:440px;align-self:center;min-height:0;padding:0 20px calc(40px + env(safe-area-inset-bottom));scrollbar-width:none;background:none;}
 #settingsOverlay .settings-body::-webkit-scrollbar{display:none;}
 #settingsOverlay .settings-group{margin:0 0 36px;}
 #settingsOverlay .settings-group:last-child{margin-bottom:0;}
@@ -62,8 +59,7 @@
 #settingsOverlay :is(button.settings-item,.settings-row,.settings-account-action):active{opacity:.65;}
 #settingsOverlay :is(button.settings-item,.settings-row,.settings-account-action):focus-visible{outline:2px solid currentColor;outline-offset:3px;border-radius:8px;}
 html.light-mode-on #settingsOverlay{--settings-card-bg:#fff;--settings-line:rgba(35,20,25,.09);--settings-muted:#80777b;}
-html.light-mode-on #settingsOverlay .settings-panel{background:#f5f4f4;color:#1c191b;}
-html.light-mode-on #settingsOverlay .settings-body{background:radial-gradient(ellipse 140% 30vh at 35% 0,rgba(166,95,103,.09) 0%,rgba(166,95,103,.025) 55%,transparent 100%);background-repeat:no-repeat;background-attachment:local;}
+html.light-mode-on #settingsOverlay .settings-panel{background:radial-gradient(ellipse 140% 30vh at 35% 0,rgba(166,95,103,.09) 0%,rgba(166,95,103,.025) 55%,transparent 100%),#f5f4f4;color:#1c191b;}
 html.light-mode-on #settingsOverlay .settings-card{background:#fff;box-shadow:0 2px 12px rgba(40,15,25,.035);}
 html.light-mode-on #settingsOverlay .settings-profile-avatar{background:#f2eaed;color:#6b565f;}
 html.light-mode-on #settingsOverlay .settings-chevron,
