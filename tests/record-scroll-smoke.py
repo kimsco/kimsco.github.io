@@ -9,7 +9,7 @@ try:
  with sync_playwright() as p:
   browser=p.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox'])
   for width in [320,390]:
-   context=browser.new_context(viewport={'width':width,'height':844},is_mobile=True,has_touch=True)
+   context=browser.new_context(viewport={'width':width,'height':740 if width==320 else 844},is_mobile=True,has_touch=True)
    fixture=(root/'tests/firebase-fixture.js').read_text()
    context.route('https://**/*',lambda r:r.fulfill(body=fixture if '/firebase-app-compat.js' in r.request.url else '',content_type='application/javascript'))
    page=context.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
@@ -53,6 +53,31 @@ try:
    page.locator('.bottomTab .tabBtn[data-target="tab4"]').click();page.wait_for_timeout(300)
    page.evaluate("""()=>{currentExercises=['스크롤 테스트'];accRecordsByExercise['스크롤 테스트']=scrollFixture.map((x,i)=>({...x,id:'acc-'+i,exercise:'스크롤 테스트',part:'chest'}));renderExercises();openExerciseDetail('스크롤 테스트');document.getElementById('acc-records').scrollTop=650;}""")
    page.wait_for_timeout(700);assert arrow.get_attribute('aria-hidden')=='false'
+   header=page.locator('.exercise-detail-header');header_top=header.bounding_box()['y']
+   assert header.bounding_box()['height']==40
+   page.evaluate('detailScreen.scrollTop=200');page.wait_for_timeout(50)
+   assert page.evaluate('detailScreen.scrollTop')==0 and abs(header.bounding_box()['y']-header_top)<.5
+   cdp=context.new_cdp_session(page)
+   def drag(x,y,dy,horizontal=False):
+    cdp.send('Input.dispatchTouchEvent',{'type':'touchStart','touchPoints':[{'x':x,'y':y}]})
+    for fraction in [.2,.4,.6,.8,1]:
+     cdp.send('Input.dispatchTouchEvent',{'type':'touchMove','touchPoints':[{'x':x+dy*fraction if horizontal else x,'y':y if horizontal else y+dy*fraction}]});page.wait_for_timeout(25)
+    cdp.send('Input.dispatchTouchEvent',{'type':'touchEnd','touchPoints':[]});page.wait_for_timeout(300)
+   history_top=page.evaluate("document.getElementById('acc-records').scrollTop")
+   for direction in [-1,1]:
+    drag(width/2,header_top+20,70*direction)
+    assert abs(header.bounding_box()['y']-header_top)<.5
+    assert page.evaluate("detailScreen.scrollTop===0 && document.querySelector('.app').scrollTop===0")
+    assert page.evaluate("document.getElementById('acc-records').scrollTop")==history_top
+   history_rect=page.locator('#acc-records').bounding_box()
+   drag(width/2,history_rect['y']+history_rect['height']*.65,-100)
+   assert page.evaluate("document.getElementById('acc-records').scrollTop")>history_top
+   assert abs(header.bounding_box()['y']-header_top)<.5
+   # Horizontal edge-swipe remains available on the fixed header.
+   drag(10,header_top+20,width*.6,horizontal=True)
+   page.wait_for_timeout(250);assert page.locator('#exercise-detail-screen').is_hidden()
+   page.evaluate("openExerciseDetail('스크롤 테스트');document.getElementById('acc-records').scrollTop=650")
+   page.wait_for_timeout(700)
    for light in [True,False]:
     page.evaluate('(v)=>applyLightMode(v)',light);page.wait_for_timeout(50)
     assert arrow.evaluate('(el)=>getComputedStyle(el).backgroundColor')=='rgba(30, 30, 30, 0.96)'
