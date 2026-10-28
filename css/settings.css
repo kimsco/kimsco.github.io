@@ -1,6 +1,6 @@
 /* Main settings only: sub-screens keep their existing layouts and controls. */
 /* 🔥 카드 배경색은 레퍼런스 스크린샷에서 실제 픽셀 샘플링한 값(#1c1c1d) */
-#settingsOverlay{--settings-row-h:72px;--settings-card-bg:#1c1c1d;--settings-line:rgba(255,255,255,.09);--settings-muted:#8b8688;}
+#settingsOverlay{--settings-row-h:52px;--settings-card-bg:#1c1c1d;--settings-line:rgba(255,255,255,.09);--settings-muted:#8b8688;}
 /* 🔥 패널 자체에도 settings-body와 같은 글로우를 고정으로 깔아둠 — 평소엔 body가
    완전히 덮어서 안 보이지만, iOS 당겨서 바운스(오버스크롤)할 때 body가 살짝
    아래로 밀리면서 그 틈으로 패널 배경이 비치는데, 거기서 뚝 끊긴 검정이 아니라
@@ -18,10 +18,12 @@
 #settingsOverlay .settings-group:last-child{margin-bottom:0;}
 #settingsOverlay .settings-group[hidden]{display:none;}
 #settingsOverlay .settings-section-label{margin:0 0 12px;padding:0 18px;font-size:15px;font-weight:650;color:var(--settings-muted);line-height:20px;}
-#settingsOverlay .settings-card{padding:0 20px;margin:0;border:0;border-radius:26px;background:var(--settings-card-bg);box-shadow:none;}
+/* 🔥 곡선 반경도 레퍼런스에서 실측한 값(약 20px)으로 축소 */
+#settingsOverlay .settings-card{padding:0 20px;margin:0;border:0;border-radius:20px;background:var(--settings-card-bg);box-shadow:none;}
 /* 🔥 프로필 카드만 50% 불투명도(뒤 글로우가 살짝 비치는 느낌) */
 #settingsOverlay .settings-profile-card{background:rgba(28,28,29,.5);}
-#settingsOverlay .settings-item{position:relative;height:72px;width:100%;padding:0;margin:0;border:0!important;border-radius:0;background:none;color:inherit;overflow:visible;font-family:inherit;font-size:16px;font-weight:400;gap:0;line-height:1.4;text-align:left;box-sizing:border-box;}
+/* 🔥 행 높이(세로 폭)도 레퍼런스에서 실측한 값(약 50px)에 맞춰 72px -> 52px로 축소 */
+#settingsOverlay .settings-item{position:relative;height:52px;width:100%;padding:0;margin:0;border:0!important;border-radius:0;background:none;color:inherit;overflow:visible;font-family:inherit;font-size:16px;font-weight:400;gap:0;line-height:1.4;text-align:left;box-sizing:border-box;}
 /* 🔥 알림처럼 카드 안에 항목이 하나뿐인 경우, 고정 72px 줄 높이 대신 여유 있는
    패딩으로 독립된 카드처럼 보이게(레퍼런스의 "잠금화면 카드 표시" 카드와 동일).
    세로 폭을 줄여 레퍼런스 비율에 맞춤(패딩 22px -> 14px) */
@@ -54,7 +56,7 @@
 #settingsOverlay .settings-site-address{color:var(--settings-muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-left:34px;max-width:100%;}
 #settingsOverlay .settings-copy-btn{width:32px;height:32px;flex:none;margin-left:10px;color:var(--settings-muted);background:rgba(255,255,255,.07);}
 #settingsOverlay #appVersionDisplay{font-size:14px!important;}
-#settingsOverlay .settings-account-action{position:relative;box-sizing:border-box;width:100%;height:72px;padding:0;margin:0;border:0;border-radius:0;background:none;color:inherit;text-align:left;font-family:inherit;font-size:16px;font-weight:400;line-height:72px;cursor:pointer;}
+#settingsOverlay .settings-account-action{position:relative;box-sizing:border-box;width:100%;height:52px;padding:0;margin:0;border:0;border-radius:0;background:none;color:inherit;text-align:left;font-family:inherit;font-size:16px;font-weight:400;line-height:52px;cursor:pointer;}
 #settingsOverlay .settings-account-action:not(:last-child)::after{content:'';position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--settings-line);}
 #settingsOverlay .settings-delete-account-text{color:#d47d83;}
 #settingsOverlay :is(button.settings-item,.settings-row,.settings-account-action):active{opacity:.65;}
