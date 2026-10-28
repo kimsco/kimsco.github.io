@@ -27,8 +27,8 @@ try:
    arrow=page.locator('#recordScrollTop');assert arrow.get_attribute('aria-hidden')=='true'
    page.evaluate('benchBox.scrollTop=650');page.wait_for_timeout(700)
    assert arrow.get_attribute('aria-hidden')=='false',page.evaluate("Array.from(document.querySelectorAll('[id$=Overlay],[id$=Modal]')).filter(e=>!e.classList.contains('hidden')&&getComputedStyle(e).display!=='none'&&getComputedStyle(e).pointerEvents!=='none').map(e=>e.id)")
-   rect=arrow.bounding_box();assert 0<=rect['x'] and rect['x']+44<=width and rect['width']==44
-   assert page.evaluate("document.elementFromPoint(parseFloat(recordScrollTop.style.left)+22,parseFloat(recordScrollTop.style.top)+22)===recordScrollTop || recordScrollTop.contains(document.elementFromPoint(parseFloat(recordScrollTop.style.left)+22,parseFloat(recordScrollTop.style.top)+22))")
+   rect=arrow.bounding_box();assert 0<=rect['x'] and rect['x']+32<=width and rect['width']==32 and abs(rect['x']+16-width/2)<1
+   assert page.evaluate("document.elementFromPoint(parseFloat(recordScrollTop.style.left),parseFloat(recordScrollTop.style.top)+16)===recordScrollTop || recordScrollTop.contains(document.elementFromPoint(parseFloat(recordScrollTop.style.left),parseFloat(recordScrollTop.style.top)+16))")
    # Real shortcut click starts a multi-frame movement and reaches zero promptly.
    arrow.click();page.wait_for_timeout(70);mid=page.evaluate('benchBox.scrollTop');assert 0<mid<650,mid
    page.wait_for_timeout(400);assert page.evaluate('benchBox.scrollTop')==0 and arrow.get_attribute('aria-hidden')=='true'
@@ -55,6 +55,8 @@ try:
    page.wait_for_timeout(700);assert arrow.get_attribute('aria-hidden')=='false'
    for light in [True,False]:
     page.evaluate('(v)=>applyLightMode(v)',light);page.wait_for_timeout(50)
+    assert arrow.evaluate('(el)=>getComputedStyle(el).backgroundColor')=='rgba(30, 30, 30, 0.96)'
+    assert abs(arrow.bounding_box()['x']+16-width/2)<1
     page.screenshot(path=f'/tmp/record-scroll-{width}-{light}.png')
    page.locator('#recordFloatBarAcc button').tap();page.wait_for_timeout(600)
    page.evaluate("document.getElementById('acc-weight').value='30';document.getElementById('acc-reps').value='9';")

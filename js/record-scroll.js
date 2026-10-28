@@ -8,7 +8,7 @@
  const button=document.createElement('button');
  button.id='recordScrollTop';button.type='button';button.className='record-scroll-top';
  button.setAttribute('aria-label','기록 목록 맨 위로 이동');button.setAttribute('aria-hidden','true');button.disabled=true;
- button.innerHTML='<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>';
+ button.innerHTML='<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>';
  document.body.appendChild(button);
  function stop(){cancelAnimationFrame(frame);frame=0;moving=null;}
  function render(){
@@ -21,7 +21,7 @@
   if(!visible){if(document.activeElement===button)button.blur();return;}
   const rect=context.el.getBoundingClientRect(),anchor=context.anchor?.getBoundingClientRect();
   button.style.top=Math.round(Math.max(rect.top,anchor?.bottom||0)+10)+'px';
-  button.style.left=Math.round(Math.min(innerWidth-54,rect.right-54))+'px';
+  button.style.left=Math.round((rect.left+rect.right)/2)+'px';
  }
  function refresh(){if(!refreshFrame)refreshFrame=requestAnimationFrame(render);}
  function top(context){
