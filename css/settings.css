@@ -52,7 +52,7 @@
 #settingsOverlay .settings-profile-subtext{font-size:12px;line-height:1.5;color:var(--settings-muted);}
 /* 🔥 아래 작은 글씨 2번째 줄 대신, 라벨과 같은 줄 오른쪽(복사 버튼 옆)에 라벨과
    동일한 색/크기로 표시 */
-#settingsOverlay .settings-site-address{color:inherit;font-size:inherit;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+#settingsOverlay .settings-site-address{color:inherit;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
 #settingsOverlay .settings-copy-btn{width:32px;height:32px;flex:none;margin-left:10px;color:var(--settings-muted);background:rgba(255,255,255,.07);}
 #settingsOverlay #appVersionDisplay{font-size:14px!important;}
 #settingsOverlay .settings-account-action{position:relative;box-sizing:border-box;width:100%;height:52px;padding:0;margin:0;border:0;border-radius:0;background:none;color:inherit;text-align:left;font-family:inherit;font-size:16px;font-weight:400;line-height:52px;cursor:pointer;}
