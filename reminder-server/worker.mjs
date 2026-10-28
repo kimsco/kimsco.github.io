@@ -1,6 +1,6 @@
 import {createRemoteJWKSet, jwtVerify} from 'jose';
 import {buildPushPayload} from '@block65/webcrypto-web-push';
-import {createStore, runReminder, koreaDay, timestamp} from './core.mjs';
+import {createStore, runReminder, koreaDay, koreaMinute, timestamp} from './core.mjs';
 
 const PROJECT = 'rmpj-7ca13', ORIGIN = 'https://kimsco.github.io';
 const jwks = createRemoteJWKSet(new URL('https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com'));
@@ -55,10 +55,15 @@ export function createHandler({verify = verifyUser, now = Date.now} = {}) {
     if (!env.DB) return json({error: 'not-configured'}, 503);
     const store = createStore(env.DB);
     try {
+      if(path==='/preferences'&&request.method==='GET')return json(await store.preference(uid));
       if (path === '/account' && request.method === 'DELETE') { await store.forget(uid); return json({ok: true}); }
       // Limit JSON bodies before buffering. No weight, reps, exercise names or history accepted.
       const text = await request.text(); if (text.length > 8192) return json({error: 'too-large'}, 413);
       const body = JSON.parse(text);
+      if(path==='/preferences'&&request.method==='PUT'){
+        if(Object.keys(body).some(k=>k!=='minuteOfDay')||!Number.isInteger(body.minuteOfDay)||body.minuteOfDay<0||body.minuteOfDay>=1440)throw Error('invalid-time');
+        await store.savePreference(uid,body.minuteOfDay,koreaDay(now()+(body.minuteOfDay<koreaMinute(now())?86400000:0)));return json({ok:true,minuteOfDay:body.minuteOfDay});
+      }
       if (path === '/activity' && request.method === 'POST') {
         if (Object.keys(body).some(k => !['day', 'hasRecord', 'hasLocalRecord', 'deviceId', 'basis'].includes(k)) || body.day !== koreaDay(now()) || typeof body.hasRecord !== 'boolean') throw Error('invalid-activity');
         const basis = timestamp(body.basis), ms = Date.parse(basis);

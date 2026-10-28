@@ -6,8 +6,8 @@ compatibility_date = "2026-10-27"
 REMINDERS_ENABLED = "false"
 
 [triggers]
-# Korea 22:00, then drain additional batches at one-minute intervals. Once/device/day.
-crons = ["* 13 * * *"]
+# Each minute checks individual Korea-time preferences. Once/device/day.
+crons = ["* * * * *"]
 
 [[d1_databases]]
 binding = "DB"

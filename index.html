@@ -10678,6 +10678,59 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
   </div>
 </div>
 
+<style>
+#notificationSettingsOverlay{position:fixed;inset:0;z-index:100002;background:var(--c-bg,#000);color:var(--c-text-primary);}
+#notificationSettingsOverlay.hidden{display:none;}
+.notification-settings-screen{height:100%;max-width:390px;margin:0 auto;display:flex;flex-direction:column;padding:calc(16px + env(safe-area-inset-top)) 18px calc(20px + env(safe-area-inset-bottom));box-sizing:border-box;}
+.notification-settings-header{display:flex;align-items:center;gap:10px;flex:none;margin-bottom:24px;}
+.notification-settings-header h2{font-size:19px;font-weight:700;margin:0;}
+#notificationSettingsBack{margin:0;width:36px;height:36px;display:grid;place-items:center;background:none;border:0;color:inherit;padding:6px;cursor:pointer;}
+#notificationSettingsBack svg{width:24px;height:24px;}
+.notification-settings-body{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;}
+#notificationAllowBtn{margin:0;display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;padding:18px 16px;border:0;border-radius:18px;background:var(--c-bg-elevated,#191919);color:inherit;font:inherit;text-align:left;cursor:pointer;}
+#notificationAllowState{color:var(--c-text-secondary);font-size:14px;}
+#notificationPermissionHint{font-size:13px;line-height:1.6;color:var(--c-text-secondary);padding:0 4px;}
+.notification-time-question{margin:40px 0 8px;font-size:21px;letter-spacing:-.5px;font-weight:700;}
+.notification-time-description{font-size:13px;line-height:1.7;margin:0;color:var(--c-text-secondary);}
+.notification-time-picker{position:relative;display:flex;height:240px;margin:24px 0 12px;isolation:isolate;}
+.notification-time-picker::before{content:"";position:absolute;top:96px;left:0;right:0;height:48px;border-radius:14px;background:var(--c-bg-elevated,#191919);pointer-events:none;z-index:-1;}
+.notification-time-wheel{flex:1;min-width:0;height:240px;box-sizing:border-box;overflow-y:auto;overscroll-behavior:contain;scroll-snap-type:y mandatory;padding:96px 0;scrollbar-width:none;-webkit-mask-image:linear-gradient(transparent,#000 38%,#000 62%,transparent);mask-image:linear-gradient(transparent,#000 38%,#000 62%,transparent);touch-action:pan-y;}
+.notification-time-wheel::-webkit-scrollbar{display:none;}
+.notification-wheel-option{height:48px;display:flex;align-items:center;justify-content:center;scroll-snap-align:center;scroll-snap-stop:normal;font-size:25px;font-weight:500;font-variant-numeric:tabular-nums;color:var(--c-text-secondary);user-select:none;-webkit-user-select:none;cursor:pointer;}
+.notification-wheel-option.selected{color:var(--c-text-primary);font-weight:650;}
+.notification-time-zone{text-align:center;font-size:12px;color:var(--c-text-secondary);margin:0 0 24px;}
+.notification-settings-footer{flex:none;padding-top:16px;}
+#notificationSaveBtn{margin:0;width:100%;height:54px;border:0;border-radius:18px;background:var(--c-text-primary,#fff);color:var(--c-bg,#000);font-size:16px;font-weight:700;cursor:pointer;}
+#notificationSaveBtn:disabled{opacity:.55;}
+#notificationSaveStatus{font-size:13px;line-height:1.6;color:var(--c-text-secondary);margin:0 0 12px;min-height:21px;text-align:center;}
+.notification-time-wheel:focus-visible,#notificationSettingsBack:focus-visible,#notificationAllowBtn:focus-visible,#notificationSaveBtn:focus-visible{outline:2px solid var(--c-text-secondary);outline-offset:2px;}
+@media(prefers-reduced-motion:reduce){.notification-time-wheel{scroll-behavior:auto;}}
+</style>
+<div id="notificationSettingsOverlay" class="hidden" role="dialog" aria-modal="true" aria-labelledby="notificationSettingsTitle">
+ <div class="notification-settings-screen">
+  <header class="notification-settings-header">
+   <button id="notificationSettingsBack" type="button" aria-label="설정으로 돌아가기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+   <h2 id="notificationSettingsTitle">알림 설정</h2>
+  </header>
+  <div class="notification-settings-body">
+   <button id="notificationAllowBtn" type="button"><span>알림 허용</span><span id="notificationAllowState" aria-live="polite">미허용</span></button>
+   <p id="notificationPermissionHint" hidden role="status"></p>
+   <h3 class="notification-time-question">몇 시에 알림을 보낼까요?</h3>
+   <p class="notification-time-description">오늘 운동 기록이 없을 때 알려드려요.</p>
+   <div class="notification-time-picker" role="group" aria-label="알림 시간 선택">
+    <div id="notificationPeriodWheel" class="notification-time-wheel" role="spinbutton" tabindex="0" aria-label="오전 또는 오후"></div>
+    <div id="notificationHourWheel" class="notification-time-wheel" role="spinbutton" tabindex="0" aria-label="시"></div>
+    <div id="notificationMinuteWheel" class="notification-time-wheel" role="spinbutton" tabindex="0" aria-label="분"></div>
+   </div>
+   <p class="notification-time-zone">한국 시간 기준</p>
+  </div>
+  <footer class="notification-settings-footer">
+   <p id="notificationSaveStatus" role="status" aria-live="polite"></p>
+   <button id="notificationSaveBtn" type="button">저장하기</button>
+  </footer>
+ </div>
+</div>
+
 <!-- 🔥 WHO IS TTT FOR? — 브랜드 철학 페이지(풀스크린, 세로 스크롤) -->
 <div id="whoForOverlay" class="hidden" style="
     position:fixed; inset:0; background:#000; z-index:100000;
@@ -10853,10 +10906,9 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
 
 <div class="settings-section-label">알림</div>
 <div class="settings-card settings-card--flush">
-  <button id="notificationPermissionBox" class="settings-item" aria-describedby="notificationPermissionHint" style="width:100%;text-align:left;background:none;color:var(--c-text-primary);border:0;cursor:pointer;justify-content:space-between;">
+  <button id="notificationPermissionBox" class="settings-item" aria-haspopup="dialog" aria-controls="notificationSettingsOverlay" style="width:100%;text-align:left;background:none;color:var(--c-text-primary);border:0;cursor:pointer;justify-content:space-between;">
     <span>알림</span><span id="notificationPermissionState" aria-live="polite" style="margin-left:auto;color:var(--c-text-secondary);white-space:nowrap;">미허용</span>
   </button>
-  <p id="notificationPermissionHint" hidden role="status" style="margin:0;padding:0 16px 12px;color:var(--c-text-secondary);font-size:13px;line-height:1.6;"></p>
 </div>
 
 <!-- ✅ 카드 3: 일반 -->
@@ -11046,7 +11098,7 @@ MuscleFlow는 개인의 운동 및 식단 기록을 관리하는 PWA 서비스�
 - 이메일 (Google에서 제공)
 - 사용자 ID (Firebase가 생성)
 - 알림 연결 시 기기별 FCM 토큰 또는 Web Push 구독 정보(알림 전달용)
-- 운동 알림 연결 시 계정 식별자, 날짜별 운동 기록 유무, 기기별 맨몸 루틴 완료 유무 및 동기화 기준 시각(무게·횟수·종목명은 별도 알림 서버에 전달하지 않음)
+- 운동 알림 연결 시 계정 식별자, 날짜별 운동 기록 유무, 기기별 맨몸 루틴 완료 유무, 선택한 알림 시간 및 동기화 기준 시각(무게·횟수·종목명은 별도 알림 서버에 전달하지 않음)
 - 운동 기록 (사용자가 직접 입력: 운동명, 무게, 반복, 세트, 날짜)
 - 식단 기록 (사용자가 직접 입력: 음식명, 단백질, 탄수화물, 지방, 날짜)
 
@@ -11272,12 +11324,12 @@ MuscleFlow는 개인의 운동 및 식단 기록을 관리하는 PWA 서비스�
 <script src="https://www.gstatic.com/firebasejs/13.0.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/13.0.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore-compat.js"></script>
-<script src="/js/sync.js?v=1.0.125"></script>
+<script src="/js/sync.js?v=1.0.126"></script>
 <script src="/js/last-workout.js?v=1.0.30"></script>
 <script src="/js/read-cache.js?v=1.0.30"></script>
 <script src="/js/history-pages.js?v=1.0.73"></script>
 <script src="/js/record-sync.js?v=1.0.75"></script>
-<script src="/js/app-sync.js?v=1.0.125"></script>
+<script src="/js/app-sync.js?v=1.0.126"></script>
 <script src="/js/rest-stopwatch.js?v=1.0.30"></script>
 <script src="/js/rest-timer-motion.js?v=1.0.50"></script>
 <script src="/js/workout-summary.js?v=1.0.30"></script>
@@ -13261,7 +13313,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.125";
+const APP_VERSION = "1.0.126";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -25637,9 +25689,10 @@ window.MFReminderRecords={
  }
 };
 </script>
-<script src="/js/workout-reminder.js?v=1.0.125"></script>
-<script src="/js/push-config.js?v=1.0.125"></script>
-<script src="/js/push-devices.js?v=1.0.125"></script>
-<script src="/js/push.js?v=1.0.125"></script>
+<script src="/js/workout-reminder.js?v=1.0.126"></script>
+<script src="/js/push-config.js?v=1.0.126"></script>
+<script src="/js/push-devices.js?v=1.0.126"></script>
+<script src="/js/notification-settings.js?v=1.0.126"></script>
+<script src="/js/push.js?v=1.0.126"></script>
 </body>
 </html>

@@ -59,6 +59,8 @@
    }).finally(()=>{publishing=null;if(rerun){rerun=false;queueMicrotask(()=>void publish().catch(()=>{}));}});return publishing;
   }
   return {enabled,prepareToken,publish,
+   loadTime:()=>request('/preferences','GET',undefined,auth.currentUser?.uid),
+   saveTime:minuteOfDay=>request('/preferences','PUT',{minuteOfDay},auth.currentUser?.uid),
    register:async(uid,id,token)=>{check(uid);return request('/device','PUT',{id,subscription:JSON.parse(token)},uid);},
    remove:(uid,id,baseUrl)=>request('/device','DELETE',{id},uid,true,baseUrl),
    freeze:()=>{suspended=auth.currentUser?.uid||null;clearTimeout(retryTimer);},

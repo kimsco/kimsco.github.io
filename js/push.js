@@ -2,7 +2,8 @@
 (()=>{
  'use strict';
  const box=document.getElementById('notificationPermissionBox'),label=document.getElementById('notificationPermissionState'),hint=document.getElementById('notificationPermissionHint');if(!box)return;
- let busy=false,messagingLoad=null,running=null,lastPushOwner;
+ let busy=false,messagingLoad=null,running=null,lastPushOwner,settingsUI,prefWork,prefTimer,loadedPrefUid;
+ const preferences=MFNotificationSettings.createPreferences({storage:localStorage,currentUid:()=>auth.currentUser?.uid});
  const permission=()=>('Notification'in window?Notification.permission:'unsupported');
  const isiOS=()=>/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
  const standalone=()=>navigator.standalone===true||matchMedia('(display-mode: standalone)').matches;
@@ -14,9 +15,10 @@
  }
  function notice(message=''){hint.textContent=message;hint.hidden=!message;}
  function render(){
-  if(!isiOS()){label.textContent='준비 중';box.disabled=busy;box.setAttribute('aria-busy',String(busy));box.setAttribute('aria-label','알림 준비 중. 현재는 아이폰에서만 제공');return;}
-  const granted=permission()==='granted';label.textContent=granted?'허용됨':'미허용';
-  box.disabled=busy;box.setAttribute('aria-busy',String(busy));box.setAttribute('aria-label',granted?'알림 허용됨. 알림 설정 안내':'알림 미허용. 눌러서 알림 허용');
+  const granted=permission()==='granted',text=!isiOS()?'준비 중':granted?'허용됨':'미허용';
+  label.textContent=text;box.setAttribute('aria-label','알림 설정 열기. '+text);
+  const button=document.getElementById('notificationAllowBtn');button.disabled=busy;button.setAttribute('aria-busy',String(busy));
+  document.getElementById('notificationAllowState').textContent=text;
  }
  function bounded(promise,ms=12000){let timeout;return Promise.race([promise,new Promise((_,reject)=>{timeout=setTimeout(()=>reject(Error('연결이 지연되고 있습니다. 인터넷 연결 후 다시 시도해주세요.')),ms);})]).finally(()=>clearTimeout(timeout));}
  async function registration(){
@@ -52,7 +54,7 @@
   },
   unsubscribe:async()=>{const worker=await registration(),subscription=await worker.pushManager.getSubscription();if(subscription){const removed=await bounded(subscription.unsubscribe());if(!removed)throw Error('이전 알림 연결을 해제하지 못했습니다. 다시 시도해주세요.');}},
   saveDevice:async(uid,id,data)=>{
-   if(reminder.enabled())return reminder.register(uid,id,data.token);
+   if(reminder.enabled()){await syncPreferences();return reminder.register(uid,id,data.token);}
    if(auth.currentUser?.uid!==uid||accountDeletionBusy||appSync.outbox.isDeleting(uid))throw Error('계정이 변경되었습니다.');
    await bounded(db.collection('users').doc(uid).collection('pushDevices').doc(id).set({...data,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true}));
   },
@@ -60,41 +62,57 @@
  });
  function pushOwner(uid){if(lastPushOwner===uid)return;lastPushOwner=uid;void registration().then(worker=>worker.active?.postMessage({type:'TTT_PUSH_SESSION',uid})).catch(()=>{lastPushOwner=undefined;});}
  function sync(changed=false){
-  render();if(changed){reminder.resume();pushOwner(null);}if(running&&!changed)return running;
+  render();if(changed){reminder.resume();pushOwner(null);loadedPrefUid=null;clearTimeout(prefTimer);settingsUI?.accountChanged();}if(running&&!changed)return running;
   const uid=auth.currentUser?.uid||null;
   const task=(changed?registry.accountChanged():registry.sync()).then(()=>{
    if(uid&&auth.currentUser?.uid===uid&&registry.isRegistered()&&permission()==='granted'&&!supported())pushOwner(uid);else pushOwner(null);
    if(isiOS()&&permission()==='granted'&&!auth.currentUser)notice('알림 권한이 허용되어 있습니다. 로그인하면 이 기기의 알림이 자동 연결됩니다.');
   }).catch(error=>{if(isiOS()&&permission()==='granted')notice(error.message||'알림 권한은 허용됐지만 기기 연결을 완료하지 못했습니다. 다시 눌러 재시도해주세요.');}).finally(()=>{if(running===task)running=null;render();});
-  void reminder.publish().catch(()=>{});running=task;return task;
- }
- async function diagnostics(){
-  const worker=await registration(),subscription=await worker.pushManager.getSubscription();
-  const result=await bounded(new Promise(resolve=>{
-   const channel=new MessageChannel();channel.port1.onmessage=event=>{channel.port1.close();resolve(event.data);};
-   worker.active.postMessage({type:'TTT_PUSH_DIAGNOSTICS'},[channel.port2]);
-  }),4000);
-  const receipt=result.receipt;
-  const received=receipt?new Date(receipt.receivedAt).toLocaleString():'없음';
-  const status=!receipt?'아직 수신 기록 없음':receipt.status==='shown'?'표시 요청 성공':receipt.status==='failed'?'표시 실패 ('+receipt.errorName+')':'수신됨, 표시 완료 기록 없음';
-  notice('알림 진단 · '+result.worker+' · 기기 구독 '+(subscription?'있음':'없음')+' · 계정 등록 '+(registry.isRegistered()?'완료':'미완료')+' · 최근 수신 '+received+' · '+status);
+  void reminder.publish().catch(()=>{});void syncPreferences().catch(()=>{});running=task;return task;
  }
  window.MFNotifications={forgetAccount:()=>bounded(reminder.forget(),12000).catch(()=>{}),detach:()=>{pushOwner(null);const work=registry.detach();reminder.freeze();return bounded(work,14000).catch(()=>{});}};
  window.addEventListener('mf-reminder-snapshot',()=>void reminder.publish().catch(()=>{}));
  window.addEventListener('mf-reminder-records-changed',()=>void reminder.publish({refresh:true}).catch(()=>{}));
  window.addEventListener('mf-reminder-outbox',()=>void reminder.publish({refresh:true}).catch(()=>{}));
- box.addEventListener('click',async()=>{
+ async function allowNotifications(){
   if(busy)return;const unsupported=supported();if(unsupported){notice(unsupported);return;}
   if(permission()==='denied'){notice('알림이 차단되어 팝업을 다시 띄울 수 없습니다. 기기 또는 브라우저 설정에서 이 앱의 알림을 허용해주세요.');return;}
   notice();busy=true;render();
   try{
    // Native prompt must stay inside this click, before any SDK/network work.
    const result=permission()==='granted'?'granted':await Notification.requestPermission();render();
-   if(result==='granted'){await sync();if(hint.hidden)await diagnostics().catch(()=>notice('알림 진단에 응답이 없습니다. 앱을 다시 열고 재시도해주세요.'));}
+   if(result==='granted'){await sync();if(hint.hidden)notice('알림이 허용됐어요. 기기 설정에서 끌 수 있어요.');}
    else notice(result==='denied'?'알림이 차단되었습니다. 기기 설정에서 허용할 수 있습니다.':'알림은 미허용 상태입니다. 원할 때 다시 요청할 수 있습니다.');
   }catch(_){notice('알림 권한을 요청하지 못했습니다. 홈 화면에 추가한 앱에서 다시 시도해주세요.');}
   finally{busy=false;render();}
+ }
+ async function syncPreferences(force=false){
+  const uid=auth.currentUser?.uid;
+  if(!uid||!reminder.enabled()||!navigator.onLine)return false;
+  if(prefWork){await prefWork;return syncPreferences(force);}
+  if(!force&&!preferences.read().dirty&&loadedPrefUid===uid)return true;
+  const task=(async()=>{
+   const value=preferences.read();
+   if(value.dirty){await reminder.saveTime(value.minuteOfDay);if(auth.currentUser?.uid!==uid)return false;preferences.acknowledge(value.revision);}
+   else {const value=await reminder.loadTime();if(auth.currentUser?.uid!==uid)return false;preferences.fromServer(value.minuteOfDay);}
+   loadedPrefUid=uid;clearTimeout(prefTimer);settingsUI?.refresh();return true;
+  })().catch(error=>{
+   if(auth.currentUser?.uid===uid&&preferences.read().dirty){clearTimeout(prefTimer);prefTimer=setTimeout(()=>void syncPreferences().catch(()=>{}),30000);}
+   throw error;
+  }).finally(()=>{if(prefWork===task)prefWork=null;});
+  prefWork=task;return task;
+ }
+ settingsUI=MFNotificationSettings.install({preferences,onPermission:allowNotifications,
+  onOpen:async()=>{render();notice(supported()||(permission()==='granted'&&!auth.currentUser?'로그인하면 이 기기의 알림이 자동 연결됩니다.':''));await syncPreferences(true);},
+  onSave:async minute=>{
+   preferences.save(minute);
+   if(!reminder.enabled())return '시간을 저장했어요. 자동 알림은 아직 준비 중이에요.';
+   if(!auth.currentUser)return '기기에 저장했어요. 로그인하면 알림 시간을 연결할 수 있어요.';
+   try{const synced=await syncPreferences();return synced?'저장했어요.':'기기에 저장했어요. 인터넷에 연결되면 반영돼요.';}
+   catch(_){return '기기에 저장했어요. 연결되면 다시 반영할게요.';}
+  }
  });
+ box.addEventListener('click',()=>void settingsUI.open());
  const resume=()=>{notice();void sync();};
  navigator.serviceWorker?.addEventListener('controllerchange',()=>{lastPushOwner=undefined;void sync();});
  window.addEventListener('focus',resume);window.addEventListener('pageshow',resume);window.addEventListener('online',resume);
