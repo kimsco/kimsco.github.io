@@ -16,7 +16,7 @@ export function createStore(db) {
       .bind(uid, id, JSON.stringify(subscription), subscription.endpoint, uid, uid, id).run(),
     remove: (uid, id) => db.prepare('DELETE FROM devices WHERE uid=? AND device_id=?').bind(uid, id).run(),
     async forget(uid) {
-      await db.batch(['devices', 'activity', 'local_activity', 'initialized', 'deliveries', 'preferences'].map(table => db.prepare('DELETE FROM ' + table + ' WHERE uid=?').bind(uid)));
+      await db.batch(['devices', 'activity', 'local_activity', 'initialized', 'deliveries', 'delivery_slots', 'preferences'].map(table => db.prepare('DELETE FROM ' + table + ' WHERE uid=?').bind(uid)));
     },
     async activity(uid, day, hasRecord, basis, deviceId='legacy', hasLocalRecord=false) {
       await db.batch([
@@ -27,27 +27,30 @@ export function createStore(db) {
         db.prepare('INSERT OR IGNORE INTO initialized(uid) VALUES(?)').bind(uid)
       ]);
     },
-    eligible: async (day,minute=1320) => (await db.prepare(`SELECT d.* FROM devices d
+    eligible: async (day,minute=1320) => (await db.prepare(`SELECT d.*, COALESCE(p.minute_of_day,1320) AS scheduled_minute FROM devices d
       JOIN initialized i ON i.uid=d.uid LEFT JOIN activity a ON a.uid=d.uid AND a.day=? LEFT JOIN preferences p ON p.uid=d.uid
-      WHERE COALESCE(p.effective_day,'0000-01-01')<=? AND ? BETWEEN COALESCE(p.minute_of_day,1320) AND MIN(COALESCE(p.minute_of_day,1320)+59,1439) AND COALESCE(a.has_record,0)=0 AND NOT EXISTS(SELECT 1 FROM local_activity l WHERE l.uid=d.uid AND l.day=? AND l.has_record=1) AND NOT EXISTS(SELECT 1 FROM deliveries x WHERE x.uid=d.uid AND x.device_id=d.device_id AND x.day=?)
+      WHERE COALESCE(p.effective_day,'0000-01-01')<=? AND ? BETWEEN COALESCE(p.minute_of_day,1320) AND MIN(COALESCE(p.minute_of_day,1320)+59,1439) AND COALESCE(a.has_record,0)=0 AND NOT EXISTS(SELECT 1 FROM local_activity l WHERE l.uid=d.uid AND l.day=? AND l.has_record=1) AND NOT EXISTS(SELECT 1 FROM delivery_slots x WHERE x.uid=d.uid AND x.device_id=d.device_id AND x.day=? AND x.minute_of_day=COALESCE(p.minute_of_day,1320))
       ORDER BY d.id LIMIT 10`).bind(day, day, minute, day, day).all()).results,
-    // One atomic SQL statement checks current activity and reserves a device/day.
-    claim: (device, day, minute=1320) => db.prepare(`INSERT INTO deliveries(uid,device_id,day,status)
-      SELECT ?,?,?,'reserved' WHERE EXISTS(SELECT 1 FROM devices WHERE uid=? AND device_id=? AND endpoint=?)
+    // Reserve the selected time atomically; reject a candidate if preferences changed.
+    claim: (device, day, minute=1320) => db.prepare(`INSERT INTO delivery_slots(uid,device_id,day,minute_of_day,status)
+      SELECT ?,?,?,?,'reserved' WHERE EXISTS(SELECT 1 FROM devices WHERE uid=? AND device_id=? AND endpoint=?)
       AND EXISTS(SELECT 1 FROM initialized WHERE uid=?)
       AND COALESCE((SELECT effective_day FROM preferences WHERE uid=?),'0000-01-01')<=?
-      AND ? BETWEEN COALESCE((SELECT minute_of_day FROM preferences WHERE uid=?),1320) AND MIN(COALESCE((SELECT minute_of_day FROM preferences WHERE uid=?),1320)+59,1439)
+      AND COALESCE((SELECT minute_of_day FROM preferences WHERE uid=?),1320)=?
+      AND ? BETWEEN ? AND MIN(?+59,1439)
       AND NOT EXISTS(SELECT 1 FROM activity WHERE uid=? AND day=? AND has_record=1)
       AND NOT EXISTS(SELECT 1 FROM local_activity WHERE uid=? AND day=? AND has_record=1)
-      ON CONFLICT(uid,device_id,day) DO NOTHING RETURNING uid`)
-      .bind(device.uid, device.device_id, day, device.uid, device.device_id, device.endpoint, device.uid, device.uid, day, minute, device.uid, device.uid, device.uid, day, device.uid, day).first(),
-    finish: (device, day, status) => db.prepare('UPDATE deliveries SET status=? WHERE uid=? AND device_id=? AND day=?')
-      .bind(status, device.uid, device.device_id, day).run(),
+      ON CONFLICT(uid,device_id,day,minute_of_day) DO NOTHING RETURNING uid`)
+      .bind(device.uid, device.device_id, day, device.scheduled_minute, device.uid, device.device_id, device.endpoint,
+        device.uid, device.uid, day, device.uid, device.scheduled_minute, minute, device.scheduled_minute, device.scheduled_minute,
+        device.uid, day, device.uid, day).first(),
+    finish: (device, day, status) => db.prepare('UPDATE delivery_slots SET status=? WHERE uid=? AND device_id=? AND day=? AND minute_of_day=?')
+      .bind(status, device.uid, device.device_id, day, device.scheduled_minute).run(),
     removeInvalid: device => db.prepare('DELETE FROM devices WHERE uid=? AND device_id=? AND endpoint=?')
       .bind(device.uid, device.device_id, device.endpoint).run(),
     async prune(day) {
       const cutoff = koreaDay(Date.parse(day + 'T00:00:00Z') - 14 * 86400000);
-      await db.batch(['activity', 'local_activity', 'deliveries'].map(table => db.prepare('DELETE FROM ' + table + ' WHERE day<?').bind(cutoff)));
+      await db.batch(['activity', 'local_activity', 'deliveries', 'delivery_slots'].map(table => db.prepare('DELETE FROM ' + table + ' WHERE day<?').bind(cutoff)));
     }
   };
 }
@@ -63,7 +66,7 @@ export async function runReminder({store, send, time, enabled}) {
     try {
       const response = await send(JSON.parse(device.subscription), {
         notification: {title: 'To the Top', body: TEXT}, data: {receiverUid: device.uid, url: '/'},
-        messageId: 'workout-reminder-' + day
+        messageId: 'workout-reminder-' + day + '-' + device.scheduled_minute
       });
       if (response.status === 404 || response.status === 410) {
         await store.removeInvalid(device); status = 'invalid'; counts.invalid++;
@@ -71,7 +74,7 @@ export async function runReminder({store, send, time, enabled}) {
         status = 'accepted'; counts.accepted++;
       } else { status = 'failed-' + response.status; counts.failed++; }
     } catch (error) { status = /^failed-(prepare|fetch)-(TypeError|OperationError|DataError|NotSupportedError|InvalidAccessError|TimeoutError|AbortError|Error)$/.test(error?.reminderFailure || '') ? error.reminderFailure : 'failed-network'; counts.failed++; }
-    // Never retry ambiguous sends; a reserved device/day prevents double delivery.
+    // Never retry ambiguous sends; a reserved device/day/time prevents double delivery.
     await store.finish(device, day, status);
   }
   return counts;

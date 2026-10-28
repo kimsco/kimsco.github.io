@@ -80,7 +80,7 @@ test('a local bodyweight routine on one phone cannot be erased by another phones
  await f.store.activity('u',DAY,false,'2026-10-27T12:59:02Z','first-phone',false);
  assert.equal((await f.run()).accepted,1);
 });
-test('same device/day is delivered once across repeated/concurrent jobs and reconnects',async()=>{
+test('same device/day/time is delivered once across repeated/concurrent jobs and reconnects',async()=>{
  const f=fixture();await f.store.register('u','p',subscription('a'));await f.store.activity('u',DAY,false,BASIS);
  await Promise.all([f.run(),f.run()]);await f.store.register('u','p',subscription('new'));await f.run();assert.equal(f.sent.length,1);
 });
@@ -164,7 +164,7 @@ test('send diagnostics distinguish preparation and fetch failures without exposi
    }),value=>value.reminderFailure==='failed-'+stage+'-TypeError');
    const f=fixture();await f.store.register('u','p',subscription('a'));await f.store.activity('u',DAY,false,BASIS);
    await f.run({send:async()=>{const failure=new Error(secret);failure.reminderFailure='failed-'+stage+'-TypeError';throw failure;}});
-   assert.equal(f.sqlite.prepare('SELECT status FROM deliveries').get().status,'failed-'+stage+'-TypeError');
+   assert.equal(f.sqlite.prepare('SELECT status FROM delivery_slots').get().status,'failed-'+stage+'-TypeError');
   }
   assert.equal(logs.length,2);assert.ok(!logs.join('').includes('private-key-and-endpoint'));assert.ok(!logs.join('').includes('web.push.apple.com'));
  }finally{console.error=original;}
@@ -176,4 +176,55 @@ test('Workers sender uses manual redirects and never follows a different endpoin
   called++;assert.equal(url,'https://web.push.apple.com/a');assert.equal(init.redirect,'manual');return {status:302};
  }});
  assert.equal(called,1);assert.equal(result.status,302);
+});
+test('a new future time sends again today, while unchanged/repeated time stays deduplicated',async()=>{
+ const f=fixture();await f.store.register('u','p',subscription('a'));await f.store.activity('u',DAY,false,BASIS);
+ assert.equal((await f.run()).accepted,1);
+ await f.store.savePreference('u',1330,DAY);
+ assert.equal((await f.run()).accepted,0);
+ assert.equal((await f.run({time:TIME+600000})).accepted,1);
+ await f.store.savePreference('u',1330,DAY);
+ await Promise.all([f.run({time:TIME+600000}),f.run({time:TIME+660000})]);
+ assert.equal(f.sent.length,2);
+ assert.notEqual(f.sent[0].payload.messageId,f.sent[1].payload.messageId);
+ await f.store.savePreference('u',1320,DAY);
+ assert.equal((await f.run({time:TIME+720000})).accepted,0);
+ assert.deepEqual(f.sqlite.prepare('SELECT minute_of_day,status FROM delivery_slots ORDER BY minute_of_day').all().map(x=>({...x})),[{minute_of_day:1320,status:'accepted'},{minute_of_day:1330,status:'accepted'}]);
+});
+test('a real workout suppresses a newly selected time even after an earlier notification',async()=>{
+ const f=fixture();await f.store.register('u','p',subscription('a'));await f.store.activity('u',DAY,false,BASIS);await f.run();
+ await f.store.savePreference('u',1330,DAY);await f.store.activity('u',DAY,true,'2026-10-27T13:05:00Z');
+ assert.equal((await f.run({time:TIME+600000})).accepted,0);assert.equal(f.sent.length,1);
+});
+test('switching to another due time invalidates stale candidates even within the catch-up window',async()=>{
+ const f=fixture();await f.store.register('u','p',subscription('a'));await f.store.activity('u',DAY,false,BASIS);
+ const [candidate]=await f.store.eligible(DAY,1330);
+ await f.store.savePreference('u',1325,DAY);
+ assert.equal(await f.store.claim(candidate,DAY,1330),null);
+ assert.equal((await f.run({time:TIME+600000})).accepted,1);
+ assert.equal(f.sqlite.prepare('SELECT minute_of_day FROM delivery_slots').get().minute_of_day,1325);
+});
+test('an in-flight send finishes its original time slot after preferences change',async()=>{
+ const f=fixture();await f.store.register('u','p',subscription('a'));await f.store.activity('u',DAY,false,BASIS);
+ await f.run({send:async()=>{await f.store.savePreference('u',1330,DAY);return {status:201};}});
+ assert.equal((await f.run({time:TIME+600000})).accepted,1);
+ assert.equal(f.sqlite.prepare("SELECT COUNT(*) AS n FROM delivery_slots WHERE status='accepted'").get().n,2);
+});
+test('migration keeps legacy history and treats the current setting as handled only once',async()=>{
+ const f=fixture(),migration=readFileSync(new URL('../reminder-server/migrate-per-time.sql',import.meta.url),'utf8');
+ await f.store.register('u','p',subscription('a'));await f.store.activity('u',DAY,false,BASIS);
+ f.sqlite.prepare('INSERT INTO deliveries(uid,device_id,day,status) VALUES(?,?,?,?)').run('u','p',DAY,'accepted');
+ f.sqlite.exec(migration);assert.equal((await f.run()).accepted,0);
+ await f.store.savePreference('u',1330,DAY);f.sqlite.exec(migration);
+ assert.equal((await f.run({time:TIME+600000})).accepted,1);
+ assert.equal(f.sqlite.prepare('SELECT COUNT(*) AS n FROM deliveries').get().n,1);
+ assert.equal(f.sqlite.prepare('SELECT COUNT(*) AS n FROM delivery_slots').get().n,2);
+ await f.store.forget('u');assert.equal(f.sqlite.prepare('SELECT COUNT(*) AS n FROM delivery_slots').get().n,0);
+});
+test('pruning removes old time slots but preserves recent delivery history',async()=>{
+ const f=fixture();
+ for(const day of ['2026-10-01',DAY])f.sqlite.prepare('INSERT INTO delivery_slots VALUES(?,?,?,?,?)').run('u','p',day,1320,'accepted');
+ await f.store.prune(DAY);
+ assert.equal(f.sqlite.prepare('SELECT COUNT(*) AS n FROM delivery_slots').get().n,1);
+ assert.equal(f.sqlite.prepare('SELECT day FROM delivery_slots').get().day,DAY);
 });
