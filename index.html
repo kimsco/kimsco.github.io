@@ -9179,7 +9179,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
 
    <div id="exercise-detail-screen" style="display:none;">
 
-  <div style="display:flex; align-items:center; justify-content:space-between; margin-top:16px; margin-bottom:10px;">
+  <div style="display:flex; align-items:center; justify-content:space-between; height:60px; margin-top:16px; margin-bottom:10px;">
     <div style="display:flex; align-items:center; gap:0px;">
       <div style="cursor:pointer;" onclick="closeExerciseDetail()">
         ← <span id="detail-exercise-name"></span>
@@ -11356,12 +11356,12 @@ MuscleFlow는 개인의 운동 및 식단 기록을 관리하는 PWA 서비스�
 <script src="https://www.gstatic.com/firebasejs/13.0.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/13.0.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore-compat.js"></script>
-<script src="/js/sync.js?v=1.0.133"></script>
+<script src="/js/sync.js?v=1.0.134"></script>
 <script src="/js/last-workout.js?v=1.0.30"></script>
 <script src="/js/read-cache.js?v=1.0.30"></script>
 <script src="/js/history-pages.js?v=1.0.73"></script>
 <script src="/js/record-sync.js?v=1.0.75"></script>
-<script src="/js/app-sync.js?v=1.0.133"></script>
+<script src="/js/app-sync.js?v=1.0.134"></script>
 <script src="/js/rest-stopwatch.js?v=1.0.30"></script>
 <script src="/js/rest-timer-motion.js?v=1.0.50"></script>
 <script src="/js/workout-summary.js?v=1.0.30"></script>
@@ -13347,7 +13347,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.133";
+const APP_VERSION = "1.0.134";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -25725,11 +25725,11 @@ window.MFReminderRecords={
  }
 };
 </script>
-<script src="/js/workout-reminder.js?v=1.0.133"></script>
-<script src="/js/push-config.js?v=1.0.133"></script>
-<script src="/js/push-devices.js?v=1.0.133"></script>
-<script src="/js/notification-settings.js?v=1.0.133"></script>
-<script src="/js/push.js?v=1.0.133"></script>
+<script src="/js/workout-reminder.js?v=1.0.134"></script>
+<script src="/js/push-config.js?v=1.0.134"></script>
+<script src="/js/push-devices.js?v=1.0.134"></script>
+<script src="/js/notification-settings.js?v=1.0.134"></script>
+<script src="/js/push.js?v=1.0.134"></script>
 <script>
 window.MFRecordScrollContext=()=>{
   const shown=el=>!!el&&!el.classList.contains('hidden')&&getComputedStyle(el).display!=='none'&&getComputedStyle(el).visibility!=='hidden'&&getComputedStyle(el).pointerEvents!=='none';
@@ -25747,6 +25747,6 @@ window.MFRecordScrollContext=()=>{
   return null;
 };
 </script>
-<script src="/js/record-scroll.js?v=1.0.133"></script>
+<script src="/js/record-scroll.js?v=1.0.134"></script>
 </body>
 </html>
