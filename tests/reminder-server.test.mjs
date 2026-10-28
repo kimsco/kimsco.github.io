@@ -32,7 +32,7 @@ test('22:00 sends exact message only to initialized users without real records',
  const f=fixture();for(const uid of ['inactive','active','unknown'])await f.store.register(uid,'phone',subscription(uid));
  await f.store.activity('inactive',DAY,false,BASIS);await f.store.activity('active',DAY,true,BASIS);
  const result=await f.run();assert.equal(result.accepted,1);assert.equal(f.sent[0].payload.data.receiverUid,'inactive');
- assert.equal(f.sent[0].payload.notification.body,TEXT);assert.ok(!JSON.stringify(f.sent).includes('active/'));
+ assert.equal(f.sent[0].payload.notification.title,'');assert.equal(f.sent[0].payload.notification.body,TEXT);assert.ok(!JSON.stringify(f.sent).includes('active/'));
 });
 test('unconfigured/off-hours schedule never sends',async()=>{
  const f=fixture();await f.store.register('u','p',subscription('a'));await f.store.activity('u',DAY,false,BASIS);

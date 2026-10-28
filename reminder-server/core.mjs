@@ -65,7 +65,7 @@ export async function runReminder({store, send, time, enabled}) {
     let status;
     try {
       const response = await send(JSON.parse(device.subscription), {
-        notification: {title: 'To the Top', body: TEXT}, data: {receiverUid: device.uid, url: '/'},
+        notification: {title: '', body: TEXT}, data: {receiverUid: device.uid, url: '/'},
         messageId: 'workout-reminder-' + day + '-' + device.scheduled_minute
       });
       if (response.status === 404 || response.status === 410) {

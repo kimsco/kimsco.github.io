@@ -80,3 +80,7 @@ SQLite 실제 SQL로 대상 필터·상태 역전·동시 중복 예약·기기�
 4. `REMINDERS_ENABLED=true`로 저장/배포한 뒤 앱에서 새 미래 시간을 저장한다. DB·키·기기 구독·앱 URL은 그대로 사용한다. 앱 파일 변경이나 재설치는 필요 없다.
 
 발송 결과는 `SELECT day,minute_of_day,status FROM delivery_slots ORDER BY day DESC,minute_of_day DESC;`로 확인한다. `failed-prepare-*`는 발송 준비 실패, `failed-fetch-*`는 전송 단계 예외이며 로그에 단계와 오류 종류만 기록한다. 키/구독 URL/예외 원문은 로그에 남기지 않는다. HTTP 응답 실패는 `failed-상태코드`이다.
+
+## 알림 제목 표시 실험 (128)
+
+리마인더는 `notification.title`을 빈 문자열로 보내고 앱 서비스 워커도 명시적 빈 제목을 유지한다. iOS가 붙이는 `from To The Top`과 본문만 표시되는지 실제 기기로 확인하는 실험이며 OS가 빈 제목을 어떻게 배치할지는 보장하지 않는다. 앱 128/SW mf-v157 업데이트와 Worker 코드 갱신이 모두 필요하다. D1 표·키·Cron 변경은 없다. 되돌릴 때는 Worker 제목을 `To the Top`으로 복원하면 된다.
