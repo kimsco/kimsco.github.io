@@ -1878,7 +1878,7 @@ async function runReminder({ store, send, time, enabled }) {
     let status;
     try {
       const response = await send(JSON.parse(device.subscription), {
-        notification: { title: "To the Top", body: TEXT },
+        notification: { title: "", body: TEXT },
         data: { receiverUid: device.uid, url: "/" },
         messageId: "workout-reminder-" + day2 + "-" + device.scheduled_minute
       });

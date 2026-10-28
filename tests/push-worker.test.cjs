@@ -44,7 +44,7 @@ test('diagnostics records receipt and display success without message contents',
  const f=fixture();let work,result;
  f.listeners.push({data:{json:()=>({notification:{title:'secret',body:'private'}})},waitUntil:p=>work=p});await work;
  f.listeners.message({data:{type:'TTT_PUSH_DIAGNOSTICS'},ports:[{postMessage:value=>result=value}],waitUntil:p=>work=p});await work;
- assert.equal(result.worker,'mf-v156');assert.equal(result.receipt.status,'shown');assert.ok(result.receipt.receivedAt>0);
+ assert.equal(result.worker,'mf-v157');assert.equal(result.receipt.status,'shown');assert.ok(result.receipt.receivedAt>0);
  assert.ok(!JSON.stringify(result).includes('private'));assert.ok(!JSON.stringify(result).includes('secret'));
 });
 test('diagnostics preserves notification failure name',async()=>{
@@ -53,4 +53,17 @@ test('diagnostics preserves notification failure name',async()=>{
  f.listeners.push({data:null,waitUntil:p=>work=p});await assert.rejects(work);
  f.listeners.message({data:{type:'TTT_PUSH_DIAGNOSTICS'},ports:[{postMessage:value=>result=value}],waitUntil:p=>work=p});await work;
  assert.equal(result.receipt.status,'failed');assert.equal(result.receipt.errorName,'NotAllowedError');assert.ok(!JSON.stringify(result).includes('sensitive'));
+});
+
+test('an explicit empty title stays empty for the signed-in recipient, while missing title uses fallback',async()=>{
+ const f=fixture();let work;
+ f.listeners.message({data:{type:'TTT_PUSH_SESSION',uid:'alice'},waitUntil:p=>work=p});await work;
+ for(const notification of [{title:'',body:'운동 리마인더'},{body:'다른 알림'}]){
+  f.listeners.push({data:{json:()=>({notification,data:{receiverUid:'alice'}})},waitUntil:p=>work=p});await work;
+ }
+ assert.equal(f.notifications[0].title,'');assert.equal(f.notifications[0].body,'운동 리마인더');
+ assert.equal(f.notifications[1].title,'TTT 알림');
+ f.listeners.message({data:{type:'TTT_PUSH_SESSION',uid:'bob'},waitUntil:p=>work=p});await work;
+ f.listeners.push({data:{json:()=>({notification:{title:'',body:'private'},data:{receiverUid:'alice'}})},waitUntil:p=>work=p});await work;
+ assert.equal(f.notifications[2].title,'TTT 알림');assert.ok(!f.notifications[2].body.includes('private'));
 });
