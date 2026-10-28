@@ -7,7 +7,7 @@
      뜬 둥근 알약 모양이라 정확한 뷰포트 높이에 안 기댐. 이번엔 그 구조를 그대로
      따라해봄: viewport-fit=cover 재도입 + black-translucent 상시 고정 + body 스크롤락
      해제 + .bottomTab을 화면 끝에서 띄운 둥근 pill 형태로 변경 -->
-<link rel="manifest" href="/manifest.json?v=1.0.140">
+<link rel="manifest" href="/manifest.json?v=1.0.141">
 <meta name="theme-color" content="#000000">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -8805,6 +8805,7 @@ document.addEventListener('dragstart', event => {
   event.preventDefault();
 });
 </script>
+<link rel="stylesheet" href="/css/settings.css?v=1.0.141">
 </head>
 
 <body style="background-color:#000000;">
@@ -10925,64 +10926,48 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
     <!-- 헤더: 좌측 상단 "‹ 설정" -->
     <div class="settings-header-bar">
       <button id="closeSettingsBtn" aria-label="뒤로가기">‹</button>
-      <span class="settings-header-title">설정</span>
+      <h1 class="settings-header-title">설정</h1>
     </div>
 
     <div class="settings-body">
 
-<!-- ✅ 카드 1: 프로필/로그인 -->
-<div class="settings-section-label">계정</div>
-<div class="settings-card settings-card--flush">
-  <!-- 🔥 게스트가 기본값이라 처음엔 숨김으로 시작 — 로그인 상태로 확정되면(캐시로 즉시,
-       또는 auth.onAuthStateChanged로 최종) renderSettingsIdentity()가 다시 보여줌.
-       이름+이메일을 이 한 칸 안에 같이 넣어 최상단이 하나의 목록으로 보이게 함
-       (예전엔 이름은 여기, 이메일은 별도 settingsAccountRow 칸에 나뉘어 있어서
-       최상단이 두 개의 목록처럼 보였음) -->
+<section class="settings-group settings-profile-group" aria-label="프로필">
+<div class="settings-card settings-card--flush settings-profile-card">
   <div id="settingsGuestBadge" style="display:none;">
-    <div class="settings-name" id="settingsHeaderName">게스트</div>
-    <div class="settings-email" id="settingsHeaderSub"></div>
-  </div>
-
-  <!-- 게스트일 때만 보일 "로그인 하기" — 게스트일 땐 위 settingsGuestBadge("게스트" 이름)를
-       아예 숨기고 이 한 줄만 다른 목록들과 똑같은 크기로 보이게 함(renderSettingsIdentity 참고) -->
-  <button id="settingsLoginRow" class="settings-row">
-    <div class="row-left">
-      <div class="row-title" style="color:var(--c-login-link);">로그인 하기</div>
+    <div class="settings-profile-identity">
+      <span class="settings-profile-avatar" aria-hidden="true"><svg class="settings-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg></span>
+      <div class="settings-profile-text"><div class="settings-name" id="settingsHeaderName">게스트</div><div class="settings-email" id="settingsHeaderSub"></div></div>
     </div>
-    <div class="row-right">›</div>
+  </div>
+  <button id="settingsLoginRow" class="settings-row">
+    <span class="settings-profile-avatar" aria-hidden="true"><svg class="settings-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg></span>
+    <span class="row-left"><span class="row-title">로그인하기</span><span class="settings-profile-subtext">운동 기록을 이어가세요.</span></span><span class="settings-chevron" aria-hidden="true">›</span>
   </button>
+  <button id="mySpecMenuBtn" class="settings-item settings-profile-edit"><svg class="settings-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg>내 정보 수정<span class="settings-chevron" aria-hidden="true">›</span></button>
 </div>
-
-<!-- ✅ 카드 2: 정보(내 정보 수정) -->
-<div class="settings-section-label">정보</div>
+</section>
+<section class="settings-group" aria-labelledby="settingsNotificationHeading">
+<h2 class="settings-section-label" id="settingsNotificationHeading">알림</h2>
 <div class="settings-card settings-card--flush">
-  <button id="mySpecMenuBtn" class="settings-item" style="width:100%; text-align:left; background:none; color:var(--c-text-primary); cursor:pointer; border-bottom:none;">
-    <img src="icons/setting-profile.png" class="settings-item-icon" alt="">내 정보 수정
-  </button>
-
-</div>
-
-<div class="settings-section-label">알림</div>
-<div class="settings-card settings-card--flush">
-  <button id="notificationPermissionBox" class="settings-item" aria-haspopup="dialog" aria-controls="notificationSettingsOverlay" style="width:100%;text-align:left;background:none;color:var(--c-text-primary);border:0;cursor:pointer;justify-content:space-between;">
-    <span>알림</span><span id="notificationPermissionState" aria-live="polite" style="margin-left:auto;color:var(--c-text-secondary);white-space:nowrap;">미허용</span>
+  <button id="notificationPermissionBox" class="settings-item" aria-haspopup="dialog" aria-controls="notificationSettingsOverlay">
+    <span class="settings-item-label"><svg class="settings-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg>알림</span><span id="notificationPermissionState" aria-live="polite">미허용</span>
   </button>
 </div>
-
+</section>
 <!-- ✅ 카드 3: 일반 -->
-<div class="settings-section-label">일반</div>
+<section class="settings-group" aria-labelledby="settingsGeneralHeading"><h2 class="settings-section-label" id="settingsGeneralHeading">일반 설정</h2>
 <div class="settings-card settings-card--flush">
   <button id="homeSettingsMenuBtn" class="settings-item" style="width:100%; text-align:left; background:none; color:var(--c-text-primary); cursor:pointer; border-bottom:1px solid var(--c-border); border-radius:0; appearance:none; -webkit-appearance:none;">
-    <svg class="settings-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;"><path d="M3 11l9-8 9 8"></path><path d="M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10"></path></svg>홈 설정
+    <svg class="settings-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;"><path d="M3 11l9-8 9 8"></path><path d="M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10"></path></svg>홈 설정<span class="settings-chevron" aria-hidden="true">›</span>
   </button>
   <!-- 🔥 3대/기록탭 전용 단위 표기(회/rep, 세트/set, kg/키로) 설정 — 예전엔 여기 카드
        바깥에 별도 카드로 토글 3개가 그대로 있었는데, 한 칸으로 접어서 누르면 전용
        화면(#unitSettingsOverlay)에서 조절하도록 변경 -->
   <button id="unitSettingsMenuBtn" class="settings-item" style="width:100%; text-align:left; background:none; color:var(--c-text-primary); cursor:pointer; border-bottom:1px solid var(--c-border); border-radius:0; appearance:none; -webkit-appearance:none;">
-    <svg class="settings-item-icon" viewBox="0 0 24 24" style="display:block;"><text x="12" y="19" text-anchor="middle" font-size="20" font-weight="800" font-family="-apple-system, BlinkMacSystemFont, sans-serif" fill="currentColor">kg</text></svg>단위 표기
+    <svg class="settings-item-icon" viewBox="0 0 24 24" style="display:block;"><text x="12" y="19" text-anchor="middle" font-size="20" font-weight="800" font-family="-apple-system, BlinkMacSystemFont, sans-serif" fill="currentColor">kg</text></svg>단위 표기<span class="settings-chevron" aria-hidden="true">›</span>
   </button>
   <div class="settings-item" style="justify-content:space-between; border-bottom:1px solid var(--c-border);">
-    <span class="settings-item-label"><img src="icons/setting-mode.png" class="settings-item-icon" alt="">화면 모드</span>
+    <span class="settings-item-label"><svg class="settings-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 13A8.5 8.5 0 0 1 11 3.5 8.5 8.5 0 1 0 20.5 13Z"/></svg>화면 모드</span>
     <div id="lightModeToggle" class="toggle-switch settings-glass-toggle"></div>
   </div>
   <!-- 🔥 3대/기록 탭에서 세트 저장 시 탑바에 휴식시간을 보여주는 기능 on/off —
@@ -11005,11 +10990,12 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
   </div>
 </div>
 
-<!-- ✅ 카드 4: 기타(문의/앱 버전) -->
-<div class="settings-section-label">기타</div>
+</section>
+<!-- Help and app information -->
+<section class="settings-group" aria-labelledby="settingsHelpHeading"><h2 class="settings-section-label" id="settingsHelpHeading">도움말·기타</h2>
 <div class="settings-card settings-card--flush">
   <a href="mailto:anwls_0222@naver.com" class="settings-item" style="width:100%; text-align:left; text-decoration:none; color:var(--c-text-primary); justify-content:space-between; border-bottom:1px solid var(--c-border); cursor:pointer;">
-    <div style="display:flex; align-items:center;"><img src="icons/setting-inquiry.png" class="settings-item-icon" alt="">문의</div>
+    <div style="display:flex; align-items:center;"><svg class="settings-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 6 9 7 9-7"/></svg>문의</div>
     <div class="row-right">›</div>
   </a>
   <div class="settings-item" style="justify-content:space-between; border-bottom:1px solid var(--c-border); position:relative; overflow:visible;">
@@ -11021,7 +11007,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
         </svg>
         사이트 주소
       </div>
-      <div style="color:var(--c-text-secondary); font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">https://kimsco.github.io</div>
+      <div class="settings-site-address">https://kimsco.github.io</div>
     </div>
     <button id="copySiteUrlBtn" class="settings-copy-btn" aria-label="사이트 주소 복사">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -11035,26 +11021,25 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
       <rect x="6" y="2" width="12" height="20" rx="2"></rect>
       <line x1="12" y1="18" x2="12.01" y2="18"></line>
     </svg>
-    앱 설치 방법
+    앱 설치 방법<span class="settings-chevron" aria-hidden="true">›</span>
   </button>
   <div class="settings-item" style="justify-content:space-between; border-bottom:none;">
-    <span class="settings-item-label"><img src="icons/setting-version.png" class="settings-item-icon" alt="">앱 버전</span>
+    <span class="settings-item-label"><svg class="settings-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7h.01"/></svg>앱 버전</span>
     <!-- 🔥 버전 숫자는 아래 JS(APP_VERSION)가 채움 — 예전엔 "0.1.0"이 박혀있어서
          리로드 중 잠깐 엉뚱한 버전이 보였음. 채워지기 전까지는 빈칸이 맞음 -->
     <span style="color:var(--c-text-tertiary); font-size:14px;" id="appVersionDisplay"></span>
   </div>
 </div>
 
-<!-- ✅ 하단 로그아웃/회원탈퇴 (카드 밖, 텍스트 링크)
-     🔥 settingsGuestBadge와 동일하게 기본값을 display:none으로 둠(로그인 상태
-     확정 전까지는 숨김) — 안 그러면 Firebase auth 확정 전(특히 화면모드 토글로
-     reload된 직후) 게스트 화면에서도 잠깐 보였다가 사라지는 깜빡임이 생김 -->
-<div id="settingsLogoutText" class="settings-logout-text" style="display:none;">
-  로그아웃
+
+</section>
+<section id="settingsAccountSection" class="settings-group settings-account-group" aria-labelledby="settingsAccountHeading" hidden>
+<h2 class="settings-section-label" id="settingsAccountHeading">계정</h2>
+<div class="settings-card settings-card--flush">
+  <button type="button" id="settingsLogoutText" class="settings-logout-text settings-account-action" style="display:none;">로그아웃</button>
+  <button type="button" id="settingsDeleteAccountText" class="settings-logout-text settings-delete-account-text settings-account-action" style="display:none;">회원탈퇴</button>
 </div>
-<div id="settingsDeleteAccountText" class="settings-logout-text settings-delete-account-text" style="display:none;">
-  회원탈퇴
-</div>
+</section>
 
 <script>
 // 🔥 로그인 상태였다는 캐시가 있으면, Firebase auth가 비동기로 확정되기 전에
@@ -11072,6 +11057,7 @@ try {
     const logoutText = document.getElementById("settingsLogoutText");
     const deleteText = document.getElementById("settingsDeleteAccountText");
     if (guestBadge) guestBadge.style.display = "block";
+    const accountSection=document.getElementById("settingsAccountSection");if(accountSection)accountSection.hidden=false;
     if (headerName) headerName.textContent = cachedName ? `${cachedName}님` : "프로필 불러오는 중…";
     if (headerSub) headerSub.textContent = cachedEmail;
     if (loginRow) loginRow.style.display = "none";
@@ -11382,12 +11368,12 @@ MuscleFlow는 개인의 운동 및 식단 기록을 관리하는 PWA 서비스�
 <script src="https://www.gstatic.com/firebasejs/13.0.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/13.0.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore-compat.js"></script>
-<script src="/js/sync.js?v=1.0.140"></script>
+<script src="/js/sync.js?v=1.0.141"></script>
 <script src="/js/last-workout.js?v=1.0.30"></script>
 <script src="/js/read-cache.js?v=1.0.30"></script>
 <script src="/js/history-pages.js?v=1.0.73"></script>
 <script src="/js/record-sync.js?v=1.0.75"></script>
-<script src="/js/app-sync.js?v=1.0.140"></script>
+<script src="/js/app-sync.js?v=1.0.141"></script>
 <script src="/js/rest-stopwatch.js?v=1.0.30"></script>
 <script src="/js/rest-timer-motion.js?v=1.0.50"></script>
 <script src="/js/workout-summary.js?v=1.0.30"></script>
@@ -13374,7 +13360,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.140";
+const APP_VERSION = "1.0.141";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -24053,6 +24039,7 @@ function applySpecToUI(){
 /* 🔥 설정 화면 계정 행에 표시할 사용자명 갱신
    (직접 입력한 이름이 있으면 그걸, 없으면 "사용자명" 기본값 표시) */
 function renderSettingsIdentity(isLoggedIn){
+  const accountSection=document.getElementById("settingsAccountSection");if(accountSection)accountSection.hidden=!isLoggedIn;
   // 🔥 게스트일 땐 이름 배지 자체를 아예 숨기고 "로그인 하기" 한 줄만 다른 목록들과
   //    동일한 크기로 보이게 함(카드 자체가 flush라 이 배지가 숨겨지면 로그인 행이
   //    바로 카드 위쪽 패딩 없이 한 칸짜리 카드처럼 자연스럽게 보임). 로그인 상태일
@@ -25752,11 +25739,11 @@ window.MFReminderRecords={
  }
 };
 </script>
-<script src="/js/workout-reminder.js?v=1.0.140"></script>
-<script src="/js/push-config.js?v=1.0.140"></script>
-<script src="/js/push-devices.js?v=1.0.140"></script>
-<script src="/js/notification-settings.js?v=1.0.140"></script>
-<script src="/js/push.js?v=1.0.140"></script>
+<script src="/js/workout-reminder.js?v=1.0.141"></script>
+<script src="/js/push-config.js?v=1.0.141"></script>
+<script src="/js/push-devices.js?v=1.0.141"></script>
+<script src="/js/notification-settings.js?v=1.0.141"></script>
+<script src="/js/push.js?v=1.0.141"></script>
 <script>
 window.MFRecordScrollContext=()=>{
   const shown=el=>!!el&&!el.classList.contains('hidden')&&getComputedStyle(el).display!=='none'&&getComputedStyle(el).visibility!=='hidden'&&getComputedStyle(el).pointerEvents!=='none';
@@ -25774,6 +25761,6 @@ window.MFRecordScrollContext=()=>{
   return null;
 };
 </script>
-<script src="/js/record-scroll.js?v=1.0.140"></script>
+<script src="/js/record-scroll.js?v=1.0.141"></script>
 </body>
 </html>
