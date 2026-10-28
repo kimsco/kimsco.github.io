@@ -39,11 +39,23 @@ export function validSubscription(value) {
   if (publicKey.length !== 65 || publicKey[0] !== 4 || auth.length !== 16) throw Error('invalid-subscription');
   return {endpoint: url.href, keys: {p256dh: value.keys.p256dh, auth: value.keys.auth}, expirationTime: null};
 }
-async function push(env, subscription, payload) {
-  const request = await buildPushPayload({data: JSON.stringify(payload), options: {ttl: 3600, urgency: 'high'}}, subscription,
-    {subject: ORIGIN, publicKey: env.VAPID_PUBLIC_KEY, privateKey: env.VAPID_PRIVATE_KEY});
-  return fetch(subscription.endpoint, {...request, redirect: 'error', signal: AbortSignal.timeout(10000)});
+export async function push(env, subscription, payload, {build = buildPushPayload, send = globalThis.fetch} = {}) {
+  let stage = 'prepare';
+  try {
+    const request = await build({data: JSON.stringify(payload), options: {ttl: 3600, urgency: 'high'}}, subscription,
+      {subject: ORIGIN, publicKey: env.VAPID_PUBLIC_KEY, privateKey: env.VAPID_PRIVATE_KEY});
+    stage = 'fetch';
+    return await send(subscription.endpoint, {...request, redirect: 'manual', signal: AbortSignal.timeout(10000)});
+  } catch (error) {
+    // Never log messages/stacks: they can contain subscription URLs or key material.
+    const name = ['TypeError', 'OperationError', 'DataError', 'NotSupportedError', 'InvalidAccessError', 'TimeoutError', 'AbortError'].includes(error?.name) ? error.name : 'Error';
+    console.error(JSON.stringify({event: 'reminder-send-failed', stage, name}));
+    const failure = new Error('reminder-send-failed');
+    failure.reminderFailure = 'failed-' + stage + '-' + name;
+    throw failure;
+  }
 }
+
 export function createHandler({verify = verifyUser, now = Date.now} = {}) {
   return async (request, env) => {
     if (request.headers.get('Origin') !== ORIGIN) return json({error: 'origin'}, 403);

@@ -25,3 +25,10 @@ CREATE TABLE IF NOT EXISTS preferences (
   minute_of_day INTEGER NOT NULL CHECK(minute_of_day>=0 AND minute_of_day<1440),
   effective_day TEXT NOT NULL DEFAULT '0000-01-01'
 );
+
+CREATE TABLE IF NOT EXISTS delivery_slots (
+  uid TEXT NOT NULL, device_id TEXT NOT NULL, day TEXT NOT NULL,
+  minute_of_day INTEGER NOT NULL CHECK(minute_of_day>=0 AND minute_of_day<1440),
+  status TEXT NOT NULL, PRIMARY KEY(uid, device_id, day, minute_of_day)
+);
+CREATE INDEX IF NOT EXISTS delivery_slots_day ON delivery_slots(day);

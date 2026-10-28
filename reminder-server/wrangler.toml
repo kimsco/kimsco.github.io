@@ -6,7 +6,7 @@ compatibility_date = "2026-10-27"
 REMINDERS_ENABLED = "false"
 
 [triggers]
-# Each minute checks individual Korea-time preferences. Once/device/day.
+# Each minute checks individual Korea-time preferences. Once/device/day/selected time.
 crons = ["* * * * *"]
 
 [[d1_databases]]
