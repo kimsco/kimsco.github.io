@@ -23,8 +23,13 @@
 #settingsOverlay .settings-profile-card{background:rgba(28,28,29,.5);}
 #settingsOverlay .settings-item{position:relative;height:72px;width:100%;padding:0;margin:0;border:0!important;border-radius:0;background:none;color:inherit;overflow:visible;font-family:inherit;font-size:16px;font-weight:400;gap:0;line-height:1.4;text-align:left;box-sizing:border-box;}
 /* 🔥 알림처럼 카드 안에 항목이 하나뿐인 경우, 고정 72px 줄 높이 대신 여유 있는
-   패딩으로 독립된 카드처럼 보이게(레퍼런스의 "잠금화면 카드 표시" 카드와 동일) */
-#settingsOverlay .settings-item--single{height:auto;padding:22px 0;}
+   패딩으로 독립된 카드처럼 보이게(레퍼런스의 "잠금화면 카드 표시" 카드와 동일).
+   세로 폭을 줄여 레퍼런스 비율에 맞춤(패딩 22px -> 14px) */
+#settingsOverlay .settings-item--single{height:auto;padding:14px 0;}
+/* 🔥 1개짜리 항목 카드는 세로 폭이 짧아 테두리가 위아래에서 완전히 만나는
+   "캡슐" 모양이 되도록(레퍼런스는 둥근 직사각형이 아니라 좌우 끝이 완전한
+   반원인 캡슐 형태). 9999px면 실제 높이와 무관하게 항상 꽉 찬 반원으로 클램프됨 */
+#settingsOverlay .settings-card:has(.settings-item--single){border-radius:9999px;}
 #settingsOverlay button.settings-item{appearance:none;-webkit-appearance:none;cursor:pointer;}
 #settingsOverlay .settings-card>.settings-item:not(:last-child)::after,
 #settingsOverlay .settings-profile-edit::before{content:'';position:absolute;left:34px;right:0;bottom:0;height:1px;background:var(--settings-line);pointer-events:none;}
