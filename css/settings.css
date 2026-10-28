@@ -1,6 +1,10 @@
 /* Main settings only: sub-screens keep their existing layouts and controls. */
 #settingsOverlay{--settings-row-h:72px;--settings-card-bg:#181818;--settings-line:rgba(255,255,255,.09);--settings-muted:#8b8688;}
-#settingsOverlay .settings-panel{background:#000;color:#f5f5f5;}
+/* 🔥 패널 자체에도 settings-body와 같은 글로우를 고정으로 깔아둠 — 평소엔 body가
+   완전히 덮어서 안 보이지만, iOS 당겨서 바운스(오버스크롤)할 때 body가 살짝
+   아래로 밀리면서 그 틈으로 패널 배경이 비치는데, 거기서 뚝 끊긴 검정이 아니라
+   같은 톤이 이어지도록 하기 위한 "뒤를 받쳐주는" 용도 */
+#settingsOverlay .settings-panel{background:radial-gradient(ellipse 140% 34vh at 35% 0,rgba(90,28,35,.48) 0%,rgba(58,18,23,.24) 55%,transparent 100%),#000;color:#f5f5f5;}
 /* 🔥 뒤로가기만 화면에 고정, 뒤에 별도 바 없이 투명하게 떠있음 */
 #settingsOverlay #closeSettingsBtn{top:calc(14px + env(safe-area-inset-top));left:20px;width:28px;height:44px;flex:none;font-size:34px;}
 /* 🔥 큰 제목은 settings-body 맨 위 콘텐츠라 스크롤하면 카드들과 같이 올라감 */
@@ -9,9 +13,10 @@
 #settingsOverlay .settings-header-title{font-size:34px;font-weight:750;letter-spacing:-.8px;line-height:44px;margin:0 0 44px;padding:calc(18px + env(safe-area-inset-top)) 0 0 40px;}
 /* 🔥 빨간 글로우 배경도 콘텐츠의 일부로 settings-body에 둬서 스크롤하면 같이 올라가게 함.
    background-attachment:local이 핵심 — 스크롤 시 콘텐츠와 같은 속도로 같이 움직임(고정 X).
-   세로 크기를 30vh로 줘서, 화면을 처음 열었을 때 보이는 첫 화면 기준 상단 30% 지점에서
-   완전히 검정으로 수렴하도록(뷰포트 기준 고정값이라 콘텐츠 길이와 무관하게 항상 일정) */
-#settingsOverlay .settings-body{width:100%;max-width:440px;align-self:center;min-height:0;padding:0 20px calc(40px + env(safe-area-inset-bottom));scrollbar-width:none;background:radial-gradient(ellipse 140% 30vh at 35% 0,rgba(58,15,20,.42) 0%,rgba(35,9,13,.2) 55%,transparent 100%);background-repeat:no-repeat;background-attachment:local;}
+   세로 크기를 34vh로 줘서, 화면을 처음 열었을 때 보이는 첫 화면 기준 상단 34% 지점
+   (프로필 카드 중간쯤)에서 완전히 검정으로 수렴하도록(뷰포트 기준 고정값이라 콘텐츠
+   길이와 무관하게 항상 일정). 색은 위 .settings-panel 글로우와 동일하게(더 밝게) 맞춤 */
+#settingsOverlay .settings-body{width:100%;max-width:440px;align-self:center;min-height:0;padding:0 20px calc(40px + env(safe-area-inset-bottom));scrollbar-width:none;background:radial-gradient(ellipse 140% 34vh at 35% 0,rgba(90,28,35,.48) 0%,rgba(58,18,23,.24) 55%,transparent 100%);background-repeat:no-repeat;background-attachment:local;}
 #settingsOverlay .settings-body::-webkit-scrollbar{display:none;}
 #settingsOverlay .settings-group{margin:0 0 36px;}
 #settingsOverlay .settings-group:last-child{margin-bottom:0;}
