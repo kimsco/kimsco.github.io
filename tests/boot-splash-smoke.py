@@ -30,6 +30,19 @@ with sync_playwright() as p:
    assert animation=='boot-splash-spin'
    before=spinner.evaluate('(el)=>getComputedStyle(el).transform');page.wait_for_timeout(70)
    assert spinner.evaluate('(el)=>getComputedStyle(el).transform')!=before
+  logo=page.locator('#bootSplash img')
+  if reduced:assert logo.evaluate('(el)=>getComputedStyle(el).animationName')=='none'
+  else:
+   assert logo.evaluate('(el)=>getComputedStyle(el).animationName')=='boot-splash-appear'
+   fade=logo.evaluate('(el)=>el.getAnimations()[0].effect.getKeyframes().map(k=>k.opacity)')
+   assert fade==['0','1'],fade
+   assert indicator.evaluate('(el)=>getComputedStyle(el).animationName')=='boot-splash-appear'
+  if not light and not reduced and width==320:
+   assets=page.evaluate("""async()=>{const results=[];for(const link of document.querySelectorAll('link[rel="apple-touch-startup-image"]')){const image=new Image();image.src=link.href;await image.decode();const canvas=document.createElement('canvas');canvas.width=image.naturalWidth;canvas.height=image.naturalHeight;const ctx=canvas.getContext('2d');ctx.drawImage(image,0,0);const pixels=ctx.getImageData(0,0,canvas.width,canvas.height).data;let black=true;for(let i=0;i<pixels.length;i+=4)if(pixels[i]||pixels[i+1]||pixels[i+2]||pixels[i+3]!==255){black=false;break;}results.push({path:new URL(link.href).pathname,width:image.naturalWidth,height:image.naturalHeight,black});}return results;}""")
+   assert len(assets)==10
+   for asset in assets:
+    assert asset['black'] and '/icons/splash/black/' in asset['path'],asset
+    assert asset['path'].endswith(str(asset['width'])+'x'+str(asset['height'])+'.png'),asset
   page.screenshot(path=f'/tmp/boot-loading-{width}-{light}-{reduced}.png')
   assert page.locator('meta[name="theme-color"]').get_attribute('content')=='#000000'
   page.set_viewport_size({'width':width,'height':844})

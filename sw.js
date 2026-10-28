@@ -1,4 +1,4 @@
-const CACHE = "mf-v166"; // 🔥 아래 food-db-full.json 삭제 + 로고 이미지가 그동안 세 차례 더
+const CACHE = "mf-v167"; // 🔥 아래 food-db-full.json 삭제 + 로고 이미지가 그동안 세 차례 더
                          // 교체(#764/#765/#768)됐지만 이 캐시 이름을 안 올려서 새 서비스워커가
                          // 설치되지 않고 있었음(바로 아래 참고) — 올려서 처음부터 다시 받아오게 함
 const ASSETS = [
@@ -6,18 +6,18 @@ const ASSETS = [
   "/index.html",
   "/manifest.json",
   "/sw.js",
-  "/js/sync.js?v=1.0.137",
+  "/js/sync.js?v=1.0.138",
   "/js/read-cache.js?v=1.0.30",
   "/js/history-pages.js?v=1.0.73",
   "/js/record-sync.js?v=1.0.75",
   "/js/record-wheel.js?v=1.0.116",
-  "/js/workout-reminder.js?v=1.0.137",
-  "/js/push-config.js?v=1.0.137",
-  "/js/push-devices.js?v=1.0.137",
-  "/js/notification-settings.js?v=1.0.137",
-  "/js/push.js?v=1.0.137",
-  "/js/record-scroll.js?v=1.0.137",
-  "/js/app-sync.js?v=1.0.137",
+  "/js/workout-reminder.js?v=1.0.138",
+  "/js/push-config.js?v=1.0.138",
+  "/js/push-devices.js?v=1.0.138",
+  "/js/notification-settings.js?v=1.0.138",
+  "/js/push.js?v=1.0.138",
+  "/js/record-scroll.js?v=1.0.138",
+  "/js/app-sync.js?v=1.0.138",
   "/js/last-workout.js?v=1.0.30",
   "/js/rest-stopwatch.js?v=1.0.30",
   "/js/rest-timer-motion.js?v=1.0.50",
@@ -33,16 +33,16 @@ const ASSETS = [
   "/icons/icon-192.png",
   "/icons/icon-512.png",
   "/icons/apple-touch-icon.png",
-  "/icons/splash/1290x2796.png",
-  "/icons/splash/1206x2622.png",
-  "/icons/splash/1179x2556.png",
-  "/icons/splash/1284x2778.png",
-  "/icons/splash/1170x2532.png",
-  "/icons/splash/1125x2436.png",
-  "/icons/splash/1242x2688.png",
-  "/icons/splash/828x1792.png",
-  "/icons/splash/750x1334.png",
-  "/icons/splash/640x1136.png"
+  "/icons/splash/black/1290x2796.png",
+  "/icons/splash/black/1206x2622.png",
+  "/icons/splash/black/1179x2556.png",
+  "/icons/splash/black/1284x2778.png",
+  "/icons/splash/black/1170x2532.png",
+  "/icons/splash/black/1125x2436.png",
+  "/icons/splash/black/1242x2688.png",
+  "/icons/splash/black/828x1792.png",
+  "/icons/splash/black/750x1334.png",
+  "/icons/splash/black/640x1136.png"
 ];
 
 self.addEventListener("install", e => {
