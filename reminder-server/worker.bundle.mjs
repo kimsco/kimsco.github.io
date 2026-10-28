@@ -1871,8 +1871,8 @@ async function runReminder({ store, send, time, enabled }) {
         status = "failed-" + response.status;
         counts.failed++;
       }
-    } catch (_) {
-      status = "failed-network";
+    } catch (error) {
+      status = /^failed-(prepare|fetch)-(TypeError|OperationError|DataError|NotSupportedError|InvalidAccessError|TimeoutError|AbortError|Error)$/.test(error?.reminderFailure || "") ? error.reminderFailure : "failed-network";
       counts.failed++;
     }
     await store.finish(device, day2, status);
@@ -1924,13 +1924,23 @@ function validSubscription(value) {
   if (publicKey.length !== 65 || publicKey[0] !== 4 || auth.length !== 16) throw Error("invalid-subscription");
   return { endpoint: url.href, keys: { p256dh: value.keys.p256dh, auth: value.keys.auth }, expirationTime: null };
 }
-async function push(env, subscription, payload) {
-  const request = await buildPushPayload(
-    { data: JSON.stringify(payload), options: { ttl: 3600, urgency: "high" } },
-    subscription,
-    { subject: ORIGIN, publicKey: env.VAPID_PUBLIC_KEY, privateKey: env.VAPID_PRIVATE_KEY }
-  );
-  return fetch(subscription.endpoint, { ...request, redirect: "error", signal: AbortSignal.timeout(1e4) });
+async function push(env, subscription, payload, { build = buildPushPayload, send = globalThis.fetch } = {}) {
+  let stage = "prepare";
+  try {
+    const request = await build(
+      { data: JSON.stringify(payload), options: { ttl: 3600, urgency: "high" } },
+      subscription,
+      { subject: ORIGIN, publicKey: env.VAPID_PUBLIC_KEY, privateKey: env.VAPID_PRIVATE_KEY }
+    );
+    stage = "fetch";
+    return await send(subscription.endpoint, { ...request, redirect: "manual", signal: AbortSignal.timeout(1e4) });
+  } catch (error) {
+    const name = ["TypeError", "OperationError", "DataError", "NotSupportedError", "InvalidAccessError", "TimeoutError", "AbortError"].includes(error?.name) ? error.name : "Error";
+    console.error(JSON.stringify({ event: "reminder-send-failed", stage, name }));
+    const failure = new Error("reminder-send-failed");
+    failure.reminderFailure = "failed-" + stage + "-" + name;
+    throw failure;
+  }
 }
 function createHandler({ verify: verify2 = verifyUser, now = Date.now } = {}) {
   return async (request, env) => {

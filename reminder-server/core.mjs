@@ -70,7 +70,7 @@ export async function runReminder({store, send, time, enabled}) {
       } else if (response.status >= 200 && response.status < 300) {
         status = 'accepted'; counts.accepted++;
       } else { status = 'failed-' + response.status; counts.failed++; }
-    } catch (_) { status = 'failed-network'; counts.failed++; }
+    } catch (error) { status = /^failed-(prepare|fetch)-(TypeError|OperationError|DataError|NotSupportedError|InvalidAccessError|TimeoutError|AbortError|Error)$/.test(error?.reminderFailure || '') ? error.reminderFailure : 'failed-network'; counts.failed++; }
     // Never retry ambiguous sends; a reserved device/day prevents double delivery.
     await store.finish(device, day, status);
   }

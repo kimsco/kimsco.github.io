@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {DatabaseSync} from 'node:sqlite';
 import {readFileSync} from 'node:fs';
 import {createStore, runReminder, koreaDay, TEXT} from '../reminder-server/core.mjs';
-import {createHandler, validSubscription} from '../reminder-server/worker.mjs';
+import {createHandler, validSubscription, push} from '../reminder-server/worker.mjs';
 import {buildPushPayload} from '../reminder-server/node_modules/@block65/webcrypto-web-push/dist/lib/main.js';
 const TIME = Date.parse('2026-10-27T13:00:00Z'), DAY = '2026-10-27', BASIS = '2026-10-27T12:59:00.000000001Z';
 const b64 = bytes => Buffer.from(bytes).toString('base64url');
@@ -152,4 +152,28 @@ test('real Web Push library generates Apple-compatible aes128gcm payload and VAP
  const sub={endpoint:'https://web.push.apple.com/test',keys:{p256dh:b64(await crypto.subtle.exportKey('raw',receiver.publicKey)),auth:b64(crypto.getRandomValues(new Uint8Array(16)))}};
  const payload=await buildPushPayload({data:JSON.stringify({notification:{body:TEXT}}),options:{ttl:3600,urgency:'high'}},sub,{subject:'https://kimsco.github.io',publicKey:b64(publicKey),privateKey:privateKey.d});
  assert.equal(payload.headers['content-encoding'],'aes128gcm');assert.match(payload.headers.authorization,/^vapid t=/);assert.equal(payload.headers.ttl,'3600');assert.equal(payload.body.length,4096);
+});
+
+test('send diagnostics distinguish preparation and fetch failures without exposing secrets',async()=>{
+ const original=console.error,logs=[];console.error=value=>logs.push(value);
+ try{
+  for(const stage of ['prepare','fetch']){
+   const secret='private-key-and-endpoint',error=new TypeError(secret);
+   await assert.rejects(push({},subscription('secret'),{}, {
+    build:async()=>{if(stage==='prepare')throw error;return {};},send:async()=>{throw error;}
+   }),value=>value.reminderFailure==='failed-'+stage+'-TypeError');
+   const f=fixture();await f.store.register('u','p',subscription('a'));await f.store.activity('u',DAY,false,BASIS);
+   await f.run({send:async()=>{const failure=new Error(secret);failure.reminderFailure='failed-'+stage+'-TypeError';throw failure;}});
+   assert.equal(f.sqlite.prepare('SELECT status FROM deliveries').get().status,'failed-'+stage+'-TypeError');
+  }
+  assert.equal(logs.length,2);assert.ok(!logs.join('').includes('private-key-and-endpoint'));assert.ok(!logs.join('').includes('web.push.apple.com'));
+ }finally{console.error=original;}
+});
+
+test('Workers sender uses manual redirects and never follows a different endpoint',async()=>{
+ let called=0;
+ const result=await push({},subscription('a'),{}, {build:async()=>({method:'POST',body:new Uint8Array([1])}),send:async(url,init)=>{
+  called++;assert.equal(url,'https://web.push.apple.com/a');assert.equal(init.redirect,'manual');return {status:302};
+ }});
+ assert.equal(called,1);assert.equal(result.status,302);
 });
