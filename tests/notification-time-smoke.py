@@ -43,7 +43,8 @@ try:
    assert page.locator('#settingsOverlay #notificationPermissionHint').count()==0
    page.locator('#notificationHourWheel').focus();page.keyboard.press('End');page.keyboard.press('ArrowUp')
    page.locator('#notificationMinuteWheel').focus();page.keyboard.press('End')
-   page.locator('#notificationSaveBtn').click();page.wait_for_function("document.getElementById('notificationSaveStatus').textContent==='저장했어요.'")
+   page.locator('#notificationSaveBtn').click();page.wait_for_function("document.querySelector('.profile-save-toast.show')?.textContent==='저장했어요'")
+   assert page.locator('#notificationSaveStatus').inner_text()==''
    assert remote['minuteOfDay']==1439 and requests[-1]=={'minuteOfDay':1439}
    assert page.evaluate('fixturePermissionCalls')==0
    page.locator('#notificationMinuteWheel').focus();page.keyboard.press('Home')
@@ -60,6 +61,8 @@ try:
    page.locator('#notificationMinuteWheel').focus();page.keyboard.press('Home')
    page.locator('#notificationSaveBtn').click()
    page.wait_for_function("document.getElementById('notificationSaveStatus').textContent.includes('기기에 저장')")
+   assert page.locator('.profile-save-toast').inner_text()=='기기에 저장했어요'
+   assert page.locator('.profile-save-toast').count()==1
    saved=page.evaluate("JSON.parse(localStorage.getItem('mf_account_v2:alice:notification_time_v1'))")
    assert saved['minuteOfDay']==720 and saved['dirty']
    remote['offline']=False;page.evaluate("window.dispatchEvent(new Event('online'))")
