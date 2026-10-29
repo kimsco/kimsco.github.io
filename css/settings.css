@@ -204,3 +204,6 @@ html.light-mode-on #mySpecScreen .spec-close-btn:active{background:rgba(179,41,4
 
 /* White silhouette inside the profile hero icon in both themes. */
 #mySpecScreen .spec-hero-icon svg{color:#fff;}
+
+/* Translucent gender selection pill; labels keep their own opacity. */
+#mySpecBody .gender-toggle-indicator{opacity:.5;}
