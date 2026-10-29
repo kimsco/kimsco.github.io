@@ -77,7 +77,7 @@ test('running and paused stopwatch restore timestamp state across new instances'
 });
 test('30 minute expiry includes background elapsed and excludes paused time',()=>{
  const storage=new Storage();let now=1000;const opts={storage,key:'timer',now:()=>now};const t=stopwatch(opts);t.reset();now+=1800000;assert.ok(t.expired());assert.equal(stopwatch(opts).restore().active,false);assert.equal(storage.getItem('timer'),null);
- t.reset();now+=60000;t.togglePause();now+=7200000;const r=stopwatch(opts);assert.equal(r.restore().active,true);assert.equal(r.elapsed(),60000);
+ t.reset();now+=60000;t.togglePause();now+=599999;const r=stopwatch(opts);assert.equal(r.restore().active,true);assert.equal(r.elapsed(),60000);
 });
 test('reset and manual stop remove saved stopwatch state; corrupt data does not run',()=>{
  const storage=new Storage();let now=1000;const t=stopwatch({storage,key:'timer',now:()=>now});t.reset();now+=5000;t.togglePause();t.reset();assert.equal(t.elapsed(),0);t.stop();assert.equal(storage.getItem('timer'),null);storage.setItem('timer','{bad');assert.equal(t.restore().active,false);
@@ -93,4 +93,20 @@ test('exercise rename keeps pending set fields and updates stale server document
  const box=createOutbox({storage:new Storage(),currentUid:()=>null,send:async()=>{}});
  box.enqueue('a','accessoryRecords','x',{exercise:'old',weight:20,reps:10});box.enqueue('a','accessoryRecords','query-rename',{exercise:'new'},{matchExercise:'old'});
  const docs=box.overlay('a','accessoryRecords',[{id:'server',data:{exercise:'old',reps:2}}]);assert.ok(docs.every(d=>d.data.exercise==='new'));assert.equal(docs.find(d=>d.id==='x').data.reps,10);
+});
+
+test('paused timers expire at ten minutes, including restore and stale resume',()=>{
+ const storage=new Storage();let now=1000;const opts={storage,key:'pause-limit',now:()=>now};
+ const timer=stopwatch(opts);timer.reset();now+=45000;timer.togglePause();now+=599999;
+ assert.equal(timer.expired(),false);assert.equal(timer.elapsed(),45000);now++;
+ assert.equal(timer.expired(),true);assert.equal(timer.togglePause().active,false);assert.equal(storage.getItem('pause-limit'),null);
+ timer.reset();now+=1000;timer.togglePause();now+=600000;
+ assert.equal(stopwatch(opts).restore().active,false);assert.equal(storage.getItem('pause-limit'),null);
+});
+test('resuming or resetting before pause expiry starts a fresh pause window',()=>{
+ const storage=new Storage();let now=1000;const timer=stopwatch({storage,key:'pause-reset',now:()=>now});
+ timer.reset();now+=1000;timer.togglePause();now+=599000;timer.togglePause();now+=2000;
+ assert.equal(timer.expired(),false);assert.equal(timer.elapsed(),3000);
+ timer.togglePause();now+=599999;assert.equal(timer.expired(),false);
+ timer.reset();now+=1000;assert.equal(timer.expired(),false);assert.equal(timer.elapsed(),1000);
 });
