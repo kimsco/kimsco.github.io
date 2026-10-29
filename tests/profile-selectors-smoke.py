@@ -23,16 +23,19 @@ try:
         document.querySelector(`.${kind}Btn[data-${kind}="${value}"]`).click();
         await new Promise(r=>setTimeout(r,90));
         const mid=new DOMMatrix(getComputedStyle(indicator).transform).m41;
+        const labelOffset=new DOMMatrix(getComputedStyle(indicator.firstElementChild).transform).m41;
         await new Promise(r=>setTimeout(r,300));
         const btn=document.querySelector(`.${kind}Btn.active`);
-        return {before,mid,end:new DOMMatrix(getComputedStyle(indicator).transform).m41,target:btn.offsetLeft,width:indicator.offsetWidth,buttonWidth:btn.offsetWidth,color:getComputedStyle(btn).color};
+        return {before,mid,labelOffset,end:new DOMMatrix(getComputedStyle(indicator).transform).m41,target:btn.offsetLeft,width:indicator.offsetWidth,buttonWidth:btn.offsetWidth,color:getComputedStyle(btn).color};
       }''',[kind,value])
       assert abs(result['end']-result['target'])<1,result
       assert result['width']==result['buttonWidth'],result
+      assert abs(result['mid']+result['labelOffset'])<1,result
       if abs(result['before']-result['end'])>1:assert min(result['before'],result['end'])<result['mid']<max(result['before'],result['end']),result
     assert page.locator('#genderToggleIndicator').evaluate('e=>getComputedStyle(e).backgroundColor')==page.locator('#goalToggleIndicator').evaluate('e=>getComputedStyle(e).backgroundColor')
     assert page.locator('.genderBtn.active').evaluate('e=>getComputedStyle(e).color')==page.locator('.goalBtn.active').evaluate('e=>getComputedStyle(e).color')
     assert page.locator('#genderToggleIndicator').evaluate('e=>getComputedStyle(e).opacity')=='1'
+   page.screenshot(path=f'/tmp/profile-label-fix-{width}.png')
    page.evaluate('closeMySpec()');page.wait_for_timeout(400);page.evaluate('openMySpec()');page.wait_for_timeout(400)
    assert page.locator('.goalBtn.active').get_attribute('data-goal')=='maintain'
    page.emulate_media(reduced_motion='reduce');assert page.locator('#goalToggleIndicator').evaluate('e=>getComputedStyle(e).transitionDuration')=='0s'

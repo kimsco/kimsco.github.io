@@ -8795,7 +8795,7 @@ document.addEventListener('dragstart', event => {
   event.preventDefault();
 });
 </script>
-<link rel="stylesheet" href="/css/settings.css?v=1.0.176">
+<link rel="stylesheet" href="/css/settings.css?v=1.0.177">
 </head>
 
 <body style="background-color:#000000;">
@@ -13384,7 +13384,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.176";
+const APP_VERSION = "1.0.177";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -24020,6 +24020,16 @@ function moveProfileToggleIndicator(kind,value){
   const btn=document.querySelector(`.${kind}Btn[data-${kind}="${value}"]`);
   const indicator=document.getElementById(`${kind}ToggleIndicator`);
   if(!btn || !indicator)return;
+  let labels=indicator.querySelector('.profile-pill-labels');
+  if(!labels){
+    labels=document.createElement('div');labels.className='profile-pill-labels';
+    indicator.parentElement.querySelectorAll('button').forEach(button=>{
+      const label=document.createElement('span');label.textContent=button.textContent;labels.appendChild(label);
+    });
+    indicator.appendChild(labels);
+  }
+  labels.style.width=indicator.parentElement.clientWidth+'px';
+  labels.style.transform=`translateX(${-btn.offsetLeft}px)`;
   indicator.style.width=btn.offsetWidth+'px';
   indicator.style.transform=`translateX(${btn.offsetLeft}px)`;
 }
@@ -24098,10 +24108,10 @@ function applySpecToUI(){
   for(const [kind,value] of [['gender',userSpec.gender||'male'],['goal',userSpec.goal||'maintain']]){
     const indicator=document.getElementById(`${kind}ToggleIndicator`);
     if(!indicator)continue;
-    indicator.style.transition='none';
+    indicator.classList.add('snap-selection');
     moveProfileToggleIndicator(kind,value);
     void indicator.offsetWidth;
-    indicator.style.transition='';
+    indicator.classList.remove('snap-selection');
   }
 
   specName.value = userSpec.name || "";

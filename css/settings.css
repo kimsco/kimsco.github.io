@@ -211,3 +211,13 @@ html.light-mode-on #mySpecScreen .spec-close-btn:active{background:rgba(179,41,4
 #mySpecBody .goalBtn.active{background:transparent;}
 #mySpecBody :is(.gender-toggle-indicator,.goal-toggle-indicator){position:absolute;left:0;top:0;height:100%;padding:0;box-sizing:border-box;border-radius:999px;background:var(--spec-selected);opacity:1;pointer-events:none;transition:transform .28s cubic-bezier(.22,1,.36,1),width .28s cubic-bezier(.22,1,.36,1);}
 @media(prefers-reduced-motion:reduce){#mySpecBody :is(.gender-toggle-indicator,.goal-toggle-indicator){transition:none;}}
+
+/* Clip selected text to the moving pill so it never darkens on the bare track. */
+#mySpecBody :is(.genderBtn,.goalBtn),
+#mySpecBody :is(.genderBtn,.goalBtn).active{color:var(--spec-muted);font-weight:650;-webkit-tap-highlight-color:transparent;}
+#mySpecBody :is(.gender-toggle-indicator,.goal-toggle-indicator){z-index:2;overflow:hidden;}
+#mySpecBody .profile-pill-labels{position:absolute;left:0;top:0;height:100%;display:flex;color:var(--spec-selected-ink);font-family:inherit;font-size:14px;font-weight:650;transition:transform .28s cubic-bezier(.22,1,.36,1);}
+#mySpecBody .profile-pill-labels>span{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;white-space:nowrap;}
+#mySpecBody .snap-selection,
+#mySpecBody .snap-selection .profile-pill-labels{transition:none;}
+@media(prefers-reduced-motion:reduce){#mySpecBody .profile-pill-labels{transition:none;}}
