@@ -2505,6 +2505,9 @@ html.light-mode-on #muscleFinderOverlay .muscle-finder-help-btn:active {
   line-height: 1.4;
   margin-bottom: 26px;
 }
+.who-chapter-body{width:100%;min-width:0;}
+.who-chapter-title{width:100%;min-width:0;}
+.who-fit-line{display:block;white-space:nowrap;}
 .who-chapter-body p {
   font-size: 16px;
   line-height: 1.75;
@@ -2527,7 +2530,7 @@ html.light-mode-on #muscleFinderOverlay .muscle-finder-help-btn:active {
 }
 .who-cta-word { display: inline-block; }
 .who-cta-t { display: inline-block; }
-/* 🔥 O/HE/OP/. — 처음엔 숨겨뒀다가 나중에 페이드인으로만 등장(이동 없이 투명도만) */
+/* 🔥 O/HE/OP — 처음엔 숨겨뒀다가 나중에 페이드인으로만 등장(이동 없이 투명도만) */
 .who-cta-fade {
   display: inline-block;
   opacity: 0;
@@ -10974,7 +10977,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
     </section>
 
     <section class="who-cta">
-      <div class="who-cta-main" id="whoForCtaMain"><span class="who-cta-word"><span class="who-cta-t">T</span><span class="who-cta-fade">O</span></span> <span class="who-cta-word"><span class="who-cta-t">T</span><span class="who-cta-fade">H</span><span class="who-cta-fade">E</span></span> <span class="who-cta-word"><span class="who-cta-t">T</span><span class="who-cta-fade">O</span><span class="who-cta-fade">P</span><span class="who-cta-fade">.</span></span></div>
+      <div class="who-cta-main" id="whoForCtaMain"><span class="who-cta-word"><span class="who-cta-t">T</span><span class="who-cta-fade">O</span></span> <span class="who-cta-word"><span class="who-cta-t">T</span><span class="who-cta-fade">H</span><span class="who-cta-fade">E</span></span> <span class="who-cta-word"><span class="who-cta-t">T</span><span class="who-cta-fade">O</span><span class="who-cta-fade">P</span></span></div>
       <div class="who-cta-sub">정상을 향해.</div>
       <div class="who-cta-sub">이제 올라가십시오.</div>
       <button id="whoForCtaBtn" onclick="closeWhoFor()">TO THE TOP</button>
@@ -13477,7 +13480,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.208";
+const APP_VERSION = "1.0.209";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -16937,6 +16940,24 @@ const whoForOverlay = document.getElementById("whoForOverlay");
 const whoForScreen = document.getElementById("whoForScreen");
 const whoForTrack = document.getElementById("whoForTrack");
 const whoForPanelCount = document.querySelectorAll("#whoForTrack > *").length;
+// Preserve authored line breaks; shrink only text blocks that would spill onto another line.
+function fitWhoForLines(){
+  if(whoForOverlay.classList.contains('hidden'))return;
+  whoForTrack.querySelectorAll('.who-chapter-title,.who-chapter-body p').forEach(block=>{
+    if(!block.querySelector('.who-fit-line')){
+      const lines=block.innerHTML.split(/<br\s*\/?\s*>/i);
+      block.innerHTML=lines.map(line=>`<span class="who-fit-line">${line}</span>`).join('');
+    }
+    block.style.fontSize='';
+    const base=parseFloat(getComputedStyle(block).fontSize);
+    const available=block.clientWidth;
+    const natural=Math.max(...Array.from(block.children,line=>line.scrollWidth));
+    if(available>0 && natural>available)block.style.fontSize=(base*(available-2)/natural).toFixed(2)+'px';
+  });
+}
+window.addEventListener('resize',fitWhoForLines);
+document.fonts?.ready.then(fitWhoForLines);
+
 
 // 🔥 영화 필름처럼 모든 화면이 한 줄로 이어진 스트립을 통째로 위로 밀어 올림
 //    (나가는 화면도 위로 사라지고, 다음 화면이 아래에서 함께 올라옴) — 앞으로만 진행, 뒤로가기 없음
@@ -16956,11 +16977,11 @@ const whoForCtaMain = document.getElementById("whoForCtaMain");
 const whoForCtaTSpans = whoForCtaMain.querySelectorAll(".who-cta-t");
 const whoForCtaFadeSpans = whoForCtaMain.querySelectorAll(".who-cta-fade");
 let whoForCtaPlayed = false;
-// 🔥 "TO THE TOP." 글자가 다 나오기 전에 CTA 버튼을 눌러 화면을 닫아버리면(=밑에 하단탭이
+// 🔥 "TO THE TOP" 글자가 다 나오기 전에 CTA 버튼을 눌러 화면을 닫아버리면(=밑에 하단탭이
 //    바로 눌리는 상태로 돌아감) 연출이 끊겨 보임 — 글자 페이드인까지 완전히 끝나야 true
 let whoForCtaReady = false;
 
-// 🔥 T,T,T를 "TO THE TOP." 문장 속 각자의 자리(자연스러운 최종 위치)에서
+// 🔥 T,T,T를 "TO THE TOP" 문장 속 각자의 자리(자연스러운 최종 위치)에서
 //    서로 붙여 "TTT" 로고처럼 뭉쳐 보이도록 초기 오프셋을 계산해서 적용
 function whoForResetCtaIntro(){
   whoForCtaPlayed = false;
@@ -16999,7 +17020,7 @@ function whoForPlayCtaIntro(){
       el.style.transform = "translateX(0)";
     });
 
-    // 2) T들이 자리잡고 0.1초 후, 나머지 글자(O·HE·OP·.)가 페이드인으로 등장
+    // 2) T들이 자리잡고 0.1초 후, 나머지 글자(O·HE·OP)가 페이드인으로 등장
     setTimeout(() => {
       whoForCtaFadeSpans.forEach(el => el.classList.add("who-cta-fade-in"));
       // 🔥 페이드인 트랜지션(1.5s, CSS의 .who-cta-fade transition 값과 동일)까지 다 끝난 뒤에야
@@ -17011,6 +17032,7 @@ function whoForPlayCtaIntro(){
 
 function openWhoFor(){
   whoForOverlay.classList.remove("hidden");
+  fitWhoForLines();
   whoForTrack.style.transition = "none";
   whoForTrack.style.transform = "translateY(0)"; // 🔥 다시 열 때마다 처음부터
   whoForStep = 0;
@@ -17019,7 +17041,7 @@ function openWhoFor(){
   whoForResetCtaIntro();
 }
 function closeWhoFor(){
-  if (!whoForCtaReady) return; // 🔥 "TO THE TOP." 연출이 다 끝나기 전엔 닫기(=하단탭 노출) 무시
+  if (!whoForCtaReady) return; // 🔥 "TO THE TOP" 연출이 다 끝나기 전엔 닫기(=하단탭 노출) 무시
   whoForOverlay.classList.add("hidden");
 }
 
