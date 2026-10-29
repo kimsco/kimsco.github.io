@@ -146,30 +146,44 @@ html.light-mode-on #mySpecScreen .spec-close-btn:active{background:rgba(150,75,7
 #mySpecBody{--spec-field:#222123;--spec-ink:#f3f0f1;--spec-muted:#a39a9e;--spec-selected:#f0e9eb;--spec-selected-ink:#302126;}
 #mySpecBody>.settings-group{margin-bottom:24px;}
 #mySpecBody>.settings-group>.settings-section-label{padding:0 4px;margin-bottom:10px;font-size:13px;font-weight:600;letter-spacing:.2px;color:var(--spec-muted);}
-#mySpecBody>.settings-group>.settings-card{background:var(--spec-field);border-radius:18px;padding:16px;box-sizing:border-box;}
+#mySpecBody>.settings-group>.settings-card{background:var(--spec-field);border-radius:999px;padding:12px 20px;box-sizing:border-box;}
 #mySpecBody .spec-name-item{height:24px;padding:0;}
 #mySpecBody #specName{height:24px;font-size:16px;line-height:24px;color:var(--spec-ink);outline:none;}
 #mySpecBody .settings-card:has(input:focus-visible){box-shadow:0 0 0 1.5px #ad727e;}
 #mySpecBody>.settings-group>.spec-pill-card,
-#mySpecBody>.settings-group>.settings-card:has(.goal-toggle){padding:6px;}
-#mySpecBody :is(.gender-toggle,.goal-toggle){border:0;border-radius:13px;overflow:hidden;background:none;}
-#mySpecBody :is(.genderBtn,.goalBtn){height:44px;border:0;border-radius:13px;font-family:inherit;font-size:14px;font-weight:550;color:var(--spec-muted);transition:color .2s,background .2s;}
-#mySpecBody .gender-toggle-indicator{border-radius:13px;background:var(--spec-selected);}
+#mySpecBody>.settings-group>.settings-card:has(.goal-toggle){padding:5px;}
+#mySpecBody :is(.gender-toggle,.goal-toggle){border:0;border-radius:999px;overflow:hidden;background:none;}
+#mySpecBody :is(.genderBtn,.goalBtn){height:36px;min-height:0;padding:0;box-sizing:border-box;border:0;border-radius:999px;font-family:inherit;font-size:14px;font-weight:550;color:var(--spec-muted);transition:color .2s,background .2s;}
+#mySpecBody .gender-toggle-indicator{border-radius:999px;background:var(--spec-selected);}
 #mySpecBody :is(.genderBtn,.goalBtn).active{color:var(--spec-selected-ink);font-weight:650;}
 #mySpecBody .goalBtn.active{background:var(--spec-selected);}
 #mySpecBody .spec-row-grid3{gap:0;}
 #mySpecBody .spec-row-grid3>div{min-width:0;padding:0 8px;}
 #mySpecBody .spec-row-grid3>div+div{border-left:1px solid var(--settings-line);}
-#mySpecBody .spec-row-grid3 label{font-size:11px;letter-spacing:0;margin-bottom:8px;color:var(--spec-muted);}
-#mySpecBody .spec-row-grid3 input{height:32px;font-family:inherit;font-size:20px;font-weight:600;color:var(--spec-ink);border:0;outline:none;font-variant-numeric:tabular-nums;}
+#mySpecBody .spec-row-grid3 label{font-size:11px;letter-spacing:0;margin-bottom:4px;color:var(--spec-muted);}
+#mySpecBody .spec-row-grid3 input{height:28px;font-family:inherit;font-size:18px;font-weight:600;color:var(--spec-ink);border:0;outline:none;font-variant-numeric:tabular-nums;}
 #mySpecBody input::placeholder{color:var(--spec-muted);opacity:.65;font-weight:400;}
-#mySpecBody .activity-slider-track{height:4px;margin:16px 12px 20px;border-radius:99px;background:rgba(150,125,135,.25);}
+#mySpecBody .activity-slider-track{height:4px;margin:8px 10px 12px;border-radius:99px;background:rgba(150,125,135,.25);}
 #mySpecBody .activity-slider-fill{border-radius:99px;background:#bb8793;}
 #mySpecBody .activity-slider-handle{background:var(--spec-selected);border:2px solid var(--spec-field);box-shadow:0 1px 6px rgba(0,0,0,.2);}
 #mySpecBody .activity-level-label{font-size:13px;font-weight:550;color:var(--spec-ink);margin:0 0 2px;}
-#mySpecBody #saveSpecBtn{display:block;width:100%;height:56px;box-sizing:border-box;margin:32px 0 0;border-radius:18px;background:#ae5365;color:#fff;font-family:inherit;font-size:16px;font-weight:650;letter-spacing:.2px;transition:transform .2s,background .2s;}
+#mySpecBody #saveSpecBtn{display:block;width:100%;height:48px;min-height:0;padding:0;box-sizing:border-box;margin:32px 0 0;border-radius:999px;background:#ae5365;color:#fff;font-family:inherit;font-size:16px;font-weight:650;letter-spacing:.2px;transition:transform .2s,background .2s;}
 #mySpecBody #saveSpecBtn:active{transform:scale(.98);background:#984658;}
 #mySpecBody :is(button,input):focus-visible{outline:2px solid #bc8793;outline-offset:3px;}
 html.light-mode-on #mySpecBody{--spec-field:#fff;--spec-ink:#30272b;--spec-muted:#86797e;--spec-selected:#ecdee3;--spec-selected-ink:#5b3440;}
 @media(prefers-reduced-motion:reduce){#mySpecBody :is(.genderBtn,.goalBtn,#saveSpecBtn,.gender-toggle-indicator){transition:none;}#mySpecBody #saveSpecBtn:active{transform:none;}}
 #mySpecBody #saveSpecBtn:disabled{opacity:.45;cursor:default;transform:none;}
+/* Keep inherited form padding from increasing the compact control heights. */
+#mySpecBody :is(.gender-toggle,.goal-toggle){padding:0;min-height:0;}
+#mySpecBody .spec-row-grid3 input{padding:0;min-height:0;box-sizing:border-box;}
+#mySpecBody .spec-row{padding:0;}
+#mySpecBody :is(.gender-toggle,.goal-toggle){height:36px;box-sizing:border-box;}
+#mySpecBody .gender-toggle-indicator{box-sizing:border-box;padding:0;}
+#mySpecBody .settings-card:has(.spec-row-grid3){padding-top:10px;padding-bottom:10px;}
+#mySpecBody .spec-row-grid3>div{padding-top:0;padding-bottom:0;}
+#mySpecBody .spec-row-grid3 label{line-height:16px;}
+#mySpecBody .spec-row-grid3>div{display:flex;flex-direction:column;justify-content:center;}
+#mySpecBody .spec-row-grid3 label{padding:0;height:16px;}
+#mySpecBody .spec-row-grid3 input{flex:0 0 28px;line-height:28px;}
+#mySpecBody .spec-row-grid3 input{margin:0;}
+#mySpecBody :is(.genderBtn,.goalBtn){margin:0;}
