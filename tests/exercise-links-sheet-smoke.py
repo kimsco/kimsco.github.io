@@ -22,14 +22,19 @@ try:
    page.locator('.exercise-ref-delete-btn').click();assert cards.nth(1).locator('.exercise-link-indicator').count()==0
    # Only the composer rises: the opaque sheet and header stay fixed to the bottom.
    before=sheet.bounding_box();header=modal.locator('.exercise-ref-modal-header').bounding_box()
+   page.locator('#exerciseRefUrlInput').dispatch_event('mf-short-tap')
    for keyboard_height in [240,300,420]:
-    page.evaluate("height=>{Object.defineProperty(visualViewport,'height',{configurable:true,value:innerHeight-height});visualViewport.dispatchEvent(new Event('resize'))}",keyboard_height);page.wait_for_timeout(100)
+    page.evaluate("height=>{Object.defineProperty(visualViewport,'height',{configurable:true,value:innerHeight-height});visualViewport.dispatchEvent(new Event('resize'))}",keyboard_height)
+    if keyboard_height==240:
+     page.wait_for_timeout(70);mid=modal.locator('.exercise-ref-modal-footer').evaluate('e=>parseFloat(getComputedStyle(e).bottom)');assert 0<mid<240,mid
+     page.wait_for_timeout(280)
+    else:page.wait_for_timeout(350)
     box=sheet.bounding_box();assert abs(box['y']-before['y'])<1 and abs(box['height']-before['height'])<1,box
     assert abs(box['y']+box['height']-844)<1,box
     assert abs(modal.locator('.exercise-ref-modal-header').bounding_box()['y']-header['y'])<1
     composer=modal.locator('.exercise-ref-composer').bounding_box();assert composer['y']+composer['height']<=844-keyboard_height,composer
     assert modal.evaluate('e=>getComputedStyle(e).bottom')=='0px'
-   page.evaluate("delete visualViewport.height;visualViewport.dispatchEvent(new Event('resize'))");page.wait_for_timeout(100)
+   page.evaluate("delete visualViewport.height;visualViewport.dispatchEvent(new Event('resize'));exerciseRefUrlInput.blur()");page.wait_for_timeout(350)
    for light in [False,True]:
     page.evaluate('(v)=>applyLightMode(v)',light);assert modal.evaluate('e=>e.scrollWidth<=innerWidth')
     title=page.locator('#exerciseRefModalTitle');assert 'blur(14px)' in title.evaluate('e=>getComputedStyle(e).backdropFilter')

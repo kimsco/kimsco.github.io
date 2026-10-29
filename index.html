@@ -8795,7 +8795,7 @@ document.addEventListener('dragstart', event => {
   event.preventDefault();
 });
 </script>
-<link rel="stylesheet" href="/css/settings.css?v=1.0.207">
+<link rel="stylesheet" href="/css/settings.css?v=1.0.208">
 </head>
 
 <body style="background-color:#000000;">
@@ -12355,19 +12355,6 @@ function setupModalKeyboardFix(modalBox, inputs) {
     });
   });
 }
-// Keep the sheet rooted at the screen bottom; reserve keyboard space inside its footer.
-applyOpacityScrollFix(exerciseRefUrlInput);
-(function(){
-  const update=()=>{
-    const vv=window.visualViewport;
-    const height=exerciseRefModal.classList.contains('show')?Math.max(0,innerHeight-(vv?.height||innerHeight)-(vv?.offsetTop||0)):0;
-    exerciseRefModal.style.setProperty('--link-keyboard-height',height+'px');
-  };
-  window.visualViewport?.addEventListener('resize',update);
-  window.visualViewport?.addEventListener('scroll',update);
-  exerciseRefUrlInput.addEventListener('blur',()=>setTimeout(update,0));
-})();
-
 /* ===============================
    🔥 보조운동(4번째 탭) 로직
 ================================ */
@@ -13490,7 +13477,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.207";
+const APP_VERSION = "1.0.208";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -16610,6 +16597,11 @@ setupPillBarKeyboardFix(
 setupPillBarKeyboardFix(
   document.getElementById("myRoutineRevealInputBar"),
   [document.getElementById("myRoutineRevealInputWeight"), document.getElementById("myRoutineRevealInputReps")]
+);
+// Reuse the record-bar keyboard motion, lifting only the link composer footer.
+setupPillBarKeyboardFix(
+  document.querySelector('#exerciseRefModal .exercise-ref-modal-footer'),
+  [exerciseRefUrlInput]
 );
 /* 🔥 알약바 kg/회 입력창에 포커스가 있는 채로 화면을 끄고 한참 뒤에 다시 켜면,
    iOS가 다시 나타나는 키보드 위로 입력창을 보여주려고 페이지를 스크롤/패닝하는
