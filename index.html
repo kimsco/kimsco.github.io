@@ -8795,7 +8795,7 @@ document.addEventListener('dragstart', event => {
   event.preventDefault();
 });
 </script>
-<link rel="stylesheet" href="/css/settings.css?v=1.0.179">
+<link rel="stylesheet" href="/css/settings.css?v=1.0.180">
 </head>
 
 <body style="background-color:#000000;">
@@ -13384,7 +13384,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.179";
+const APP_VERSION = "1.0.180";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -24161,18 +24161,29 @@ function renderSettingsIdentity(isLoggedIn){
 }
 
 function renderSpecSummaryPreview(){
-  const targets = calcTargets(userSpec);
-  if (!targets) {
-    specSummaryBox.innerHTML = `키·몸무게·나이를 입력하면<br>자동으로 목표치를 계산해드려요.`;
+  const targets=calcTargets(userSpec);
+  const expanded=!!specSummaryBox.querySelector('details[open]');
+  if(!targets){
+    specSummaryBox.innerHTML='<p class="spec-summary-empty">신체 정보를 입력하면 하루 권장량을 알려드려요.</p>';
     return;
   }
-  specSummaryBox.innerHTML = `
-    기초대사량(BMR): <b>${targets.bmr}</b> kcal<br>
-    활동대사량(TDEE): <b>${targets.tdee}</b> kcal<br>
-    목표 칼로리: <b>${targets.targetCalories}</b> kcal<br><br>
-    단백질 목표: <b>${targets.proteinTarget}g</b><br>
-    탄수화물 목표: ${targets.carbTarget}g · 지방 목표: ${targets.fatTarget}g
-  `;
+  const number=value=>Number(value).toLocaleString('ko-KR');
+  specSummaryBox.innerHTML=`
+    <section class="spec-nutrition-card" aria-label="내 하루 권장량">
+      <h2>내 하루 권장량</h2>
+      <div class="spec-calorie-label">목표 칼로리</div>
+      <div class="spec-calorie-value">${number(targets.targetCalories)}<span>kcal</span></div>
+      <dl class="spec-macro-grid">
+        <div><dt>단백질</dt><dd>${number(targets.proteinTarget)}<span>g</span></dd></div>
+        <div><dt>탄수화물</dt><dd>${number(targets.carbTarget)}<span>g</span></dd></div>
+        <div><dt>지방</dt><dd>${number(targets.fatTarget)}<span>g</span></dd></div>
+      </dl>
+      <details class="spec-calculation-details" ${expanded?'open':''}>
+        <summary>계산 기준 보기<span aria-hidden="true">⌄</span></summary>
+        <dl><div><dt>기초대사량 <span>BMR</span></dt><dd>${number(targets.bmr)} kcal</dd></div>
+        <div><dt>활동대사량 <span>TDEE</span></dt><dd>${number(targets.tdee)} kcal</dd></div></dl>
+      </details>
+    </section>`;
 }
 
 let profileSaveToast,profileToastHold,profileToastHide;
