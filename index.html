@@ -13383,7 +13383,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.193";
+const APP_VERSION = "1.0.194";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -24299,8 +24299,6 @@ document.getElementById("saveSpecBtn").addEventListener("click", () => {
 /* A fresh downward pull at rest moves the sheet; ongoing scrolling keeps its bounce. */
 (function(){
   let candidate=false, dragging=false, startX=0, startY=0, distance=0;
-  let lastScroll=-Infinity;
-  mySpecBody.addEventListener('scroll',()=>{lastScroll=performance.now();},{passive:true});
   const reset=()=>{
     candidate=false;dragging=false;distance=0;
     mySpecScreen.style.transition='';mySpecScreen.style.transform='';
@@ -24309,7 +24307,7 @@ document.getElementById("saveSpecBtn").addEventListener("click", () => {
   const start=e=>{
     if(!mySpecOpen || e.touches?.length>1 || (e.type==='mousedown' && e.button!==0))return;
     if(e.target.closest('button,input,textarea,select,a,.activity-slider-track'))return;
-    if(mySpecBody.scrollTop>1 || performance.now()-lastScroll<160)return;
+    if(mySpecBody.scrollTop>1)return;
     const point=e.touches?e.touches[0]:e;
     candidate=true;dragging=false;distance=0;startX=point.clientX;startY=point.clientY;
   };
