@@ -328,3 +328,20 @@ html.light-mode-on #announcementModal .exercise-ref-modal-box{background:radial-
 /* Acrylic title capsule shares the close button's top and edge insets. */
 #announcementModalTitle{display:flex;align-items:center;justify-content:center;box-sizing:border-box;flex:0 0 auto;min-height:44px;margin:0;padding:0 18px;border-radius:999px;border:1px solid rgba(255,255,255,.16);background:linear-gradient(135deg,rgba(255,255,255,.12),rgba(255,255,255,.045));-webkit-backdrop-filter:blur(14px) saturate(140%);backdrop-filter:blur(14px) saturate(140%);box-shadow:inset 0 1px 0 rgba(255,255,255,.09),0 2px 8px rgba(0,0,0,.08);font-size:19px;font-weight:700;line-height:24px;letter-spacing:-.3px;}
 html.light-mode-on #announcementModalTitle{background:linear-gradient(135deg,rgba(255,255,255,.65),rgba(255,255,255,.28));border-color:rgba(255,255,255,.75);box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 2px 8px rgba(60,20,30,.04);}
+
+/* Reference markers never change the exercise card's tap or swipe action. */
+#exercise-list .has-reference-links .exercise-name{padding-right:26px;}
+.exercise-link-indicator{position:absolute;right:16px;top:50%;transform:translateY(-50%);display:flex;color:var(--c-text-secondary);opacity:.65;pointer-events:none;}
+.exercise-link-indicator svg{width:16px;height:16px;}
+/* Editable links use the same rounded, rising sheet as the announcement inbox. */
+#exerciseRefModal{align-items:flex-end;padding:0;bottom:var(--link-keyboard-height,0px);background:rgba(0,0,0,0);-webkit-backdrop-filter:blur(0px);backdrop-filter:blur(0px);transition:background .3s ease,backdrop-filter .3s ease,-webkit-backdrop-filter .3s ease;}
+#exerciseRefModal.show{background:rgba(0,0,0,.35);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);}
+#exerciseRefModal .exercise-ref-modal-box{width:390px;max-width:100%;height:94vh;max-height:calc(100% - env(safe-area-inset-top) - 12px);margin:0 auto;border-radius:44px 44px 0 0;box-sizing:border-box;background:radial-gradient(ellipse 140% 50vh at 50% 0,rgba(100,30,38,.48),rgba(64,20,25,.24) 55%,transparent),#0b0b0b;transform:translateY(100%);transition:transform .32s cubic-bezier(.22,1,.36,1);}
+#exerciseRefModal.show .exercise-ref-modal-box{transform:translateY(0);}
+#exerciseRefModal .exercise-ref-modal-header{padding:16px 16px 20px 24px;gap:12px;}
+#exerciseRefModalTitle{min-width:0;overflow-wrap:anywhere;font-size:18px;}
+#exerciseRefModalCloseBtn{width:44px;height:44px;flex:0 0 44px;padding:0;align-items:center;justify-content:center;border-radius:50%;border:1px solid rgba(197,46,50,.32);background:rgba(197,46,50,.07);color:#c45151;}
+#exerciseRefList{min-height:0;}
+#exerciseRefModal .exercise-ref-modal-footer{padding-bottom:calc(16px + env(safe-area-inset-bottom));}
+html.light-mode-on #exerciseRefModal .exercise-ref-modal-box{background:#f5f4f4;}
+@media(prefers-reduced-motion:reduce){#exerciseRefModal,#exerciseRefModal .exercise-ref-modal-box{transition:none;}}

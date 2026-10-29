@@ -8795,7 +8795,7 @@ document.addEventListener('dragstart', event => {
   event.preventDefault();
 });
 </script>
-<link rel="stylesheet" href="/css/settings.css?v=1.0.202">
+<link rel="stylesheet" href="/css/settings.css?v=1.0.203">
 </head>
 
 <body style="background-color:#000000;">
@@ -10354,7 +10354,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
 
 <!-- 🔥 종목 카드 왼쪽 스와이프 → "참고" 버튼으로 여는 참고 링크(유튜브 등) 패널 —
      여러 개 등록 가능, 클릭해서 열기/수정/삭제 -->
-<div id="exerciseRefModal" class="modal hidden">
+<div id="exerciseRefModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="exerciseRefModalTitle">
   <div class="exercise-ref-modal-box">
     <div class="exercise-ref-modal-header">
       <div class="exercise-ref-modal-title" id="exerciseRefModalTitle"></div>
@@ -11860,6 +11860,7 @@ let exerciseRefLinksSyncedFromServer = false; // 로그인 사용자 기준 서�
 
 function saveExerciseRefLinksToLocal(){
   lsSet(LS_KEYS.exerciseRefLinks, exerciseRefLinks);
+  refreshExerciseLinkIndicators();
 }
 
 // 🔥 종목별로 문서를 따로 두면 문서 수가 너무 많아지고 링크 데이터 자체가 가벼워서,
@@ -11915,12 +11916,27 @@ function deleteExerciseRefLink(name, id){
   saveExerciseRefLinksToServer();
 }
 
+function paintExerciseLinkIndicator(card,name){
+  card.querySelector('.exercise-link-indicator')?.remove();
+  const hasLinks=getExerciseRefLinks(name).length>0;
+  card.classList.toggle('has-reference-links',hasLinks);
+  if(!hasLinks)return;
+  const indicator=document.createElement('span');indicator.className='exercise-link-indicator';
+  indicator.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="참고 링크 있음"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>';
+  card.appendChild(indicator);
+}
+function refreshExerciseLinkIndicators(){
+  document.querySelectorAll('#exercise-list .exercise-card[data-link-exercise]').forEach(card=>paintExerciseLinkIndicator(card,card.dataset.linkExercise));
+}
+
 // --- 참고 링크 패널 UI ---
 let exerciseRefModalCurrentName = null;
 const exerciseRefModal = document.getElementById('exerciseRefModal');
 const exerciseRefModalTitle = document.getElementById('exerciseRefModalTitle');
 const exerciseRefList = document.getElementById('exerciseRefList');
 const exerciseRefUrlInput = document.getElementById('exerciseRefUrlInput');
+document.body.appendChild(exerciseRefModal);
+let exerciseRefCloseTimer,exerciseRefMotionToken=0,exerciseRefReturnFocus;
 
 function renderExerciseRefList(){
   const links = getExerciseRefLinks(exerciseRefModalCurrentName);
@@ -11966,7 +11982,12 @@ async function openExerciseRefModal(name){
   exerciseRefModalCurrentName = name;
   exerciseRefModalTitle.textContent = name;
   exerciseRefUrlInput.value = '';
+  clearTimeout(exerciseRefCloseTimer);const token=++exerciseRefMotionToken;
+  exerciseRefReturnFocus=document.activeElement;
   exerciseRefModal.classList.remove('hidden');
+  exerciseRefModal.querySelector('.exercise-ref-modal-box').style.transform='';
+  exerciseRefList.scrollTop=0;void exerciseRefModal.offsetHeight;
+  requestAnimationFrame(()=>{if(token===exerciseRefMotionToken)exerciseRefModal.classList.add('show');});
   // 🔥 z-index를 아무리 높여도 사파리에서 backdrop-filter가 걸린 이 모달이
   // topBar/bottomTab(둘 다 자체적으로 GPU 레이어로 승격돼있음) 뒤로 깔리는
   // 기기가 있어서, 아예 열려있는 동안은 두 바를 확실하게 숨겨서 해결
@@ -11977,10 +11998,34 @@ async function openExerciseRefModal(name){
 }
 
 function closeExerciseRefModal(){
-  exerciseRefModal.classList.add('hidden');
-  document.documentElement.classList.remove('exercise-ref-modal-open');
-  exerciseRefModalCurrentName = null;
+  ++exerciseRefMotionToken;exerciseRefModalCurrentName=null;
+  exerciseRefUrlInput.blur();exerciseRefModal.classList.remove('show');
+  exerciseRefModal.querySelector('.exercise-ref-modal-box').style.transform='';
+  clearTimeout(exerciseRefCloseTimer);
+  exerciseRefCloseTimer=setTimeout(()=>{
+    exerciseRefModal.classList.add('hidden');
+    document.documentElement.classList.remove('exercise-ref-modal-open');
+    exerciseRefReturnFocus?.focus({preventScroll:true});
+  },matchMedia('(prefers-reduced-motion: reduce)').matches?0:330);
 }
+(function(){
+  const sheet=exerciseRefModal.querySelector('.exercise-ref-modal-box');
+  let tracking=false,dragging=false,x=0,y=0,distance=0;
+  sheet.addEventListener('touchstart',e=>{
+    if(e.touches.length!==1 || !exerciseRefModal.classList.contains('show') || e.target.closest('button,input,a') || exerciseRefList.scrollTop>1)return;
+    tracking=true;dragging=false;x=e.touches[0].clientX;y=e.touches[0].clientY;distance=0;
+  },{passive:true});
+  sheet.addEventListener('touchmove',e=>{
+    if(!tracking)return;
+    if(e.touches.length!==1){tracking=false;sheet.style.transition='';sheet.style.transform='';return;}
+    const dx=e.touches[0].clientX-x,dy=e.touches[0].clientY-y;
+    if(!dragging){if(dy< -4 || Math.abs(dx)>Math.max(8,dy)){tracking=false;return;}if(dy<6)return;dragging=true;sheet.style.transition='none';}
+    e.preventDefault();distance=Math.max(0,dy)*.85;sheet.style.transform=`translateY(${distance}px)`;
+  },{passive:false});
+  function end(cancelled){if(!tracking)return;tracking=false;sheet.style.transition='';if(dragging&&!cancelled&&distance>110)closeExerciseRefModal();else sheet.style.transform='';dragging=false;}
+  sheet.addEventListener('touchend',()=>end(false),{passive:true});sheet.addEventListener('touchcancel',()=>end(true),{passive:true});
+  document.addEventListener('keydown',e=>{if(exerciseRefModal.classList.contains('show')&&e.key==='Escape'){e.preventDefault();closeExerciseRefModal();}});
+})();
 
 document.getElementById('exerciseRefModalCloseBtn').addEventListener('click', closeExerciseRefModal);
 exerciseRefModal.addEventListener('click', (e) => {
@@ -12308,7 +12353,18 @@ function setupModalKeyboardFix(modalBox, inputs) {
     });
   });
 }
-setupModalKeyboardFix(document.querySelector('.exercise-ref-modal-box'), [exerciseRefUrlInput]);
+// Bottom sheets resize above the keyboard rather than using centered-modal translation.
+applyOpacityScrollFix(exerciseRefUrlInput);
+(function(){
+  const update=()=>{
+    const vv=window.visualViewport;
+    const height=exerciseRefModal.classList.contains('show')?Math.max(0,innerHeight-(vv?.height||innerHeight)-(vv?.offsetTop||0)):0;
+    exerciseRefModal.style.setProperty('--link-keyboard-height',height+'px');
+  };
+  window.visualViewport?.addEventListener('resize',update);
+  window.visualViewport?.addEventListener('scroll',update);
+  exerciseRefUrlInput.addEventListener('blur',()=>setTimeout(update,0));
+})();
 
 /* ===============================
    🔥 보조운동(4번째 탭) 로직
@@ -13432,7 +13488,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.202";
+const APP_VERSION = "1.0.203";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -21645,6 +21701,8 @@ function renderExercises(opts) {
     card.innerHTML = `
       <div class="exercise-name">${name}</div>
     `;
+
+    if(!opts.listElId){card.dataset.linkExercise=name;paintExerciseLinkIndicator(card,name);}
 
     card.addEventListener('click', () => {
       // 🔥 스와이프로 "참고" 버튼이 열려있는 상태에서의 탭은 상세화면으로 들어가지
