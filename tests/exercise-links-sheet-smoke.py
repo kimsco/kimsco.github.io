@@ -34,6 +34,8 @@ try:
     page.evaluate('(v)=>applyLightMode(v)',light);assert modal.evaluate('e=>e.scrollWidth<=innerWidth')
     title=page.locator('#exerciseRefModalTitle');assert 'blur(14px)' in title.evaluate('e=>getComputedStyle(e).backdropFilter')
     composer=page.locator('.exercise-ref-composer');assert composer.evaluate('e=>getComputedStyle(e).borderRadius')=='999px'
+    assert composer.bounding_box()['height']==50
+    assert page.locator('#exerciseRefAddBtn').bounding_box()['height']==36
     assert page.locator('#exerciseRefAddBtn').evaluate('e=>getComputedStyle(e).borderRadius')=='50%'
     assert page.locator('#exerciseRefUrlInput').evaluate('e=>getComputedStyle(e).fontSize')=='16px'
     page.screenshot(path=f'/tmp/exercise-links-sheet-{width}-{light}.png')

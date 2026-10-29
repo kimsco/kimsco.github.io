@@ -349,10 +349,10 @@ html.light-mode-on #exerciseRefModal .exercise-ref-modal-box{background:#f5f4f4;
 /* A shared acrylic heading and one integrated capsule for adding links. */
 #exerciseRefModalTitle{font-size:19px;flex:0 1 auto;min-width:0;max-width:calc(100% - 56px);padding:9px 18px;overflow-wrap:anywhere;}
 #exerciseRefModal .exercise-ref-modal-footer{padding:16px 20px calc(16px + max(env(safe-area-inset-bottom),var(--link-keyboard-height,0px)));border-top:0;}
-#exerciseRefModal .exercise-ref-composer{display:flex;align-items:center;gap:8px;box-sizing:border-box;min-width:0;width:100%;min-height:56px;padding:6px;border:1px solid rgba(255,255,255,.08);border-radius:999px;background:#222;box-shadow:inset 0 1px 0 rgba(255,255,255,.025);}
-#exerciseRefUrlInput{flex:1;min-width:0;width:100%;height:40px;margin:0;padding:0 8px 0 12px;border:0;border-radius:999px;background:transparent;font-family:inherit;font-size:16px;outline:none;}
+#exerciseRefModal .exercise-ref-composer{display:flex;align-items:center;gap:8px;box-sizing:border-box;min-width:0;width:100%;min-height:50px;padding:5px;border:1px solid rgba(255,255,255,.08);border-radius:999px;background:#222;box-shadow:inset 0 1px 0 rgba(255,255,255,.025);}
+#exerciseRefUrlInput{flex:1;min-width:0;width:100%;height:36px;margin:0;padding:0 8px 0 12px;border:0;border-radius:999px;background:transparent;font-family:inherit;font-size:16px;outline:none;}
 #exerciseRefModal .exercise-ref-composer:has(input:focus-visible){box-shadow:0 0 0 1.5px #c52e32;}
-#exerciseRefAddBtn{flex:0 0 40px;width:40px;height:40px;padding:0;border-radius:50%;background:#c52e32;color:#fff;transition:transform .2s,background .2s;}
+#exerciseRefAddBtn{flex:0 0 36px;width:36px;height:36px;padding:0;border-radius:50%;background:#c52e32;color:#fff;transition:transform .2s,background .2s;}
 #exerciseRefAddBtn:active{transform:scale(.94);background:#a52227;}
 #exerciseRefAddBtn:focus-visible{outline:2px solid #c52e32;outline-offset:3px;}
 html.light-mode-on #exerciseRefModal .exercise-ref-composer{background:#fff;border-color:rgba(40,20,25,.08);box-shadow:0 2px 10px rgba(40,15,25,.035);}
