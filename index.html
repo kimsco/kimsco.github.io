@@ -5001,10 +5001,6 @@ html.light-mode-on #bodyweightOverlay {
   background: #ffffff !important;
   color: var(--c-text-primary);
 }
-html.light-mode-on #mySpecOverlay {
-  background: #ffffff !important;
-  color: var(--c-text-primary);
-}
 
 .dex-post-card-label{
   font-size: 17px;
@@ -8799,7 +8795,7 @@ document.addEventListener('dragstart', event => {
   event.preventDefault();
 });
 </script>
-<link rel="stylesheet" href="/css/settings.css?v=1.0.163">
+<link rel="stylesheet" href="/css/settings.css?v=1.0.164">
 </head>
 
 <body style="background-color:#000000;">
@@ -9700,14 +9696,18 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
   </div>
 </div>
 
-<div id="mySpecOverlay" class="hidden settings-box-theme" style="
-    position:fixed; inset:0; z-index:100000;
-    overflow:hidden;
-  ">
-  <div id="mySpecScreen" style="height:100%; overflow-y:auto; padding: calc(16px + env(safe-area-inset-top)) 20px calc(24px + env(safe-area-inset-bottom));">
-    <div style="display:flex; justify-content:flex-end;">
+<!-- 🔥 그래프 바텀시트(#graphOverlay/#graphSheet)와 똑같은 .sheetOverlay/.sheet
+     구조 재사용 — 맨 위까지 덮지 않고 살짝 아래부터 덮으면서 뒤는 흐릿하게,
+     상단은 둥근 모서리 유지, 맨 위에 손잡이 바(sheetGrab)가 있는 바텀시트 -->
+<div id="mySpecOverlay" class="sheetOverlay hidden"></div>
+
+<div id="mySpecScreen" class="sheet hidden settings-box-theme" aria-hidden="true">
+    <div class="sheetHandle" id="mySpecSheetHandle"><div class="sheetGrab"></div></div>
+    <div style="display:flex; justify-content:flex-end; padding:0 14px;">
       <button onclick="closeMySpec()" class="spec-close-btn" aria-label="닫기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
     </div>
+
+    <div id="mySpecBody" style="flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:0 20px calc(24px + env(safe-area-inset-bottom));">
 
     <!-- 🔥 레퍼런스(Took Pro 결제창)처럼 상단 중앙에 큰 아이콘 + 타이틀로 보여주는
          히어로 영역 — 아이콘은 아바타와 동일한 꽉 찬 사람 실루엣, 타이틀은 지금
@@ -9791,7 +9791,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
     <button id="saveSpecBtn">저장</button>
 
     <div id="specSummaryBox" class="spec-summary-box"></div>
-  </div>
+    </div>
 </div>
 
 <div id="threeSummaryOverlay" class="hidden" style="
@@ -13384,7 +13384,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.163";
+const APP_VERSION = "1.0.164";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -23945,10 +23945,13 @@ function calcTargets(spec){
 
 /* ---------- 내 정보 수정 화면 UI ---------- */
 const mySpecOverlay = document.getElementById("mySpecOverlay");
-// 🔥 settingsOverlay/loginSheet와 동일한 이유로 body 바로 밑으로 옮김
-// (.app 내부에 중첩되어 있으면 .app의 push/fade transform·opacity에 영향받음)
-document.body.appendChild(mySpecOverlay);
 const mySpecScreen = document.getElementById("mySpecScreen");
+// 🔥 settingsOverlay/loginSheet와 동일한 이유로 body 바로 밑으로 옮김
+// (.app 내부에 중첩되어 있으면 .app의 push/fade transform·opacity에 영향받음).
+// 이제 mySpecOverlay(배경 딤 처리)와 mySpecScreen(시트 본체)이 형제 요소라 둘 다 옮김
+document.body.appendChild(mySpecOverlay);
+document.body.appendChild(mySpecScreen);
+const mySpecBody = document.getElementById("mySpecBody");
 const specName = document.getElementById("specName");
 const specHeight = document.getElementById("specHeight");
 const specWeight = document.getElementById("specWeight");
@@ -23959,29 +23962,38 @@ const activitySliderHandle = document.getElementById("activitySliderHandle");
 const activityLevelLabel = document.getElementById("activityLevelLabel");
 const specSummaryBox = document.getElementById("specSummaryBox");
 
-// 🔥 레퍼런스(Took Pro 결제창)처럼 아래에서 위로 올라오며 열림(기존엔 오른쪽에서
-// 슬라이드 없이 바로 나타났음)
+// 🔥 그래프 바텀시트(openSheet/closeSheet)와 완전히 같은 방식 — 맨 위까지
+// 덮지 않는 바텀시트로 아래에서 올라오며, 뒤는 .sheetOverlay가 흐릿하게 덮음
+let mySpecOpen = false;
 function openMySpec(){
+  mySpecOverlay.classList.remove("show");
+  mySpecScreen.classList.remove("show");
   mySpecOverlay.classList.remove("hidden");
-  mySpecScreen.style.transition = "none";
-  mySpecScreen.style.transform = "translateY(100%)";
-  mySpecScreen.scrollTop = 0;
+  mySpecScreen.classList.remove("hidden");
+  mySpecScreen.setAttribute("aria-hidden", "false");
+  mySpecBody.scrollTop = 0;
   applySpecToUI();
-  void mySpecScreen.offsetHeight; // 강제 리플로우(트랜지션이 바로 적용되게)
-  mySpecScreen.style.transition = "transform 0.32s cubic-bezier(.22,.68,0,1.01)";
-  mySpecScreen.style.transform = "translateY(0)";
+  void mySpecScreen.offsetHeight; // 강제 리플로우
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      mySpecOverlay.classList.add("show");
+      mySpecScreen.classList.add("show");
+      mySpecOpen = true;
+    });
+  });
 }
-// 🔥 닫을 때도 아래로 다시 내려가며 사라짐 — 스와이프 중간에 드래그된 위치에서
-// 시작해도 자연스럽게 이어지도록 여기서 트랜지션+최종 위치를 한 번에 처리
 function closeMySpec(){
-  mySpecScreen.style.transition = "transform 0.22s ease";
-  mySpecScreen.style.transform = "translateY(100%)";
+  if (!mySpecOpen) return;
+  mySpecOverlay.classList.remove("show");
+  mySpecScreen.classList.remove("show");
+  mySpecScreen.setAttribute("aria-hidden", "true");
   setTimeout(() => {
     mySpecOverlay.classList.add("hidden");
-    mySpecScreen.style.transition = "none";
-    mySpecScreen.style.transform = "translateY(0)";
-  }, 220);
+    mySpecScreen.classList.add("hidden");
+  }, 230);
+  mySpecOpen = false;
 }
+mySpecOverlay.addEventListener("click", closeMySpec);
 
 /* 🔥 입력창(키/몸무게/나이 등)에 포커스가 가서 키보드가 뜨면, position:fixed인 이
    화면의 높이는 그대로라 콘텐츠가 실제로는 넘치지 않은 걸로 계산돼서 스크롤이 안 먹고,
@@ -23990,9 +24002,9 @@ function closeMySpec(){
 if (window.visualViewport) {
   const vv = window.visualViewport;
   const adjustMySpecForKeyboard = () => {
-    if (mySpecOverlay.classList.contains("hidden")) return;
+    if (mySpecScreen.classList.contains("hidden")) return;
     const keyboardHeight = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
-    mySpecScreen.style.paddingBottom = `calc(24px + env(safe-area-inset-bottom) + ${keyboardHeight}px)`;
+    mySpecBody.style.paddingBottom = `calc(24px + env(safe-area-inset-bottom) + ${keyboardHeight}px)`;
   };
   vv.addEventListener("resize", adjustMySpecForKeyboard);
   vv.addEventListener("scroll", adjustMySpecForKeyboard);
@@ -24164,55 +24176,62 @@ document.getElementById("saveSpecBtn").addEventListener("click", () => {
   alert("저장됐어요!");
 });
 
-/* 🔥 내 정보 수정 화면: 아래로 당겨서 닫기(바텀시트 전환에 맞춰 좌우 스와이프 ->
-   상하 드래그로 변경). 맨 위로 스크롤된 상태(scrollTop 0)에서 아래로 당길 때만
-   닫힘 동작, 그 외엔 일반 스크롤 그대로 둠 */
+/* 🔥 내 정보 수정 화면: 그래프 바텀시트의 enableSheetDragClose()와 완전히 같은
+   방식 — 맨 위 손잡이 바(sheetHandle)를 잡고 아래로 당겨서 닫음 */
 (function(){
-  const COMMIT_MOVE = 8, CLOSE_RATIO = 0.22;
-  let startX = 0, startY = 0, tracking = false, dragging = false;
+  const handle = document.getElementById("mySpecSheetHandle");
+  if (!handle) return;
 
-  mySpecScreen.addEventListener('touchstart', (e) => {
-    if (mySpecScreen.scrollTop > 0) { tracking = false; return; }
-    const t = e.touches[0];
-    startX = t.clientX; startY = t.clientY;
-    tracking = true; dragging = false;
-    mySpecScreen.style.transition = 'none';
-  }, { passive: true });
+  let startY = 0, curY = 0, dragging = false;
 
-  mySpecScreen.addEventListener('touchmove', (e) => {
-    if (!tracking) return;
-    const t = e.touches[0];
-    const dx = t.clientX - startX, dy = t.clientY - startY;
-    if (!dragging) {
-      if (dy > COMMIT_MOVE && dy > Math.abs(dx) * 0.6) dragging = true;
-      else if (dy < -COMMIT_MOVE || (Math.abs(dx) > COMMIT_MOVE && Math.abs(dx) > dy)) { tracking = false; return; }
-      else return;
+  const onStart = (e) => {
+    if (!mySpecOpen) return;
+    dragging = true;
+    startY = (e.touches ? e.touches[0].clientY : e.clientY);
+    curY = 0;
+    mySpecScreen.style.transition = "none";
+    mySpecOverlay.style.transition = "none";
+  };
+
+  const onMove = (e) => {
+    if (!dragging) return;
+    const y = (e.touches ? e.touches[0].clientY : e.clientY);
+    curY = Math.max(0, y - startY);
+    mySpecScreen.style.transform = `translateX(-50%) translateY(${curY}px)`;
+    const alpha = Math.max(0, 0.35 - (curY / 600));
+    mySpecOverlay.style.background = `rgba(0,0,0,${alpha})`;
+  };
+
+  const onEnd = () => {
+    if (!dragging) return;
+    dragging = false;
+    mySpecScreen.style.transition = "";
+    mySpecOverlay.style.transition = "";
+
+    if (curY > 120) {
+      mySpecScreen.classList.remove("show");
+      mySpecOverlay.classList.remove("show");
+      setTimeout(() => {
+        mySpecOverlay.classList.add("hidden");
+        mySpecScreen.classList.add("hidden");
+        mySpecScreen.style.transform = "";
+        mySpecOverlay.style.background = "";
+      }, 230);
+      mySpecOpen = false;
+      mySpecScreen.setAttribute("aria-hidden", "true");
+      return;
     }
-    if (dragging) {
-      e.preventDefault();
-      mySpecScreen.style.transform = `translateY(${Math.max(0, dy)}px)`;
-    }
-  }, { passive: false });
 
-  function endDrag(e){
-    if (!tracking) return;
-    const wasDragging = dragging;
-    tracking = false; dragging = false;
-    if (!wasDragging) return;
+    mySpecScreen.style.transform = "";
+    mySpecOverlay.style.background = "";
+  };
 
-    const height = mySpecScreen.offsetHeight || window.innerHeight;
-    const t = e.changedTouches[0];
-    const dy = Math.max(0, t.clientY - startY);
-
-    if (dy > height * CLOSE_RATIO) {
-      closeMySpec();
-    } else {
-      mySpecScreen.style.transition = 'transform 0.22s ease';
-      mySpecScreen.style.transform = 'translateY(0)';
-    }
-  }
-  mySpecScreen.addEventListener('touchend', endDrag, { passive: true });
-  mySpecScreen.addEventListener('touchcancel', endDrag, { passive: true });
+  handle.addEventListener("mousedown", onStart);
+  document.addEventListener("mousemove", onMove);
+  document.addEventListener("mouseup", onEnd);
+  handle.addEventListener("touchstart", onStart, { passive: true });
+  document.addEventListener("touchmove", onMove, { passive: true });
+  document.addEventListener("touchend", onEnd);
 })();
 
 /* ---------- 예정 탭: 오늘의 목표 요약 ---------- */
