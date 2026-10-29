@@ -383,3 +383,60 @@ html.light-mode-on #graphOverlay.show{background:rgba(0,0,0,.35);}
 html.light-mode-on #graphSheet{background:#f5f4f4;}
 html.light-mode-on #graphSheet #sheetTitle{background:linear-gradient(135deg,rgba(255,255,255,.65),rgba(255,255,255,.28));border-color:rgba(255,255,255,.75);box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 2px 8px rgba(60,20,30,.04);}
 @media(prefers-reduced-motion:reduce){#graphOverlay,#graphSheet,#graphSheet #sheetClose{transition:none;}#graphSheet #sheetClose:active{transform:none;}}
+
+/* Home cards share settings surfaces and typography; the page background stays intact. */
+#tab1 #homeNormalContent .home-card{background:var(--settings-card-bg);border:0;border-radius:20px;margin-bottom:24px;box-shadow:none;}
+#tab1 #homeNormalContent .home-card:last-child{margin-bottom:0;}
+#tab1 #homeNormalContent :is(.home-today-card,.home-week-card,.home-parts-card,.home-diet-card){padding:20px;}
+#tab1 #homeNormalContent .home-card-label{display:flex;align-items:center;gap:10px;min-width:0;font-size:15px;font-weight:650;line-height:22px;letter-spacing:0;color:var(--settings-muted);}
+#tab1 .home-section-icon{width:22px;height:22px;flex:0 0 22px;}
+#tab1 #homeNormalContent .home-title-row{gap:12px;margin-bottom:24px;}
+#tab1 #homeNormalContent :is(.home-big3-badge,.home-weight-pill){height:44px;padding:0 16px;border:0;border-radius:999px;background:var(--settings-card-bg);box-shadow:none;}
+#tab1 #homeNormalContent .home-big3-badge{font-size:14px;font-weight:500;color:var(--settings-muted);}
+#tab1 #homeNormalContent .home-big3-badge b{font-weight:650;}
+#tab1 #homeNormalContent .home-weight-pill{transition:transform .2s ease,opacity .2s ease;}
+#tab1 #homeNormalContent .home-weight-pill:active{transform:scale(.96);opacity:.7;}
+#tab1 #homeNormalContent .home-weight-pill input{font-family:inherit;font-size:15px;font-weight:650;}
+#tab1 #homeNormalContent .home-weight-pill .home-weight-unit{color:var(--settings-muted);}
+#tab1 #homeNormalContent .home-weight-pill input::placeholder{color:var(--settings-muted);}
+#tab1 #homeNormalContent .home-weight-unit{font-size:13px;font-weight:500;}
+#tab1 #homeNormalContent .home-today-card{gap:16px;}
+#tab1 #homeNormalContent .home-today-card>div:first-child{min-width:0;}
+#tab1 #homeNormalContent .home-today-muscle{font-size:26px;font-weight:650;line-height:1.35;overflow-wrap:anywhere;}
+#tab1 #homeNormalContent .home-today-muscle .dot{background:#c52e32;width:7px;height:7px;}
+#tab1 #homeNormalContent .home-today-sub{font-size:11px;line-height:1.6;color:var(--settings-muted);}
+#tab1 #homeNormalContent .home-today-streak{flex:0 0 auto;max-width:38%;}
+#tab1 #homeNormalContent .home-tomorrow-label{font-size:12px;font-weight:500;letter-spacing:0;color:var(--settings-muted);}
+#tab1 #homeNormalContent .home-tomorrow-muscle{font-size:18px;font-weight:650;overflow-wrap:anywhere;}
+#tab1 #homeNormalContent .home-week-card .home-card-label{margin-bottom:20px;}
+#tab1 #homeNormalContent .home-week-day{gap:10px;}
+#tab1 #homeNormalContent .home-week-day .d{width:28px;height:28px;background:#2b2b2e;border:0;}
+#tab1 #homeNormalContent .home-week-day .d.done{background:#c52e32;}
+#tab1 #homeNormalContent .home-week-day .lbl{font-size:11px;color:var(--settings-muted);}
+#tab1 #homeNormalContent .home-parts-head{align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:20px;}
+#tab1 #homeNormalContent .home-parts-head-sub{font-size:11px;line-height:1.4;color:var(--settings-muted);}
+#tab1 #homeNormalContent .home-part-item{gap:8px;padding:0 3px;}
+#tab1 #homeNormalContent .home-part-item+.home-part-item{border-left-color:var(--settings-line);}
+#tab1 #homeNormalContent .home-part-name{font-size:12px;font-weight:500;}
+#tab1 #homeNormalContent .home-part-img-slot{width:100%;max-width:44px;height:44px;}
+#tab1 #homeNormalContent .home-part-days{font-size:17px;font-weight:650;}
+#tab1 #homeNormalContent .home-part-sub{font-size:10px;color:var(--settings-muted);line-height:1.5;}
+#tab1 #homeNormalContent .home-diet-head{align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:20px;}
+#tab1 #homeNormalContent .home-diet-kcal{font-size:22px;font-weight:650;}
+#tab1 #homeNormalContent .home-diet-kcal span{font-size:12px;font-weight:500;color:var(--settings-muted);}
+#tab1 #homeNormalContent .home-macro-row{gap:8px;margin-bottom:16px;}
+#tab1 #homeNormalContent .home-macro-pill{min-width:0;padding:10px 4px;border-radius:999px;background:#29292c;}
+#tab1 #homeNormalContent .home-macro-pill .v{font-size:15px;font-weight:650;overflow-wrap:anywhere;}
+#tab1 #homeNormalContent .home-macro-pill .l{font-size:11px;font-weight:400;color:var(--settings-muted);margin-top:4px;}
+#tab1 #homeNormalContent .home-diet-input-row{align-items:center;gap:8px;min-height:48px;box-sizing:border-box;padding:5px;border:1px solid rgba(255,255,255,.08);border-radius:999px;background:#29292c;}
+#tab1 #homeNormalContent .home-diet-input-row input{min-width:0;height:36px;padding:0 0 0 10px;border:0;border-radius:999px;background:transparent;font-family:inherit;font-size:13px;outline:none;}
+#tab1 #homeNormalContent .home-diet-input-row input::placeholder{color:var(--settings-muted);}
+#tab1 #homeNormalContent .home-diet-input-row button{flex:0 0 36px;width:36px;height:36px;padding:0;border-radius:50%;background:#c52e32;color:#fff;line-height:1;font-size:24px;font-weight:400;transition:transform .2s ease,background .2s ease;}
+#tab1 #homeNormalContent .home-diet-input-row button:active{transform:scale(.94);background:#a52227;}
+#tab1 #homeNormalContent .home-diet-input-row button:focus-visible{outline:2px solid #c52e32;outline-offset:3px;}
+html.light-mode-on #tab1 #homeNormalContent :is(.home-card,.home-big3-badge,.home-weight-pill){box-shadow:0 2px 12px rgba(40,15,25,.035);}
+html.light-mode-on #tab1 #homeNormalContent :is(.home-macro-pill,.home-diet-input-row){background:#f3f2f3;border-color:rgba(35,20,25,.06);}
+html.light-mode-on #tab1 #homeNormalContent .home-week-day .d{background:#eeecee;}
+html.light-mode-on #tab1 #homeNormalContent .home-week-day .d.done{background:#c52e32;}
+@media(max-width:359px){#tab1 #homeNormalContent .home-parts-head-sub{flex-basis:100%;padding-left:32px;}}
+@media(prefers-reduced-motion:reduce){#tab1 #homeNormalContent :is(.home-weight-pill,.home-diet-input-row button){transition:none;}}
