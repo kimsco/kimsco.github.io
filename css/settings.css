@@ -186,3 +186,4 @@ html.light-mode-on #mySpecBody{--spec-field:#fff;--spec-ink:#30272b;--spec-muted
 #mySpecBody .spec-row-grid3 label{padding:0;height:16px;}
 #mySpecBody .spec-row-grid3 input{flex:0 0 28px;line-height:28px;}
 #mySpecBody .spec-row-grid3 input{margin:0;}
+#mySpecBody :is(.genderBtn,.goalBtn){margin:0;}
