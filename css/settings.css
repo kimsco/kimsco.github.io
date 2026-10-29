@@ -201,3 +201,6 @@ html.light-mode-on #mySpecScreen .spec-close-btn:active{background:rgba(179,41,4
 /* Higher sheet, less space above the hero, and native content scrolling. */
 #mySpecScreen.sheet{height:94vh;max-height:calc(100% - env(safe-area-inset-top) - 12px);touch-action:pan-y;}
 #mySpecScreen #mySpecBody{padding-top:64px!important;}
+
+/* White silhouette inside the profile hero icon in both themes. */
+#mySpecScreen .spec-hero-icon svg{color:#fff;}
