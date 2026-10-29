@@ -110,9 +110,10 @@ html.light-mode-on .settings-box-theme .goalBtn.active{color:#1c191b;}
 
 /* 🔥 내 정보 수정 화면: 그래프 바텀시트(.sheetOverlay/.sheet)와 똑같이 맨 위까지
    덮지 않는 바텀시트로(뒤는 흐릿하게 비치고, 상단 둥근 모서리와 손잡이 바 유지).
-   .sheet의 기본 배경(#0b0b0b)만 우리 붉은 글로우로 덮어씀 — 위치/높이/둥근
-   모서리/손잡이 바/열고 닫는 애니메이션은 전부 .sheet 쪽 공용 스타일 그대로 */
-#mySpecScreen.sheet{background:radial-gradient(ellipse 140% 50vh at 50% 0,rgba(100,30,38,.48) 0%,rgba(64,20,25,.24) 55%,transparent 100%),#0b0b0b;display:flex;flex-direction:column;}
+   .sheet의 기본 배경(#0b0b0b)만 우리 붉은 글로우로 덮어씀 — 위치/높이/손잡이 바/
+   열고 닫는 애니메이션은 전부 .sheet 쪽 공용 스타일 그대로, 모서리만 아이폰
+   실제 화면 모서리 곡률에 가깝게(기본 18px -> 44px) 이 화면만 더 키움 */
+#mySpecScreen.sheet{background:radial-gradient(ellipse 140% 50vh at 50% 0,rgba(100,30,38,.48) 0%,rgba(64,20,25,.24) 55%,transparent 100%),#0b0b0b;display:flex;flex-direction:column;border-top-left-radius:44px;border-top-right-radius:44px;}
 .spec-close-btn{all:unset;box-sizing:border-box;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(255,255,255,.08);color:#f5f5f5;cursor:pointer;}
 .spec-close-btn svg{width:18px;height:18px;}
 .spec-hero{display:flex;flex-direction:column;align-items:center;margin:8px 0 28px;text-align:center;}
