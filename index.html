@@ -8824,7 +8824,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
     if(await window.__startupUpdateReady)return;
     var el = document.getElementById('bootSplash');
     if (!el) { document.documentElement.classList.remove('mf-boot-hold'); resolveBootSplashDone(); return; }
-    var MIN_MS = window.__startupUpdateContinuation ? 0 : 500;
+    var MIN_MS = window.__startupUpdateContinuation ? 0 : 1000;
     var elapsed = Date.now() - window.__bootSplashStart;
     var wait = Math.max(0, MIN_MS - elapsed);
     setTimeout(function(){
@@ -13567,7 +13567,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.223";
+const APP_VERSION = "1.0.224";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
