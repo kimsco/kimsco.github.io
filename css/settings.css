@@ -191,10 +191,10 @@ html.light-mode-on #mySpecBody{--spec-field:#fff;--spec-ink:#302727;--spec-muted
 #mySpecBody .genderBtn{transition:none;}
 
 /* Red accents for the profile sheet, including its fixed close control. */
-#mySpecScreen .spec-hero-icon{background:rgba(197,46,50,.14);color:#d64b4b;}
+#mySpecScreen .spec-hero-icon{background:#96282c;color:#d64b4b;}
 #mySpecScreen .spec-close-btn{border-color:rgba(197,46,50,.32);background:rgba(197,46,50,.07);color:#c45151;}
 #mySpecScreen .spec-close-btn:active{background:rgba(197,46,50,.23);}
-html.light-mode-on #mySpecScreen .spec-hero-icon{background:rgba(197,46,50,.09);color:#b3292d;}
+html.light-mode-on #mySpecScreen .spec-hero-icon{background:#b82e33;color:#b3292d;}
 html.light-mode-on #mySpecScreen .spec-close-btn{border-color:rgba(179,41,45,.28);background:rgba(179,41,45,.04);color:#b3292d;}
 html.light-mode-on #mySpecScreen .spec-close-btn:active{background:rgba(179,41,45,.14);}
 
