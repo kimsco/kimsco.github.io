@@ -16,7 +16,14 @@ try:
    modal=page.locator('#announcementModal');sheet=modal.locator('.exercise-ref-modal-box');assert sheet.bounding_box()['y']<70;assert sheet.evaluate('e=>getComputedStyle(e).borderTopLeftRadius')=='44px'
    assert page.locator('.announcement-row').count()==2;assert page.locator('.announcement-row-title').all_text_contents()==['기록 입력, 탭 한 번으로 불러오기','휴식 스톱워치 추가!'];assert page.evaluate('ANNOUNCEMENTS.every(a=>announcementReadIds.includes(a.id))')
    for light in [False,True]:
-    page.evaluate('(v)=>applyLightMode(v)',light);assert modal.evaluate('e=>e.scrollWidth<=innerWidth');page.screenshot(path=f'/tmp/announcement-sheet-{width}-{light}.png')
+    page.evaluate('(v)=>applyLightMode(v)',light);assert modal.evaluate('e=>e.scrollWidth<=innerWidth')
+    bounds=sheet.bounding_box();title=page.locator('#announcementModalTitle');pill=title.bounding_box();close=page.locator('#announcementModalCloseBtn').bounding_box()
+    assert abs((pill['x']-bounds['x'])-(pill['y']-bounds['y']))<1
+    assert abs((pill['x']-bounds['x'])-(bounds['x']+bounds['width']-close['x']-close['width']))<1
+    assert abs(pill['y']-close['y'])<1 and pill['height']==close['height']==44
+    assert title.evaluate('e=>getComputedStyle(e).fontSize')=='19px'
+    assert 'blur(14px)' in title.evaluate('e=>getComputedStyle(e).backdropFilter')
+    page.screenshot(path=f'/tmp/announcement-sheet-{width}-{light}.png')
    cdp=context.new_cdp_session(page)
    def pull(dy):
     cdp.send('Input.dispatchTouchEvent',{'type':'touchStart','touchPoints':[{'x':width/2,'y':220}]})
