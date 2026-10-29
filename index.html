@@ -11025,7 +11025,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
        바깥에 별도 카드로 토글 3개가 그대로 있었는데, 한 칸으로 접어서 누르면 전용
        화면(#unitSettingsOverlay)에서 조절하도록 변경 -->
   <button id="unitSettingsMenuBtn" class="settings-item" style="width:100%; text-align:left; background:none; color:var(--c-text-primary); cursor:pointer; border-bottom:1px solid var(--c-border); border-radius:0; appearance:none; -webkit-appearance:none;">
-    <svg class="settings-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>화면 설정<span class="settings-chevron" aria-hidden="true">›</span>
+    <svg class="settings-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h4m4 0h10M3 12h10m4 0h4M3 18h2m4 0h12"/><circle cx="9" cy="6" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="7" cy="18" r="2"/></svg>화면 설정<span class="settings-chevron" aria-hidden="true">›</span>
   </button>
   <div class="settings-item" style="justify-content:space-between; border-bottom:1px solid var(--c-border);">
     <span class="settings-item-label"><svg class="settings-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 13A8.5 8.5 0 0 1 11 3.5 8.5 8.5 0 1 0 20.5 13Z"/></svg>화면 모드</span>
@@ -13402,7 +13402,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.196";
+const APP_VERSION = "1.0.197";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -16823,7 +16823,7 @@ function refreshUnitDependentUI(){
 const unitRepsToggle = document.getElementById("unitRepsToggle");
 const unitSetsToggle = document.getElementById("unitSetsToggle");
 const unitWeightToggle = document.getElementById("unitWeightToggle");
-unitRepsToggle.classList.toggle("active", unitPrefs.reps === "rep");
+unitRepsToggle.classList.toggle("active", unitPrefs.reps === "회");
 unitSetsToggle.classList.toggle("active", unitPrefs.sets === "세트");
 unitWeightToggle.classList.toggle("active", unitPrefs.weight === "키로");
 applyUnitPrefsToInputs();
@@ -16831,7 +16831,7 @@ updateUnitOptionStyles();
 unitRepsToggle.addEventListener("click", () => {
   const next = !unitRepsToggle.classList.contains("active");
   unitRepsToggle.classList.toggle("active", next);
-  unitPrefs.reps = next ? "rep" : "회";
+  unitPrefs.reps = next ? "회" : "rep";
   saveUnitPrefs();
   refreshUnitDependentUI();
 });
