@@ -4907,10 +4907,6 @@ html.light-mode-on #tab1 .home-part-name { color: rgba(0,0,0,0.85); }
 html.light-mode-on #tab1 .home-part-days { color: #1a1a1a; }
 html.light-mode-on #tab1 .home-part-sub { color: rgba(0,0,0,0.4); }
 html.light-mode-on #tab1 .home-part-item + .home-part-item { border-left-color: rgba(0,0,0,0.08); }
-html.light-mode-on #tab1 .home-quote-open,
-html.light-mode-on #tab1 .home-quote-close { color: rgba(0,0,0,0.15); }
-html.light-mode-on #tab1 .home-quote-headline { color: #1a1a1a; }
-html.light-mode-on #tab1 .home-quote-body { color: rgba(0,0,0,0.6); }
 html.light-mode-on #tab1 .home-diet-kcal span { color: rgba(0,0,0,0.4); }
 html.light-mode-on #tab1 .home-macro-pill .l { color: rgba(0,0,0,0.4); }
 html.light-mode-on #tab1 .home-diet-input-row input { color: #1a1a1a; border-color: #ddd; }
@@ -8711,11 +8707,6 @@ html:not(.light-mode-on) #tab1 .home-card { background: #101010; border-color: #
 #tab1 .home-week-day .d.today { box-shadow: 0 0 0 1.5px #fff; }
 #tab1 .home-week-day .lbl { font-size: 10px; color: rgba(255,255,255,0.4); }
 
-#tab1 .home-quote-card { position: relative; padding: 30px 20px 24px; }
-#tab1 .home-quote-open { position: absolute; top: 10px; left: 16px; font-size: 30px; color: rgba(255,255,255,0.2); line-height: 1; }
-#tab1 .home-quote-close { position: absolute; bottom: -2px; right: 16px; font-size: 30px; color: rgba(255,255,255,0.2); line-height: 1; }
-#tab1 .home-quote-headline { font-size: 15px; font-weight: 700; line-height: 1.6; color: #fff; margin-bottom: 14px; }
-#tab1 .home-quote-body { font-size: 13px; line-height: 1.75; color: rgba(255,255,255,0.6); }
 
 #tab1 .home-diet-card { padding: 20px; }
 #tab1 .home-diet-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 14px; }
@@ -9076,12 +9067,6 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
     <div class="home-parts-row" id="homePartsRow"></div>
   </div>
 
-  <div class="home-card home-quote-card">
-    <div class="home-quote-open">“</div>
-    <div class="home-quote-close">”</div>
-    <div class="home-quote-headline">같은 벽을 보고도 누군가는 멈추고, 누군가는 올라갈 길을 찾는다.</div>
-    <div class="home-quote-body">불가능이라는 말 앞에서 누군가는 포기하고, 누군가는 도전할 이유를 찾는다.<br>결국 당신의 한계를 결정하는 것은 현실이 아니라 그 현실을 마주하는 당신의 태도다.</div>
-  </div>
   <div class="home-card home-diet-card">
     <div class="home-diet-head">
       <div class="home-card-label">오늘 식단</div>
@@ -9096,6 +9081,10 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
 
 </div>
 <div id="homeSeriousModeScreen" role="tabpanel" aria-labelledby="homeModeFocus">
+  <div class="home-focus-quote-page">
+    <div class="home-focus-quote home-focus-quote-plain">불가능이라는 말 앞에서<br>누군가는 포기하고,<br>누군가는 도전할 이유를 찾는다.<br><br>결국 당신의 한계를 결정하는 것은<br>현실이 아니라<br>그 현실을 마주하는<br>당신의 태도다.</div>
+  </div>
+
   <div class="home-focus-quote-page">
     <div class="home-focus-quote home-focus-quote-original">두려우면 하지 말고,<br>하게되면 두려워하지 마라</div>
   </div>
@@ -13577,7 +13566,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.231";
+const APP_VERSION = "1.0.232";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
