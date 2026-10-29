@@ -2189,7 +2189,7 @@ html.mf-restore-settings .bottomTab {
   display: none;
 }
 #homeSeriousModeScreen {
-  height: calc(100vh - var(--topBarH) - var(--bottomTabH) - env(safe-area-inset-top) - 20px);
+  height: calc(100vh - var(--topBarRowH) - var(--bottomTabH) - env(safe-area-inset-top));
   overflow-y: auto;
   overscroll-behavior-y: contain;
   scroll-snap-type: y mandatory;
@@ -2240,8 +2240,10 @@ html.light-mode-on .home-mode-switch button{color:#666;}
 html.light-mode-on .home-mode-switch button[aria-selected="true"]{color:#1a1a1a;}
 
 .home-mode-switch button:focus-visible{outline:2px solid #888;outline-offset:3px;}
-.home-mode-viewport{overflow:hidden;width:calc(100% + 54px);margin-inline:-27px;position:relative;}
-#homeNormalContent{padding-inline:27px;padding-top:40px;}
+/* Clip focus scrolling at the actual header, never below the floating mini timer.
+   The normal panel keeps its existing content spacing with matching inner padding. */
+.home-mode-viewport{overflow:hidden;width:calc(100% + 54px);margin-inline:-27px;margin-top:calc(var(--topBarRowH) - var(--topBarH) - 20px);position:relative;}
+#homeNormalContent{padding-inline:27px;padding-top:calc(60px + var(--topBarH) - var(--topBarRowH));}
 .home-mode-track{display:flex;align-items:flex-start;width:200%;transform:translateX(calc(var(--home-mode-progress,0) * -50%));}
 .home-mode-track>div{flex:0 0 50%;width:50%;min-width:0;box-sizing:border-box;}
 #inactivityOverlay.hidden {
@@ -13575,7 +13577,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.230";
+const APP_VERSION = "1.0.231";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
