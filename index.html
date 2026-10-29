@@ -8795,7 +8795,7 @@ document.addEventListener('dragstart', event => {
   event.preventDefault();
 });
 </script>
-<link rel="stylesheet" href="/css/settings.css?v=1.0.185">
+<link rel="stylesheet" href="/css/settings.css?v=1.0.186">
 </head>
 
 <body style="background-color:#000000;">
@@ -13384,7 +13384,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.185";
+const APP_VERSION = "1.0.186";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -23649,7 +23649,7 @@ function renderFixedYAxis(){
 ================================================ */
 
 const ACTIVITY_LEVELS = [
-  { key: "sedentary",   label: "좌식",       factor: 1.2 },
+  { key: "sedentary",   label: "활동 거의 없음",       factor: 1.2 },
   { key: "light",       label: "가벼운 운동", factor: 1.375 },
   { key: "moderate",    label: "보통",       factor: 1.55 },
   { key: "active",      label: "활발",       factor: 1.725 },
