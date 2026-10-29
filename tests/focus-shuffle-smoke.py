@@ -14,6 +14,13 @@ try:
    page=context.new_page();page.goto('http://127.0.0.1:8213');page.wait_for_timeout(1300)
    order=lambda:page.locator('.home-focus-quote-plain').all_text_contents()
    first=order();expected=sorted(first);assert len(set(first))==len(first)
+   for text in ['불광불급(不狂不及)','조용히 준비하고,','실패는 얼마든지 해도 좋다.','전화위복(轉禍爲福)']:
+    assert sum(text in quote for quote in first)==1
+   combined=page.locator('.home-focus-quote-plain').filter(has_text='실패는 얼마든지 해도 좋다.')
+   assert '더 나은 방식으로 실패할 것.' in combined.inner_text()
+   page.evaluate('applyHomeMode(true,{animate:false})');page.wait_for_timeout(400)
+   combined.scroll_into_view_if_needed();assert combined.bounding_box()['height']<844
+   page.screenshot(path=f'/tmp/focus-new-quotes-{width}.png')
    page.evaluate('applyHomeMode(true,{animate:false});applyHomeMode(false,{animate:false});applyHomeMode(true,{animate:false})');assert order()==first
    page.locator('.bottomTab .tabBtn[data-target="tab2"]').click();page.wait_for_timeout(250);page.locator('.bottomTab .tabBtn[data-target="tab1"]').click();page.wait_for_timeout(250);assert order()==first
    page.evaluate('applySeriousMode(true)');assert page.locator('.home-focus-quote-page:not([hidden])').count()==1;assert page.locator('.home-focus-quote-original').is_visible()
