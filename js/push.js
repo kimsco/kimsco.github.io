@@ -103,6 +103,7 @@
   prefWork=task;return task;
  }
  settingsUI=MFNotificationSettings.install({preferences,onPermission:allowNotifications,
+  onSaved:message=>showProfileSaveToast(message==='저장했어요.'?'저장했어요':'기기에 저장했어요'),
   onOpen:async()=>{render();notice(supported()||(permission()==='granted'&&!auth.currentUser?'로그인하면 이 기기의 알림이 자동 연결됩니다.':''));await syncPreferences(true);},
   onSave:async minute=>{
    preferences.save(minute);

@@ -10,7 +10,7 @@
   function fromServer(minuteOfDay){if(!valid(minuteOfDay))throw Error('올바르지 않은 알림 시간입니다.');const value=read();if(!value.dirty)storage.setItem(key(),JSON.stringify({minuteOfDay,dirty:false,revision:revision()}));return read();}
   return {read,save,acknowledge,fromServer};
  }
- function install({preferences,onOpen,onSave,onPermission}){
+ function install({preferences,onOpen,onSave,onPermission,onSaved}){
   const doc=root.document,screen=doc.getElementById('notificationSettingsOverlay'),parent=doc.getElementById('settingsOverlay');
   doc.body.append(screen);
   const save=doc.getElementById('notificationSaveBtn'),status=doc.getElementById('notificationSaveStatus'),back=doc.getElementById('notificationSettingsBack');
@@ -42,7 +42,7 @@
    const total=((hour.value()+1)%12+period.value()*12)*60+minute.value();
    saving=true;save.disabled=true;save.textContent='저장 중…';
    for(const wheel of wheels)wheel.element.inert=true;
-   try{const message=await onSave(total);if(current===session){dirty=false;status.textContent=message||'저장했어요.';}}
+   try{const message=await onSave(total);if(current===session){dirty=false;if(onSaved){status.textContent=message&&message!=='저장했어요.'?message:'';onSaved(message);}else status.textContent=message||'저장했어요.';}}
    catch(error){if(current===session)status.textContent=error.message||'저장하지 못했어요. 다시 시도해주세요.';}
    finally{saving=false;save.disabled=false;save.textContent='저장하기';for(const wheel of wheels)wheel.element.inert=false;}
   });
