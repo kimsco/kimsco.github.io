@@ -20,8 +20,15 @@ try:
    # Add to the empty exercise and reflect the marker without rebuilding cards.
    page.locator('#exerciseRefModalCloseBtn').click();page.wait_for_timeout(400);page.evaluate("openExerciseRefModal('빈 종목')");page.wait_for_timeout(400);page.locator('#exerciseRefUrlInput').fill('https://example.test/second');page.locator('#exerciseRefAddBtn').click();assert cards.nth(1).locator('.exercise-link-indicator').count()==1
    page.locator('.exercise-ref-delete-btn').click();assert cards.nth(1).locator('.exercise-link-indicator').count()==0
-   # Keyboard viewport shrink keeps header and footer in the available area.
-   page.evaluate("Object.defineProperty(visualViewport,'height',{configurable:true,value:innerHeight-300});visualViewport.dispatchEvent(new Event('resize'))");page.wait_for_timeout(100);box=sheet.bounding_box();assert box['y']>=0 and box['y']+box['height']<=544.5,box
+   # Only the composer rises: the opaque sheet and header stay fixed to the bottom.
+   before=sheet.bounding_box();header=modal.locator('.exercise-ref-modal-header').bounding_box()
+   for keyboard_height in [240,300,420]:
+    page.evaluate("height=>{Object.defineProperty(visualViewport,'height',{configurable:true,value:innerHeight-height});visualViewport.dispatchEvent(new Event('resize'))}",keyboard_height);page.wait_for_timeout(100)
+    box=sheet.bounding_box();assert abs(box['y']-before['y'])<1 and abs(box['height']-before['height'])<1,box
+    assert abs(box['y']+box['height']-844)<1,box
+    assert abs(modal.locator('.exercise-ref-modal-header').bounding_box()['y']-header['y'])<1
+    composer=modal.locator('.exercise-ref-composer').bounding_box();assert composer['y']+composer['height']<=844-keyboard_height,composer
+    assert modal.evaluate('e=>getComputedStyle(e).bottom')=='0px'
    page.evaluate("delete visualViewport.height;visualViewport.dispatchEvent(new Event('resize'))");page.wait_for_timeout(100)
    for light in [False,True]:
     page.evaluate('(v)=>applyLightMode(v)',light);assert modal.evaluate('e=>e.scrollWidth<=innerWidth')
