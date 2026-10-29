@@ -13480,7 +13480,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.210";
+const APP_VERSION = "1.0.211";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -16728,14 +16728,12 @@ const homeModeViewport=document.getElementById('homeModeViewport');
 const homeModeBasic=document.getElementById('homeModeBasic');
 const homeModeFocus=document.getElementById('homeModeFocus');
 const homeModeHome=document.getElementById('tab1');
-let lastFocusQuote=null;
 function shuffleFocusQuotes(){
-  const pages=[...homeSeriousModeScreen.querySelectorAll('.home-focus-quote-page')].filter(page=>!page.hidden && page.querySelector('.home-focus-quote-plain'));
+  const pages=[...homeSeriousModeScreen.querySelectorAll('.home-focus-quote-page')].filter(page=>page.querySelector('.home-focus-quote-plain'));
   if(pages.length<2)return;
   for(let i=pages.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pages[i],pages[j]]=[pages[j],pages[i]];}
-  if(pages[0]===lastFocusQuote){const j=1+Math.floor(Math.random()*(pages.length-1));[pages[0],pages[j]]=[pages[j],pages[0]];}
   pages.forEach(page=>homeSeriousModeScreen.appendChild(page));
-  lastFocusQuote=pages[0];homeSeriousModeScreen.scrollTop=0;
+  homeSeriousModeScreen.scrollTop=0;
 }
 
 // Keep viewport positioning while sharing every background push/fade transition.
@@ -16765,9 +16763,7 @@ function resetHomeModeFade(){
   },3000);
 }
 function updateHomeModeFloating(){
-  const active=homeModeHome.classList.contains('active'),returning=homeModeSwitch.hidden && active;
-  homeModeSwitch.hidden=!active;
-  if(returning && homeModeFocus.getAttribute('aria-selected')==='true')shuffleFocusQuotes();
+  homeModeSwitch.hidden=!homeModeHome.classList.contains('active');
 }
 resetHomeModeFade();
 const homeModeTabObserver=new MutationObserver(updateHomeModeFloating);
@@ -16784,7 +16780,6 @@ function paintHomeMode(progress){
 }
 function applyHomeMode(on,{animate=true,persist=true}={}){
   on=!!on;
-  if(on && !homeModeTarget)shuffleFocusQuotes();
   if(on!==homeModeTarget && persist)resetHomeModeFade();
   homeModeTarget=on;cancelAnimationFrame(homeModeFrame);homeModeFrame=0;
   document.documentElement.classList.toggle('home-focus-active',on);
@@ -16823,6 +16818,7 @@ try{
   savedHomeMode=saved===null?savedSeriousMode:saved==='1';
   if(saved===null)localStorage.setItem('mf_home_mode',savedHomeMode?'1':'0');
 }catch(e){}
+shuffleFocusQuotes();
 applySeriousMode(savedSeriousMode,{persist:false});
 applyHomeMode(savedHomeMode,{animate:false,persist:false});
 seriousModeToggle.addEventListener('click',()=>applySeriousMode(!seriousQuoteMode));
