@@ -8808,7 +8808,7 @@ document.addEventListener('dragstart', event => {
   event.preventDefault();
 });
 </script>
-<link rel="stylesheet" href="/css/settings.css?v=1.0.159">
+<link rel="stylesheet" href="/css/settings.css?v=1.0.160">
 </head>
 
 <body style="background-color:#000000;">
@@ -9713,7 +9713,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
     position:fixed; inset:0; background:#000; z-index:100000;
     overflow:hidden;
   ">
-  <div id="mySpecScreen" style="height:100%; overflow-y:auto; padding: calc(16px + env(safe-area-inset-top)) 18px calc(24px + env(safe-area-inset-bottom));">
+  <div id="mySpecScreen" style="height:100%; overflow-y:auto; padding: calc(16px + env(safe-area-inset-top)) 20px calc(24px + env(safe-area-inset-bottom));">
     <div style="display:flex; align-items:center; margin-bottom:16px;">
       <button onclick="closeMySpec()" class="bw-menu-header-close" aria-label="뒤로가기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg></button>
       <span style="margin-left:12px; font-size:15px; font-weight:600; color:var(--c-text-primary);">내 정보 수정</span>
@@ -13382,7 +13382,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.159";
+const APP_VERSION = "1.0.160";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {

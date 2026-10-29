@@ -74,7 +74,7 @@ html.light-mode-on .settings-box-theme .settings-copy-btn{background:rgba(30,15,
 
 /* 🔥 내 정보 수정 화면도 같은 카드 스타일로 — 기존 밑줄만 있던 flat한 입력칸/토글을
    .settings-card 안에 넣고, 글자색/테두리색을 설정 화면과 동일한 팔레트로 맞춤 */
-.settings-box-theme .spec-card{padding:14px 18px;}
+.settings-box-theme .spec-card{padding:14px 20px;}
 .settings-box-theme .spec-row{margin-bottom:0;}
 .settings-box-theme .spec-row-grid3{margin-bottom:0;}
 .settings-box-theme .spec-row label,
