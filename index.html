@@ -8799,7 +8799,7 @@ document.addEventListener('dragstart', event => {
   event.preventDefault();
 });
 </script>
-<link rel="stylesheet" href="/css/settings.css?v=1.0.208">
+<link rel="stylesheet" href="/css/settings.css?v=1.0.226">
 </head>
 
 <body style="background-color:#000000;">
@@ -11407,17 +11407,14 @@ MuscleFlow는 개인의 운동 및 식단 기록을 관리하는 PWA 서비스�
 <!-- ✅ Graph Bottom Sheet -->
 <div id="graphOverlay" class="sheetOverlay hidden"></div>
 
-<div id="graphSheet" class="sheet hidden" aria-hidden="true">
-  <div class="sheetHandle" id="sheetHandle">
-    <div class="sheetGrab"></div>
-  </div>
+<div id="graphSheet" class="sheet hidden" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" aria-hidden="true">
 
   <div class="sheetHeader">
     <div>
       <div class="sheetTitle" id="sheetTitle">BENCH</div>
       <div class="sheetSub" id="sheetSub">최근 기록 그래프</div>
     </div>
-    <button id="sheetClose" class="sheetClose" aria-label="닫기">✕</button>
+    <button id="sheetClose" class="sheetClose" aria-label="닫기"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
   </div>
 
   <div class="sheetBody">
@@ -13567,7 +13564,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.225";
+const APP_VERSION = "1.0.226";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -23478,6 +23475,7 @@ const graphSheet   = document.getElementById("graphSheet");
 const sheetClose   = document.getElementById("sheetClose");
 const sheetTitle   = document.getElementById("sheetTitle");
 
+let graphCloseTimer, graphMotionToken=0, graphReturnFocus;
 let sheetOpen = false;
 let lastLiftKey = null; // 마지막으로 선택된 lift (bench/squat/dead/ohp)
 
@@ -23491,6 +23489,11 @@ function getActiveLiftKey(){
 }
 
 function openSheet(liftKey){
+  clearTimeout(graphCloseTimer);
+  const token=++graphMotionToken;
+  if(!sheetOpen) graphReturnFocus=document.activeElement;
+  sheetOpen=true;
+  graphSheet.style.transform="";
   document.body.classList.add("sheet-open");
   lastLiftKey = liftKey;
 
@@ -23515,8 +23518,10 @@ function openSheet(liftKey){
   // ✅ 4) 다음 프레임(2프레임)에서 show 추가
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
+      if(token!==graphMotionToken)return;
       graphOverlay.classList.add("show");
       graphSheet.classList.add("show");
+      sheetClose.focus({preventScroll:true});
       sheetOpen = true;
 
       // 그래프 렌더 (시트가 열린 뒤) — 우선 최근 창 데이터로 빠르게 그리고,
@@ -23529,19 +23534,21 @@ function openSheet(liftKey){
   });
 }
 function closeSheet(){
-   document.body.classList.remove("sheet-open");
   if(!sheetOpen) return;
-
+  ++graphMotionToken;
+  sheetOpen=false;
+  document.body.classList.remove("sheet-open");
+  graphSheet.style.transition="";
+  graphSheet.style.transform="";
   graphOverlay.classList.remove("show");
   graphSheet.classList.remove("show");
   graphSheet.setAttribute("aria-hidden", "true");
-
-  setTimeout(()=>{
+  clearTimeout(graphCloseTimer);
+  graphCloseTimer=setTimeout(()=>{
     graphOverlay.classList.add("hidden");
     graphSheet.classList.add("hidden");
-  }, 230);
-
-  sheetOpen = false;
+    graphReturnFocus?.focus({preventScroll:true});
+  },matchMedia('(prefers-reduced-motion: reduce)').matches?0:330);
 }
 
 // 닫기 버튼/오버레이 클릭
@@ -23570,71 +23577,45 @@ document.querySelectorAll(".folderBtn").forEach(btn=>{
 // 초기값 세팅: 현재 active 폴더를 lastLiftKey로 맞춤
 lastLiftKey = getActiveLiftKey();
 
-/* ✅ 아래로 드래그해서 닫기 */
+/* Fresh downward pulls dismiss; chart panning and normal scrolling stay native. */
 (function enableSheetDragClose(){
-  const handle = document.getElementById("sheetHandle");
-  if(!handle) return;
-
-  let startY = 0;
-  let curY = 0;
-  let dragging = false;
-
-  const onStart = (e)=>{
-    if(!sheetOpen) return;
-    dragging = true;
-    startY = (e.touches ? e.touches[0].clientY : e.clientY);
-    curY = 0;
-    graphSheet.style.transition = "none";
-    graphOverlay.style.transition = "none";
-  };
-
-  const onMove = (e)=>{
-    if(!dragging) return;
-    const y = (e.touches ? e.touches[0].clientY : e.clientY);
-    curY = Math.max(0, y - startY); // 아래로만
-    graphSheet.style.transform = `translateX(-50%) translateY(${curY}px)`;
-    // overlay도 같이 살짝 줄이기
-    const alpha = Math.max(0, 0.35 - (curY / 600));
-    graphOverlay.style.background = `rgba(0,0,0,${alpha})`;
-  };
-
-  const onEnd = ()=>{
-    if(!dragging) return;
-    dragging = false;
-
-    graphSheet.style.transition = "";
-    graphOverlay.style.transition = "";
-
-    // 일정 거리 이상 내려오면 닫기
-    if(curY > 120){
-      document.body.classList.remove("sheet-open");
-      // 원위치 대신 닫기 애니메이션
-      graphSheet.classList.remove("show");
-      graphOverlay.classList.remove("show");
-      setTimeout(()=>{
-        graphOverlay.classList.add("hidden");
-        graphSheet.classList.add("hidden");
-        graphSheet.style.transform = "";     // ✅ inline transform 제거 (CSS가 다시 지배)
-graphOverlay.style.background = "";  // ✅ inline background 제거 (CSS로 복귀)
-        graphOverlay.style.background = `rgba(0,0,0,0.35)`;
-      }, 230);
-      sheetOpen = false;
-      graphSheet.setAttribute("aria-hidden", "true");
-      return;
+  const body=graphSheet.querySelector('.sheetBody');
+  let tracking=false, dragging=false, startX=0,startY=0,distance=0;
+  graphSheet.addEventListener('touchstart',e=>{
+    if(!sheetOpen || e.touches.length!==1 || body.scrollTop>1 || e.target.closest('button,input,a,.graphScroll,.yAxis'))return;
+    tracking=true;dragging=false;distance=0;startX=e.touches[0].clientX;startY=e.touches[0].clientY;
+  },{passive:true});
+  graphSheet.addEventListener('touchmove',e=>{
+    if(!tracking)return;
+    if(e.touches.length!==1){end(true);return;}
+    const dx=e.touches[0].clientX-startX,dy=e.touches[0].clientY-startY;
+    if(!dragging){
+      if(dy< -4 || Math.abs(dx)>Math.max(8,dy)){tracking=false;return;}
+      if(dy<6)return;
+      dragging=true;graphSheet.style.transition='none';
     }
-
-    // 다시 원위치
-    graphSheet.style.transform = "";     // ✅ class(.show)의 transform(0)로 돌아감
-graphOverlay.style.background = "";  // ✅ CSS 기본값으로
-  };
-
-  handle.addEventListener("mousedown", onStart);
-  document.addEventListener("mousemove", onMove);
-  document.addEventListener("mouseup", onEnd);
-
-  handle.addEventListener("touchstart", onStart, { passive:true });
-  document.addEventListener("touchmove", onMove, { passive:true });
-  document.addEventListener("touchend", onEnd);
+    e.preventDefault();distance=Math.max(0,dy)*.85;
+    graphSheet.style.transform=`translateX(-50%) translateY(${distance}px)`;
+  },{passive:false});
+  function end(cancelled){
+    if(!tracking)return;
+    tracking=false;graphSheet.style.transition='';
+    if(dragging&&!cancelled&&distance>110)closeSheet();
+    else graphSheet.style.transform='';
+    dragging=false;
+  }
+  graphSheet.addEventListener('touchend',()=>end(false),{passive:true});
+  graphSheet.addEventListener('touchcancel',()=>end(true),{passive:true});
+  document.addEventListener('keydown',e=>{
+    if(!sheetOpen)return;
+    if(e.key==='Escape'){e.preventDefault();closeSheet();}
+    if(e.key==='Tab'){
+      const buttons=[...graphSheet.querySelectorAll('button:not([disabled])')];
+      const first=buttons[0],last=buttons.at(-1);
+      if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
+      else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
+    }
+  });
 })();
 
 /*********************************
