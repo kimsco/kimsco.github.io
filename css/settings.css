@@ -368,7 +368,7 @@ html.light-mode-on #exerciseRefModal .exercise-ref-modal-footer{background:linea
 /* Lift-history graphs share the profile/announcement sheet presentation. */
 #graphOverlay{background:rgba(0,0,0,0);opacity:1;-webkit-backdrop-filter:blur(0px);backdrop-filter:blur(0px);transition:background .3s ease,backdrop-filter .3s ease,-webkit-backdrop-filter .3s ease;}
 #graphOverlay.show{background:rgba(0,0,0,.35);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);}
-#graphSheet{height:78vh;max-height:calc(100% - env(safe-area-inset-top) - 12px);box-sizing:border-box;border-radius:44px 44px 0 0;overflow:hidden;border-left:0;border-right:0;border-bottom:0;background:radial-gradient(ellipse 140% 50vh at 50% 0,rgba(100,30,38,.48),rgba(64,20,25,.24) 55%,transparent),#0b0b0b;opacity:1;touch-action:pan-y;transition:transform .32s cubic-bezier(.22,1,.36,1);}
+#graphSheet{height:78vh;max-height:calc(100% - env(safe-area-inset-top) - 12px);box-sizing:border-box;border-radius:44px 44px 0 0;overflow:hidden;border-left:0;border-right:0;border-bottom:0;background:#0b0b0b;opacity:1;touch-action:pan-y;transition:transform .32s cubic-bezier(.22,1,.36,1);}
 #graphSheet .sheetHeader{position:relative;flex-shrink:0;align-items:flex-start;padding:16px 16px 12px;gap:12px;border-bottom:0;background:transparent;}
 #graphSheet .sheetHeader>div{min-width:0;}
 #graphSheet #sheetTitle{display:inline-flex;align-items:center;box-sizing:border-box;min-height:44px;margin:0;padding:0 18px;border-radius:999px;border:1px solid rgba(255,255,255,.16);background:linear-gradient(135deg,rgba(255,255,255,.12),rgba(255,255,255,.045));-webkit-backdrop-filter:blur(14px) saturate(140%);backdrop-filter:blur(14px) saturate(140%);box-shadow:inset 0 1px 0 rgba(255,255,255,.09),0 2px 8px rgba(0,0,0,.08);font-size:19px;font-weight:700;line-height:24px;letter-spacing:-.3px;}
@@ -380,6 +380,6 @@ html.light-mode-on #exerciseRefModal .exercise-ref-modal-footer{background:linea
 #graphSheet .sheetBody .sheetBody{padding:0;overflow:visible;}
 html.light-mode-on #graphOverlay{background:rgba(0,0,0,0);}
 html.light-mode-on #graphOverlay.show{background:rgba(0,0,0,.35);}
-html.light-mode-on #graphSheet{background:radial-gradient(ellipse 140% 30vh at 50% 0,rgba(166,95,103,.09),rgba(166,95,103,.025) 55%,transparent),#f5f4f4;}
+html.light-mode-on #graphSheet{background:#f5f4f4;}
 html.light-mode-on #graphSheet #sheetTitle{background:linear-gradient(135deg,rgba(255,255,255,.65),rgba(255,255,255,.28));border-color:rgba(255,255,255,.75);box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 2px 8px rgba(60,20,30,.04);}
 @media(prefers-reduced-motion:reduce){#graphOverlay,#graphSheet,#graphSheet #sheetClose{transition:none;}#graphSheet #sheetClose:active{transform:none;}}
