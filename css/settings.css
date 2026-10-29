@@ -439,3 +439,7 @@ html.light-mode-on #tab1 #homeNormalContent .home-week-day .d{background:#eeecee
 html.light-mode-on #tab1 #homeNormalContent .home-week-day .d.done{background:#c52e32;}
 @media(max-width:359px){#tab1 #homeNormalContent .home-parts-head-sub{flex-basis:100%;padding-left:0;}}
 @media(prefers-reduced-motion:reduce){#tab1 #homeNormalContent :is(.home-weight-pill,.home-diet-input-row button){transition:none;}}
+
+/* Darker home surfaces, without changing settings or light-mode cards. */
+html:not(.light-mode-on) #homeNormalContent{--settings-card-bg:#141414;}
+html:not(.light-mode-on) #tab1 #homeNormalContent :is(.home-macro-pill,.home-diet-input-row){background:#202022;}
