@@ -23,7 +23,7 @@ try:
     for i in range(1,11):cdp.send('Input.dispatchTouchEvent',{'type':'touchMove','touchPoints':[{'x':width/2,'y':220+dy*i/10}]});page.wait_for_timeout(16)
     cdp.send('Input.dispatchTouchEvent',{'type':'touchEnd','touchPoints':[]});page.wait_for_timeout(400)
    pull(60);assert modal.is_visible();pull(200);assert modal.is_hidden();assert not page.locator('html').evaluate('e=>e.classList.contains("announcement-modal-open")')
-   page.locator('#openAnnouncementBtn').click();page.wait_for_timeout(400);page.locator('#announcementModalCloseBtn').click();page.wait_for_timeout(400);assert modal.is_hidden()
+   page.locator('#openAnnouncementBtn').click();page.wait_for_timeout(400);page.locator('#announcementModalCloseBtn').click();page.wait_for_timeout(110);blur=modal.evaluate('e=>parseFloat(getComputedStyle(e).backdropFilter.match(/[0-9.]+/)[0])');assert 0<blur<6,blur;page.wait_for_timeout(290);assert modal.is_hidden()
    page.locator('#openAnnouncementBtn').click();page.wait_for_timeout(400);page.mouse.click(width/2,10);page.wait_for_timeout(400);assert modal.is_hidden()
    page.evaluate('openAnnouncementModal();closeAnnouncementModal();openAnnouncementModal()');page.wait_for_timeout(450);assert modal.is_visible();page.keyboard.press('Escape');page.wait_for_timeout(400);assert modal.is_hidden();assert not errors,errors
    print('PASS sheet entrance, remaining content, read state, themes, pull/X/backdrop/Escape and reopen',width);context.close()
