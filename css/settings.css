@@ -124,3 +124,14 @@ html.light-mode-on #mySpecScreen.sheet{background:radial-gradient(ellipse 140% 3
 html.light-mode-on .spec-close-btn{background:rgba(30,15,20,.07);color:#1c191b;}
 html.light-mode-on .spec-hero-icon{background:rgba(224,32,63,.1);color:#ad4d57;}
 html.light-mode-on .spec-hero-name{color:#1c191b;}
+
+/* Scroll content fades into the sheet background; controls stay above the mask. */
+#mySpecScreen{position:fixed;overflow:hidden;}
+#mySpecScreen>.sheetHandle{position:absolute;top:0;left:0;right:0;z-index:2;}
+#mySpecScreen>.spec-sheet-close{position:absolute;top:16px;right:16px;z-index:3;}
+#mySpecScreen .spec-close-btn{width:44px;height:44px;border:1px solid rgba(193,104,103,.28);background:rgba(135,65,66,.08);color:#a85e5c;}
+#mySpecScreen .spec-close-btn svg{width:24px;height:24px;stroke-width:1.8;}
+#mySpecScreen .spec-close-btn:focus-visible{outline:2px solid currentColor;outline-offset:3px;}
+#mySpecScreen #mySpecBody{padding-top:88px!important;-webkit-mask-image:linear-gradient(to bottom,transparent 0,rgba(0,0,0,.15) 22px,#000 82px);mask-image:linear-gradient(to bottom,transparent 0,rgba(0,0,0,.15) 22px,#000 82px);}
+html.light-mode-on #mySpecScreen .spec-close-btn{background:rgba(135,65,66,.04);border-color:rgba(150,75,78,.25);color:#9b585d;}
+#mySpecScreen.sheet.hidden{display:none;}

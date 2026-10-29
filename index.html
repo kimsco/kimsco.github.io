@@ -8795,7 +8795,7 @@ document.addEventListener('dragstart', event => {
   event.preventDefault();
 });
 </script>
-<link rel="stylesheet" href="/css/settings.css?v=1.0.165">
+<link rel="stylesheet" href="/css/settings.css?v=1.0.166">
 </head>
 
 <body style="background-color:#000000;">
@@ -9703,7 +9703,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
 
 <div id="mySpecScreen" class="sheet hidden settings-box-theme" aria-hidden="true">
     <div class="sheetHandle" id="mySpecSheetHandle"><div class="sheetGrab"></div></div>
-    <div style="display:flex; justify-content:flex-end; padding:0 14px;">
+    <div class="spec-sheet-close">
       <button onclick="closeMySpec()" class="spec-close-btn" aria-label="닫기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
     </div>
 
@@ -13384,7 +13384,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.165";
+const APP_VERSION = "1.0.166";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
