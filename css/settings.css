@@ -197,3 +197,7 @@ html.light-mode-on #mySpecBody{--spec-field:#fff;--spec-ink:#302727;--spec-muted
 html.light-mode-on #mySpecScreen .spec-hero-icon{background:rgba(197,46,50,.09);color:#b3292d;}
 html.light-mode-on #mySpecScreen .spec-close-btn{border-color:rgba(179,41,45,.28);background:rgba(179,41,45,.04);color:#b3292d;}
 html.light-mode-on #mySpecScreen .spec-close-btn:active{background:rgba(179,41,45,.14);}
+
+/* Higher sheet, less space above the hero, and native content scrolling. */
+#mySpecScreen.sheet{height:94vh;max-height:calc(100% - env(safe-area-inset-top) - 12px);touch-action:pan-y;}
+#mySpecScreen #mySpecBody{padding-top:64px!important;}
