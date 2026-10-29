@@ -2191,7 +2191,7 @@ html.mf-restore-settings .bottomTab {
   overscroll-behavior-y: contain;
   scroll-snap-type: y mandatory;
   scrollbar-width: none;
-  background: transparent;
+  background: #000;
 }
 #homeSeriousModeScreen::-webkit-scrollbar { display:none; }
 .home-focus-quote-page {
@@ -2214,14 +2214,14 @@ html.mf-restore-settings .bottomTab {
   position:fixed;left:50%;top:calc(var(--topBarH) + env(safe-area-inset-top) + 8px);
   transform:translateX(-50%);display:flex;width:156px;height:36px;margin:0;z-index:99998;
   opacity:var(--home-mode-opacity,1);transition:opacity .8s ease;
-  padding:3px;box-sizing:border-box;border:0;
-  border-radius:999px;background:transparent;isolation:isolate;
+  padding:3px;box-sizing:border-box;border:1px solid #303030;
+  border-radius:999px;background:#1a1a1a;isolation:isolate;
 }
 .home-mode-switch[hidden]{display:none;}
 .home-mode-slot{height:40px;}
 .home-mode-thumb{
   position:absolute;left:3px;top:3px;bottom:3px;width:calc(50% - 3px);
-  border-radius:999px;background:transparent;
+  border-radius:999px;background:#3b3b3b;
   transform:translateX(calc(var(--home-mode-progress,0) * 100%));z-index:-1;
 }
 .home-mode-switch button{
@@ -2230,8 +2230,8 @@ html.mf-restore-settings .bottomTab {
   cursor:pointer;transition:color .18s ease;
 }
 .home-mode-switch button[aria-selected="true"]{color:#fff;}
-html.light-mode-on .home-mode-switch{background:transparent;border-color:transparent;}
-html.light-mode-on .home-mode-thumb{background:transparent;box-shadow:none;}
+html.light-mode-on .home-mode-switch{background:#ededed;border-color:#d8d8d8;}
+html.light-mode-on .home-mode-thumb{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.1);}
 html.light-mode-on .home-mode-switch button{color:#666;}
 html.light-mode-on .home-mode-switch button[aria-selected="true"]{color:#1a1a1a;}
 
@@ -13566,7 +13566,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.220";
+const APP_VERSION = "1.0.221";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
