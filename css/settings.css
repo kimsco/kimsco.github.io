@@ -87,12 +87,16 @@ html.light-mode-on .settings-box-theme .settings-copy-btn{background:rgba(30,15,
 .settings-box-theme .spec-name-item{display:flex;align-items:center;}
 .settings-box-theme .spec-name-item input{width:100%;height:auto;background:none;border:0;color:#f5f5f5;font-family:inherit;font-size:16px;padding:0;}
 .settings-box-theme .spec-name-item input::placeholder{color:var(--settings-muted);}
-.settings-box-theme .gender-toggle,
 .settings-box-theme .goal-toggle{border-color:var(--settings-line);border-radius:12px;}
-.settings-box-theme .genderBtn,
 .settings-box-theme .goalBtn{height:34px;border-right-color:var(--settings-line);color:var(--settings-muted);}
-.settings-box-theme .genderBtn.active,
 .settings-box-theme .goalBtn.active{color:#f5f5f5;}
+/* 🔥 성별 선택: 둥근 사각 박스 대신 알림 카드와 같은 완전 캡슐형 카드 안에,
+   선택된 쪽 뒤로 흰 알약이 좌우로 슬라이드(체중PR 탭의 .weight-pr-tab 패턴과 동일) */
+.settings-box-theme .settings-card.spec-pill-card{padding-top:6px;padding-bottom:6px;border-radius:9999px;}
+.settings-box-theme .gender-toggle{position:relative;display:flex;gap:0;border:0;border-radius:9999px;background:none;overflow:visible;}
+.settings-box-theme .gender-toggle-indicator{position:absolute;top:0;left:0;height:100%;background:#fff;border-radius:9999px;transition:transform .28s cubic-bezier(.22,1,.36,1),width .28s cubic-bezier(.22,1,.36,1);}
+.settings-box-theme .genderBtn{position:relative;z-index:1;height:34px;border-right:0;color:var(--settings-muted);}
+.settings-box-theme .genderBtn.active{color:#161414;}
 .settings-box-theme .activity-slider-track{margin:14px 4px 8px;}
 .settings-box-theme .activity-level-label{color:var(--settings-muted);}
 /* 🔥 저장 버튼은 앱의 포인트 레드(--c-accent-red)로 꽉 채운 CTA로 */
