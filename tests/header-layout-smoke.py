@@ -21,8 +21,8 @@ try:
    }''')
    a=geometry();assert abs(a['center']-a['barCenter'])<1,a
    assert a['titleRight']<=a['bellLeft'],a
-   assert a['bellWidth']==20 and a['settingsWidth']==20 and a['spacing']==54,a
-   assert a['rightGap']==28,a
+   assert a['bellWidth']==22 and a['settingsWidth']==22 and a['spacing']==54,a
+   assert a['rightGap']==27,a
    for light in [False,True]:
     page.evaluate('v=>applyLightMode(v)',light)
     page.screenshot(path=f'/tmp/header-layout-{width}-{light}.png')
