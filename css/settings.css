@@ -257,3 +257,6 @@ html.light-mode-on .profile-save-toast{background:#303032;}
 #mySpecBody .spec-calculation-details dt{color:var(--spec-muted);}
 #mySpecBody .spec-calculation-details dt>span{font-size:9px;margin-left:3px;}
 #mySpecBody .spec-calculation-details dd{margin:0;white-space:nowrap;font-variant-numeric:tabular-nums;}
+
+/* The body-information card supplies one shared focus ring. */
+#mySpecBody .spec-row-grid3 input:focus-visible{outline:none;}
