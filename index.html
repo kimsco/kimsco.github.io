@@ -8795,7 +8795,7 @@ document.addEventListener('dragstart', event => {
   event.preventDefault();
 });
 </script>
-<link rel="stylesheet" href="/css/settings.css?v=1.0.167">
+<link rel="stylesheet" href="/css/settings.css?v=1.0.168">
 </head>
 
 <body style="background-color:#000000;">
@@ -9722,7 +9722,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
       <h2 class="settings-section-label">이름</h2>
       <div class="settings-card settings-card--flush">
         <div class="settings-item settings-item--single spec-name-item">
-          <input id="specName" type="text" placeholder="사용자명 입력" maxlength="20">
+          <input id="specName" aria-label="이름" type="text" placeholder="사용자명 입력" maxlength="20">
         </div>
       </div>
     </section>
@@ -9747,15 +9747,15 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
       <div class="settings-card settings-card--flush spec-card">
         <div class="spec-row-grid3">
           <div>
-            <label>키(cm)</label>
+            <label for="specHeight">키(cm)</label>
             <input id="specHeight" type="number" placeholder="175">
           </div>
           <div>
-            <label>몸무게(kg)</label>
+            <label for="specWeight">몸무게(kg)</label>
             <input id="specWeight" type="number" placeholder="70">
           </div>
           <div>
-            <label>나이</label>
+            <label for="specAge">나이</label>
             <input id="specAge" type="number" placeholder="25">
           </div>
         </div>
@@ -9788,7 +9788,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
       </div>
     </section>
 
-    <button id="saveSpecBtn">저장</button>
+    <button id="saveSpecBtn">저장하기</button>
 
     <div id="specSummaryBox" class="spec-summary-box"></div>
     </div>
@@ -13384,7 +13384,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.167";
+const APP_VERSION = "1.0.168";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
