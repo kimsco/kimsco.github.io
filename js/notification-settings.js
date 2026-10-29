@@ -28,8 +28,46 @@
   }
   const period=wheel('notificationPeriodWheel',['오전','오후']),hour=wheel('notificationHourWheel',Array.from({length:12},(_,i)=>String(i+1)),1),minute=wheel('notificationMinuteWheel',Array.from({length:60},(_,i)=>String(i).padStart(2,'0')));
   function showTime(){const value=preferences.read().minuteOfDay,h=Math.floor(value/60);period.set(h>=12?1:0);hour.set((h%12||12)-1);minute.set(value%60);dirty=false;}
-  function close(){session++;screen.classList.add('hidden');parent.inert=false;returnFocus?.focus({preventScroll:true});}
-  async function open(){session++;const current=session;returnFocus=doc.activeElement;screen.classList.remove('hidden');parent.inert=true;status.textContent='';showTime();back.focus({preventScroll:true});try{await onOpen();if(session===current&&!dirty)showTime();}catch(_){} }
+  let swipeTimer,swipeTracking=false,swipeDragging=false,swipeX=0,swipeY=0,swipeDistance=0,suppressClickUntil=0;
+  function resetSwipe(){
+   clearTimeout(swipeTimer);swipeTimer=null;swipeTracking=false;swipeDragging=false;swipeDistance=0;
+   screen.style.transition='';screen.style.transform='';
+  }
+  screen.addEventListener('touchstart',event=>{
+   if(event.touches.length!==1 || swipeTimer || screen.classList.contains('hidden'))return;
+   const point=event.touches[0];
+   swipeTracking=point.clientX<=30;swipeDragging=false;swipeDistance=0;
+   swipeX=point.clientX;swipeY=point.clientY;
+  },{passive:true});
+  screen.addEventListener('touchmove',event=>{
+   if(!swipeTracking)return;
+   if(event.touches.length!==1){resetSwipe();return;}
+   const dx=event.touches[0].clientX-swipeX,dy=event.touches[0].clientY-swipeY;
+   if(!swipeDragging){
+    if(Math.abs(dy)>8 && Math.abs(dy)>dx || dx< -8){swipeTracking=false;return;}
+    if(dx<=8 || dx<=Math.abs(dy))return;
+    swipeDragging=true;screen.style.transition='none';
+   }
+   event.preventDefault();swipeDistance=Math.max(0,Math.min(root.innerWidth,dx));
+   screen.style.transform=`translateX(${swipeDistance}px)`;
+  },{passive:false});
+  function finishSwipe(cancelled){
+   if(!swipeTracking)return;
+   swipeTracking=false;
+   if(!swipeDragging)return;
+   swipeDragging=false;suppressClickUntil=Date.now()+400;
+   const dismiss=!cancelled && swipeDistance>root.innerWidth*.3;
+   const reduced=root.matchMedia('(prefers-reduced-motion: reduce)').matches;
+   screen.style.transition=reduced?'none':'transform .22s ease';
+   screen.style.transform=dismiss?'translateX(100%)':'translateX(0)';
+   swipeTimer=setTimeout(()=>{swipeTimer=null;if(dismiss)close();else resetSwipe();},reduced?0:230);
+  }
+  screen.addEventListener('touchend',()=>finishSwipe(false),{passive:true});
+  screen.addEventListener('touchcancel',()=>finishSwipe(true),{passive:true});
+  screen.addEventListener('click',event=>{if(Date.now()<suppressClickUntil){event.preventDefault();event.stopImmediatePropagation();}},true);
+  function close(){session++;screen.classList.add('hidden');resetSwipe();parent.inert=false;returnFocus?.focus({preventScroll:true});}
+
+  async function open(){resetSwipe();suppressClickUntil=0;session++;const current=session;returnFocus=doc.activeElement;screen.classList.remove('hidden');parent.inert=true;status.textContent='';showTime();back.focus({preventScroll:true});try{await onOpen();if(session===current&&!dirty)showTime();}catch(_){} }
   back.addEventListener('click',close);
   doc.addEventListener('keydown',event=>{
    if(screen.classList.contains('hidden'))return;
