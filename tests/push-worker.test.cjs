@@ -44,7 +44,7 @@ test('diagnostics records receipt and display success without message contents',
  const f=fixture();let work,result;
  f.listeners.push({data:{json:()=>({notification:{title:'secret',body:'private'}})},waitUntil:p=>work=p});await work;
  f.listeners.message({data:{type:'TTT_PUSH_DIAGNOSTICS'},ports:[{postMessage:value=>result=value}],waitUntil:p=>work=p});await work;
- assert.equal(result.worker,'mf-v203');assert.equal(result.receipt.status,'shown');assert.ok(result.receipt.receivedAt>0);
+ assert.equal(result.worker,'mf-v204');assert.equal(result.receipt.status,'shown');assert.ok(result.receipt.receivedAt>0);
  assert.ok(!JSON.stringify(result).includes('private'));assert.ok(!JSON.stringify(result).includes('secret'));
 });
 test('diagnostics preserves notification failure name',async()=>{

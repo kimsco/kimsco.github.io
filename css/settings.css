@@ -19,8 +19,8 @@
 .settings-box-theme .settings-section-label{margin:0 0 12px;padding:0 18px;font-size:15px;font-weight:650;color:var(--settings-muted);line-height:20px;}
 /* 🔥 곡선 반경도 레퍼런스에서 실측한 값(약 20px)으로 축소 */
 .settings-box-theme .settings-card{padding:0 20px;margin:0;border:0;border-radius:20px;background:var(--settings-card-bg);box-shadow:none;}
-/* 🔥 프로필 카드만 50% 불투명도(뒤 글로우가 살짝 비치는 느낌) */
-.settings-box-theme .settings-profile-card{background:rgba(28,28,29,.5);}
+/* 🔥 프로필 카드만 60% 불투명도(뒤 글로우가 살짝 비치는 느낌) */
+.settings-box-theme .settings-profile-card{background:rgba(28,28,29,.6);}
 /* 🔥 행 높이(세로 폭)도 레퍼런스에서 실측한 값(약 50px)에 맞춰 72px -> 52px로 축소 */
 .settings-box-theme .settings-item{position:relative;height:52px;width:100%;padding:0;margin:0;border:0!important;border-radius:0;background:none;color:inherit;overflow:visible;font-family:inherit;font-size:16px;font-weight:400;gap:0;line-height:1.4;text-align:left;box-sizing:border-box;}
 /* 🔥 알림처럼 카드 안에 항목이 하나뿐인 경우, 고정 72px 줄 높이 대신 여유 있는
@@ -310,3 +310,5 @@ html.light-mode-on #notificationSettingsOverlay :is(#notificationAllowBtn,.notif
 #restSettingsOverlay .rest-settings-help h4{margin:0 0 7px;font-size:14px;font-weight:600;line-height:1.5;}
 #restSettingsOverlay .rest-settings-help p{margin:0;font-size:12px;line-height:1.8;color:var(--settings-muted);word-break:keep-all;}
 html.light-mode-on #restSettingsOverlay{background:#f5f4f4;}
+
+html.light-mode-on #settingsOverlay .settings-profile-card{background:rgba(255,255,255,.6);}
