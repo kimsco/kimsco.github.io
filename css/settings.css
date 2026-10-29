@@ -296,3 +296,17 @@ html.light-mode-on #notificationSettingsOverlay :is(#notificationAllowBtn,.notif
 
 /* Display settings groups unit labels and the input keyboard preference. */
 #unitSettingsOverlay .display-input-heading{margin-top:28px;}
+
+/* Dedicated rest stopwatch settings, matching the other settings cards. */
+#restSettingsOverlay{position:fixed;inset:0;z-index:100001;background:#000;color:var(--c-text-primary);overflow:hidden;}
+#restSettingsOverlay.hidden{display:none;}
+#restSettingsScreen{height:100%;max-width:440px;margin:auto;overflow-y:auto;box-sizing:border-box;padding:calc(16px + env(safe-area-inset-top)) 20px calc(24px + env(safe-area-inset-bottom));}
+#restSettingsOverlay .rest-settings-header{display:flex;align-items:center;gap:12px;margin-bottom:24px;}
+#restSettingsTitle{margin:0;font-size:17px;font-weight:650;}
+#restSettingsOverlay .rest-settings-help-heading{margin-top:28px;}
+#restSettingsOverlay .rest-settings-help{border-radius:24px;padding:0 20px;}
+#restSettingsOverlay .rest-settings-help>div{padding:18px 0;}
+#restSettingsOverlay .rest-settings-help>div+div{border-top:1px solid var(--settings-line);}
+#restSettingsOverlay .rest-settings-help h4{margin:0 0 7px;font-size:14px;font-weight:600;line-height:1.5;}
+#restSettingsOverlay .rest-settings-help p{margin:0;font-size:12px;line-height:1.8;color:var(--settings-muted);word-break:keep-all;}
+html.light-mode-on #restSettingsOverlay{background:#f5f4f4;}
