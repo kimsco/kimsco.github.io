@@ -36,14 +36,14 @@ try:
     # Padding-only updates remain correct even after startup has settled.
     page.evaluate('stopRestTimerManually()');page.wait_for_timeout(200);check_layout()
     page.evaluate('resetRestTimerOnSave()');page.wait_for_timeout(200);check_layout()
-   # The fade starts after 1s, then follows the existing 0.8s transition to .5.
+   # The fade starts after 1s, then follows the existing 0.8s transition to .3.
    fade=page.evaluate('''async()=>{
     resetHomeModeFade();await new Promise(r=>setTimeout(r,750));
     const before=getComputedStyle(homeModeSwitch).opacity;
     await new Promise(r=>setTimeout(r,450));const during=getComputedStyle(homeModeSwitch).opacity;
     await new Promise(r=>setTimeout(r,800));return {before:Number(before),during:Number(during),after:Number(getComputedStyle(homeModeSwitch).opacity)};
    }''')
-   assert fade['before']==1 and .5<fade['during']<1 and abs(fade['after']-.5)<.01,fade
+   assert fade['before']==1 and .3<fade['during']<1 and abs(fade['after']-.3)<.01,fade
    # Returning from another app preserves an intentional scroll position.
    page.evaluate("homeModeApp.scrollTop=100;window.dispatchEvent(new PageTransitionEvent('pageshow',{persisted:true}))");page.wait_for_timeout(150)
    assert page.evaluate('homeModeApp.scrollTop')==100
