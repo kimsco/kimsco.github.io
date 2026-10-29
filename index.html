@@ -8795,7 +8795,7 @@ document.addEventListener('dragstart', event => {
   event.preventDefault();
 });
 </script>
-<link rel="stylesheet" href="/css/settings.css?v=1.0.203">
+<link rel="stylesheet" href="/css/settings.css?v=1.0.204">
 </head>
 
 <body style="background-color:#000000;">
@@ -10364,10 +10364,12 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
     </div>
     <div class="exercise-ref-modal-body" id="exerciseRefList"></div>
     <div class="exercise-ref-modal-footer">
-      <input type="url" id="exerciseRefUrlInput" class="exercise-ref-url-input" placeholder="링크 붙여넣기(유튜브 등)" inputmode="url">
+     <div class="exercise-ref-composer">
+      <input type="url" id="exerciseRefUrlInput" class="exercise-ref-url-input" placeholder="참고 링크 붙여넣기" aria-label="참고 링크 주소" inputmode="url">
       <button id="exerciseRefAddBtn" class="exercise-ref-add-btn" aria-label="링크 추가">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
       </button>
+    </div>
     </div>
   </div>
 </div>
@@ -13488,7 +13490,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.203";
+const APP_VERSION = "1.0.204";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
