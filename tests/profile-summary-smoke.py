@@ -1,4 +1,4 @@
-"""Profile summary presentation with isolated saves and native disclosure."""
+"""Profile summary presentation with isolated saves and always-visible calculations."""
 import subprocess,time
 from pathlib import Path
 from playwright.sync_api import sync_playwright
@@ -18,17 +18,16 @@ try:
    assert page.locator('.spec-nutrition-card h2').inner_text()=='내 하루 권장량'
    assert page.locator('.spec-macro-grid dt').all_text_contents()==['단백질','탄수화물','지방']
    assert page.locator('.spec-macro-grid dd').first.inner_text()=='140g'
-   details=page.locator('.spec-calculation-details');assert details.get_attribute('open') is None
-   page.locator('.spec-calculation-details summary').click();assert details.get_attribute('open') is not None
+   details=page.locator('.spec-calculation-details');assert details.locator('summary').count()==0
+   assert details.locator('dl').is_visible()
    assert 'BMR' in details.inner_text() and 'TDEE' in details.inner_text()
-   page.locator('.goalBtn[data-goal="cut"]').click();assert details.get_attribute('open') is not None
+   page.locator('.goalBtn[data-goal="cut"]').click();assert details.locator('dl').is_visible()
    for light in [False,True]:
     page.evaluate('(v)=>applyLightMode(v)',light);page.locator('#mySpecBody').evaluate('e=>e.scrollTop=e.scrollHeight');page.wait_for_timeout(350)
     assert page.locator('#mySpecBody').evaluate('e=>e.scrollWidth<=e.clientWidth')
     box=page.locator('.spec-nutrition-card').bounding_box();assert box['x']>=0 and box['x']+box['width']<=width
     page.screenshot(path=f'/tmp/profile-summary-{width}-{light}.png')
-   page.locator('.spec-calculation-details summary').click();assert details.get_attribute('open') is None
    assert not errors,errors
-   print('PASS empty state, saved summary, macros, disclosure, themes and overflow',width);context.close()
+   print('PASS empty state, saved summary, macros, visible calculations, themes and overflow',width);context.close()
   browser.close()
 finally:server.terminate();server.wait()
