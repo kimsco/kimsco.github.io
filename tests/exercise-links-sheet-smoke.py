@@ -24,7 +24,12 @@ try:
    page.evaluate("Object.defineProperty(visualViewport,'height',{configurable:true,value:innerHeight-300});visualViewport.dispatchEvent(new Event('resize'))");page.wait_for_timeout(100);box=sheet.bounding_box();assert box['y']>=0 and box['y']+box['height']<=544.5,box
    page.evaluate("delete visualViewport.height;visualViewport.dispatchEvent(new Event('resize'))");page.wait_for_timeout(100)
    for light in [False,True]:
-    page.evaluate('(v)=>applyLightMode(v)',light);assert modal.evaluate('e=>e.scrollWidth<=innerWidth');page.screenshot(path=f'/tmp/exercise-links-sheet-{width}-{light}.png')
+    page.evaluate('(v)=>applyLightMode(v)',light);assert modal.evaluate('e=>e.scrollWidth<=innerWidth')
+    title=page.locator('#exerciseRefModalTitle');assert 'blur(14px)' in title.evaluate('e=>getComputedStyle(e).backdropFilter')
+    composer=page.locator('.exercise-ref-composer');assert composer.evaluate('e=>getComputedStyle(e).borderRadius')=='999px'
+    assert page.locator('#exerciseRefAddBtn').evaluate('e=>getComputedStyle(e).borderRadius')=='50%'
+    assert page.locator('#exerciseRefUrlInput').evaluate('e=>getComputedStyle(e).fontSize')=='16px'
+    page.screenshot(path=f'/tmp/exercise-links-sheet-{width}-{light}.png')
    cdp=context.new_cdp_session(page);cdp.send('Input.dispatchTouchEvent',{'type':'touchStart','touchPoints':[{'x':width/2,'y':140}]})
    for i in range(1,11):cdp.send('Input.dispatchTouchEvent',{'type':'touchMove','touchPoints':[{'x':width/2,'y':140+200*i/10}]});page.wait_for_timeout(16)
    cdp.send('Input.dispatchTouchEvent',{'type':'touchEnd','touchPoints':[]});page.wait_for_timeout(400);assert modal.is_hidden()
