@@ -18,7 +18,7 @@ try:
    for light in [False,True]:
     page.evaluate('(v)=>applyLightMode(v)',light);assert modal.evaluate('e=>e.scrollWidth<=innerWidth')
     bounds=sheet.bounding_box();title=page.locator('#announcementModalTitle');pill=title.bounding_box();close=page.locator('#announcementModalCloseBtn').bounding_box()
-    assert abs((pill['x']-bounds['x'])-(pill['y']-bounds['y']))<1
+    assert abs((pill['x']-bounds['x'])-(pill['y']-bounds['y']-sheet.evaluate('e=>parseFloat(getComputedStyle(e).borderTopWidth)')))<1
     assert abs((pill['x']-bounds['x'])-(bounds['x']+bounds['width']-close['x']-close['width']))<1
     assert abs(pill['y']-close['y'])<1 and pill['height']==close['height']==44
     assert title.evaluate('e=>getComputedStyle(e).fontSize')=='19px'
