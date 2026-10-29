@@ -8795,7 +8795,7 @@ document.addEventListener('dragstart', event => {
   event.preventDefault();
 });
 </script>
-<link rel="stylesheet" href="/css/settings.css?v=1.0.180">
+<link rel="stylesheet" href="/css/settings.css?v=1.0.181">
 </head>
 
 <body style="background-color:#000000;">
@@ -13384,7 +13384,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.180";
+const APP_VERSION = "1.0.181";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -24162,7 +24162,6 @@ function renderSettingsIdentity(isLoggedIn){
 
 function renderSpecSummaryPreview(){
   const targets=calcTargets(userSpec);
-  const expanded=!!specSummaryBox.querySelector('details[open]');
   if(!targets){
     specSummaryBox.innerHTML='<p class="spec-summary-empty">신체 정보를 입력하면 하루 권장량을 알려드려요.</p>';
     return;
@@ -24178,11 +24177,11 @@ function renderSpecSummaryPreview(){
         <div><dt>탄수화물</dt><dd>${number(targets.carbTarget)}<span>g</span></dd></div>
         <div><dt>지방</dt><dd>${number(targets.fatTarget)}<span>g</span></dd></div>
       </dl>
-      <details class="spec-calculation-details" ${expanded?'open':''}>
-        <summary>계산 기준 보기<span aria-hidden="true">⌄</span></summary>
+      <div class="spec-calculation-details">
+        <h3>계산 기준</h3>
         <dl><div><dt>기초대사량 <span>BMR</span></dt><dd>${number(targets.bmr)} kcal</dd></div>
         <div><dt>활동대사량 <span>TDEE</span></dt><dd>${number(targets.tdee)} kcal</dd></div></dl>
-      </details>
+      </div>
     </section>`;
 }
 
