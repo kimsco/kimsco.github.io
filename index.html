@@ -8795,7 +8795,7 @@ document.addEventListener('dragstart', event => {
   event.preventDefault();
 });
 </script>
-<link rel="stylesheet" href="/css/settings.css?v=1.0.183">
+<link rel="stylesheet" href="/css/settings.css?v=1.0.184">
 </head>
 
 <body style="background-color:#000000;">
@@ -13384,7 +13384,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.183";
+const APP_VERSION = "1.0.184";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -24063,39 +24063,59 @@ function setActivityIndex(idx){
   activitySliderFill.style.width = pct + "%";
   activitySliderHandle.style.left = pct + "%";
   activityLevelLabel.textContent = ACTIVITY_LEVELS[idx].label;
+  activitySliderTrack.setAttribute("aria-valuenow",String(idx));
+  activitySliderTrack.setAttribute("aria-valuetext",ACTIVITY_LEVELS[idx].label);
   renderSpecSummaryPreview();
 }
 
 (function(){
-  let dragging = false;
-
-  function posToIndex(clientX){
-    const rect = activitySliderTrack.getBoundingClientRect();
-    const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
-    return Math.round(ratio * (ACTIVITY_LEVELS.length - 1));
+  let pointer=null,ratio=0,startIndex=0;
+  const last=ACTIVITY_LEVELS.length-1;
+  activitySliderTrack.setAttribute('role','slider');
+  activitySliderTrack.tabIndex=0;
+  activitySliderTrack.setAttribute('aria-label','활동량');
+  activitySliderTrack.setAttribute('aria-valuemin','0');
+  activitySliderTrack.setAttribute('aria-valuemax',String(last));
+  function position(clientX){
+    const rect=activitySliderTrack.getBoundingClientRect();
+    ratio=Math.max(0,Math.min(1,(clientX-rect.left)/rect.width));
+    activitySliderFill.style.width=(ratio*100)+'%';
+    activitySliderHandle.style.left=(ratio*100)+'%';
+    const nearest=Math.round(ratio*last);
+    if(nearest!==userSpec.activityIndex){
+      userSpec.activityIndex=nearest;
+      activityLevelLabel.textContent=ACTIVITY_LEVELS[nearest].label;
+      renderSpecSummaryPreview();
+    }
+    activitySliderTrack.setAttribute('aria-valuenow',String(nearest));
+    activitySliderTrack.setAttribute('aria-valuetext',ACTIVITY_LEVELS[nearest].label);
   }
-
-  function startDrag(e){
-    dragging = true;
-    const x = e.touches ? e.touches[0].clientX : e.clientX;
-    setActivityIndex(posToIndex(x));
+  activitySliderTrack.addEventListener('pointerdown',e=>{
+    if(pointer!==null || !e.isPrimary || e.button!==0)return;
+    e.preventDefault();pointer=e.pointerId;startIndex=userSpec.activityIndex??2;
+    activitySliderTrack.classList.remove('is-snapping');
+    activitySliderTrack.classList.add('is-dragging');
+    activitySliderTrack.setPointerCapture(pointer);position(e.clientX);
+  });
+  activitySliderTrack.addEventListener('pointermove',e=>{
+    if(e.pointerId===pointer)position(e.clientX);
+  });
+  function finish(e,cancelled=false){
+    if(e.pointerId!==pointer)return;
+    pointer=null;
+    activitySliderTrack.classList.remove('is-dragging');
+    activitySliderTrack.classList.add('is-snapping');
+    setActivityIndex(cancelled?startIndex:Math.round(ratio*last));
   }
-  function moveDrag(e){
-    if (!dragging) return;
-    const x = e.touches ? e.touches[0].clientX : e.clientX;
-    setActivityIndex(posToIndex(x));
-  }
-  function endDrag(){ dragging = false; }
-
-  activitySliderHandle.addEventListener("mousedown", startDrag);
-  activitySliderTrack.addEventListener("mousedown", startDrag);
-  document.addEventListener("mousemove", moveDrag);
-  document.addEventListener("mouseup", endDrag);
-
-  activitySliderHandle.addEventListener("touchstart", startDrag, { passive: true });
-  activitySliderTrack.addEventListener("touchstart", startDrag, { passive: true });
-  document.addEventListener("touchmove", moveDrag, { passive: true });
-  document.addEventListener("touchend", endDrag);
+  activitySliderTrack.addEventListener('pointerup',e=>finish(e));
+  activitySliderTrack.addEventListener('pointercancel',e=>finish(e,true));
+  activitySliderTrack.addEventListener('lostpointercapture',e=>finish(e,true));
+  activitySliderTrack.addEventListener('keydown',e=>{
+    const current=userSpec.activityIndex??2;
+    const value={ArrowLeft:current-1,ArrowDown:current-1,ArrowRight:current+1,ArrowUp:current+1,Home:0,End:last}[e.key];
+    if(value===undefined)return;
+    e.preventDefault();activitySliderTrack.classList.add('is-snapping');setActivityIndex(value);
+  });
 })();
 
 function applySpecToUI(){
@@ -24119,6 +24139,7 @@ function applySpecToUI(){
   specWeight.value = userSpec.weight || "";
   specAge.value = userSpec.age || "";
 
+  activitySliderTrack.classList.remove("is-snapping","is-dragging");
   setActivityIndex(userSpec.activityIndex ?? 2);
   renderSpecSummaryPreview();
   updateSpecHeroName();

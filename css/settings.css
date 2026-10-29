@@ -260,3 +260,13 @@ html.light-mode-on .profile-save-toast{background:#303032;}
 
 /* The body-information card supplies one shared focus ring. */
 #mySpecBody .spec-row-grid3 input:focus-visible{outline:none;}
+
+/* Free movement under the pointer; magnetic settling only after release. */
+#mySpecBody .activity-slider-track{touch-action:none;cursor:pointer;}
+#mySpecBody .activity-slider-track::before{content:'';position:absolute;inset:-20px 0;}
+#mySpecBody .activity-slider-track.is-snapping .activity-slider-handle{transition:left .28s cubic-bezier(.22,1,.36,1);}
+#mySpecBody .activity-slider-track.is-snapping .activity-slider-fill{transition:width .28s cubic-bezier(.22,1,.36,1);}
+#mySpecBody .activity-slider-track.is-dragging,
+#mySpecBody .activity-slider-track.is-dragging .activity-slider-handle{cursor:grabbing;}
+#mySpecBody .activity-slider-track:focus-visible{outline:2px solid #c52e32;outline-offset:10px;}
+@media(prefers-reduced-motion:reduce){#mySpecBody .activity-slider-track.is-snapping :is(.activity-slider-handle,.activity-slider-fill){transition:none;}}
