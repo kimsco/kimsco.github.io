@@ -8795,7 +8795,7 @@ document.addEventListener('dragstart', event => {
   event.preventDefault();
 });
 </script>
-<link rel="stylesheet" href="/css/settings.css?v=1.0.187">
+<link rel="stylesheet" href="/css/settings.css?v=1.0.188">
 </head>
 
 <body style="background-color:#000000;">
@@ -13384,7 +13384,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.187";
+const APP_VERSION = "1.0.188";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -16582,7 +16582,19 @@ const homeModeViewport=document.getElementById('homeModeViewport');
 const homeModeBasic=document.getElementById('homeModeBasic');
 const homeModeFocus=document.getElementById('homeModeFocus');
 const homeModeHome=document.getElementById('tab1');
-document.body.appendChild(homeModeSwitch);
+// Keep viewport positioning while sharing every background push/fade transition.
+const homeModeMotionLayer=document.createElement('div');
+homeModeMotionLayer.className='home-mode-motion-layer';
+document.body.appendChild(homeModeMotionLayer);
+homeModeMotionLayer.appendChild(homeModeSwitch);
+const homeModeApp=document.querySelector('.app');
+function syncHomeModeAppMotion(){
+  homeModeMotionLayer.style.transition=homeModeApp.style.transition;
+  homeModeMotionLayer.style.transform=homeModeApp.style.transform;
+  homeModeMotionLayer.style.opacity=homeModeApp.style.opacity;
+}
+new MutationObserver(syncHomeModeAppMotion).observe(homeModeApp,{attributes:true,attributeFilter:['style']});
+syncHomeModeAppMotion();
 let homeModeFadeTimer=0;
 function resetHomeModeFade(){
   clearTimeout(homeModeFadeTimer);
@@ -20853,13 +20865,11 @@ function setAppPush(px){
   //    자체를 비워서 완전히 원상태로 되돌림
   if (appEl) appEl.style.transform = px ? `translateX(${px}px)` : '';
   setChromePush(px);
-  homeModeSwitch.style.transform = `translateX(calc(-50% + ${px}px))`;
 }
 function setAppPushTransition(css){
   const appEl = document.querySelector('.app');
   if (appEl) appEl.style.transition = css;
   setChromePushTransition(css);
-  homeModeSwitch.style.transition = css === 'none' ? 'opacity .8s ease' : `${css}, opacity .8s ease`;
 }
 
 function openNavDrawer(){
