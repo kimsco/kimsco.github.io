@@ -2186,7 +2186,7 @@ html.mf-restore-settings .bottomTab {
   display: none;
 }
 #homeSeriousModeScreen {
-  height: calc(100vh - var(--topBarH) - var(--bottomTabH) - env(safe-area-inset-top) - 60px);
+  height: calc(100vh - var(--topBarH) - var(--bottomTabH) - env(safe-area-inset-top) - 20px);
   overflow-y: auto;
   overscroll-behavior-y: contain;
   scroll-snap-type: y mandatory;
@@ -2214,11 +2214,12 @@ html.mf-restore-settings .bottomTab {
   position:fixed;left:50%;top:calc(var(--topBarH) + env(safe-area-inset-top) + 8px);
   transform:translateX(-50%);display:flex;width:156px;height:36px;margin:0;z-index:99998;
   opacity:var(--home-mode-opacity,1);transition:opacity .8s ease;
-  padding:3px;box-sizing:border-box;border:1px solid #303030;
-  border-radius:999px;background:#1a1a1a;isolation:isolate;
+  padding:3px;box-sizing:border-box;border:1px solid rgba(255,255,255,.14);
+  border-radius:999px;background:rgba(26,26,26,.38);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);isolation:isolate;
 }
 .home-mode-switch[hidden]{display:none;}
-.home-mode-slot{height:40px;}
+.home-mode-slot{height:0;}
 .home-mode-thumb{
   position:absolute;left:3px;top:3px;bottom:3px;width:calc(50% - 3px);
   border-radius:999px;background:#3b3b3b;
@@ -2230,14 +2231,14 @@ html.mf-restore-settings .bottomTab {
   cursor:pointer;transition:color .18s ease;
 }
 .home-mode-switch button[aria-selected="true"]{color:#fff;}
-html.light-mode-on .home-mode-switch{background:#ededed;border-color:#d8d8d8;}
+html.light-mode-on .home-mode-switch{background:rgba(237,237,237,.55);border-color:rgba(0,0,0,.08);}
 html.light-mode-on .home-mode-thumb{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.1);}
 html.light-mode-on .home-mode-switch button{color:#666;}
 html.light-mode-on .home-mode-switch button[aria-selected="true"]{color:#1a1a1a;}
 
 .home-mode-switch button:focus-visible{outline:2px solid #888;outline-offset:3px;}
 .home-mode-viewport{overflow:hidden;width:calc(100% + 54px);margin-inline:-27px;position:relative;}
-#homeNormalContent{padding-inline:27px;}
+#homeNormalContent{padding-inline:27px;padding-top:40px;}
 .home-mode-track{display:flex;align-items:flex-start;width:200%;transform:translateX(calc(var(--home-mode-progress,0) * -50%));}
 .home-mode-track>div{flex:0 0 50%;width:50%;min-width:0;box-sizing:border-box;}
 #inactivityOverlay.hidden {
@@ -13566,7 +13567,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.222";
+const APP_VERSION = "1.0.223";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
