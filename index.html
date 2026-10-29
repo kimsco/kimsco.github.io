@@ -13565,7 +13565,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.236";
+const APP_VERSION = "1.0.237";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -16845,7 +16845,7 @@ function resetHomeModeFade(){
   homeModeFadeTimer=setTimeout(()=>{
     homeModeFadeTimer=0;
     homeModeSwitch.style.setProperty('--home-mode-opacity','0.5');
-  },3000);
+  },1500);
 }
 function updateHomeModeFloating(){
   homeModeSwitch.hidden=!homeModeHome.classList.contains('active');
@@ -16958,7 +16958,23 @@ const homeModeResizeObserver=new ResizeObserver(entries=>{
   }
   updateHomeModeHeight();
 });
-homeModeResizeObserver.observe(homeNormalContent);homeModeResizeObserver.observe(homeSeriousModeScreen);
+// The mini timer changes padding, not content size: observe the complete box.
+homeModeResizeObserver.observe(homeNormalContent,{box:'border-box'});
+homeModeResizeObserver.observe(homeSeriousModeScreen,{box:'border-box'});
+
+// Safari can restore an old scroller offset after the initial mode setup.
+// Settle once after startup, without moving a user who has already interacted.
+let homeStartupInteracted=false;
+const markHomeStartupInteraction=()=>{homeStartupInteracted=true;};
+const homeStartupEvents=['pointerdown','touchstart','wheel','keydown'];
+homeStartupEvents.forEach(type=>document.addEventListener(type,markHomeStartupInteraction,{capture:true,passive:true}));
+const homeStartupLoaded=document.readyState==='complete'?Promise.resolve():new Promise(resolve=>window.addEventListener('load',resolve,{once:true}));
+Promise.all([homeStartupLoaded,window.__bootSplashDonePromise]).then(()=>requestAnimationFrame(()=>{
+  measureHomeModePanels();updateHomeModeHeight();
+  if(!homeStartupInteracted)resetHomeModeFade();
+  if(!homeStartupInteracted && homeModeHome.classList.contains('active') && document.getElementById('settingsOverlay').classList.contains('hidden'))homeModeApp.scrollTop=0;
+  homeStartupEvents.forEach(type=>document.removeEventListener(type,markHomeStartupInteraction,true));
+}));
 
 /* ===============================
    🔥 3일 이상 기록하지 않은 사용자에게 전면에 뜨는 페이지
