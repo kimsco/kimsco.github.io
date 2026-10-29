@@ -9124,6 +9124,18 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
   <div class="home-focus-quote-page">
     <div class="home-focus-quote home-focus-quote-plain">한 번의 패배로<br>지금까지의 노력을 부정하지 마라.</div>
   </div>
+  <div class="home-focus-quote-page">
+    <div class="home-focus-quote home-focus-quote-plain">불광불급(不狂不及)<br><br>미치지 않으면 닿지 못한다<br>내 전부를 걸고 끝내 그 경지에 이르겠다</div>
+  </div>
+  <div class="home-focus-quote-page">
+    <div class="home-focus-quote home-focus-quote-plain">조용히 준비하고,<br>압도적으로 증명하라.</div>
+  </div>
+  <div class="home-focus-quote-page">
+    <div class="home-focus-quote home-focus-quote-plain">실패는 얼마든지 해도 좋다.<br>다만, 이 두 가지를 잊지 마라.<br><br>실패를 두려워하지 말 것.<br>더 나은 방식으로 실패할 것.</div>
+  </div>
+  <div class="home-focus-quote-page">
+    <div class="home-focus-quote home-focus-quote-plain">세상이 나를 지옥(地獄)으로 밀어 넣는다면<br>기꺼이 그곳의 왕이 되어 돌아오겠다.<br><br>전화위복(轉禍爲福)</div>
+  </div>
 </div>
 </div>
 </div>
@@ -11219,6 +11231,7 @@ MuscleFlow는 개인의 운동 및 식단 기록을 관리하는 PWA 서비스�
 - Firebase Cloud Messaging (기존 알림 연결)
 - Cloudflare Workers 및 D1 (운동 알림 연결 시 기기 구독과 날짜별 기록 유무 처리), Apple Push Service (아이폰 알림 전달)
 - Cloudflare Workers (AI 챗봇 프록시)
+- YouTube oEmbed 및 Microlink (참고 링크 제목 조회: 링크 주소만 전송, 계정 정보·운동 기록 제외)
 - 그 외 제3자에 제공하지 않습니다
         </div>
       </div>
@@ -11421,6 +11434,7 @@ MuscleFlow는 개인의 운동 및 식단 기록을 관리하는 PWA 서비스�
 <script src="/js/history-pages.js?v=1.0.73"></script>
 <script src="/js/record-sync.js?v=1.0.75"></script>
 <script src="/js/app-sync.js?v=1.0.141"></script>
+<script src="/js/link-titles.js?v=1.0.212"></script>
 <script src="/js/rest-stopwatch.js?v=1.0.193"></script>
 <script src="/js/rest-timer-motion.js?v=1.0.50"></script>
 <script src="/js/workout-summary.js?v=1.0.30"></script>
@@ -11861,6 +11875,7 @@ function loadAccListFromLocal(part){
    "참고" 버튼으로 열리는 패널에서 등록/수정/삭제. 여러 개 등록 가능.
 ================================ */
 let exerciseRefLinks = lsGet(LS_KEYS.exerciseRefLinks, {}); // { [종목명]: [{ id, url, createdAt }] }
+const exerciseRefTitleRequests = new Set();
 let exerciseRefLinksSyncedFromServer = false; // 로그인 사용자 기준 서버에서 한 번 받아왔는지
 
 function saveExerciseRefLinksToLocal(){
@@ -11902,17 +11917,53 @@ function getExerciseRefLinks(name){
 
 function addExerciseRefLink(name, url){
   if (!exerciseRefLinks[name]) exerciseRefLinks[name] = [];
-  exerciseRefLinks[name].push({ id: "ref_" + Date.now() + "_" + Math.random(), url, createdAt: Date.now() });
+  url = MFLinkTitles.normalizeUrl(url);
+  if (!url) return;
+  const item = { id: "ref_" + Date.now() + "_" + Math.random(), url, createdAt: Date.now() };
+  exerciseRefLinks[name].push(item);
   saveExerciseRefLinksToLocal();
   saveExerciseRefLinksToServer();
+  ensureExerciseRefTitle(name, item);
 }
 
-function updateExerciseRefLink(name, id, newUrl){
-  const item = (exerciseRefLinks[name] || []).find(x => x.id === id);
-  if (!item) return;
-  item.url = newUrl;
+function updateExerciseRefLink(name, id, newUrl, title){
+  const item = getExerciseRefLinks(name).find(x => x.id === id);
+  const url = MFLinkTitles.normalizeUrl(newUrl);
+  if (!item || !url) return false;
+  if (url !== item.url) { delete item.title; delete item.titleCheckedAt; delete item.titleManual; }
+  item.url = url;
+  if (title !== undefined) {
+    item.title = MFLinkTitles.cleanTitle(title);
+    item.titleManual = !!item.title;
+    if (!item.title) delete item.titleCheckedAt;
+  }
   saveExerciseRefLinksToLocal();
   saveExerciseRefLinksToServer();
+  ensureExerciseRefTitle(name, item);
+  return true;
+}
+
+async function ensureExerciseRefTitle(name, item){
+  if (item.title || item.titleManual || Date.now() - (item.titleCheckedAt || 0) < 86400000 || exerciseRefTitleRequests.has(item)) return;
+  const url = item.url, owner = auth.currentUser?.uid || null;
+  exerciseRefTitleRequests.add(item);
+  try {
+    const title = await MFLinkTitles.getTitle(url);
+    // A deleted/edited link or an account change must not receive a stale result.
+    if ((auth.currentUser?.uid || null) !== owner || !getExerciseRefLinks(name).includes(item) || item.url !== url || item.titleManual) return;
+    item.titleCheckedAt = Date.now();
+    if (title) item.title = title;
+    saveExerciseRefLinksToLocal();
+    saveExerciseRefLinksToServer();
+    if (exerciseRefModalCurrentName === name) {
+      const row = [...exerciseRefList.querySelectorAll('.exercise-ref-row')].find(row=>row.dataset.id === item.id);
+      const link = row?.querySelector('a');
+      if (link) { link.textContent = item.title || item.url; link.title = item.url; }
+    }
+  } finally {
+    exerciseRefTitleRequests.delete(item);
+    if (getExerciseRefLinks(name).includes(item) && item.url !== url) ensureExerciseRefTitle(name, item);
+  }
 }
 
 function deleteExerciseRefLink(name, id){
@@ -11943,6 +11994,10 @@ const exerciseRefUrlInput = document.getElementById('exerciseRefUrlInput');
 document.body.appendChild(exerciseRefModal);
 let exerciseRefCloseTimer,exerciseRefMotionToken=0,exerciseRefReturnFocus;
 
+function escapeExerciseRefValue(value){
+  return String(value ?? "").replace(/[&<>"']/g, ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
+}
+
 function renderExerciseRefList(){
   const links = getExerciseRefLinks(exerciseRefModalCurrentName);
   if (!links.length) {
@@ -11950,8 +12005,8 @@ function renderExerciseRefList(){
     return;
   }
   exerciseRefList.innerHTML = links.map(item => `
-    <div class="exercise-ref-row" data-id="${item.id}">
-      <a class="exercise-ref-row-link" href="${item.url}" target="_blank" rel="noopener noreferrer">${item.url}</a>
+    <div class="exercise-ref-row" data-id="${escapeExerciseRefValue(item.id)}">
+      <a class="exercise-ref-row-link" href="${escapeExerciseRefValue(MFLinkTitles.normalizeUrl(item.url) || '#')}" title="${escapeExerciseRefValue(item.url)}" target="_blank" rel="noopener noreferrer">${escapeExerciseRefValue(item.title || item.url)}</a>
       <button class="exercise-ref-row-btn exercise-ref-edit-btn" aria-label="수정">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path></svg>
       </button>
@@ -11960,6 +12015,7 @@ function renderExerciseRefList(){
       </button>
     </div>
   `).join('');
+  links.forEach(item=>ensureExerciseRefTitle(exerciseRefModalCurrentName, item));
 
   exerciseRefList.querySelectorAll('.exercise-ref-edit-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -11970,7 +12026,10 @@ function renderExerciseRefList(){
       if (next == null) return;
       const trimmed = next.trim();
       if (!trimmed) return;
-      updateExerciseRefLink(exerciseRefModalCurrentName, id, trimmed);
+      if (!MFLinkTitles.normalizeUrl(trimmed)) return;
+      const title = prompt('표시할 제목을 입력하세요 (비우면 자동 조회)', MFLinkTitles.normalizeUrl(trimmed) === item.url ? (item.title || '') : '');
+      if (title == null) return;
+      updateExerciseRefLink(exerciseRefModalCurrentName, id, trimmed, title);
       renderExerciseRefList();
     });
   });
@@ -12039,6 +12098,12 @@ exerciseRefModal.addEventListener('click', (e) => {
 document.getElementById('exerciseRefAddBtn').addEventListener('click', () => {
   const url = exerciseRefUrlInput.value.trim();
   if (!url) return;
+  if (!MFLinkTitles.normalizeUrl(url)) {
+    exerciseRefUrlInput.setCustomValidity('http 또는 https 링크를 입력해 주세요.');
+    exerciseRefUrlInput.reportValidity();
+    exerciseRefUrlInput.setCustomValidity('');
+    return;
+  }
   addExerciseRefLink(exerciseRefModalCurrentName, url);
   exerciseRefUrlInput.value = '';
   renderExerciseRefList();
@@ -13480,7 +13545,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.211";
+const APP_VERSION = "1.0.212";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
