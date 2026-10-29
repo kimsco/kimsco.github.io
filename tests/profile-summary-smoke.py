@@ -16,8 +16,8 @@ try:
    for key,value in [('Height','175'),('Weight','70'),('Age','28')]:page.locator('#spec'+key).fill(value)
    page.locator('#saveSpecBtn').click();page.wait_for_timeout(100)
    assert page.locator('.spec-nutrition-card h2').inner_text()=='내 하루 권장량'
-   assert page.locator('.spec-macro-grid dt').all_text_contents()==['단백질','탄수화물','지방']
-   assert page.locator('.spec-macro-grid dd').first.inner_text()=='140g'
+   assert page.locator('.spec-macro-grid dt').all_text_contents()==['탄수화물','단백질','지방']
+   assert page.locator('.spec-macro-grid dd').nth(1).inner_text()=='140g'
    details=page.locator('.spec-calculation-details');assert details.locator('summary').count()==0
    assert details.locator('dl').is_visible()
    assert 'BMR' in details.inner_text() and 'TDEE' in details.inner_text()

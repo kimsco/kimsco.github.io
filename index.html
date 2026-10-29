@@ -8795,7 +8795,7 @@ document.addEventListener('dragstart', event => {
   event.preventDefault();
 });
 </script>
-<link rel="stylesheet" href="/css/settings.css?v=1.0.181">
+<link rel="stylesheet" href="/css/settings.css?v=1.0.182">
 </head>
 
 <body style="background-color:#000000;">
@@ -13384,7 +13384,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.181";
+const APP_VERSION = "1.0.182";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -24173,8 +24173,8 @@ function renderSpecSummaryPreview(){
       <div class="spec-calorie-label">목표 칼로리</div>
       <div class="spec-calorie-value">${number(targets.targetCalories)}<span>kcal</span></div>
       <dl class="spec-macro-grid">
-        <div><dt>단백질</dt><dd>${number(targets.proteinTarget)}<span>g</span></dd></div>
         <div><dt>탄수화물</dt><dd>${number(targets.carbTarget)}<span>g</span></dd></div>
+        <div><dt>단백질</dt><dd>${number(targets.proteinTarget)}<span>g</span></dd></div>
         <div><dt>지방</dt><dd>${number(targets.fatTarget)}<span>g</span></dd></div>
       </dl>
       <div class="spec-calculation-details">
