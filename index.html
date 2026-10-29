@@ -8808,7 +8808,7 @@ document.addEventListener('dragstart', event => {
   event.preventDefault();
 });
 </script>
-<link rel="stylesheet" href="/css/settings.css?v=1.0.157">
+<link rel="stylesheet" href="/css/settings.css?v=1.0.158">
 </head>
 
 <body style="background-color:#000000;">
@@ -9709,7 +9709,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
   </div>
 </div>
 
-<div id="mySpecOverlay" class="hidden" style="
+<div id="mySpecOverlay" class="hidden settings-box-theme" style="
     position:fixed; inset:0; background:#000; z-index:100000;
     overflow:hidden;
   ">
@@ -10692,7 +10692,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
 </div>
 
 <!-- 🔥 홈 설정 — 설정 > 일반 최상단에서 진입 -->
-<div id="homeSettingsOverlay" class="hidden" style="
+<div id="homeSettingsOverlay" class="hidden settings-box-theme" style="
     position:fixed; inset:0; background:#000; z-index:100000;
     overflow:hidden;
   ">
@@ -10703,7 +10703,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
     </div>
 
     <div class="settings-card settings-card--flush">
-      <div class="settings-item" style="justify-content:space-between; border-bottom:none;">
+      <div class="settings-item settings-item--single" style="justify-content:space-between; border-bottom:none;">
         <span class="settings-item-label">진심모드</span>
         <div id="seriousModeToggle" class="toggle-switch settings-glass-toggle"></div>
       </div>
@@ -10713,7 +10713,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
 
 <!-- 🔥 단위 표기 — 설정 > 일반 안의 "단위 표기" 행을 누르면 여기로 옴. 3대/기록탭
      전용 표기(회/rep, 세트/set, kg/키로)를 각각 독립적으로 전환 -->
-<div id="unitSettingsOverlay" class="hidden" style="
+<div id="unitSettingsOverlay" class="hidden settings-box-theme" style="
     position:fixed; inset:0; background:#000; z-index:100000;
     overflow:hidden;
   ">
@@ -10923,7 +10923,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
   </div>
 </div>
 
-<div id="settingsOverlay" class="settings-overlay hidden">
+<div id="settingsOverlay" class="settings-overlay hidden settings-box-theme">
   <div class="settings-panel" id="settingsPanel">
 
     <!-- 🔥 뒤로가기 버튼 완전히 제거(레퍼런스와 동일) — 닫기는 기존 스와이프 제스처로만 -->
@@ -13361,7 +13361,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.157";
+const APP_VERSION = "1.0.158";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -16524,7 +16524,8 @@ function closeHomeSettings(){
 }
 
 document.getElementById("homeSettingsMenuBtn").addEventListener("click", () => {
-  closeSettings();
+  // 🔥 설정 화면은 안 닫고 그 위에 쌓아서 염 — 뒤로가기(스와이프) 한 번에
+  // 앱 전체가 아니라 설정 목록으로만 돌아가게 하기 위함
   openHomeSettings();
 });
 
@@ -16547,7 +16548,6 @@ function closeUnitSettings(){
 }
 
 document.getElementById("unitSettingsMenuBtn").addEventListener("click", () => {
-  closeSettings();
   openUnitSettings();
 });
 
@@ -22106,6 +22106,11 @@ const settingsPanelEl = document.getElementById("settingsPanel");
 // 이 안의 position:fixed 요소(설정 패널 자신 포함)의 기준점이 뷰포트가 아니라 .app으로
 // 바뀌어버림(navDrawerOverlay와 동일한 문제) — body 바로 밑으로 옮겨서 항상 뷰포트 기준으로 고정
 document.body.appendChild(settingsOverlay);
+// 🔥 홈 설정/단위 표기 화면도 settingsOverlay "위"에 쌓이도록 그 뒤에 옮김(z-index가
+// 서로 같은 100000이라 DOM 순서로 쌓임 순서가 정해짐) — 이제 설정 화면을 안 닫은 채로
+// 그 위에 열어서, 뒤로가기 한 번에 설정 목록으로만 돌아가고 완전히 안 빠져나가게 함
+document.body.appendChild(homeSettingsOverlay);
+document.body.appendChild(unitSettingsOverlay);
 
 // 🔥 설정 화면 뒤로 살짝 밀리며 페이드아웃되는 본 화면(.app) — 메뉴드로우바(setAppPush)와
 // 반대 방향(왼쪽)으로, dietOverlay가 열릴 때 쓰는 것과 동일한 push+fade 패턴
@@ -23958,7 +23963,6 @@ if (window.visualViewport) {
 }
 
 document.getElementById("mySpecMenuBtn").addEventListener("click", () => {
-  closeSettings();
   openMySpec();
 });
 
