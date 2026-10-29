@@ -7,7 +7,7 @@
    배경은 그 자리에 그대로 고정. body 쪽 배경을 없애서 이 배경이 항상 그대로
    비쳐 보이게 함(스크롤이나 당겨서 튕기는 바운스 중에도 배경이 전혀 안 움직이니
    이전처럼 두 레이어가 어긋나며 이상해 보이는 문제 자체가 생길 수 없음) */
-#settingsOverlay .settings-panel{background:radial-gradient(ellipse 140% 50vh at 50% 0,rgba(100,30,38,.48) 0%,rgba(64,20,25,.24) 55%,transparent 100%),#0b0b0b;color:#f5f5f5;}
+#settingsOverlay .settings-panel{background:radial-gradient(ellipse 140% 58vh at 50% 0,rgba(128,28,36,.62) 0%,rgba(82,18,25,.32) 55%,transparent 100%),#0b0b0b;color:#f5f5f5;}
 /* 🔥 큰 제목은 settings-body 맨 위 콘텐츠라 스크롤하면 카드들과 같이 올라감(뒤로가기
    버튼이 없어져서 더 이상 옆으로 비킬 필요 없이 다른 콘텐츠와 동일한 좌측 정렬) */
 .settings-box-theme .settings-header-title{font-size:34px;font-weight:750;letter-spacing:-.8px;line-height:44px;margin:0 0 44px;padding:calc(18px + env(safe-area-inset-top)) 0 0;}
@@ -63,7 +63,7 @@
 .settings-box-theme :is(button.settings-item,.settings-row,.settings-account-action):active{opacity:.65;}
 .settings-box-theme :is(button.settings-item,.settings-row,.settings-account-action):focus-visible{outline:2px solid currentColor;outline-offset:3px;border-radius:8px;}
 html.light-mode-on .settings-box-theme{--settings-card-bg:#fff;--settings-line:rgba(35,20,25,.09);--settings-muted:#80777b;}
-html.light-mode-on #settingsOverlay .settings-panel{background:radial-gradient(ellipse 140% 30vh at 50% 0,rgba(166,95,103,.09) 0%,rgba(166,95,103,.025) 55%,transparent 100%),#f5f4f4;color:#1c191b;}
+html.light-mode-on #settingsOverlay .settings-panel{background:radial-gradient(ellipse 140% 34vh at 50% 0,rgba(166,75,85,.14) 0%,rgba(166,75,85,.04) 55%,transparent 100%),#f5f4f4;color:#1c191b;}
 html.light-mode-on .settings-box-theme .settings-card{background:#fff;box-shadow:0 2px 12px rgba(40,15,25,.035);}
 html.light-mode-on .settings-box-theme .settings-profile-avatar{background:#f2eaed;color:#6b565f;}
 html.light-mode-on .settings-box-theme .settings-chevron,
