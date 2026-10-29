@@ -8808,7 +8808,7 @@ document.addEventListener('dragstart', event => {
   event.preventDefault();
 });
 </script>
-<link rel="stylesheet" href="/css/settings.css?v=1.0.158">
+<link rel="stylesheet" href="/css/settings.css?v=1.0.159">
 </head>
 
 <body style="background-color:#000000;">
@@ -9719,51 +9719,72 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
       <span style="margin-left:12px; font-size:15px; font-weight:600; color:var(--c-text-primary);">내 정보 수정</span>
     </div>
 
-    <div class="spec-row spec-row-name">
-      <label>이름</label>
-      <input id="specName" type="text" placeholder="사용자명 입력" maxlength="20">
-    </div>
+    <section class="settings-group">
+      <h2 class="settings-section-label">이름</h2>
+      <div class="settings-card settings-card--flush spec-card">
+        <div class="spec-row spec-row-name">
+          <input id="specName" type="text" placeholder="사용자명 입력" maxlength="20">
+        </div>
+      </div>
+    </section>
 
-    <div class="spec-row">
-      <label>성별</label>
-      <div class="gender-toggle">
-        <button type="button" class="genderBtn active" data-gender="male">남</button>
-        <button type="button" class="genderBtn" data-gender="female">여</button>
+    <section class="settings-group">
+      <h2 class="settings-section-label">성별</h2>
+      <div class="settings-card settings-card--flush spec-card">
+        <div class="spec-row">
+          <div class="gender-toggle">
+            <button type="button" class="genderBtn active" data-gender="male">남</button>
+            <button type="button" class="genderBtn" data-gender="female">여</button>
+          </div>
+        </div>
       </div>
-    </div>
+    </section>
 
-    <div class="spec-row-grid3">
-      <div>
-        <label>키(cm)</label>
-        <input id="specHeight" type="number" placeholder="175">
+    <section class="settings-group">
+      <h2 class="settings-section-label">신체 정보</h2>
+      <div class="settings-card settings-card--flush spec-card">
+        <div class="spec-row-grid3">
+          <div>
+            <label>키(cm)</label>
+            <input id="specHeight" type="number" placeholder="175">
+          </div>
+          <div>
+            <label>몸무게(kg)</label>
+            <input id="specWeight" type="number" placeholder="70">
+          </div>
+          <div>
+            <label>나이</label>
+            <input id="specAge" type="number" placeholder="25">
+          </div>
+        </div>
       </div>
-      <div>
-        <label>몸무게(kg)</label>
-        <input id="specWeight" type="number" placeholder="70">
-      </div>
-      <div>
-        <label>나이</label>
-        <input id="specAge" type="number" placeholder="25">
-      </div>
-    </div>
+    </section>
 
-    <div class="spec-row">
-      <label>활동량</label>
-      <div id="activitySliderTrack" class="activity-slider-track">
-        <div id="activitySliderFill" class="activity-slider-fill"></div>
-        <div id="activitySliderHandle" class="activity-slider-handle"></div>
+    <section class="settings-group">
+      <h2 class="settings-section-label">활동량</h2>
+      <div class="settings-card settings-card--flush spec-card">
+        <div class="spec-row">
+          <div id="activitySliderTrack" class="activity-slider-track">
+            <div id="activitySliderFill" class="activity-slider-fill"></div>
+            <div id="activitySliderHandle" class="activity-slider-handle"></div>
+          </div>
+          <div id="activityLevelLabel" class="activity-level-label">보통</div>
+        </div>
       </div>
-      <div id="activityLevelLabel" class="activity-level-label">보통</div>
-    </div>
+    </section>
 
-    <div class="spec-row">
-      <label>목표</label>
-      <div class="goal-toggle">
-        <button type="button" class="goalBtn" data-goal="cut">다이어트</button>
-        <button type="button" class="goalBtn active" data-goal="maintain">유지</button>
-        <button type="button" class="goalBtn" data-goal="bulk">벌크업</button>
+    <section class="settings-group">
+      <h2 class="settings-section-label">목표</h2>
+      <div class="settings-card settings-card--flush spec-card">
+        <div class="spec-row">
+          <div class="goal-toggle">
+            <button type="button" class="goalBtn" data-goal="cut">다이어트</button>
+            <button type="button" class="goalBtn active" data-goal="maintain">유지</button>
+            <button type="button" class="goalBtn" data-goal="bulk">벌크업</button>
+          </div>
+        </div>
       </div>
-    </div>
+    </section>
 
     <button id="saveSpecBtn">저장</button>
 
@@ -13361,7 +13382,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.158";
+const APP_VERSION = "1.0.159";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
