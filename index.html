@@ -6710,15 +6710,6 @@ input[type="number"] {
   border-bottom-color: var(--c-text-primary);
 }
 
-/* 🔥 이름 입력칸: 세로 폭 2배 + 그에 맞는 글자 크기 + 상하좌 여백 */
-#specName {
-  height: 80px;
-  font-size: 20px;
-  padding: 5px 2px 4px 16px;
-}
-.spec-row-name label {
-  margin-bottom: 0;
-}
 
 /* 키/몸무게/나이 한 줄 배치 */
 .spec-row-grid3 {
@@ -8808,7 +8799,7 @@ document.addEventListener('dragstart', event => {
   event.preventDefault();
 });
 </script>
-<link rel="stylesheet" href="/css/settings.css?v=1.0.161">
+<link rel="stylesheet" href="/css/settings.css?v=1.0.162">
 </head>
 
 <body style="background-color:#000000;">
@@ -9710,19 +9701,27 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
 </div>
 
 <div id="mySpecOverlay" class="hidden settings-box-theme" style="
-    position:fixed; inset:0; background:#000; z-index:100000;
+    position:fixed; inset:0; z-index:100000;
     overflow:hidden;
   ">
   <div id="mySpecScreen" style="height:100%; overflow-y:auto; padding: calc(16px + env(safe-area-inset-top)) 20px calc(24px + env(safe-area-inset-bottom));">
-    <div style="display:flex; align-items:center; margin-bottom:16px;">
-      <button onclick="closeMySpec()" class="bw-menu-header-close" aria-label="뒤로가기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg></button>
-      <span style="margin-left:12px; font-size:15px; font-weight:600; color:var(--c-text-primary);">내 정보 수정</span>
+    <div style="display:flex; justify-content:flex-end;">
+      <button onclick="closeMySpec()" class="spec-close-btn" aria-label="닫기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
     </div>
 
+    <!-- 🔥 레퍼런스(Took Pro 결제창)처럼 상단 중앙에 큰 아이콘 + 타이틀로 보여주는
+         히어로 영역 — 아이콘은 아바타와 동일한 꽉 찬 사람 실루엣, 타이틀은 지금
+         입력된 이름을 실시간으로 반영(없으면 안내 문구) -->
+    <div class="spec-hero">
+      <div class="spec-hero-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><defs><clipPath id="specHeroIconClip"><circle cx="12" cy="12" r="9"/></clipPath></defs><g clip-path="url(#specHeroIconClip)" fill="currentColor"><circle cx="12" cy="10" r="3.4"/><ellipse cx="12" cy="21" rx="7" ry="6"/></g></svg></div>
+      <div class="spec-hero-name" id="specHeroName">이름을 입력해주세요</div>
+    </div>
+
+    <!-- 🔥 이름 입력칸은 "알림" 한 줄짜리 카드와 동일한 크기/색/모양(캡슐형)을 그대로 재사용 -->
     <section class="settings-group">
       <h2 class="settings-section-label">이름</h2>
-      <div class="settings-card settings-card--flush spec-card">
-        <div class="spec-row spec-row-name">
+      <div class="settings-card settings-card--flush">
+        <div class="settings-item settings-item--single spec-name-item">
           <input id="specName" type="text" placeholder="사용자명 입력" maxlength="20">
         </div>
       </div>
@@ -13382,7 +13381,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.161";
+const APP_VERSION = "1.0.162";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -23957,15 +23956,28 @@ const activitySliderHandle = document.getElementById("activitySliderHandle");
 const activityLevelLabel = document.getElementById("activityLevelLabel");
 const specSummaryBox = document.getElementById("specSummaryBox");
 
+// 🔥 레퍼런스(Took Pro 결제창)처럼 아래에서 위로 올라오며 열림(기존엔 오른쪽에서
+// 슬라이드 없이 바로 나타났음)
 function openMySpec(){
   mySpecOverlay.classList.remove("hidden");
-  mySpecScreen.style.transform = "translateX(0)";
+  mySpecScreen.style.transition = "none";
+  mySpecScreen.style.transform = "translateY(100%)";
   mySpecScreen.scrollTop = 0;
   applySpecToUI();
+  void mySpecScreen.offsetHeight; // 강제 리플로우(트랜지션이 바로 적용되게)
+  mySpecScreen.style.transition = "transform 0.32s cubic-bezier(.22,.68,0,1.01)";
+  mySpecScreen.style.transform = "translateY(0)";
 }
+// 🔥 닫을 때도 아래로 다시 내려가며 사라짐 — 스와이프 중간에 드래그된 위치에서
+// 시작해도 자연스럽게 이어지도록 여기서 트랜지션+최종 위치를 한 번에 처리
 function closeMySpec(){
-  mySpecOverlay.classList.add("hidden");
-  mySpecScreen.style.transform = "translateX(0)";
+  mySpecScreen.style.transition = "transform 0.22s ease";
+  mySpecScreen.style.transform = "translateY(100%)";
+  setTimeout(() => {
+    mySpecOverlay.classList.add("hidden");
+    mySpecScreen.style.transition = "none";
+    mySpecScreen.style.transform = "translateY(0)";
+  }, 220);
 }
 
 /* 🔥 입력창(키/몸무게/나이 등)에 포커스가 가서 키보드가 뜨면, position:fixed인 이
@@ -24060,7 +24072,16 @@ function applySpecToUI(){
 
   setActivityIndex(userSpec.activityIndex ?? 2);
   renderSpecSummaryPreview();
+  updateSpecHeroName();
 }
+
+// 🔥 상단 히어로 타이틀에 지금 입력된 이름을 실시간으로 반영(없으면 안내 문구)
+const specHeroName = document.getElementById("specHeroName");
+function updateSpecHeroName(){
+  const name = specName.value.trim();
+  specHeroName.textContent = name || "이름을 입력해주세요";
+}
+specName.addEventListener("input", updateSpecHeroName);
 
 /* 🔥 설정 화면 계정 행에 표시할 사용자명 갱신
    (직접 입력한 이름이 있으면 그걸, 없으면 "사용자명" 기본값 표시) */
@@ -24119,18 +24140,19 @@ document.getElementById("saveSpecBtn").addEventListener("click", () => {
   alert("저장됐어요!");
 });
 
-/* 🔥 내 정보 수정 화면: 왼쪽 끝 스와이프로 닫기 */
+/* 🔥 내 정보 수정 화면: 아래로 당겨서 닫기(바텀시트 전환에 맞춰 좌우 스와이프 ->
+   상하 드래그로 변경). 맨 위로 스크롤된 상태(scrollTop 0)에서 아래로 당길 때만
+   닫힘 동작, 그 외엔 일반 스크롤 그대로 둠 */
 (function(){
-  const EDGE_ZONE = 30, COMMIT_MOVE = 8, CLOSE_RATIO = 0.3;
+  const COMMIT_MOVE = 8, CLOSE_RATIO = 0.22;
   let startX = 0, startY = 0, tracking = false, dragging = false;
 
   mySpecScreen.addEventListener('touchstart', (e) => {
+    if (mySpecScreen.scrollTop > 0) { tracking = false; return; }
     const t = e.touches[0];
-    if (t.clientX <= EDGE_ZONE) {
-      startX = t.clientX; startY = t.clientY;
-      tracking = true; dragging = false;
-      mySpecScreen.style.transition = 'none';
-    } else { tracking = false; }
+    startX = t.clientX; startY = t.clientY;
+    tracking = true; dragging = false;
+    mySpecScreen.style.transition = 'none';
   }, { passive: true });
 
   mySpecScreen.addEventListener('touchmove', (e) => {
@@ -24138,13 +24160,13 @@ document.getElementById("saveSpecBtn").addEventListener("click", () => {
     const t = e.touches[0];
     const dx = t.clientX - startX, dy = t.clientY - startY;
     if (!dragging) {
-      if (dx > COMMIT_MOVE && dx > Math.abs(dy) * 0.6) dragging = true;
-      else if (Math.abs(dy) > COMMIT_MOVE && Math.abs(dy) > dx) { tracking = false; return; }
+      if (dy > COMMIT_MOVE && dy > Math.abs(dx) * 0.6) dragging = true;
+      else if (dy < -COMMIT_MOVE || (Math.abs(dx) > COMMIT_MOVE && Math.abs(dx) > dy)) { tracking = false; return; }
       else return;
     }
     if (dragging) {
       e.preventDefault();
-      mySpecScreen.style.transform = `translateX(${Math.max(0, dx)}px)`;
+      mySpecScreen.style.transform = `translateY(${Math.max(0, dy)}px)`;
     }
   }, { passive: false });
 
@@ -24154,16 +24176,15 @@ document.getElementById("saveSpecBtn").addEventListener("click", () => {
     tracking = false; dragging = false;
     if (!wasDragging) return;
 
-    const width = mySpecScreen.offsetWidth || window.innerWidth;
+    const height = mySpecScreen.offsetHeight || window.innerHeight;
     const t = e.changedTouches[0];
-    const dx = Math.max(0, t.clientX - startX);
-    mySpecScreen.style.transition = 'transform 0.22s ease';
+    const dy = Math.max(0, t.clientY - startY);
 
-    if (dx > width * CLOSE_RATIO) {
-      mySpecScreen.style.transform = `translateX(${width}px)`;
-      setTimeout(() => { closeMySpec(); mySpecScreen.style.transition = 'none'; }, 220);
+    if (dy > height * CLOSE_RATIO) {
+      closeMySpec();
     } else {
-      mySpecScreen.style.transform = 'translateX(0)';
+      mySpecScreen.style.transition = 'transform 0.22s ease';
+      mySpecScreen.style.transform = 'translateY(0)';
     }
   }
   mySpecScreen.addEventListener('touchend', endDrag, { passive: true });
