@@ -1,4 +1,4 @@
-"""Cold-start mini timer padding, restored offsets and 1.5s toggle fade."""
+"""Cold-start mini timer padding, restored offsets and 1s toggle fade."""
 from pathlib import Path
 import subprocess,time
 from playwright.sync_api import sync_playwright
@@ -27,6 +27,8 @@ try:
     page.add_init_script("window.addEventListener('pageshow',()=>{const app=document.querySelector('.app');if(app)app.scrollTop=180},{once:true})")
     page.reload();page.wait_for_timeout(1600)
     assert page.locator('#restTimerMiniDisplay').is_visible()
+    mini=page.locator('#restTimerMiniDisplay').bounding_box();toggle=page.locator('#homeModeSwitch').bounding_box()
+    assert abs(toggle['y']-mini['y']-mini['height']-6)<1,(mini,toggle)
     assert check_layout()['scroll']==0
     page.evaluate('homeModeApp.scrollTop=homeModeApp.scrollHeight');page.wait_for_timeout(100)
     button=page.locator('#homeDietQuickBtn').bounding_box();assert button['y']+button['height']<=page.locator('.bottomTab').bounding_box()['y']
@@ -34,9 +36,9 @@ try:
     # Padding-only updates remain correct even after startup has settled.
     page.evaluate('stopRestTimerManually()');page.wait_for_timeout(200);check_layout()
     page.evaluate('resetRestTimerOnSave()');page.wait_for_timeout(200);check_layout()
-   # The fade starts after 1.5s, then follows the existing 0.8s transition to .5.
+   # The fade starts after 1s, then follows the existing 0.8s transition to .5.
    fade=page.evaluate('''async()=>{
-    resetHomeModeFade();await new Promise(r=>setTimeout(r,1250));
+    resetHomeModeFade();await new Promise(r=>setTimeout(r,750));
     const before=getComputedStyle(homeModeSwitch).opacity;
     await new Promise(r=>setTimeout(r,450));const during=getComputedStyle(homeModeSwitch).opacity;
     await new Promise(r=>setTimeout(r,800));return {before:Number(before),during:Number(during),after:Number(getComputedStyle(homeModeSwitch).opacity)};
