@@ -42,7 +42,7 @@
 #settingsOverlay .settings-profile-identity{display:flex;align-items:center;gap:14px;min-width:0;}
 #settingsOverlay #settingsGuestBadge{padding:24px 0;border:0;min-height:100px;box-sizing:border-box;}
 #settingsOverlay .settings-profile-avatar{width:44px;height:44px;flex:0 0 44px;display:flex;align-items:center;justify-content:center;border-radius:15px;background:#282426;color:#e1d9dc;}
-#settingsOverlay .settings-profile-avatar .settings-item-icon{width:24px;height:24px;flex-basis:24px;margin:0;}
+#settingsOverlay .settings-profile-avatar .settings-item-icon{width:34px;height:34px;flex-basis:34px;margin:0;}
 #settingsOverlay .settings-profile-text{min-width:0;flex:1;}
 #settingsOverlay .settings-name{font-size:20px;font-weight:650;line-height:1.4;overflow-wrap:anywhere;}
 #settingsOverlay .settings-email{font-size:13px;line-height:1.5;margin-top:3px;color:var(--settings-muted);}
