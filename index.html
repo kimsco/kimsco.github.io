@@ -8795,7 +8795,7 @@ document.addEventListener('dragstart', event => {
   event.preventDefault();
 });
 </script>
-<link rel="stylesheet" href="/css/settings.css?v=1.0.193">
+<link rel="stylesheet" href="/css/settings.css?v=1.0.195">
 </head>
 
 <body style="background-color:#000000;">
@@ -10743,9 +10743,10 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
   <div id="unitSettingsScreen" style="height:100%; overflow-y:auto; padding: calc(16px + env(safe-area-inset-top)) 18px calc(24px + env(safe-area-inset-bottom));">
     <div style="display:flex; align-items:center; margin-bottom:16px;">
       <button onclick="closeUnitSettings()" class="bw-menu-header-close" aria-label="뒤로가기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg></button>
-      <span style="margin-left:12px; font-size:15px; font-weight:600; color:var(--c-text-primary);">단위 표기</span>
+      <span style="margin-left:12px; font-size:15px; font-weight:600; color:var(--c-text-primary);">화면 설정</span>
     </div>
 
+    <h2 class="settings-section-label">단위 표시</h2>
     <div class="settings-card settings-card--flush">
       <div class="settings-item" style="justify-content:space-between; border-bottom:1px solid var(--c-border);">
         <span class="settings-item-label">횟수 (<span id="unitRepsOptEn" class="unit-opt">rep</span> / <span id="unitRepsOptKr" class="unit-opt">회</span>)</span>
@@ -10759,6 +10760,18 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
         <span class="settings-item-label">무게 (<span id="unitWeightOptKg" class="unit-opt">kg</span> / <span id="unitWeightOptKr" class="unit-opt">키로</span>)</span>
         <div id="unitWeightToggle" class="toggle-switch settings-glass-toggle"></div>
       </div>
+    </div>
+    <h2 class="settings-section-label display-input-heading">입력</h2>
+    <div class="settings-card settings-card--flush">
+  <!-- 🔥 기록 입력창(kg/회) 탭했을 때 기기 기본 키보드 대신 숫자 패드가 바로 뜨게 할지 —
+       기기별 설정이라 localStorage에만 저장(계정 동기화 없음, lightModeToggle과 동일 패턴) -->
+  <div class="settings-item" style="justify-content:space-between; border-bottom:none;">
+    <span class="settings-item-label">
+      <svg class="settings-item-icon" viewBox="0 0 24 24" style="display:block;"><text x="12" y="17" text-anchor="middle" font-size="14" font-weight="800" font-family="-apple-system, BlinkMacSystemFont, sans-serif" fill="currentColor" transform="translate(0,12) scale(1,1.48) translate(0,-12)">123</text></svg>
+      숫자 키패드
+    </span>
+    <div id="numericKeypadToggle" class="toggle-switch settings-glass-toggle"></div>
+  </div>
     </div>
   </div>
 </div>
@@ -10990,7 +11003,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
        바깥에 별도 카드로 토글 3개가 그대로 있었는데, 한 칸으로 접어서 누르면 전용
        화면(#unitSettingsOverlay)에서 조절하도록 변경 -->
   <button id="unitSettingsMenuBtn" class="settings-item" style="width:100%; text-align:left; background:none; color:var(--c-text-primary); cursor:pointer; border-bottom:1px solid var(--c-border); border-radius:0; appearance:none; -webkit-appearance:none;">
-    <svg class="settings-item-icon" viewBox="0 0 24 24" style="display:block;"><text x="12" y="19" text-anchor="middle" font-size="20" font-weight="600" font-family="-apple-system, BlinkMacSystemFont, sans-serif" fill="currentColor">kg</text></svg>단위 표기<span class="settings-chevron" aria-hidden="true">›</span>
+    <svg class="settings-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>화면 설정<span class="settings-chevron" aria-hidden="true">›</span>
   </button>
   <div class="settings-item" style="justify-content:space-between; border-bottom:1px solid var(--c-border);">
     <span class="settings-item-label"><svg class="settings-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 13A8.5 8.5 0 0 1 11 3.5 8.5 8.5 0 1 0 20.5 13Z"/></svg>화면 모드</span>
@@ -11005,15 +11018,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
     </span>
     <div id="restTimerToggle" class="toggle-switch settings-glass-toggle"></div>
   </div>
-  <!-- 🔥 기록 입력창(kg/회) 탭했을 때 기기 기본 키보드 대신 숫자 패드가 바로 뜨게 할지 —
-       기기별 설정이라 localStorage에만 저장(계정 동기화 없음, lightModeToggle과 동일 패턴) -->
-  <div class="settings-item" style="justify-content:space-between; border-bottom:none;">
-    <span class="settings-item-label">
-      <svg class="settings-item-icon" viewBox="0 0 24 24" style="display:block;"><text x="12" y="17" text-anchor="middle" font-size="14" font-weight="800" font-family="-apple-system, BlinkMacSystemFont, sans-serif" fill="currentColor" transform="translate(0,12) scale(1,1.48) translate(0,-12)">123</text></svg>
-      숫자 키패드
-    </span>
-    <div id="numericKeypadToggle" class="toggle-switch settings-glass-toggle"></div>
-  </div>
+
 </div>
 
 </section>
@@ -13383,7 +13388,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.194";
+const APP_VERSION = "1.0.195";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {

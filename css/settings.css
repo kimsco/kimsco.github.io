@@ -293,3 +293,6 @@ html.light-mode-on #mySpecScreen .spec-hero-icon{background:linear-gradient(145d
 html.light-mode-on #notificationSettingsOverlay{--notification-card:#fff;--notification-selection:#f3e8e8;--notification-muted:#867979;}
 html.light-mode-on #notificationSettingsOverlay :is(#notificationAllowBtn,.notification-time-picker){box-shadow:0 2px 12px rgba(40,15,25,.035);}
 @media(prefers-reduced-motion:reduce){#notificationSettingsOverlay #notificationSaveBtn{transition:none;}#notificationSettingsOverlay #notificationSaveBtn:active:not(:disabled){transform:none;}}
+
+/* Display settings groups unit labels and the input keyboard preference. */
+#unitSettingsOverlay .display-input-heading{margin-top:28px;}
