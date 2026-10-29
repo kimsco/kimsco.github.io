@@ -389,7 +389,6 @@ html.light-mode-on #graphSheet #sheetTitle{background:linear-gradient(135deg,rgb
 #tab1 #homeNormalContent .home-card:last-child{margin-bottom:0;}
 #tab1 #homeNormalContent :is(.home-today-card,.home-week-card,.home-parts-card,.home-diet-card){padding:20px;}
 #tab1 #homeNormalContent .home-card-label{display:flex;align-items:center;gap:10px;min-width:0;font-size:15px;font-weight:650;line-height:22px;letter-spacing:0;color:var(--settings-muted);}
-#tab1 .home-section-icon{width:22px;height:22px;flex:0 0 22px;}
 #tab1 #homeNormalContent .home-title-row{gap:12px;margin-bottom:24px;}
 #tab1 #homeNormalContent :is(.home-big3-badge,.home-weight-pill){height:44px;padding:0 16px;border:0;border-radius:999px;background:var(--settings-card-bg);box-shadow:none;}
 #tab1 #homeNormalContent .home-big3-badge{font-size:14px;font-weight:500;color:var(--settings-muted);}
@@ -438,5 +437,5 @@ html.light-mode-on #tab1 #homeNormalContent :is(.home-card,.home-big3-badge,.hom
 html.light-mode-on #tab1 #homeNormalContent :is(.home-macro-pill,.home-diet-input-row){background:#f3f2f3;border-color:rgba(35,20,25,.06);}
 html.light-mode-on #tab1 #homeNormalContent .home-week-day .d{background:#eeecee;}
 html.light-mode-on #tab1 #homeNormalContent .home-week-day .d.done{background:#c52e32;}
-@media(max-width:359px){#tab1 #homeNormalContent .home-parts-head-sub{flex-basis:100%;padding-left:32px;}}
+@media(max-width:359px){#tab1 #homeNormalContent .home-parts-head-sub{flex-basis:100%;padding-left:0;}}
 @media(prefers-reduced-motion:reduce){#tab1 #homeNormalContent :is(.home-weight-pill,.home-diet-input-row button){transition:none;}}
