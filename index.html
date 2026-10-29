@@ -2226,7 +2226,7 @@ html.mf-restore-settings .bottomTab {
 .home-mode-thumb{
   position:absolute;left:3px;top:3px;bottom:3px;width:calc(50% - 3px);
   border-radius:999px;background:#3b3b3b;
-  transform:translateX(calc(var(--home-mode-progress,0) * 100%));z-index:-1;
+  transform:translate3d(0,0,0);will-change:transform;z-index:-1;
 }
 .home-mode-switch button{
   flex:1;margin:0;padding:0;border:0;border-radius:999px;background:transparent;
@@ -2244,7 +2244,7 @@ html.light-mode-on .home-mode-switch button[aria-selected="true"]{color:#1a1a1a;
    The normal panel keeps its existing content spacing with matching inner padding. */
 .home-mode-viewport{overflow:hidden;width:calc(100% + 54px);margin-inline:-27px;margin-top:calc(var(--topBarRowH) - var(--topBarH) - 20px);position:relative;}
 #homeNormalContent{padding-inline:27px;padding-top:calc(60px + var(--topBarH) - var(--topBarRowH));}
-.home-mode-track{display:flex;align-items:flex-start;width:200%;transform:translateX(calc(var(--home-mode-progress,0) * -50%));}
+.home-mode-track{display:flex;align-items:flex-start;width:200%;transform:translate3d(0,0,0);will-change:transform;}
 .home-mode-track>div{flex:0 0 50%;width:50%;min-width:0;box-sizing:border-box;}
 #inactivityOverlay.hidden {
   display: none;
@@ -13566,7 +13566,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.232";
+const APP_VERSION = "1.0.233";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -16855,19 +16855,44 @@ resetHomeModeFade();
 const homeModeTabObserver=new MutationObserver(updateHomeModeFloating);
 homeModeTabObserver.observe(homeModeHome,{attributes:true,attributeFilter:['class']});
 updateHomeModeFloating();
-let homeModeProgress=0,homeModeFrame=0,homeModeTarget=false;
+const homeModeTrack=document.getElementById('homeModeTrack');
+const homeModeThumb=homeModeSwitch.querySelector('.home-mode-thumb');
+let homeModeProgress=0,homeModeTarget=false,homeModeMotion=null;
+const homeModePanelHeights={normal:0,focus:0};
+function updateHomeModeHeight(){
+  const {normal,focus}=homeModePanelHeights;
+  // Do not animate layout. Both panels fit while their transforms move together.
+  const height=homeModeMotion?Math.max(normal,focus):(homeModeTarget?focus:normal);
+  if(height>0 && homeModeViewport.style.height!==height+'px')homeModeViewport.style.height=height+'px';
+}
+function measureHomeModePanels(){
+  const normal=homeNormalContent.getBoundingClientRect().height;
+  const focus=homeSeriousModeScreen.getBoundingClientRect().height;
+  if(normal>0)homeModePanelHeights.normal=normal;
+  if(focus>0)homeModePanelHeights.focus=focus;
+}
 function paintHomeMode(progress){
   homeModeProgress=progress;
-  document.getElementById('tab1').style.setProperty('--home-mode-progress',String(progress));
-  homeModeSwitch.style.setProperty('--home-mode-progress',String(progress));
-  const normalHeight=homeNormalContent.getBoundingClientRect().height;
-  const focusHeight=homeSeriousModeScreen.getBoundingClientRect().height;
-  if(normalHeight && focusHeight)homeModeViewport.style.height=(normalHeight+(focusHeight-normalHeight)*progress)+'px';
+  homeModeTrack.style.transform=`translate3d(${-50*progress}%,0,0)`;
+  homeModeThumb.style.transform=`translate3d(${100*progress}%,0,0)`;
+  updateHomeModeHeight();
+}
+function currentHomeModeProgress(){
+  if(!homeModeMotion)return homeModeProgress;
+  const progress=homeModeMotion.track.effect.getComputedTiming().progress ?? 0;
+  return homeModeMotion.from+(homeModeMotion.to-homeModeMotion.from)*progress;
 }
 function applyHomeMode(on,{animate=true,persist=true}={}){
   on=!!on;
+  // A reversal starts at the currently displayed position, without a frame loop.
+  const from=currentHomeModeProgress();
+  if(homeModeMotion){
+    const previous=homeModeMotion;homeModeMotion=null;
+    previous.track.cancel();previous.thumb.cancel();
+  }
+  measureHomeModePanels();
   if(on!==homeModeTarget && persist)resetHomeModeFade();
-  homeModeTarget=on;cancelAnimationFrame(homeModeFrame);homeModeFrame=0;
+  homeModeTarget=on;
   document.documentElement.classList.toggle('home-focus-active',on);
   homeModeBasic.setAttribute('aria-selected',String(!on));homeModeFocus.setAttribute('aria-selected',String(on));
   homeModeBasic.tabIndex=on?-1:0;homeModeFocus.tabIndex=on?0:-1;
@@ -16875,15 +16900,27 @@ function applyHomeMode(on,{animate=true,persist=true}={}){
   homeNormalContent.setAttribute('aria-hidden',String(on));homeSeriousModeScreen.setAttribute('aria-hidden',String(!on));
   if(persist)try{localStorage.setItem('mf_home_mode',on?'1':'0');}catch(e){}
   if(currentActiveTabTarget()==='tab1')document.querySelector('.app').scrollTop=0;
-  const target=on?1:0,from=homeModeProgress;
+  const target=on?1:0;
   if(!animate || matchMedia('(prefers-reduced-motion: reduce)').matches || from===target){paintHomeMode(target);return;}
-  const start=performance.now();
-  function step(now){
-    const t=Math.min(1,(now-start)/360),eased=1-Math.pow(1-t,3);
-    paintHomeMode(from+(target-from)*eased);
-    if(t<1)homeModeFrame=requestAnimationFrame(step);else homeModeFrame=0;
-  }
-  homeModeFrame=requestAnimationFrame(step);
+  const motion={from,to:target,track:null,thumb:null};
+  homeModeMotion=motion;
+  paintHomeMode(target);
+  const timing={duration:360,easing:'cubic-bezier(.22,1,.36,1)'};
+  motion.track=homeModeTrack.animate([
+    {transform:`translate3d(${-50*from}%,0,0)`},
+    {transform:`translate3d(${-50*target}%,0,0)`}
+  ],timing);
+  motion.thumb=homeModeThumb.animate([
+    {transform:`translate3d(${100*from}%,0,0)`},
+    {transform:`translate3d(${100*target}%,0,0)`}
+  ],timing);
+  // Share the exact timeline origin so the switch and content never drift.
+  const start=document.timeline.currentTime;
+  if(start!==null){motion.track.startTime=start;motion.thumb.startTime=start;}
+  Promise.all([motion.track.finished,motion.thumb.finished]).then(()=>{
+    if(homeModeMotion!==motion)return;
+    homeModeMotion=null;updateHomeModeHeight();
+  }).catch(()=>{}); // Cancelled by a newer toggle.
 }
 let seriousQuoteMode=false;
 function applySeriousMode(on,{persist=true}={}){
@@ -16915,7 +16952,13 @@ homeModeSwitch.addEventListener('keydown',event=>{
   event.preventDefault();const on=event.key==='ArrowRight'||event.key==='End';
   applyHomeMode(on);(on?homeModeFocus:homeModeBasic).focus();
 });
-const homeModeResizeObserver=new ResizeObserver(()=>paintHomeMode(homeModeProgress));
+const homeModeResizeObserver=new ResizeObserver(entries=>{
+  for(const entry of entries){
+    const size=entry.borderBoxSize?.[0]?.blockSize ?? entry.target.offsetHeight;
+    if(size>0)homeModePanelHeights[entry.target===homeNormalContent?'normal':'focus']=size;
+  }
+  updateHomeModeHeight();
+});
 homeModeResizeObserver.observe(homeNormalContent);homeModeResizeObserver.observe(homeSeriousModeScreen);
 
 /* ===============================
