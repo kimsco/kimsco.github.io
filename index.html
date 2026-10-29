@@ -8795,7 +8795,7 @@ document.addEventListener('dragstart', event => {
   event.preventDefault();
 });
 </script>
-<link rel="stylesheet" href="/css/settings.css?v=1.0.177">
+<link rel="stylesheet" href="/css/settings.css?v=1.0.178">
 </head>
 
 <body style="background-color:#000000;">
@@ -13384,7 +13384,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.177";
+const APP_VERSION = "1.0.178";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -24175,6 +24175,28 @@ function renderSpecSummaryPreview(){
   `;
 }
 
+let profileSaveToast,profileToastHold,profileToastHide;
+function showProfileSaveToast(){
+  if(!profileSaveToast){
+    profileSaveToast=document.createElement('div');
+    profileSaveToast.className='profile-save-toast';
+    profileSaveToast.setAttribute('role','status');
+    profileSaveToast.setAttribute('aria-live','polite');
+    profileSaveToast.setAttribute('aria-atomic','true');
+    profileSaveToast.innerHTML='<span class="profile-toast-check" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m6 12 4 4 8-8"/></svg></span><span>저장했어요</span>';
+    document.body.appendChild(profileSaveToast);
+  }
+  clearTimeout(profileToastHold);clearTimeout(profileToastHide);
+  profileSaveToast.hidden=false;
+  profileSaveToast.classList.remove('show');
+  void profileSaveToast.offsetWidth;
+  profileSaveToast.classList.add('show');
+  profileToastHold=setTimeout(()=>{
+    profileSaveToast.classList.remove('show');
+    profileToastHide=setTimeout(()=>{profileSaveToast.hidden=true;},300);
+  },2350);
+}
+
 document.getElementById("saveSpecBtn").addEventListener("click", () => {
   userSpec.name = specName.value.trim() || null;
   userSpec.height = parseFloat(specHeight.value) || null;
@@ -24186,7 +24208,7 @@ document.getElementById("saveSpecBtn").addEventListener("click", () => {
   renderSpecSummaryPreview();
   renderMacroSummary();
   renderSettingsIdentity(!!(auth.currentUser));
-  alert("저장됐어요!");
+  showProfileSaveToast();
 });
 
 /* A fresh downward pull at rest moves the sheet; ongoing scrolling keeps its bounce. */
