@@ -278,3 +278,18 @@ html.light-mode-on #mySpecScreen .spec-hero-icon{background:linear-gradient(145d
 /* A separate motion layer preserves the mode switch's independent idle fading. */
 .home-mode-motion-layer{position:fixed;inset:0;z-index:99998;pointer-events:none;}
 .home-mode-motion-layer>.home-mode-switch{pointer-events:auto;}
+
+/* Notification settings share the profile form's compact, rounded cards. */
+#notificationSettingsOverlay{--notification-card:#222222;--notification-selection:#333031;--notification-muted:#a39d9d;}
+#notificationSettingsOverlay .notification-settings-screen{max-width:440px;padding-left:20px;padding-right:20px;}
+#notificationSettingsOverlay #notificationAllowBtn{min-height:48px;padding:12px 20px;border-radius:999px;background:var(--notification-card);font-size:16px;line-height:24px;}
+#notificationSettingsOverlay #notificationAllowState{color:var(--notification-muted);font-size:13px;}
+#notificationSettingsOverlay .notification-time-picker{background:var(--notification-card);border-radius:24px;padding:0 10px;box-sizing:border-box;}
+#notificationSettingsOverlay .notification-time-picker::before{left:10px;right:10px;border-radius:999px;background:var(--notification-selection);}
+#notificationSettingsOverlay .notification-time-zone{margin-top:14px;}
+#notificationSettingsOverlay #notificationSaveBtn{height:48px;padding:0;border-radius:999px;background:#c52e32;color:#fff;font-family:inherit;font-size:16px;font-weight:650;transition:transform .2s,background .2s;}
+#notificationSettingsOverlay #notificationSaveBtn:active:not(:disabled){transform:scale(.98);background:#a52227;}
+#notificationSettingsOverlay :is(#notificationAllowBtn,#notificationSaveBtn,.notification-time-wheel):focus-visible{outline-color:#c52e32;}
+html.light-mode-on #notificationSettingsOverlay{--notification-card:#fff;--notification-selection:#f3e8e8;--notification-muted:#867979;}
+html.light-mode-on #notificationSettingsOverlay :is(#notificationAllowBtn,.notification-time-picker){box-shadow:0 2px 12px rgba(40,15,25,.035);}
+@media(prefers-reduced-motion:reduce){#notificationSettingsOverlay #notificationSaveBtn{transition:none;}#notificationSettingsOverlay #notificationSaveBtn:active:not(:disabled){transform:none;}}
