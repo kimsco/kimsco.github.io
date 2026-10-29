@@ -143,13 +143,13 @@ html.light-mode-on #mySpecScreen .spec-close-btn:active{background:rgba(150,75,7
 @media(prefers-reduced-motion:reduce){#mySpecScreen .spec-close-btn{transition:none;}#mySpecScreen .spec-close-btn:active{transform:none;}}
 
 /* Profile form: shared spacing, soft fields and matching segmented controls. */
-#mySpecBody{--spec-field:#222123;--spec-ink:#f3f0f1;--spec-muted:#a39a9e;--spec-selected:#f0e9eb;--spec-selected-ink:#302126;}
+#mySpecBody{--spec-field:#222222;--spec-ink:#f3f3f3;--spec-muted:#a39d9d;--spec-selected:#f3dedd;--spec-selected-ink:#631b1b;}
 #mySpecBody>.settings-group{margin-bottom:24px;}
 #mySpecBody>.settings-group>.settings-section-label{padding:0 4px;margin-bottom:10px;font-size:13px;font-weight:600;letter-spacing:.2px;color:var(--spec-muted);}
 #mySpecBody>.settings-group>.settings-card{background:var(--spec-field);border-radius:999px;padding:12px 20px;box-sizing:border-box;}
 #mySpecBody .spec-name-item{height:24px;padding:0;}
 #mySpecBody #specName{height:24px;font-size:16px;line-height:24px;color:var(--spec-ink);outline:none;}
-#mySpecBody .settings-card:has(input:focus-visible){box-shadow:0 0 0 1.5px #ad727e;}
+#mySpecBody .settings-card:has(input:focus-visible){box-shadow:0 0 0 1.5px #c52e32;}
 #mySpecBody>.settings-group>.spec-pill-card,
 #mySpecBody>.settings-group>.settings-card:has(.goal-toggle){padding:5px;}
 #mySpecBody :is(.gender-toggle,.goal-toggle){border:0;border-radius:999px;overflow:hidden;background:none;}
@@ -163,14 +163,14 @@ html.light-mode-on #mySpecScreen .spec-close-btn:active{background:rgba(150,75,7
 #mySpecBody .spec-row-grid3 label{font-size:11px;letter-spacing:0;margin-bottom:4px;color:var(--spec-muted);}
 #mySpecBody .spec-row-grid3 input{height:28px;font-family:inherit;font-size:18px;font-weight:600;color:var(--spec-ink);border:0;outline:none;font-variant-numeric:tabular-nums;}
 #mySpecBody input::placeholder{color:var(--spec-muted);opacity:.65;font-weight:400;}
-#mySpecBody .activity-slider-track{height:4px;margin:8px 10px 12px;border-radius:99px;background:rgba(150,125,135,.25);}
-#mySpecBody .activity-slider-fill{border-radius:99px;background:#bb8793;}
+#mySpecBody .activity-slider-track{height:4px;margin:8px 10px 12px;border-radius:99px;background:rgba(160,100,100,.22);}
+#mySpecBody .activity-slider-fill{border-radius:99px;background:#c52e32;}
 #mySpecBody .activity-slider-handle{background:var(--spec-selected);border:2px solid var(--spec-field);box-shadow:0 1px 6px rgba(0,0,0,.2);}
 #mySpecBody .activity-level-label{font-size:13px;font-weight:550;color:var(--spec-ink);margin:0 0 2px;}
-#mySpecBody #saveSpecBtn{display:block;width:100%;height:48px;min-height:0;padding:0;box-sizing:border-box;margin:32px 0 0;border-radius:999px;background:#ae5365;color:#fff;font-family:inherit;font-size:16px;font-weight:650;letter-spacing:.2px;transition:transform .2s,background .2s;}
-#mySpecBody #saveSpecBtn:active{transform:scale(.98);background:#984658;}
-#mySpecBody :is(button,input):focus-visible{outline:2px solid #bc8793;outline-offset:3px;}
-html.light-mode-on #mySpecBody{--spec-field:#fff;--spec-ink:#30272b;--spec-muted:#86797e;--spec-selected:#ecdee3;--spec-selected-ink:#5b3440;}
+#mySpecBody #saveSpecBtn{display:block;width:100%;height:48px;min-height:0;padding:0;box-sizing:border-box;margin:32px 0 0;border-radius:999px;background:#c52e32;color:#fff;font-family:inherit;font-size:16px;font-weight:650;letter-spacing:.2px;transition:transform .2s,background .2s;}
+#mySpecBody #saveSpecBtn:active{transform:scale(.98);background:#a52227;}
+#mySpecBody :is(button,input):focus-visible{outline:2px solid #c52e32;outline-offset:3px;}
+html.light-mode-on #mySpecBody{--spec-field:#fff;--spec-ink:#302727;--spec-muted:#867979;--spec-selected:#f5dddd;--spec-selected-ink:#7a2020;}
 @media(prefers-reduced-motion:reduce){#mySpecBody :is(.genderBtn,.goalBtn,#saveSpecBtn,.gender-toggle-indicator){transition:none;}#mySpecBody #saveSpecBtn:active{transform:none;}}
 #mySpecBody #saveSpecBtn:disabled{opacity:.45;cursor:default;transform:none;}
 /* Keep inherited form padding from increasing the compact control heights. */
@@ -189,3 +189,11 @@ html.light-mode-on #mySpecBody{--spec-field:#fff;--spec-ink:#30272b;--spec-muted
 #mySpecBody :is(.genderBtn,.goalBtn){margin:0;}
 /* Text switches immediately; only the selection pill slides. */
 #mySpecBody .genderBtn{transition:none;}
+
+/* Red accents for the profile sheet, including its fixed close control. */
+#mySpecScreen .spec-hero-icon{background:rgba(197,46,50,.14);color:#d64b4b;}
+#mySpecScreen .spec-close-btn{border-color:rgba(197,46,50,.32);background:rgba(197,46,50,.07);color:#c45151;}
+#mySpecScreen .spec-close-btn:active{background:rgba(197,46,50,.23);}
+html.light-mode-on #mySpecScreen .spec-hero-icon{background:rgba(197,46,50,.09);color:#b3292d;}
+html.light-mode-on #mySpecScreen .spec-close-btn{border-color:rgba(179,41,45,.28);background:rgba(179,41,45,.04);color:#b3292d;}
+html.light-mode-on #mySpecScreen .spec-close-btn:active{background:rgba(179,41,45,.14);}
