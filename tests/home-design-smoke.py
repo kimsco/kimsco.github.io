@@ -25,7 +25,7 @@ try:
     }''')
     assert styles['image']=='none',styles
     assert styles['bg']==('rgb(255, 255, 255)' if light else 'rgb(0, 0, 0)'),styles
-    assert all(c['bg']==('rgb(255, 255, 255)' if light else 'rgb(28, 28, 29)') and c['radius']=='20px' and c['border']=='0px' and not c['overflow'] for c in styles['cards']),styles
+    assert all(c['bg']==('rgb(255, 255, 255)' if light else 'rgb(20, 20, 20)') and c['radius']=='20px' and c['border']=='0px' and not c['overflow'] for c in styles['cards']),styles
     assert styles['button']=='50%',styles
     page.evaluate("document.querySelector('.app').scrollTop=0");page.screenshot(path=f'/tmp/home-settings-design-{width}-{light}.png')
     page.evaluate("document.querySelector('.app').scrollTop=document.querySelector('.app').scrollHeight");page.wait_for_timeout(150);page.screenshot(path=f'/tmp/home-settings-diet-{width}-{light}.png')
