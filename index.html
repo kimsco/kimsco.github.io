@@ -2318,7 +2318,7 @@ html.light-mode-on .home-mode-switch button[aria-selected="true"]{color:#1a1a1a;
 #muscleFinderOverlay .bw-menu-header-close,
 #mySpecOverlay .bw-menu-header-close,
 #homeSettingsOverlay .bw-menu-header-close,
-#unitSettingsOverlay .bw-menu-header-close,
+:is(#unitSettingsOverlay,#restSettingsOverlay) .bw-menu-header-close,
 #installGuideOverlay .bw-menu-header-close {
   width: 42px;
   height: 42px;
@@ -2339,7 +2339,7 @@ html.light-mode-on .home-mode-switch button[aria-selected="true"]{color:#1a1a1a;
 #muscleFinderOverlay .bw-menu-header-close:active,
 #mySpecOverlay .bw-menu-header-close:active,
 #homeSettingsOverlay .bw-menu-header-close:active,
-#unitSettingsOverlay .bw-menu-header-close:active,
+:is(#unitSettingsOverlay,#restSettingsOverlay) .bw-menu-header-close:active,
 #installGuideOverlay .bw-menu-header-close:active {
   transform: scale(1.3);
   background: rgba(255,255,255,0.24);
@@ -2350,7 +2350,7 @@ html.light-mode-on .home-mode-switch button[aria-selected="true"]{color:#1a1a1a;
 #muscleFinderOverlay .bw-menu-header-close svg,
 #mySpecOverlay .bw-menu-header-close svg,
 #homeSettingsOverlay .bw-menu-header-close svg,
-#unitSettingsOverlay .bw-menu-header-close svg,
+:is(#unitSettingsOverlay,#restSettingsOverlay) .bw-menu-header-close svg,
 #installGuideOverlay .bw-menu-header-close svg {
   width: 20px;
   height: 20px;
@@ -2361,7 +2361,7 @@ html.light-mode-on #oneRMCalcOverlay .bw-menu-header-close,
 html.light-mode-on #muscleFinderOverlay .bw-menu-header-close,
 html.light-mode-on #mySpecOverlay .bw-menu-header-close,
 html.light-mode-on #homeSettingsOverlay .bw-menu-header-close,
-html.light-mode-on #unitSettingsOverlay .bw-menu-header-close,
+html.light-mode-on :is(#unitSettingsOverlay,#restSettingsOverlay) .bw-menu-header-close,
 html.light-mode-on #installGuideOverlay .bw-menu-header-close {
   color: #333;
   background: rgba(0,0,0,0.06);
@@ -2373,7 +2373,7 @@ html.light-mode-on #oneRMCalcOverlay .bw-menu-header-close:active,
 html.light-mode-on #muscleFinderOverlay .bw-menu-header-close:active,
 html.light-mode-on #mySpecOverlay .bw-menu-header-close:active,
 html.light-mode-on #homeSettingsOverlay .bw-menu-header-close:active,
-html.light-mode-on #unitSettingsOverlay .bw-menu-header-close:active,
+html.light-mode-on :is(#unitSettingsOverlay,#restSettingsOverlay) .bw-menu-header-close:active,
 html.light-mode-on #installGuideOverlay .bw-menu-header-close:active {
   background: rgba(0,0,0,0.14);
 }
@@ -8740,17 +8740,17 @@ html:not(.light-mode-on) #tab1 .home-card { background: #101010; border-color: #
 #loginSheetGoogleBtn:disabled { opacity:.6; cursor:wait; }
 
 /* Settings-only glass handles: transforms never change row layout. */
-:is(#settingsOverlay,#homeSettingsOverlay,#unitSettingsOverlay) .settings-glass-row { overflow:visible; }
-:is(#settingsOverlay,#homeSettingsOverlay,#unitSettingsOverlay) .settings-glass-toggle {
+:is(#settingsOverlay,#homeSettingsOverlay,#unitSettingsOverlay,#restSettingsOverlay) .settings-glass-row { overflow:visible; }
+:is(#settingsOverlay,#homeSettingsOverlay,#unitSettingsOverlay,#restSettingsOverlay) .settings-glass-toggle {
   --glass-x:0px;--glass-knob:#dedede;
   width:64px;height:28px;
   flex-shrink:0;isolation:isolate;touch-action:pan-y;
   box-shadow:inset 0 0 0 1px rgba(255,255,255,.09);
 }
-:is(#settingsOverlay,#homeSettingsOverlay,#unitSettingsOverlay) .settings-glass-toggle.active {
+:is(#settingsOverlay,#homeSettingsOverlay,#unitSettingsOverlay,#restSettingsOverlay) .settings-glass-toggle.active {
   --glass-x:24px;--glass-knob:#414141;
 }
-:is(#settingsOverlay,#homeSettingsOverlay,#unitSettingsOverlay) .settings-glass-toggle::after {
+:is(#settingsOverlay,#homeSettingsOverlay,#unitSettingsOverlay,#restSettingsOverlay) .settings-glass-toggle::after {
   width:36px;height:24px;top:2px;left:2px;
   border-radius:999px;box-sizing:border-box;
   background:var(--glass-knob);
@@ -8760,16 +8760,16 @@ html:not(.light-mode-on) #tab1 .home-card { background: #101010; border-color: #
   transition:transform .42s cubic-bezier(.22,1.35,.36,1),background .2s ease,box-shadow .2s ease;
   pointer-events:none;
 }
-html.light-mode-on :is(#settingsOverlay,#homeSettingsOverlay,#unitSettingsOverlay) .settings-glass-toggle {
+html.light-mode-on :is(#settingsOverlay,#homeSettingsOverlay,#unitSettingsOverlay,#restSettingsOverlay) .settings-glass-toggle {
   background:#c5c5c5;--glass-knob:#fafafa;
 }
-html.light-mode-on :is(#settingsOverlay,#homeSettingsOverlay,#unitSettingsOverlay) .settings-glass-toggle.active {
+html.light-mode-on :is(#settingsOverlay,#homeSettingsOverlay,#unitSettingsOverlay,#restSettingsOverlay) .settings-glass-toggle.active {
   background:#171717;--glass-knob:#f5f5f5;
 }
-html.light-mode-on :is(#settingsOverlay,#homeSettingsOverlay,#unitSettingsOverlay) .settings-glass-toggle::after {
+html.light-mode-on :is(#settingsOverlay,#homeSettingsOverlay,#unitSettingsOverlay,#restSettingsOverlay) .settings-glass-toggle::after {
   background:var(--glass-knob);
 }
-:is(#settingsOverlay,#homeSettingsOverlay,#unitSettingsOverlay) .settings-glass-toggle:is(.glass-pressed,.glass-settling)::after {
+:is(#settingsOverlay,#homeSettingsOverlay,#unitSettingsOverlay,#restSettingsOverlay) .settings-glass-toggle:is(.glass-pressed,.glass-settling)::after {
   background:linear-gradient(135deg,rgba(255,255,255,.55),rgba(255,255,255,.08) 55%,rgba(255,255,255,.28));
   -webkit-backdrop-filter:blur(3px) saturate(1.5);
   backdrop-filter:blur(3px) saturate(1.5);
@@ -8777,16 +8777,16 @@ html.light-mode-on :is(#settingsOverlay,#homeSettingsOverlay,#unitSettingsOverla
   box-shadow:0 3px 9px rgba(0,0,0,.27),inset 1px 1px 1px rgba(255,255,255,.8),inset -1px -1px 2px rgba(0,0,0,.18);
   transform:translateX(var(--glass-x)) scale(1.62,1.55);
 }
-:is(#settingsOverlay,#homeSettingsOverlay,#unitSettingsOverlay) .settings-glass-toggle:focus-visible {
+:is(#settingsOverlay,#homeSettingsOverlay,#unitSettingsOverlay,#restSettingsOverlay) .settings-glass-toggle:focus-visible {
   outline:2px solid var(--c-text-secondary);outline-offset:5px;
 }
-:is(#settingsOverlay,#homeSettingsOverlay,#unitSettingsOverlay) .settings-glass-toggle.glass-dragging::after { transition:none; }
-:is(#settingsOverlay,#homeSettingsOverlay,#unitSettingsOverlay) .settings-glass-toggle.glass-moving::after {
+:is(#settingsOverlay,#homeSettingsOverlay,#unitSettingsOverlay,#restSettingsOverlay) .settings-glass-toggle.glass-dragging::after { transition:none; }
+:is(#settingsOverlay,#homeSettingsOverlay,#unitSettingsOverlay,#restSettingsOverlay) .settings-glass-toggle.glass-moving::after {
   transform:var(--glass-motion-transform);transition:none;
 }
 @media (prefers-reduced-motion:reduce) {
-  :is(#settingsOverlay,#homeSettingsOverlay,#unitSettingsOverlay) .settings-glass-toggle::after {transition:none;}
-  :is(#settingsOverlay,#homeSettingsOverlay,#unitSettingsOverlay) .settings-glass-toggle:is(.glass-pressed,.glass-settling)::after {transform:translateX(var(--glass-x));}
+  :is(#settingsOverlay,#homeSettingsOverlay,#unitSettingsOverlay,#restSettingsOverlay) .settings-glass-toggle::after {transition:none;}
+  :is(#settingsOverlay,#homeSettingsOverlay,#unitSettingsOverlay,#restSettingsOverlay) .settings-glass-toggle:is(.glass-pressed,.glass-settling)::after {transform:translateX(var(--glass-x));}
 }
 </style>
 <script>
@@ -8795,7 +8795,7 @@ document.addEventListener('dragstart', event => {
   event.preventDefault();
 });
 </script>
-<link rel="stylesheet" href="/css/settings.css?v=1.0.195">
+<link rel="stylesheet" href="/css/settings.css?v=1.0.196">
 </head>
 
 <body style="background-color:#000000;">
@@ -10776,6 +10776,28 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
   </div>
 </div>
 
+<div id="restSettingsOverlay" class="hidden settings-box-theme" role="dialog" aria-modal="true" aria-labelledby="restSettingsTitle">
+ <div id="restSettingsScreen">
+  <div class="rest-settings-header">
+   <button type="button" class="bw-menu-header-close" onclick="closeRestSettings()" aria-label="설정으로 돌아가기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+   <h2 id="restSettingsTitle">휴식 스톱워치</h2>
+  </div>
+  <div class="settings-card settings-card--flush">
+   <div class="settings-item settings-item--single" style="justify-content:space-between;">
+    <span class="settings-item-label">휴식 스톱워치 사용</span>
+    <div id="restTimerToggle" class="toggle-switch settings-glass-toggle"></div>
+   </div>
+  </div>
+  <h3 class="settings-section-label rest-settings-help-heading">사용 방법</h3>
+  <div class="settings-card rest-settings-help">
+   <div><h4>세트 저장하면 자동 시작</h4><p>3대·기록 탭에서 세트를 저장할 때마다 0:00부터 다시 시작해요.</p></div>
+   <div><h4>어느 탭에서도 휴식 시간 확인</h4><p>운동 기록 중에는 상단에 크게, 다른 탭에서는 작은 스톱워치로 보여요.</p></div>
+   <div><h4>잠깐 멈추고 다시 시작</h4><p>일시정지 버튼으로 멈추거나 이어갈 수 있어요. X를 누르면 종료돼요.</p></div>
+   <div><h4>오래 두면 자동 종료</h4><p>일시정지 상태로 10분이 지나거나, 실제 측정한 휴식 시간이 30분에 도달하면 자동으로 꺼져요.</p></div>
+  </div>
+ </div>
+</div>
+
 <style>
 #notificationSettingsOverlay{position:fixed;inset:0;z-index:100002;background:var(--c-bg,#000);color:var(--c-text-primary);}
 #notificationSettingsOverlay.hidden{display:none;}
@@ -11009,15 +11031,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
     <span class="settings-item-label"><svg class="settings-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 13A8.5 8.5 0 0 1 11 3.5 8.5 8.5 0 1 0 20.5 13Z"/></svg>화면 모드</span>
     <div id="lightModeToggle" class="toggle-switch settings-glass-toggle"></div>
   </div>
-  <!-- 🔥 3대/기록 탭에서 세트 저장 시 탑바에 휴식시간을 보여주는 기능 on/off —
-       기기별 설정이라 localStorage에만 저장(계정 동기화 없음, lightModeToggle과 동일 패턴) -->
-  <div class="settings-item" style="justify-content:space-between; border-bottom:1px solid var(--c-border);">
-    <span class="settings-item-label">
-      <svg class="settings-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l2.5 2.5"></path><path d="M9 2h6"></path></svg>
-      휴식 스톱워치
-    </span>
-    <div id="restTimerToggle" class="toggle-switch settings-glass-toggle"></div>
-  </div>
+  <button id="restSettingsMenuBtn" type="button" class="settings-item"><svg class="settings-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l2.5 2.5"></path><path d="M9 2h6"></path></svg>휴식 스톱워치<span class="settings-chevron" aria-hidden="true">›</span></button>
 
 </div>
 
@@ -13388,7 +13402,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.195";
+const APP_VERSION = "1.0.196";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -16614,6 +16628,14 @@ function closeUnitSettings(){
 document.getElementById("unitSettingsMenuBtn").addEventListener("click", () => {
   openUnitSettings();
 });
+
+const restSettingsOverlay=document.getElementById('restSettingsOverlay');
+function openRestSettings(){
+  restSettingsOverlay.classList.remove('hidden');
+  const screen=document.getElementById('restSettingsScreen');screen.style.transition='none';screen.style.transform='translateX(0)';screen.scrollTop=0;
+}
+function closeRestSettings(){restSettingsOverlay.classList.add('hidden');}
+document.getElementById('restSettingsMenuBtn').addEventListener('click',openRestSettings);
 
 const seriousModeToggle = document.getElementById("seriousModeToggle");
 const homeSeriousModeScreen = document.getElementById("homeSeriousModeScreen");
@@ -20301,6 +20323,77 @@ document.getElementById("dexWriteSubmitBtn").addEventListener("click", async () 
   unitSettingsScreen.addEventListener('touchcancel', endDrag, { passive: true });
 })();
 
+(function(){
+  const restSettingsScreen = document.getElementById('restSettingsScreen');
+  const EDGE_ZONE = 30;
+  const COMMIT_MOVE = 8;
+  const CLOSE_RATIO = 0.3;
+  let startX = 0, startY = 0, tracking = false, dragging = false;
+
+  restSettingsScreen.addEventListener('touchstart', (e) => {
+    const t = e.touches[0];
+    if (t.clientX <= EDGE_ZONE) {
+      startX = t.clientX;
+      startY = t.clientY;
+      tracking = true;
+      dragging = false;
+      restSettingsScreen.style.transition = 'none';
+    } else {
+      tracking = false;
+    }
+  }, { passive: true });
+
+  restSettingsScreen.addEventListener('touchmove', (e) => {
+    if (!tracking) return;
+    const t = e.touches[0];
+    const dx = t.clientX - startX;
+    const dy = t.clientY - startY;
+
+    if (!dragging) {
+      if (dx > COMMIT_MOVE && dx > Math.abs(dy) * 0.6) {
+        dragging = true;
+      } else if (Math.abs(dy) > COMMIT_MOVE && Math.abs(dy) > dx) {
+        tracking = false;
+        return;
+      } else {
+        return;
+      }
+    }
+
+    if (dragging) {
+      e.preventDefault();
+      restSettingsScreen.style.transform = `translateX(${Math.max(0, dx)}px)`;
+    }
+  }, { passive: false });
+
+  function endDrag(e){
+    if (!tracking) return;
+    const wasDragging = dragging;
+    tracking = false;
+    dragging = false;
+    if (!wasDragging) return;
+
+    const width = restSettingsScreen.offsetWidth || window.innerWidth;
+    const t = e.changedTouches[0];
+    const dx = Math.max(0, t.clientX - startX);
+
+    restSettingsScreen.style.transition = 'transform 0.22s ease';
+
+    if (dx > width * CLOSE_RATIO) {
+      restSettingsScreen.style.transform = `translateX(${width}px)`;
+      setTimeout(() => {
+        closeRestSettings();
+        restSettingsScreen.style.transition = 'none';
+      }, 220);
+    } else {
+      restSettingsScreen.style.transform = 'translateX(0)';
+    }
+  }
+
+  restSettingsScreen.addEventListener('touchend', endDrag, { passive: true });
+  restSettingsScreen.addEventListener('touchcancel', endDrag, { passive: true });
+})();
+
 
 
    
@@ -22185,6 +22278,7 @@ document.body.appendChild(settingsOverlay);
 // 그 위에 열어서, 뒤로가기 한 번에 설정 목록으로만 돌아가고 완전히 안 빠져나가게 함
 document.body.appendChild(homeSettingsOverlay);
 document.body.appendChild(unitSettingsOverlay);
+document.body.appendChild(restSettingsOverlay);
 
 // 🔥 설정 화면 뒤로 살짝 밀리며 페이드아웃되는 본 화면(.app) — 메뉴드로우바(setAppPush)와
 // 반대 방향(왼쪽)으로, dietOverlay가 열릴 때 쓰는 것과 동일한 push+fade 패턴
