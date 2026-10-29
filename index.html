@@ -10935,12 +10935,14 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
 <div class="settings-card settings-card--flush settings-profile-card">
   <div id="settingsGuestBadge" style="display:none;">
     <div class="settings-profile-identity">
-      <span class="settings-profile-avatar" aria-hidden="true"><svg class="settings-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg></span>
+      <!-- 🔥 내 정보 수정 아이콘과 같은 꽉 찬 사람 실루엣이되, 원형 테두리는 빼고
+           기존 둥근사각형 아바타 틀을 그대로 유지 -->
+      <span class="settings-profile-avatar" aria-hidden="true"><svg class="settings-item-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><defs><clipPath id="profileAvatarIconClip1"><circle cx="12" cy="12" r="9"/></clipPath></defs><g clip-path="url(#profileAvatarIconClip1)" fill="currentColor"><circle cx="12" cy="10" r="3.4"/><ellipse cx="12" cy="21" rx="7" ry="6"/></g></svg></span>
       <div class="settings-profile-text"><div class="settings-name" id="settingsHeaderName">게스트</div><div class="settings-email" id="settingsHeaderSub"></div></div>
     </div>
   </div>
   <button id="settingsLoginRow" class="settings-row">
-    <span class="settings-profile-avatar" aria-hidden="true"><svg class="settings-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg></span>
+    <span class="settings-profile-avatar" aria-hidden="true"><svg class="settings-item-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><defs><clipPath id="profileAvatarIconClip2"><circle cx="12" cy="12" r="9"/></clipPath></defs><g clip-path="url(#profileAvatarIconClip2)" fill="currentColor"><circle cx="12" cy="10" r="3.4"/><ellipse cx="12" cy="21" rx="7" ry="6"/></g></svg></span>
     <span class="row-left"><span class="row-title">로그인하기</span><span class="settings-profile-subtext">운동 기록을 이어가세요.</span></span><span class="settings-chevron" aria-hidden="true">›</span>
   </button>
   <!-- 🔥 레퍼런스의 "개발자 소개" 아이콘과 동일한 모양(원형 링 + 안에 꽉 찬 사람 실루엣) -->
@@ -13359,7 +13361,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.155";
+const APP_VERSION = "1.0.156";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
