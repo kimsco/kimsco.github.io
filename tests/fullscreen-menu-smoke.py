@@ -16,7 +16,9 @@ try:
    menu=page.locator('#navDrawerOverlay');panel=page.locator('#navDrawer')
    for light in [False,True]:
     page.evaluate('v=>applyLightMode(v)',light)
-    page.locator('#openNavDrawerBtn').click();page.wait_for_timeout(430)
+    page.locator('#openNavDrawerBtn').click();page.wait_for_timeout(55)
+    moving=panel.bounding_box();assert moving['x']< -1 and abs(moving['y'])<1,moving
+    page.wait_for_timeout(375)
     assert menu.is_visible();box=panel.bounding_box();assert abs(box['x'])<1 and abs(box['y'])<1 and box['width']==width and box['height']==height,box
     assert 'radial-gradient' in panel.evaluate('e=>getComputedStyle(e).backgroundImage')
     assert page.locator('#navMenuTitle').evaluate('e=>getComputedStyle(e).fontSize')=='34px'
@@ -47,9 +49,9 @@ try:
     for i in range(1,11):
      cdp.send('Input.dispatchTouchEvent',{'type':'touchMove','touchPoints':[{'x':x+dx*i/10,'y':y+dy*i/10}]});page.wait_for_timeout(16)
     cdp.send('Input.dispatchTouchEvent',{'type':'touchEnd','touchPoints':[]});page.wait_for_timeout(400)
-   swipe(width/2,90,0,50);assert menu.is_visible()
-   swipe(width/2,90,0,200);assert menu.is_hidden()
-   # Existing left-edge shortcut now opens the full-screen menu vertically.
+   swipe(width/2,90,-50,0);assert menu.is_visible()
+   swipe(width/2,90,-200,0);assert menu.is_hidden()
+   # Existing left-edge shortcut now opens the full-screen menu from the left.
    swipe(5,250,150,0);assert menu.is_visible();assert abs(panel.bounding_box()['y'])<1
    page.locator('#navMenuCloseBtn').click();page.wait_for_timeout(400);assert menu.is_hidden()
    page.emulate_media(reduced_motion='reduce');page.evaluate('openNavDrawer()');page.wait_for_timeout(60);assert abs(panel.bounding_box()['y'])<1

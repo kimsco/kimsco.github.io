@@ -16,10 +16,13 @@ try:
    page.goto('http://127.0.0.1:8217');page.wait_for_timeout(1500)
    def geometry():return page.evaluate('''()=>{
     const r=document.createRange();r.selectNodeContents(document.querySelector('#topTitleText>div'));
+    const menu=document.getElementById('navDrawerMenuIcon').getBoundingClientRect();
     const title=r.getBoundingClientRect(),bell=document.querySelector('#openAnnouncementBtn>svg').getBoundingClientRect(),settings=document.querySelector('#openSettingsBtn>svg').getBoundingClientRect(),bar=document.querySelector('.topBar').getBoundingClientRect();
-    return {center:title.x+title.width/2,barCenter:bar.x+bar.width/2,titleRight:title.right,bellLeft:bell.left,bellCenter:bell.x+bell.width/2,rightGap:bar.right-settings.right,spacing:settings.x-bell.x,bellWidth:bell.width,settingsWidth:settings.width,titleY:title.y+title.height/2,bellY:bell.y+bell.height/2};
+    return {menuX:menu.x+menu.width/2,menuY:menu.y+menu.height/2,menuWidth:menu.width,settingsX:settings.x+settings.width/2,menuBg:getComputedStyle(document.getElementById('openNavDrawerBtn')).backgroundColor,center:title.x+title.width/2,barCenter:bar.x+bar.width/2,titleRight:title.right,bellLeft:bell.left,bellCenter:bell.x+bell.width/2,rightGap:bar.right-settings.right,spacing:settings.x-bell.x,bellWidth:bell.width,settingsWidth:settings.width,titleY:title.y+title.height/2,bellY:bell.y+bell.height/2};
    }''')
    a=geometry();assert abs(a['center']-a['barCenter'])<1,a
+   assert abs(a['menuX']+a['settingsX']-2*a['barCenter'])<1 and abs(a['menuY']-a['bellY'])<1,a
+   assert a['menuWidth']==23 and a['menuBg']=='rgba(0, 0, 0, 0)',a
    assert a['titleRight']<=a['bellLeft'],a
    assert a['bellWidth']==23 and a['settingsWidth']==23 and a['spacing']==54,a
    assert a['rightGap']==26.5,a
