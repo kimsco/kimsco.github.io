@@ -35,19 +35,23 @@
  const list=overlay.querySelector('.record-wheel-list');
  let source=null,values=[],selected=0,paintFrame=0,anchorFrame=0,rowSize=44,background=[];
  const sheet=overlay.querySelector('.record-wheel-sheet');
- let idleTimer=0,fadeTimer=0,wheelPointerDown=false,wheelTouchDown=false;
+ let idleTimer=0,fadeTimer=0,wheelPointerDown=false,wheelTouchDown=false,outsideDismissal=false;
  function stopFade(){clearTimeout(idleTimer);clearTimeout(fadeTimer);overlay.classList.remove('is-fading');overlay.style.removeProperty('--wheel-fade-duration');}
- function fadeOut(duration){
-  stopFade();if(overlay.hidden)return;
+ function fadeOut(duration,explicit=false){
+  if(overlay.hidden || outsideDismissal)return;
+  stopFade();
+  // An outside dismissal is final; repeated taps must not revive or restart it.
+  if(explicit){outsideDismissal=true;list.inert=true;}
   overlay.style.setProperty('--wheel-fade-duration',duration+'ms');overlay.classList.add('is-fading');
   fadeTimer=setTimeout(()=>close(true),duration);
  }
  function scheduleFade(){
+  if(outsideDismissal)return;
   stopFade();if(overlay.hidden || gesture?.fired || wheelPointerDown || wheelTouchDown)return;
   idleTimer=setTimeout(()=>fadeOut(600),600);
  }
- overlay.addEventListener('pointerdown',()=>{wheelPointerDown=true;stopFade();},{capture:true});
- overlay.addEventListener('touchstart',()=>{wheelTouchDown=true;stopFade();},{capture:true,passive:true});
+ overlay.addEventListener('pointerdown',event=>{if(outsideDismissal)return;if(event.target===overlay){fadeOut(300,true);return;}wheelPointerDown=true;stopFade();},{capture:true});
+ overlay.addEventListener('touchstart',event=>{if(outsideDismissal)return;if(event.target===overlay){fadeOut(300,true);return;}wheelTouchDown=true;stopFade();},{capture:true,passive:true});
  overlay.addEventListener('touchend',event=>{wheelTouchDown=event.touches.length>0;if(!wheelTouchDown)scheduleFade();},{passive:true});
  overlay.addEventListener('touchcancel',()=>{wheelTouchDown=false;wheelPointerDown=false;scheduleFade();},{passive:true});
  document.addEventListener('pointerup',()=>{if(wheelPointerDown){wheelPointerDown=false;scheduleFade();}});
@@ -71,6 +75,7 @@
   list.setAttribute('aria-activedescendant','record-wheel-option-'+selected);
  }
  function close(apply){
+  outsideDismissal=false;list.inert=false;
   stopFade();wheelPointerDown=false;wheelTouchDown=false;
   if(overlay.hidden)return;
   paint();const input=source;if(input)input.classList.remove('record-wheel-source');source=null;overlay.hidden=true;cancelAnimationFrame(paintFrame);cancelAnimationFrame(anchorFrame);
@@ -115,7 +120,7 @@
   if(event.key==='ArrowDown')index++;else if(event.key==='ArrowUp')index--;else if(event.key==='Home')index=0;else if(event.key==='End')index=values.length-1;else return;
   event.preventDefault();list.scrollTop=Math.max(0,Math.min(values.length-1,index))*rowSize;paint();scheduleFade();
  });
- overlay.addEventListener('click',event=>{if(event.target===overlay)fadeOut(300);});
+ overlay.addEventListener('click',event=>{if(event.target===overlay)fadeOut(300,true);});
  overlay.addEventListener('touchmove',event=>{if(!event.target.closest('.record-wheel-list') && event.cancelable)event.preventDefault();},{passive:false});
  overlay.addEventListener('keydown',event=>{
   if(event.key==='Escape'){event.preventDefault();event.stopPropagation();close(false);}
