@@ -445,7 +445,7 @@ html:not(.light-mode-on) #homeNormalContent{--settings-card-bg:#141414;}
 html:not(.light-mode-on) #tab1 #homeNormalContent :is(.home-macro-pill,.home-diet-input-row){background:#202022;}
 
 /* Full-screen menu uses the same fixed red glow and grouped cards as settings. */
-#navDrawerOverlay{display:block;overflow:hidden;}
+#navDrawerOverlay{display:block;overflow:hidden;outline:none;}
 #navDrawerOverlay.hidden{display:none;}
 #navDrawerDim{display:none;}
 #navDrawer{width:100%;max-width:none;height:100%;padding:0;border:0;border-radius:0;overflow:hidden;background:radial-gradient(ellipse 140% 58vh at 0% 0,rgba(128,28,36,.62),rgba(82,18,25,.32) 55%,transparent),#0b0b0b;color:#f5f5f5;animation:none;transform:translateX(-100%);transition:transform .35s cubic-bezier(.22,1,.36,1);touch-action:pan-y;}
