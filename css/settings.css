@@ -443,3 +443,20 @@ html.light-mode-on #tab1 #homeNormalContent .home-week-day .d.done{background:#c
 /* Darker home surfaces, without changing settings or light-mode cards. */
 html:not(.light-mode-on) #homeNormalContent{--settings-card-bg:#141414;}
 html:not(.light-mode-on) #tab1 #homeNormalContent :is(.home-macro-pill,.home-diet-input-row){background:#202022;}
+
+/* Full-screen menu uses the same fixed red glow and grouped cards as settings. */
+#navDrawerOverlay{display:block;overflow:hidden;}
+#navDrawerOverlay.hidden{display:none;}
+#navDrawerDim{display:none;}
+#navDrawer{width:100%;max-width:none;height:100%;padding:0;border:0;border-radius:0;overflow:hidden;background:radial-gradient(ellipse 140% 58vh at 50% 0,rgba(128,28,36,.62),rgba(82,18,25,.32) 55%,transparent),#0b0b0b;color:#f5f5f5;animation:none;transform:translateY(100%);transition:transform .35s cubic-bezier(.22,1,.36,1);touch-action:pan-y;}
+#navMenuBody{width:100%;max-width:440px;height:100%;margin:0 auto;padding:calc(18px + env(safe-area-inset-top)) 20px calc(40px + env(safe-area-inset-bottom));box-sizing:border-box;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;-webkit-mask-image:linear-gradient(transparent,#000 12px);mask-image:linear-gradient(transparent,#000 12px);}
+#navMenuBody::-webkit-scrollbar{display:none;}
+#navMenuTitle{font-size:34px;font-weight:750;letter-spacing:-.8px;line-height:44px;color:inherit;margin:0 64px 44px 0;}
+#navMenuCloseBtn{position:absolute;z-index:3;top:calc(18px + env(safe-area-inset-top));right:max(20px,calc((100% - 440px)/2 + 20px));display:flex;align-items:center;justify-content:center;box-sizing:border-box;width:44px;height:44px;margin:0;padding:0;border:1px solid rgba(197,46,50,.32);border-radius:50%;background:rgba(197,46,50,.07);color:#c45151;cursor:pointer;transition:transform .35s cubic-bezier(.34,1.56,.64,1),background .2s;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+#navMenuCloseBtn:active{transform:scale(1.3);background:rgba(197,46,50,.23);}
+#navMenuCloseBtn:focus-visible{outline:2px solid currentColor;outline-offset:3px;}
+#navDrawer .nav-drawer-item{display:flex;align-items:center;justify-content:space-between;cursor:pointer;}
+#navDrawer .settings-item-label{display:flex;align-items:center;min-width:0;}
+#navDrawer .settings-item-label>span{min-width:0;overflow-wrap:anywhere;}
+html.light-mode-on #navDrawer{background:radial-gradient(ellipse 140% 34vh at 50% 0,rgba(166,75,85,.14),rgba(166,75,85,.04) 55%,transparent),#f5f4f4;color:#1c191b;}
+@media(prefers-reduced-motion:reduce){#navDrawer,#navMenuCloseBtn{transition:none;}#navMenuCloseBtn:active{transform:none;}}
