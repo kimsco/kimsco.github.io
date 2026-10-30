@@ -8803,7 +8803,7 @@ document.addEventListener('dragstart', event => {
   event.preventDefault();
 });
 </script>
-<link rel="stylesheet" href="/css/settings.css?v=1.0.247">
+<link rel="stylesheet" href="/css/settings.css?v=1.0.248">
 </head>
 
 <body style="background-color:#000000;">
@@ -13575,7 +13575,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.247";
+const APP_VERSION = "1.0.248";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -21287,18 +21287,18 @@ function openNavDrawer(){
     navMenuBackground.forEach(([el])=>{el.inert=true;});
   }
   navMenuOpen=true;navMenuBody.scrollTop=0;
-  navDrawer.style.animation='none';navDrawer.style.transition='none';navDrawer.style.transform='translateY(100%)';
+  navDrawer.style.animation='none';navDrawer.style.transition='none';navDrawer.style.transform='translateX(-100%)';
   navDrawerOverlay.classList.remove('hidden');void navDrawer.offsetHeight;
   requestAnimationFrame(()=>{
     if(token!==navMenuToken)return;
-    navDrawer.style.transition='';navDrawer.style.transform='translateY(0)';
+    navDrawer.style.transition='';navDrawer.style.transform='translateX(0)';
     navMenuCloseBtn.focus({preventScroll:true});
   });
 }
 function closeNavDrawer(){
   if(!navMenuOpen)return;
   navMenuOpen=false;++navMenuToken;clearTimeout(navMenuCloseTimer);
-  navDrawer.style.transition='';navDrawer.style.transform='translateY(100%)';
+  navDrawer.style.transition='';navDrawer.style.transform='translateX(-100%)';
   navMenuCloseTimer=setTimeout(()=>{
     navDrawerOverlay.classList.add('hidden');releaseNavMenuBackground();
     navMenuReturnFocus?.focus({preventScroll:true});
@@ -21307,7 +21307,7 @@ function closeNavDrawer(){
 function closeNavDrawerInstant(){
   navMenuOpen=false;++navMenuToken;clearTimeout(navMenuCloseTimer);
   navDrawerOverlay.classList.add('hidden');releaseNavMenuBackground();
-  navDrawer.style.transition='';navDrawer.style.transform='translateY(100%)';
+  navDrawer.style.transition='';navDrawer.style.transform='translateX(-100%)';
 }
 document.getElementById('openNavDrawerBtn').addEventListener('click',openNavDrawer);
 navMenuCloseBtn.addEventListener('click',closeNavDrawer);
@@ -21322,29 +21322,31 @@ document.addEventListener('keydown',event=>{
     else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}
   }
 });
-// Match the profile sheet's fresh downward pull, without intercepting menu scrolling.
+// Horizontal dismissal follows the left-side entrance; vertical menu scrolling stays native.
 (function(){
   let tracking=false,dragging=false,x=0,y=0,distance=0;
   navDrawer.addEventListener('touchstart',event=>{
-    if(!navMenuOpen || event.touches.length!==1 || navMenuBody.scrollTop>1 || event.target.closest('button'))return;
+    if(!navMenuOpen || event.touches.length!==1 || event.target.closest('button'))return;
     tracking=true;dragging=false;distance=0;x=event.touches[0].clientX;y=event.touches[0].clientY;
   },{passive:true});
   navDrawer.addEventListener('touchmove',event=>{
-    if(!tracking)return;
+    if(!tracking || !navMenuOpen)return;
     if(event.touches.length!==1){end(true);return;}
     const dx=event.touches[0].clientX-x,dy=event.touches[0].clientY-y;
-    if(!dragging){if(dy< -4 || Math.abs(dx)>Math.max(8,dy)){tracking=false;return;}if(dy<8)return;dragging=true;navDrawer.style.transition='none';}
-    event.preventDefault();distance=Math.max(0,dy)*.85;navDrawer.style.transform=`translateY(${distance}px)`;
+    if(!dragging){if(dx>4 || Math.abs(dy)>Math.max(8,Math.abs(dx))){tracking=false;return;}if(dx> -8)return;dragging=true;navDrawer.style.transition='none';}
+    event.preventDefault();distance=Math.min(navDrawer.offsetWidth,Math.max(0,-dx));navDrawer.style.transform=`translateX(${-distance}px)`;
   },{passive:false});
   function end(cancelled){
-    if(!tracking)return;tracking=false;navDrawer.style.transition='';
-    if(dragging&&!cancelled&&distance>110)closeNavDrawer();else navDrawer.style.transform='translateY(0)';
+    if(!tracking)return;tracking=false;
+    if(!navMenuOpen){dragging=false;return;}
+    navDrawer.style.transition='';
+    if(dragging&&!cancelled&&distance>navDrawer.offsetWidth*.25)closeNavDrawer();else navDrawer.style.transform='translateX(0)';
     dragging=false;
   }
   navDrawer.addEventListener('touchend',()=>end(false),{passive:true});
   navDrawer.addEventListener('touchcancel',()=>end(true),{passive:true});
 })();
-// Retain the home left-edge opening shortcut, now opening the full-screen menu.
+// Retain the home left-edge opening shortcut, opening the full-screen menu from the left.
 (function(){
   let tracking=false,x=0,y=0;
   document.addEventListener('touchstart',event=>{
