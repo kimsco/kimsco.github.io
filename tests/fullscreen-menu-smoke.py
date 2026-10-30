@@ -27,6 +27,8 @@ try:
     assert page.locator('#navDrawer .settings-card').first.evaluate('e=>getComputedStyle(e).borderRadius')=='20px'
     assert page.locator('.app').evaluate('e=>e.inert && !e.style.transform')
     assert panel.evaluate('e=>e.scrollWidth<=e.clientWidth')
+    assert menu.evaluate('e=>e===document.activeElement && getComputedStyle(e).outlineStyle==="none"')
+    assert not page.locator('#navMenuCloseBtn').evaluate('e=>e.matches(":focus-visible")')
     page.screenshot(path=f'/tmp/fullscreen-menu-{width}-{light}.png')
     page.locator('#navMenuCloseBtn').focus();page.keyboard.press('Shift+Tab');assert page.locator('#navWhoForBtn').evaluate('e=>e===document.activeElement')
     page.keyboard.press('Tab');assert page.locator('#navMenuCloseBtn').evaluate('e=>e===document.activeElement')
