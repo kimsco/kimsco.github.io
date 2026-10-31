@@ -8805,7 +8805,7 @@ document.addEventListener('dragstart', event => {
   event.preventDefault();
 });
 </script>
-<link rel="stylesheet" href="/css/settings.css?v=1.0.264">
+<link rel="stylesheet" href="/css/settings.css?v=1.0.265">
 </head>
 
 <body style="background-color:#000000;">
@@ -10557,10 +10557,9 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
         </div>
       </section>
       <section id="navTodayRecords" class="settings-group nav-v2-today" aria-labelledby="navTodayRecordsTitle">
-        <div class="nav-today-card">
+        <div id="navTodayRecordsOpen" class="nav-today-card" role="button" tabindex="0" aria-haspopup="dialog" aria-controls="todayRecordsOverlay" aria-labelledby="navTodayRecordsTitle">
           <h2 id="navTodayRecordsTitle">오늘 운동 레코드</h2>
-          <ul id="navTodayRecordsList"></ul>
-          <p id="navTodayRecordsEmpty">오늘의 첫 세트를 남겨보세요.</p>
+          <ul id="navTodayRecordsList" class="today-record-list"></ul>
         </div>
       </section>
       <section class="settings-group" aria-labelledby="navAboutLabel">
@@ -10576,6 +10575,16 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
       </div>
     </div>
   </div>
+</div>
+
+<div id="todayRecordsOverlay" class="hidden" role="dialog" aria-modal="true" aria-labelledby="todayRecordsTitle" tabindex="-1">
+ <div id="todayRecordsScreen">
+  <header class="today-records-header">
+   <button id="todayRecordsBack" type="button" class="bw-menu-header-close" aria-label="뒤로가기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
+   <h1 id="todayRecordsTitle">오늘 기록</h1>
+  </header>
+  <div id="todayRecordsBody"><ul id="todayRecordsList" class="today-record-list"></ul></div>
+ </div>
 </div>
 
 <!-- 🔥 근육부위찾기(실험용 v1) — 정면/후면 두 장짜리 인체 이미지를 CSS 3D로 회전시켜 전환 -->
@@ -13601,7 +13610,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.264";
+const APP_VERSION = "1.0.265";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -21395,8 +21404,7 @@ const navMenuCloseBtn=document.getElementById('navMenuCloseBtn');
 function releaseNavMenuBackground(){
   navMenuBackground.forEach(([el,inert])=>{el.inert=inert;});navMenuBackground=[];
 }
-function renderNavTodayRecords(){
-  const list=document.getElementById('navTodayRecordsList');
+function renderTodayRecordList(list){
   const groups=getExerciseRecordsForDate(getCalendarKeyToday());
   const fragment=document.createDocumentFragment();
   for(const group of groups){
@@ -21418,10 +21426,58 @@ function renderNavTodayRecords(){
     row.append(name,details);fragment.append(row);
   }
   list.replaceChildren(fragment);
-  document.getElementById('navTodayRecordsEmpty').hidden=groups.length>0;
+  return groups.length;
 }
+function renderNavTodayRecords(){
+  const count=renderTodayRecordList(document.getElementById('navTodayRecordsList'));
+  document.getElementById('navTodayRecordsOpen').classList.toggle('has-records',count>0);
+}
+const todayRecordsOverlay=document.getElementById('todayRecordsOverlay');
+const todayRecordsScreen=document.getElementById('todayRecordsScreen');
+document.body.appendChild(todayRecordsOverlay);
+let todayRecordsCloseTimer=0,todayRecordsToken=0;
+function openTodayRecords(){
+  closeNavDrawerInstant();clearTimeout(todayRecordsCloseTimer);const token=++todayRecordsToken;
+  renderTodayRecordList(document.getElementById('todayRecordsList'));
+  document.getElementById('todayRecordsBody').scrollTop=0;
+  todayRecordsScreen.style.transition='none';todayRecordsScreen.style.transform='translateX(100%)';
+  todayRecordsOverlay.classList.remove('hidden');void todayRecordsScreen.offsetHeight;
+  requestAnimationFrame(()=>{if(token!==todayRecordsToken)return;todayRecordsScreen.style.transition='';todayRecordsScreen.style.transform='translateX(0)';todayRecordsOverlay.focus({preventScroll:true});});
+}
+function closeTodayRecords(){
+  if(todayRecordsOverlay.classList.contains('hidden'))return;
+  ++todayRecordsToken;clearTimeout(todayRecordsCloseTimer);
+  todayRecordsScreen.style.transition='';todayRecordsScreen.style.transform='translateX(100%)';
+  todayRecordsCloseTimer=setTimeout(()=>{todayRecordsOverlay.classList.add('hidden');document.getElementById('openNavDrawerBtn').focus({preventScroll:true});},matchMedia('(prefers-reduced-motion:reduce)').matches?0:300);
+}
+document.getElementById('navTodayRecordsOpen').addEventListener('click',openTodayRecords);
+document.getElementById('navTodayRecordsOpen').addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();event.stopPropagation();openTodayRecords();}});
+document.getElementById('todayRecordsBack').addEventListener('click',closeTodayRecords);
+document.addEventListener('keydown',event=>{
+  if(todayRecordsOverlay.classList.contains('hidden'))return;
+  if(event.key==='Escape'){event.preventDefault();closeTodayRecords();}
+  if(event.key==='Tab'){event.preventDefault();document.getElementById('todayRecordsBack').focus();}
+});
+(()=>{
+ let start=null,dragging=false;
+ todayRecordsScreen.addEventListener('touchstart',event=>{if(event.touches.length!==1||event.touches[0].clientX>30)return;start={x:event.touches[0].clientX,y:event.touches[0].clientY};dragging=false;},{passive:true});
+ todayRecordsScreen.addEventListener('touchmove',event=>{
+  if(!start)return;if(event.touches.length!==1){finish(true);return;}
+  const dx=event.touches[0].clientX-start.x,dy=event.touches[0].clientY-start.y;
+  if(!dragging){if(Math.abs(dy)>Math.max(8,Math.abs(dx))||dx< -8){start=null;return;}if(dx<8)return;dragging=true;todayRecordsScreen.style.transition='none';}
+  event.preventDefault();todayRecordsScreen.style.transform=`translateX(${Math.max(0,dx)}px)`;
+ },{passive:false});
+ function finish(cancelled,event){
+  if(!start)return;const dx=event?.changedTouches?.[0]?.clientX-start.x;start=null;
+  if(!dragging)return;dragging=false;todayRecordsScreen.style.transition='';
+  if(!cancelled&&dx>todayRecordsScreen.clientWidth*.3)closeTodayRecords();else todayRecordsScreen.style.transform='translateX(0)';
+ }
+ todayRecordsScreen.addEventListener('touchend',event=>finish(false,event),{passive:true});
+ todayRecordsScreen.addEventListener('touchcancel',()=>finish(true),{passive:true});
+})();
 function refreshVisibleNavTodayRecords(){
   if(!navDrawerOverlay.classList.contains('hidden'))renderNavTodayRecords();
+  if(!todayRecordsOverlay.classList.contains('hidden'))renderTodayRecordList(document.getElementById('todayRecordsList'));
 }
 window.addEventListener('mf-reminder-records-changed',refreshVisibleNavTodayRecords);
 window.addEventListener('mf-reminder-snapshot',refreshVisibleNavTodayRecords);
@@ -21468,7 +21524,7 @@ document.addEventListener('keydown',event=>{
   if(!navMenuOpen)return;
   if(event.key==='Escape'){event.preventDefault();closeNavDrawer();}
   if(event.key==='Tab'){
-    const buttons=[...navDrawer.querySelectorAll('button:not([disabled])')].filter(el=>el.getClientRects().length);
+    const buttons=[...navDrawer.querySelectorAll('button:not([disabled]),[role="button"][tabindex="0"]')].filter(el=>el.getClientRects().length);
     const first=buttons[0],last=buttons.at(-1);
     if(event.shiftKey&&(document.activeElement===first||document.activeElement===navDrawerOverlay)){event.preventDefault();last.focus();}
     else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}
@@ -21504,7 +21560,7 @@ document.addEventListener('keydown',event=>{
   document.addEventListener('touchstart',event=>{
     tracking=false;
     if(!homeModeHome.classList.contains('active') || !navDrawerOverlay.classList.contains('hidden') || event.touches.length!==1)return;
-    const overlays=['settingsOverlay','exerciseDexOverlay','mySpecOverlay','threeSummaryOverlay','myRoutineOverlay','dietOverlay','bodyweightOverlay','oneRMCalcOverlay','muscleFinderOverlay','whoForOverlay','homeSettingsOverlay','unitSettingsOverlay','restSettingsOverlay','labsSettingsOverlay','inactivityOverlay'];
+    const overlays=['settingsOverlay','exerciseDexOverlay','mySpecOverlay','threeSummaryOverlay','myRoutineOverlay','dietOverlay','bodyweightOverlay','oneRMCalcOverlay','muscleFinderOverlay','whoForOverlay','homeSettingsOverlay','unitSettingsOverlay','restSettingsOverlay','labsSettingsOverlay','todayRecordsOverlay','inactivityOverlay'];
     if(document.documentElement.classList.contains('exercise-ref-modal-open') || overlays.some(id=>{const el=document.getElementById(id);return el&&!el.classList.contains('hidden');}))return;
     x=event.touches[0].clientX;y=event.touches[0].clientY;tracking=x<=30;
   },{passive:true});
@@ -21560,7 +21616,7 @@ document.addEventListener('keydown',event=>{
     "myRoutineOverlay", "myRoutinePastListOverlay", "myRoutineDetailOverlay",
     "myRoutineBuilderOverlay", "myRoutineRevealOverlay", "dietOverlay",
     "bodyweightOverlay", "oneRMCalcOverlay", "muscleFinderOverlay", "whoForOverlay",
-    "homeSettingsOverlay", "unitSettingsOverlay", "labsSettingsOverlay", "inactivityOverlay"
+    "homeSettingsOverlay", "unitSettingsOverlay", "labsSettingsOverlay", "todayRecordsOverlay", "inactivityOverlay"
   ];
   function anyBlockingOverlayOpen(){
     if (navDrawerOverlay && !navDrawerOverlay.classList.contains('hidden')) return true;
