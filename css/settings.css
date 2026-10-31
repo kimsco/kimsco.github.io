@@ -487,7 +487,7 @@ html.menu-v2-on #navDrawer{--menu-tile-bg:rgba(100,96,98,.34);--menu-tile-line:r
 html.menu-v2-on #navMenuBody{padding-inline:24px;}
 html.menu-v2-on #navMenuTitle{margin-bottom:36px;}
 html.menu-v2-on #navDrawer .settings-section-label{padding-left:4px;margin-bottom:14px;font-size:13px;letter-spacing:.3px;}
-html.menu-v2-on #navDrawer .settings-group{margin-bottom:24px;}
+html.menu-v2-on #navDrawer .settings-group{margin-bottom:14px;}
 html.menu-v2-on #navDrawer .settings-card{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;width:100%;padding:0;border-radius:0;background:none;box-shadow:none;}
 html.menu-v2-on #navDrawer .nav-drawer-item.settings-item{height:auto;min-height:64px;padding:12px 14px;border:1px solid var(--menu-tile-line)!important;border-radius:999px;background:linear-gradient(145deg,rgba(255,255,255,.07),transparent 65%),var(--menu-tile-bg);box-shadow:inset 0 1px 0 rgba(255,255,255,.09),0 8px 24px rgba(0,0,0,.08);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);font-size:14px;transition:transform .32s cubic-bezier(.22,1,.36,1),background .2s;}
 html.menu-v2-on #navDrawer .settings-item::after{display:none;}
@@ -509,7 +509,7 @@ html.menu-v2-on #navDrawer .nav-drawer-item.settings-item:active{transform:scale
 html.menu-v2-on #navDrawer .nav-drawer-item:focus-visible{outline:2px solid currentColor;outline-offset:4px;}
 html.light-mode-on.menu-v2-on #navDrawer{--menu-tile-bg:rgba(255,255,255,.58);--menu-tile-line:rgba(70,40,46,.12);}
 html.light-mode-on.menu-v2-on #navDrawer .nav-v2-description{color:#827579;}
-@media(max-width:350px){html.menu-v2-on #navMenuBody{padding-inline:20px;}html.menu-v2-on #navDrawer .settings-card{gap:10px;}html.menu-v2-on #navDrawer :is(#navThreeSummaryBtn,#navOneRMCalcBtn){padding:12px 10px;font-size:12px;}html.menu-v2-on #navDrawer .settings-item-label{gap:7px;}}
+@media(max-width:350px){html.menu-v2-on #navMenuBody{padding-inline:20px;}html.menu-v2-on #navDrawer :is(#navThreeSummaryBtn,#navOneRMCalcBtn){padding:12px 10px;font-size:12px;}html.menu-v2-on #navDrawer .settings-item-label{gap:7px;}}
 @media(prefers-reduced-motion:reduce){html.menu-v2-on #navDrawer .nav-drawer-item.settings-item{transition:none;}}
 
 /* Match the routine and muscle tools to the compact brand pill. */
@@ -548,3 +548,6 @@ html.menu-v2-on #navDrawer .nav-today-card{box-sizing:border-box;min-height:60px
 #todayRecordsList li+li{margin-top:18px;}
 #todayRecordsList .nav-today-details{font-size:13px;}
 @media(prefers-reduced-motion:reduce){#todayRecordsScreen,#navTodayRecordsOpen{transition:none!important;}#navTodayRecordsOpen:active{transform:none;}}
+
+/* Keep one rhythm between all control-center cards, including the daily records. */
+html.menu-v2-on #navAboutLabel{display:none;}
