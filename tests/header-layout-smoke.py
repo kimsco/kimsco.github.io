@@ -33,10 +33,18 @@ try:
    page.locator('#announcementModalCloseBtn').click();page.wait_for_timeout(400)
    page.locator('#openSettingsBtn').click();page.wait_for_timeout(400);assert page.locator('#settingsOverlay').is_visible()
    page.evaluate('closeSettings()');page.wait_for_timeout(400)
+   for target in ['tab2','tab4','tab3']:
+    page.locator('.bottomTab .tabBtn[data-target="'+target+'"]').click();page.wait_for_timeout(400)
+    assert page.locator('#openAnnouncementBtn').is_visible() and page.locator('#openSettingsBtn').is_visible()
+    page.locator('#openAnnouncementBtn').click();page.wait_for_timeout(400);assert page.locator('#announcementModal').is_visible()
+    page.locator('#announcementModalCloseBtn').click();page.wait_for_timeout(400)
+    page.locator('#openSettingsBtn').click();page.wait_for_timeout(400);assert page.locator('#settingsOverlay').is_visible()
+    page.evaluate('closeSettings()');page.wait_for_timeout(400)
    page.locator('.bottomTab .tabBtn[data-target="tab2"]').click();page.wait_for_timeout(400)
    assert abs(geometry()['center']-a['center'])<1
    page.locator('#recordWeight').fill('60');page.locator('#recordReps').fill('5');page.locator('#recordAdd').click();page.wait_for_timeout(1200)
    assert page.locator('#restTimerDisplay').is_visible();assert page.locator('#restTimerPauseBtn').is_visible()
+   assert page.locator('#openAnnouncementBtn').is_hidden() and page.locator('#openSettingsBtn').is_hidden()
    page.locator('#restTimerPauseBtn').click();assert page.evaluate('!!restTimerPausedAt')
    page.evaluate('stopRestTimerManually()');page.wait_for_timeout(1000)
    page.locator('.bottomTab .tabBtn[data-target="tab1"]').click();page.wait_for_timeout(400)
