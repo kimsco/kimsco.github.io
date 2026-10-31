@@ -38,11 +38,16 @@ try:
     first=page.locator('#navThreeSummaryBtn').bounding_box();second=page.locator('#navOneRMCalcBtn').bounding_box()
     routine=page.locator('#navMyRoutineBtn').bounding_box()
     assert abs(first['y']-second['y'])<1
-    assert routine['width']>first['width']*1.9 and 76<=routine['height']<90
+    assert routine['width']>first['width']*1.9 and routine['height']==60
     assert page.locator('#navMyRoutineBtn').evaluate('e=>getComputedStyle(e).background')==page.locator('#navMuscleFinderBtn').evaluate('e=>getComputedStyle(e).background')
     assert page.locator('#navWhoForBtn .nav-v2-description').count()==0
     assert page.locator('#navThreeSummaryBtn .nav-menu-copy>span').first.evaluate('e=>getComputedStyle(e).fontWeight')=='500'
     assert first['height']==64
+    for id in ['navMyRoutineBtn','navMuscleFinderBtn']:
+     pill=page.locator('#'+id)
+     assert pill.bounding_box()['height']==page.locator('#navWhoForBtn').bounding_box()['height']==60
+     assert pill.evaluate('e=>getComputedStyle(e).borderRadius')=='999px'
+     assert pill.locator('.nav-v2-description').count()==0
     assert page.locator('#navDrawer .nav-v2-icon:visible').count()==5
     assert card.evaluate('e=>e.scrollWidth<=e.clientWidth')
     assert panel.evaluate('e=>e.scrollWidth<=e.clientWidth')

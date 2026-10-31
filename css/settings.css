@@ -511,3 +511,8 @@ html.light-mode-on.menu-v2-on #navDrawer{--menu-tile-bg:rgba(255,255,255,.58);--
 html.light-mode-on.menu-v2-on #navDrawer .nav-v2-description{color:#827579;}
 @media(max-width:350px){html.menu-v2-on #navMenuBody{padding-inline:20px;}html.menu-v2-on #navDrawer .settings-card{gap:10px;}html.menu-v2-on #navDrawer :is(#navThreeSummaryBtn,#navOneRMCalcBtn){padding:12px 10px;font-size:12px;}html.menu-v2-on #navDrawer .settings-item-label{gap:7px;}}
 @media(prefers-reduced-motion:reduce){html.menu-v2-on #navDrawer .nav-drawer-item.settings-item{transition:none;}}
+
+/* Match the routine and muscle tools to the compact brand pill. */
+html.menu-v2-on #navDrawer :is(#navMyRoutineBtn,#navMuscleFinderBtn){min-height:60px;padding:12px 22px;border-radius:999px;}
+html.menu-v2-on #navDrawer :is(#navMyRoutineBtn,#navMuscleFinderBtn) .nav-v2-icon{width:28px;flex-basis:28px;}
+html.menu-v2-on #navDrawer :is(#navMyRoutineBtn,#navMuscleFinderBtn) .nav-menu-copy>span:first-child{font-size:13px;letter-spacing:.6px;}
