@@ -1,10 +1,10 @@
-const CACHE = "mf-v252"; // 🔥 아래 food-db-full.json 삭제 + 로고 이미지가 그동안 세 차례 더
+const CACHE = "mf-v253"; // 🔥 아래 food-db-full.json 삭제 + 로고 이미지가 그동안 세 차례 더
                          // 교체(#764/#765/#768)됐지만 이 캐시 이름을 안 올려서 새 서비스워커가
                          // 설치되지 않고 있었음(바로 아래 참고) — 올려서 처음부터 다시 받아오게 함
 const ASSETS = [
   "/",
   "/index.html",
-  "/css/settings.css?v=1.0.260",
+  "/css/settings.css?v=1.0.261",
   "/manifest.json?v=1.0.141",
   "/sw.js",
   "/js/sync.js?v=1.0.141",
