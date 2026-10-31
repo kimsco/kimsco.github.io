@@ -1,4 +1,4 @@
-"""Opt-in half-width cards in a full-screen menu, persisted preference, original menu and settings navigation."""
+"""Opt-in control-center tiles in a full-screen menu, persisted preference, original menu and settings navigation."""
 from pathlib import Path
 import subprocess,time
 from playwright.sync_api import sync_playwright
@@ -34,7 +34,13 @@ try:
     panel=page.locator('#navDrawer');assert panel.bounding_box()['width']==width
     card=page.locator('#navDrawer .settings-card').first
     group=page.locator('#navDrawer .settings-group').first
-    assert abs(card.bounding_box()['width']-group.bounding_box()['width']/2)<1
+    assert abs(card.bounding_box()['width']-group.bounding_box()['width'])<1
+    first=page.locator('#navThreeSummaryBtn').bounding_box();second=page.locator('#navOneRMCalcBtn').bounding_box()
+    routine=page.locator('#navMyRoutineBtn').bounding_box()
+    assert abs(first['y']-second['y'])<1
+    assert routine['width']>first['width']*1.9 and routine['height']>=164
+    assert page.locator('#navMyRoutineBtn').evaluate('e=>getComputedStyle(e).color')=='rgb(33, 28, 29)'
+    assert page.locator('#navDrawer .nav-v2-icon:visible').count()==5
     assert card.evaluate('e=>e.scrollWidth<=e.clientWidth')
     assert panel.evaluate('e=>e.scrollWidth<=e.clientWidth')
     title=page.locator('#navMenuTitle').bounding_box();close=page.locator('#navMenuCloseBtn').bounding_box()
@@ -52,7 +58,7 @@ try:
    page.locator('#openNavDrawerBtn').click();page.wait_for_timeout(400)
    assert page.locator('#navDrawer').bounding_box()['width']==width
    assert not errors,errors
-   print('PASS labs toggle, persistence, half-width cards in full-screen themes, X close and original menu',width)
+   print('PASS labs toggle, persistence, control-center tiles in full-screen themes, X close and original menu',width)
    context.close()
   browser.close()
 finally:server.terminate();server.wait()

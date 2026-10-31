@@ -479,4 +479,38 @@ html.light-mode-on #navDrawer .settings-card{background:rgba(255,255,255,.3);}
 #labsSettingsTitle{margin:0;font-size:17px;font-weight:650;}
 html.light-mode-on #labsSettingsOverlay{background:#f5f4f4;}
 
-html.menu-v2-on #navDrawer .settings-card{width:50%;box-sizing:border-box;}
+
+
+/* Version 2: control-center tiles. The original list keeps its existing appearance. */
+#navDrawer .nav-v2-icon,#navDrawer .nav-v2-description{display:none;}
+html.menu-v2-on #navDrawer{--menu-tile-bg:rgba(100,96,98,.34);--menu-tile-line:rgba(255,255,255,.18);}
+html.menu-v2-on #navMenuBody{padding-inline:24px;}
+html.menu-v2-on #navMenuTitle{margin-bottom:36px;}
+html.menu-v2-on #navDrawer .settings-section-label{padding-left:4px;margin-bottom:14px;font-size:13px;letter-spacing:.3px;}
+html.menu-v2-on #navDrawer .settings-group{margin-bottom:24px;}
+html.menu-v2-on #navDrawer .settings-card{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;width:100%;padding:0;border-radius:0;background:none;box-shadow:none;}
+html.menu-v2-on #navDrawer .nav-drawer-item.settings-item{height:auto;min-height:80px;padding:16px 14px;border:1px solid var(--menu-tile-line)!important;border-radius:999px;background:linear-gradient(145deg,rgba(255,255,255,.07),transparent 65%),var(--menu-tile-bg);box-shadow:inset 0 1px 0 rgba(255,255,255,.09),0 8px 24px rgba(0,0,0,.08);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);font-size:14px;transition:transform .32s cubic-bezier(.22,1,.36,1),background .2s;}
+html.menu-v2-on #navDrawer .settings-item::after{display:none;}
+html.menu-v2-on #navDrawer .settings-chevron{display:none;}
+html.menu-v2-on #navDrawer .settings-item-label{width:100%;gap:10px;}
+html.menu-v2-on #navDrawer .nav-v2-icon{display:grid;place-items:center;flex:0 0 28px;width:28px;height:32px;}
+html.menu-v2-on #navDrawer .nav-v2-icon svg{width:28px;height:28px;}
+html.menu-v2-on #navDrawer .nav-menu-copy{display:flex;flex-direction:column;gap:4px;min-width:0;}
+html.menu-v2-on #navDrawer .nav-menu-copy>span:first-child{font-weight:600;line-height:1.35;letter-spacing:-.3px;word-break:keep-all;}
+html.menu-v2-on #navDrawer .nav-v2-description{display:block;font-size:11px;line-height:1.5;font-weight:400;letter-spacing:-.2px;color:rgba(255,255,255,.5);word-break:keep-all;}
+html.menu-v2-on #navDrawer :is(#navThreeSummaryBtn,#navOneRMCalcBtn) .nav-v2-description{display:none;}
+html.menu-v2-on #navDrawer #navMyRoutineBtn{grid-column:1/-1;min-height:164px;padding:22px;border-radius:32px;background:linear-gradient(135deg,#fff,#ece8e8);color:#211c1d;border-color:rgba(255,255,255,.8)!important;box-shadow:inset 0 1px 0 #fff,0 12px 32px rgba(0,0,0,.14);}
+html.menu-v2-on #navDrawer #navMyRoutineBtn .settings-item-label{align-items:flex-start;flex-direction:column;gap:18px;}
+html.menu-v2-on #navDrawer #navMyRoutineBtn .nav-v2-icon{flex-basis:40px;width:40px;height:40px;border-radius:13px;background:rgba(197,46,50,.09);color:#b32b31;}
+html.menu-v2-on #navDrawer #navMyRoutineBtn .nav-menu-copy>span:first-child{font-size:23px;font-weight:700;}
+html.menu-v2-on #navDrawer #navMyRoutineBtn .nav-v2-description{font-size:12px;color:#827579;}
+html.menu-v2-on #navDrawer #navMuscleFinderBtn{grid-column:1/-1;min-height:96px;border-radius:30px;padding:20px 22px;}
+html.menu-v2-on #navDrawer #navMuscleFinderBtn .nav-v2-icon{width:40px;flex-basis:40px;}
+html.menu-v2-on #navDrawer #navWhoForBtn{grid-column:1/-1;min-height:76px;padding:18px 22px;}
+html.menu-v2-on #navDrawer #navWhoForBtn .nav-menu-copy>span:first-child{font-size:13px;letter-spacing:.6px;}
+html.menu-v2-on #navDrawer .nav-drawer-item.settings-item:active{transform:scale(.965);}
+html.menu-v2-on #navDrawer .nav-drawer-item:focus-visible{outline:2px solid currentColor;outline-offset:4px;}
+html.light-mode-on.menu-v2-on #navDrawer{--menu-tile-bg:rgba(255,255,255,.58);--menu-tile-line:rgba(70,40,46,.12);}
+html.light-mode-on.menu-v2-on #navDrawer .nav-v2-description{color:#827579;}
+@media(max-width:350px){html.menu-v2-on #navMenuBody{padding-inline:20px;}html.menu-v2-on #navDrawer .settings-card{gap:10px;}html.menu-v2-on #navDrawer :is(#navThreeSummaryBtn,#navOneRMCalcBtn){padding:14px 10px;font-size:12px;}html.menu-v2-on #navDrawer .settings-item-label{gap:7px;}}
+@media(prefers-reduced-motion:reduce){html.menu-v2-on #navDrawer .nav-drawer-item.settings-item{transition:none;}}

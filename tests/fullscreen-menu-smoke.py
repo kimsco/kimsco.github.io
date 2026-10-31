@@ -23,7 +23,9 @@ try:
     assert 'radial-gradient' in panel.evaluate('e=>getComputedStyle(e).backgroundImage')
     assert page.locator('#navMenuTitle').evaluate('e=>getComputedStyle(e).fontSize')=='34px'
     assert page.locator('#navMenuCloseBtn').bounding_box()['width']==44
-    assert page.locator('#navDrawer .nav-drawer-item:visible').all_text_contents()==['3대 PR›','1RM 계산기›','내 루틴›','근육부위›','WHO IS TTT FOR?›']
+    assert page.locator('#navDrawer .nav-drawer-item:visible .nav-menu-copy>span:first-child').all_inner_texts()==['3대 PR','1RM 계산기','내 루틴','근육부위','WHO IS TTT FOR?']
+    assert page.locator('#navDrawer .nav-v2-icon:visible').count()==0
+    assert page.locator('#navDrawer .settings-chevron:visible').count()==5
     assert page.locator('#navDrawer .settings-card').first.evaluate('e=>getComputedStyle(e).borderRadius')=='20px'
     assert page.locator('.app').evaluate('e=>e.inert && !e.style.transform')
     assert panel.evaluate('e=>e.scrollWidth<=e.clientWidth')
