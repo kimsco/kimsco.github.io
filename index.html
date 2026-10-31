@@ -2325,7 +2325,7 @@ html.light-mode-on .home-mode-switch button[aria-selected="true"]{color:#1a1a1a;
 #muscleFinderOverlay .bw-menu-header-close,
 #mySpecOverlay .bw-menu-header-close,
 #homeSettingsOverlay .bw-menu-header-close,
-:is(#unitSettingsOverlay,#restSettingsOverlay) .bw-menu-header-close,
+:is(#unitSettingsOverlay,#restSettingsOverlay,#labsSettingsOverlay) .bw-menu-header-close,
 #installGuideOverlay .bw-menu-header-close {
   width: 42px;
   height: 42px;
@@ -2346,7 +2346,7 @@ html.light-mode-on .home-mode-switch button[aria-selected="true"]{color:#1a1a1a;
 #muscleFinderOverlay .bw-menu-header-close:active,
 #mySpecOverlay .bw-menu-header-close:active,
 #homeSettingsOverlay .bw-menu-header-close:active,
-:is(#unitSettingsOverlay,#restSettingsOverlay) .bw-menu-header-close:active,
+:is(#unitSettingsOverlay,#restSettingsOverlay,#labsSettingsOverlay) .bw-menu-header-close:active,
 #installGuideOverlay .bw-menu-header-close:active {
   transform: scale(1.3);
   background: rgba(255,255,255,0.24);
@@ -2357,7 +2357,7 @@ html.light-mode-on .home-mode-switch button[aria-selected="true"]{color:#1a1a1a;
 #muscleFinderOverlay .bw-menu-header-close svg,
 #mySpecOverlay .bw-menu-header-close svg,
 #homeSettingsOverlay .bw-menu-header-close svg,
-:is(#unitSettingsOverlay,#restSettingsOverlay) .bw-menu-header-close svg,
+:is(#unitSettingsOverlay,#restSettingsOverlay,#labsSettingsOverlay) .bw-menu-header-close svg,
 #installGuideOverlay .bw-menu-header-close svg {
   width: 20px;
   height: 20px;
@@ -2368,7 +2368,7 @@ html.light-mode-on #oneRMCalcOverlay .bw-menu-header-close,
 html.light-mode-on #muscleFinderOverlay .bw-menu-header-close,
 html.light-mode-on #mySpecOverlay .bw-menu-header-close,
 html.light-mode-on #homeSettingsOverlay .bw-menu-header-close,
-html.light-mode-on :is(#unitSettingsOverlay,#restSettingsOverlay) .bw-menu-header-close,
+html.light-mode-on :is(#unitSettingsOverlay,#restSettingsOverlay,#labsSettingsOverlay) .bw-menu-header-close,
 html.light-mode-on #installGuideOverlay .bw-menu-header-close {
   color: #333;
   background: rgba(0,0,0,0.06);
@@ -2380,7 +2380,7 @@ html.light-mode-on #oneRMCalcOverlay .bw-menu-header-close:active,
 html.light-mode-on #muscleFinderOverlay .bw-menu-header-close:active,
 html.light-mode-on #mySpecOverlay .bw-menu-header-close:active,
 html.light-mode-on #homeSettingsOverlay .bw-menu-header-close:active,
-html.light-mode-on :is(#unitSettingsOverlay,#restSettingsOverlay) .bw-menu-header-close:active,
+html.light-mode-on :is(#unitSettingsOverlay,#restSettingsOverlay,#labsSettingsOverlay) .bw-menu-header-close:active,
 html.light-mode-on #installGuideOverlay .bw-menu-header-close:active {
   background: rgba(0,0,0,0.14);
 }
@@ -8748,17 +8748,17 @@ html:not(.light-mode-on) #tab1 .home-card { background: #101010; border-color: #
 #loginSheetGoogleBtn:disabled { opacity:.6; cursor:wait; }
 
 /* Settings-only glass handles: transforms never change row layout. */
-:is(#settingsOverlay,#homeSettingsOverlay,#unitSettingsOverlay,#restSettingsOverlay) .settings-glass-row { overflow:visible; }
-:is(#settingsOverlay,#homeSettingsOverlay,#unitSettingsOverlay,#restSettingsOverlay) .settings-glass-toggle {
+:is(#settingsOverlay,#homeSettingsOverlay,#unitSettingsOverlay,#restSettingsOverlay,#labsSettingsOverlay) .settings-glass-row { overflow:visible; }
+:is(#settingsOverlay,#homeSettingsOverlay,#unitSettingsOverlay,#restSettingsOverlay,#labsSettingsOverlay) .settings-glass-toggle {
   --glass-x:0px;--glass-knob:#dedede;
   width:64px;height:28px;
   flex-shrink:0;isolation:isolate;touch-action:pan-y;
   box-shadow:inset 0 0 0 1px rgba(255,255,255,.09);
 }
-:is(#settingsOverlay,#homeSettingsOverlay,#unitSettingsOverlay,#restSettingsOverlay) .settings-glass-toggle.active {
+:is(#settingsOverlay,#homeSettingsOverlay,#unitSettingsOverlay,#restSettingsOverlay,#labsSettingsOverlay) .settings-glass-toggle.active {
   --glass-x:24px;--glass-knob:#414141;
 }
-:is(#settingsOverlay,#homeSettingsOverlay,#unitSettingsOverlay,#restSettingsOverlay) .settings-glass-toggle::after {
+:is(#settingsOverlay,#homeSettingsOverlay,#unitSettingsOverlay,#restSettingsOverlay,#labsSettingsOverlay) .settings-glass-toggle::after {
   width:36px;height:24px;top:2px;left:2px;
   border-radius:999px;box-sizing:border-box;
   background:var(--glass-knob);
@@ -8768,16 +8768,16 @@ html:not(.light-mode-on) #tab1 .home-card { background: #101010; border-color: #
   transition:transform .42s cubic-bezier(.22,1.35,.36,1),background .2s ease,box-shadow .2s ease;
   pointer-events:none;
 }
-html.light-mode-on :is(#settingsOverlay,#homeSettingsOverlay,#unitSettingsOverlay,#restSettingsOverlay) .settings-glass-toggle {
+html.light-mode-on :is(#settingsOverlay,#homeSettingsOverlay,#unitSettingsOverlay,#restSettingsOverlay,#labsSettingsOverlay) .settings-glass-toggle {
   background:#c5c5c5;--glass-knob:#fafafa;
 }
-html.light-mode-on :is(#settingsOverlay,#homeSettingsOverlay,#unitSettingsOverlay,#restSettingsOverlay) .settings-glass-toggle.active {
+html.light-mode-on :is(#settingsOverlay,#homeSettingsOverlay,#unitSettingsOverlay,#restSettingsOverlay,#labsSettingsOverlay) .settings-glass-toggle.active {
   background:#171717;--glass-knob:#f5f5f5;
 }
-html.light-mode-on :is(#settingsOverlay,#homeSettingsOverlay,#unitSettingsOverlay,#restSettingsOverlay) .settings-glass-toggle::after {
+html.light-mode-on :is(#settingsOverlay,#homeSettingsOverlay,#unitSettingsOverlay,#restSettingsOverlay,#labsSettingsOverlay) .settings-glass-toggle::after {
   background:var(--glass-knob);
 }
-:is(#settingsOverlay,#homeSettingsOverlay,#unitSettingsOverlay,#restSettingsOverlay) .settings-glass-toggle:is(.glass-pressed,.glass-settling)::after {
+:is(#settingsOverlay,#homeSettingsOverlay,#unitSettingsOverlay,#restSettingsOverlay,#labsSettingsOverlay) .settings-glass-toggle:is(.glass-pressed,.glass-settling)::after {
   background:linear-gradient(135deg,rgba(255,255,255,.55),rgba(255,255,255,.08) 55%,rgba(255,255,255,.28));
   -webkit-backdrop-filter:blur(3px) saturate(1.5);
   backdrop-filter:blur(3px) saturate(1.5);
@@ -8785,16 +8785,16 @@ html.light-mode-on :is(#settingsOverlay,#homeSettingsOverlay,#unitSettingsOverla
   box-shadow:0 3px 9px rgba(0,0,0,.27),inset 1px 1px 1px rgba(255,255,255,.8),inset -1px -1px 2px rgba(0,0,0,.18);
   transform:translateX(var(--glass-x)) scale(1.62,1.55);
 }
-:is(#settingsOverlay,#homeSettingsOverlay,#unitSettingsOverlay,#restSettingsOverlay) .settings-glass-toggle:focus-visible {
+:is(#settingsOverlay,#homeSettingsOverlay,#unitSettingsOverlay,#restSettingsOverlay,#labsSettingsOverlay) .settings-glass-toggle:focus-visible {
   outline:2px solid var(--c-text-secondary);outline-offset:5px;
 }
-:is(#settingsOverlay,#homeSettingsOverlay,#unitSettingsOverlay,#restSettingsOverlay) .settings-glass-toggle.glass-dragging::after { transition:none; }
-:is(#settingsOverlay,#homeSettingsOverlay,#unitSettingsOverlay,#restSettingsOverlay) .settings-glass-toggle.glass-moving::after {
+:is(#settingsOverlay,#homeSettingsOverlay,#unitSettingsOverlay,#restSettingsOverlay,#labsSettingsOverlay) .settings-glass-toggle.glass-dragging::after { transition:none; }
+:is(#settingsOverlay,#homeSettingsOverlay,#unitSettingsOverlay,#restSettingsOverlay,#labsSettingsOverlay) .settings-glass-toggle.glass-moving::after {
   transform:var(--glass-motion-transform);transition:none;
 }
 @media (prefers-reduced-motion:reduce) {
-  :is(#settingsOverlay,#homeSettingsOverlay,#unitSettingsOverlay,#restSettingsOverlay) .settings-glass-toggle::after {transition:none;}
-  :is(#settingsOverlay,#homeSettingsOverlay,#unitSettingsOverlay,#restSettingsOverlay) .settings-glass-toggle:is(.glass-pressed,.glass-settling)::after {transform:translateX(var(--glass-x));}
+  :is(#settingsOverlay,#homeSettingsOverlay,#unitSettingsOverlay,#restSettingsOverlay,#labsSettingsOverlay) .settings-glass-toggle::after {transition:none;}
+  :is(#settingsOverlay,#homeSettingsOverlay,#unitSettingsOverlay,#restSettingsOverlay,#labsSettingsOverlay) .settings-glass-toggle:is(.glass-pressed,.glass-settling)::after {transform:translateX(var(--glass-x));}
 }
 </style>
 <script>
@@ -8803,7 +8803,7 @@ document.addEventListener('dragstart', event => {
   event.preventDefault();
 });
 </script>
-<link rel="stylesheet" href="/css/settings.css?v=1.0.256">
+<link rel="stylesheet" href="/css/settings.css?v=1.0.257">
 </head>
 
 <body style="background-color:#000000;">
@@ -10826,6 +10826,22 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
   </div>
 </div>
 
+<div id="labsSettingsOverlay" class="hidden settings-box-theme" role="dialog" aria-modal="true" aria-labelledby="labsSettingsTitle">
+ <div id="labsSettingsScreen">
+  <div class="rest-settings-header">
+   <button type="button" class="bw-menu-header-close" onclick="closeLabsSettings()" aria-label="설정으로 돌아가기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+   <h2 id="labsSettingsTitle">실험실</h2>
+  </div>
+  <div class="settings-card settings-card--flush">
+   <div class="settings-item settings-item--single" style="justify-content:space-between;">
+    <span class="settings-item-label">버전 2 메뉴</span>
+    <div id="menuV2Toggle" class="toggle-switch settings-glass-toggle"></div>
+   </div>
+  </div>
+  <p class="labs-settings-description">켜면 메뉴가 화면 너비의 절반으로 열려요.</p>
+ </div>
+</div>
+
 <div id="restSettingsOverlay" class="hidden settings-box-theme" role="dialog" aria-modal="true" aria-labelledby="restSettingsTitle">
  <div id="restSettingsScreen">
   <div class="rest-settings-header">
@@ -11082,6 +11098,8 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
     <div id="lightModeToggle" class="toggle-switch settings-glass-toggle"></div>
   </div>
   <button id="restSettingsMenuBtn" type="button" class="settings-item"><svg class="settings-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l2.5 2.5"></path><path d="M9 2h6"></path></svg>휴식 스톱워치<span class="settings-chevron" aria-hidden="true">›</span></button>
+
+  <button id="labsSettingsMenuBtn" type="button" class="settings-item" aria-haspopup="dialog" aria-controls="labsSettingsOverlay"><svg class="settings-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3h6m-5 0v6l-6 10a1.4 1.4 0 0 0 1.2 2h13.6a1.4 1.4 0 0 0 1.2-2L14 9V3M7 15h10"/></svg>실험실<span class="settings-chevron" aria-hidden="true">›</span></button>
 
 </div>
 
@@ -13575,7 +13593,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.256";
+const APP_VERSION = "1.0.257";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -16805,6 +16823,31 @@ function closeUnitSettings(){
 
 document.getElementById("unitSettingsMenuBtn").addEventListener("click", () => {
   openUnitSettings();
+});
+
+const labsSettingsOverlay=document.getElementById('labsSettingsOverlay');
+const menuV2Toggle=document.getElementById('menuV2Toggle');
+let menuV2Enabled=false;
+try{menuV2Enabled=localStorage.getItem('ttt_menu_v2')==='true';}catch(e){}
+function applyMenuV2(on){
+  menuV2Enabled=!!on;
+  document.documentElement.classList.toggle('menu-v2-on',menuV2Enabled);
+  menuV2Toggle.classList.toggle('active',menuV2Enabled);
+}
+applyMenuV2(menuV2Enabled);
+menuV2Toggle.addEventListener('click',()=>{
+  applyMenuV2(!menuV2Enabled);
+  try{localStorage.setItem('ttt_menu_v2',String(menuV2Enabled));}catch(e){}
+});
+function openLabsSettings(){
+  labsSettingsOverlay.classList.remove('hidden');
+  const screen=document.getElementById('labsSettingsScreen');
+  screen.style.transition='none';screen.style.transform='translateX(0)';screen.scrollTop=0;
+}
+function closeLabsSettings(){labsSettingsOverlay.classList.add('hidden');}
+document.getElementById('labsSettingsMenuBtn').addEventListener('click',openLabsSettings);
+document.addEventListener('keydown',event=>{
+  if(event.key==='Escape'&&!labsSettingsOverlay.classList.contains('hidden')){event.preventDefault();closeLabsSettings();}
 });
 
 const restSettingsOverlay=document.getElementById('restSettingsOverlay');
@@ -20659,6 +20702,77 @@ document.getElementById("dexWriteSubmitBtn").addEventListener("click", async () 
   restSettingsScreen.addEventListener('touchcancel', endDrag, { passive: true });
 })();
 
+(function(){
+  const labsSettingsScreen = document.getElementById('labsSettingsScreen');
+  const EDGE_ZONE = 30;
+  const COMMIT_MOVE = 8;
+  const CLOSE_RATIO = 0.3;
+  let startX = 0, startY = 0, tracking = false, dragging = false;
+
+  labsSettingsScreen.addEventListener('touchstart', (e) => {
+    const t = e.touches[0];
+    if (t.clientX <= EDGE_ZONE) {
+      startX = t.clientX;
+      startY = t.clientY;
+      tracking = true;
+      dragging = false;
+      labsSettingsScreen.style.transition = 'none';
+    } else {
+      tracking = false;
+    }
+  }, { passive: true });
+
+  labsSettingsScreen.addEventListener('touchmove', (e) => {
+    if (!tracking) return;
+    const t = e.touches[0];
+    const dx = t.clientX - startX;
+    const dy = t.clientY - startY;
+
+    if (!dragging) {
+      if (dx > COMMIT_MOVE && dx > Math.abs(dy) * 0.6) {
+        dragging = true;
+      } else if (Math.abs(dy) > COMMIT_MOVE && Math.abs(dy) > dx) {
+        tracking = false;
+        return;
+      } else {
+        return;
+      }
+    }
+
+    if (dragging) {
+      e.preventDefault();
+      labsSettingsScreen.style.transform = `translateX(${Math.max(0, dx)}px)`;
+    }
+  }, { passive: false });
+
+  function endDrag(e){
+    if (!tracking) return;
+    const wasDragging = dragging;
+    tracking = false;
+    dragging = false;
+    if (!wasDragging) return;
+
+    const width = labsSettingsScreen.offsetWidth || window.innerWidth;
+    const t = e.changedTouches[0];
+    const dx = Math.max(0, t.clientX - startX);
+
+    labsSettingsScreen.style.transition = 'transform 0.22s ease';
+
+    if (dx > width * CLOSE_RATIO) {
+      labsSettingsScreen.style.transform = `translateX(${width}px)`;
+      setTimeout(() => {
+        closeLabsSettings();
+        labsSettingsScreen.style.transition = 'none';
+      }, 220);
+    } else {
+      labsSettingsScreen.style.transform = 'translateX(0)';
+    }
+  }
+
+  labsSettingsScreen.addEventListener('touchend', endDrag, { passive: true });
+  labsSettingsScreen.addEventListener('touchcancel', endDrag, { passive: true });
+})();
+
 
 
    
@@ -21352,7 +21466,7 @@ document.addEventListener('keydown',event=>{
   document.addEventListener('touchstart',event=>{
     tracking=false;
     if(!homeModeHome.classList.contains('active') || !navDrawerOverlay.classList.contains('hidden') || event.touches.length!==1)return;
-    const overlays=['settingsOverlay','exerciseDexOverlay','mySpecOverlay','threeSummaryOverlay','myRoutineOverlay','dietOverlay','bodyweightOverlay','oneRMCalcOverlay','muscleFinderOverlay','whoForOverlay','homeSettingsOverlay','unitSettingsOverlay','restSettingsOverlay','inactivityOverlay'];
+    const overlays=['settingsOverlay','exerciseDexOverlay','mySpecOverlay','threeSummaryOverlay','myRoutineOverlay','dietOverlay','bodyweightOverlay','oneRMCalcOverlay','muscleFinderOverlay','whoForOverlay','homeSettingsOverlay','unitSettingsOverlay','restSettingsOverlay','labsSettingsOverlay','inactivityOverlay'];
     if(document.documentElement.classList.contains('exercise-ref-modal-open') || overlays.some(id=>{const el=document.getElementById(id);return el&&!el.classList.contains('hidden');}))return;
     x=event.touches[0].clientX;y=event.touches[0].clientY;tracking=x<=30;
   },{passive:true});
@@ -21408,7 +21522,7 @@ document.addEventListener('keydown',event=>{
     "myRoutineOverlay", "myRoutinePastListOverlay", "myRoutineDetailOverlay",
     "myRoutineBuilderOverlay", "myRoutineRevealOverlay", "dietOverlay",
     "bodyweightOverlay", "oneRMCalcOverlay", "muscleFinderOverlay", "whoForOverlay",
-    "homeSettingsOverlay", "unitSettingsOverlay", "inactivityOverlay"
+    "homeSettingsOverlay", "unitSettingsOverlay", "labsSettingsOverlay", "inactivityOverlay"
   ];
   function anyBlockingOverlayOpen(){
     if (navDrawerOverlay && !navDrawerOverlay.classList.contains('hidden')) return true;
@@ -22366,6 +22480,7 @@ document.body.appendChild(settingsOverlay);
 document.body.appendChild(homeSettingsOverlay);
 document.body.appendChild(unitSettingsOverlay);
 document.body.appendChild(restSettingsOverlay);
+document.body.appendChild(labsSettingsOverlay);
 
 // 🔥 설정 화면 뒤로 살짝 밀리며 페이드아웃되는 본 화면(.app) — 메뉴드로우바(setAppPush)와
 // 반대 방향(왼쪽)으로, dietOverlay가 열릴 때 쓰는 것과 동일한 push+fade 패턴
