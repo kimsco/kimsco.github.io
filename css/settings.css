@@ -516,3 +516,16 @@ html.light-mode-on.menu-v2-on #navDrawer .nav-v2-description{color:#827579;}
 html.menu-v2-on #navDrawer :is(#navMyRoutineBtn,#navMuscleFinderBtn){min-height:60px;padding:12px 22px;border-radius:999px;}
 html.menu-v2-on #navDrawer :is(#navMyRoutineBtn,#navMuscleFinderBtn) .nav-v2-icon{width:28px;flex-basis:28px;}
 html.menu-v2-on #navDrawer :is(#navMyRoutineBtn,#navMuscleFinderBtn) .nav-menu-copy>span:first-child{font-size:13px;letter-spacing:.6px;}
+
+/* Full, read-only daily record list in the experimental control center. */
+#navDrawer .nav-v2-today{display:none;}
+html.menu-v2-on #navDrawer .nav-v2-today{display:block;}
+html.menu-v2-on #navDrawer .nav-today-card{padding:20px 22px;border:1px solid var(--menu-tile-line);border-radius:28px;background:linear-gradient(145deg,rgba(255,255,255,.07),transparent 65%),var(--menu-tile-bg);box-shadow:inset 0 1px 0 rgba(255,255,255,.09);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);}
+#navTodayRecordsTitle{margin:0 0 16px;font-size:14px;font-weight:600;line-height:1.5;}
+#navTodayRecordsList{list-style:none;padding:0;margin:0;}
+#navTodayRecordsList li{font-size:13px;line-height:1.8;overflow-wrap:anywhere;}
+#navTodayRecordsList li+li{margin-top:14px;}
+#navTodayRecordsList .nav-today-name{font-weight:500;margin-right:8px;}
+#navTodayRecordsList .nav-today-details{color:rgba(255,255,255,.6);font-size:12px;font-variant-numeric:tabular-nums;}
+#navTodayRecordsEmpty{margin:0;font-size:12px;line-height:1.8;color:var(--settings-muted);}
+html.light-mode-on #navTodayRecordsList .nav-today-details{color:#827579;}

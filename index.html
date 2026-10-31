@@ -8805,7 +8805,7 @@ document.addEventListener('dragstart', event => {
   event.preventDefault();
 });
 </script>
-<link rel="stylesheet" href="/css/settings.css?v=1.0.262">
+<link rel="stylesheet" href="/css/settings.css?v=1.0.264">
 </head>
 
 <body style="background-color:#000000;">
@@ -10554,6 +10554,13 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
           <button id="navOneRMCalcBtn" class="nav-drawer-item settings-item"><span class="settings-item-label"><span class="nav-v2-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="3"/><path d="M9 7h6M9 11h.01M15 11h.01M9 15h.01M15 15h.01M9 18h.01M15 18h.01"/></svg></span><span class="nav-menu-copy"><span>1RM 계산기</span><span class="nav-v2-description">최대 중량 계산</span></span></span><span class="settings-chevron" aria-hidden="true">›</span></button>
           <button id="navMyRoutineBtn" class="nav-drawer-item settings-item"><span class="settings-item-label"><span class="nav-v2-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="16" rx="4"/><path d="M9 3h6v4H9zM8 12l1.5 1.5L12 11m1 2h3M8 17h8"/></svg></span><span class="nav-menu-copy"><span>내 루틴</span></span></span><span class="settings-chevron" aria-hidden="true">›</span></button>
           <button id="navMuscleFinderBtn" class="nav-drawer-item settings-item"><span class="settings-item-label"><span class="nav-v2-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2.5"/><path d="M5 21v-7a7 7 0 0 1 14 0v7M9 21v-6m6 6v-6M5 15h14"/></svg></span><span class="nav-menu-copy"><span>근육부위</span></span></span><span class="settings-chevron" aria-hidden="true">›</span></button>
+        </div>
+      </section>
+      <section id="navTodayRecords" class="settings-group nav-v2-today" aria-labelledby="navTodayRecordsTitle">
+        <div class="nav-today-card">
+          <h2 id="navTodayRecordsTitle">오늘 운동 레코드</h2>
+          <ul id="navTodayRecordsList"></ul>
+          <p id="navTodayRecordsEmpty">오늘의 첫 세트를 남겨보세요.</p>
         </div>
       </section>
       <section class="settings-group" aria-labelledby="navAboutLabel">
@@ -13594,7 +13601,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.263";
+const APP_VERSION = "1.0.264";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -21388,6 +21395,39 @@ const navMenuCloseBtn=document.getElementById('navMenuCloseBtn');
 function releaseNavMenuBackground(){
   navMenuBackground.forEach(([el,inert])=>{el.inert=inert;});navMenuBackground=[];
 }
+function renderNavTodayRecords(){
+  const list=document.getElementById('navTodayRecordsList');
+  const groups=getExerciseRecordsForDate(getCalendarKeyToday());
+  const fragment=document.createDocumentFragment();
+  for(const group of groups){
+    const row=document.createElement('li');
+    const name=document.createElement('span');name.className='nav-today-name';name.textContent=group.exercise;
+    const details=document.createElement('span');details.className='nav-today-details';
+    const packed=new Map();
+    for(const line of group.lines){
+      const key=JSON.stringify([line.weight==null?null:Number(line.weight),Number(line.reps)]);
+      const existing=packed.get(key);
+      if(existing && group.accent!=='routine')existing.sets+=Number(line.sets)||1;
+      else packed.set(group.accent==='routine'?key+':'+packed.size:key,{...line,sets:Number(line.sets)||1});
+    }
+    details.textContent=[...packed.values()].map(line=>{
+      if(group.accent==='routine')return `총 ${formatCountSmart(line.sets)}${setsUnit()} · ${formatCountSmart(line.reps)}${repsUnit()}`;
+      const weight=Number(line.weight)>0?`${formatKgSmart(line.weight)}${weightUnit()} · `:'';
+      return `${weight}${formatCountSmart(line.reps)}${repsUnit()} × ${formatCountSmart(line.sets)}${setsUnit()}`;
+    }).join(' / ');
+    row.append(name,details);fragment.append(row);
+  }
+  list.replaceChildren(fragment);
+  document.getElementById('navTodayRecordsEmpty').hidden=groups.length>0;
+}
+function refreshVisibleNavTodayRecords(){
+  if(!navDrawerOverlay.classList.contains('hidden'))renderNavTodayRecords();
+}
+window.addEventListener('mf-reminder-records-changed',refreshVisibleNavTodayRecords);
+window.addEventListener('mf-reminder-snapshot',refreshVisibleNavTodayRecords);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshVisibleNavTodayRecords();});
+setInterval(refreshVisibleNavTodayRecords,60000);
+
 function openNavDrawer(){
   if(document.getElementById('bootSplash') || navMenuOpen)return;
   if(topBarEl.classList.contains('rtimer-card-active')){stopRestTimerManually();return;}
@@ -21397,6 +21437,7 @@ function openNavDrawer(){
     navMenuBackground=[...document.body.children].filter(el=>el!==navDrawerOverlay && !['SCRIPT','STYLE'].includes(el.tagName)).map(el=>[el,el.inert]);
     navMenuBackground.forEach(([el])=>{el.inert=true;});
   }
+  renderNavTodayRecords();
   navMenuOpen=true;navMenuBody.scrollTop=0;
   navDrawer.style.animation='none';navDrawer.style.transition='none';navDrawer.style.transform='translateX(-100%)';
   navDrawerOverlay.classList.remove('hidden');void navDrawer.offsetHeight;
