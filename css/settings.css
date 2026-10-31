@@ -549,5 +549,5 @@ html.menu-v2-on #navDrawer .nav-today-card{box-sizing:border-box;min-height:60px
 #todayRecordsList .nav-today-details{font-size:13px;}
 @media(prefers-reduced-motion:reduce){#todayRecordsScreen,#navTodayRecordsOpen{transition:none!important;}#navTodayRecordsOpen:active{transform:none;}}
 
-/* Keep one rhythm between all control-center cards, including the daily records. */
-html.menu-v2-on #navAboutLabel{display:none;}
+/* Brand section retains its own heading and separation from the tool cards. */
+html.menu-v2-on #navDrawer .settings-group[aria-labelledby="navAboutLabel"]{padding-top:10px;}
