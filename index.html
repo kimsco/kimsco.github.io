@@ -8803,7 +8803,7 @@ document.addEventListener('dragstart', event => {
   event.preventDefault();
 });
 </script>
-<link rel="stylesheet" href="/css/settings.css?v=1.0.251">
+<link rel="stylesheet" href="/css/settings.css?v=1.0.252">
 </head>
 
 <body style="background-color:#000000;">
@@ -10548,16 +10548,16 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
       <section class="settings-group" aria-labelledby="navToolsLabel">
         <h2 id="navToolsLabel" class="settings-section-label">운동 도구</h2>
         <div class="settings-card">
-          <button id="navThreeSummaryBtn" class="nav-drawer-item settings-item"><span class="settings-item-label"><svg class="settings-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16M6 16v-4h3v4m2 0V5h3v11m2 0V9h3v7"/></svg><span>3대 PR</span></span><span class="settings-chevron" aria-hidden="true">›</span></button>
-          <button id="navOneRMCalcBtn" class="nav-drawer-item settings-item"><span class="settings-item-label"><svg class="settings-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="2" width="16" height="20" rx="3"/><path d="M8 6h8M8 11h1m6 0h1m-8 4h1m6 0h1m-8 4h1m6 0h1"/></svg><span>1RM 계산기</span></span><span class="settings-chevron" aria-hidden="true">›</span></button>
-          <button id="navMyRoutineBtn" class="nav-drawer-item settings-item"><span class="settings-item-label"><svg class="settings-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="18" rx="3"/><path d="M9 2h6v4H9zM8 11h8m-8 5h8"/></svg><span>내 루틴</span></span><span class="settings-chevron" aria-hidden="true">›</span></button>
-          <button id="navMuscleFinderBtn" class="nav-drawer-item settings-item"><span class="settings-item-label"><svg class="settings-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="5" r="2.5"/><path d="M5 21v-7a7 7 0 0 1 14 0v7M9 21v-6m6 6v-6M5 15h14"/></svg><span>근육부위</span></span><span class="settings-chevron" aria-hidden="true">›</span></button>
+          <button id="navThreeSummaryBtn" class="nav-drawer-item settings-item"><span class="settings-item-label"><span>3대 PR</span></span><span class="settings-chevron" aria-hidden="true">›</span></button>
+          <button id="navOneRMCalcBtn" class="nav-drawer-item settings-item"><span class="settings-item-label"><span>1RM 계산기</span></span><span class="settings-chevron" aria-hidden="true">›</span></button>
+          <button id="navMyRoutineBtn" class="nav-drawer-item settings-item"><span class="settings-item-label"><span>내 루틴</span></span><span class="settings-chevron" aria-hidden="true">›</span></button>
+          <button id="navMuscleFinderBtn" class="nav-drawer-item settings-item"><span class="settings-item-label"><span>근육부위</span></span><span class="settings-chevron" aria-hidden="true">›</span></button>
         </div>
       </section>
       <section class="settings-group" aria-labelledby="navAboutLabel">
         <h2 id="navAboutLabel" class="settings-section-label">To the Top</h2>
         <div class="settings-card">
-          <button id="navWhoForBtn" class="nav-drawer-item settings-item settings-item--single"><span class="settings-item-label"><svg class="settings-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 20 6-10 4 6 3-5 5 9H3zM12 3v6m-3-3 3-3 3 3"/></svg><span>WHO IS TTT FOR?</span></span><span class="settings-chevron" aria-hidden="true">›</span></button>
+          <button id="navWhoForBtn" class="nav-drawer-item settings-item settings-item--single"><span class="settings-item-label"><span>WHO IS TTT FOR?</span></span><span class="settings-chevron" aria-hidden="true">›</span></button>
         </div>
       </section>
       <div hidden>
@@ -13575,7 +13575,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.251";
+const APP_VERSION = "1.0.252";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
