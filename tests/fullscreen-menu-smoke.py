@@ -27,14 +27,14 @@ try:
     assert page.locator('#navDrawer .nav-v2-icon:visible').count()==0
     assert page.locator('#navDrawer .settings-chevron:visible').count()==5
     assert page.locator('#navDrawer .settings-card').first.evaluate('e=>getComputedStyle(e).borderRadius')=='20px'
-    assert page.locator('.app').evaluate('e=>e.inert && !e.style.transform')
+    assert page.locator('.app').evaluate("e=>e.inert && e.style.transform==='translateX(16px)' && e.style.opacity==='0'")
     assert panel.evaluate('e=>e.scrollWidth<=e.clientWidth')
     assert menu.evaluate('e=>e===document.activeElement && getComputedStyle(e).outlineStyle==="none"')
     assert not page.locator('#navMenuCloseBtn').evaluate('e=>e.matches(":focus-visible")')
     page.screenshot(path=f'/tmp/fullscreen-menu-{width}-{light}.png')
     page.locator('#navMenuCloseBtn').focus();page.keyboard.press('Shift+Tab');assert page.locator('#navWhoForBtn').evaluate('e=>e===document.activeElement')
     page.keyboard.press('Tab');assert page.locator('#navMenuCloseBtn').evaluate('e=>e===document.activeElement')
-    page.keyboard.press('Escape');page.wait_for_timeout(400);assert menu.is_hidden();assert not page.locator('.app').evaluate('e=>e.inert')
+    page.keyboard.press('Escape');page.wait_for_timeout(400);assert menu.is_hidden();assert not page.locator('.app').evaluate('e=>e.inert || e.style.transform || e.style.opacity')
    if width==320:
     page.set_viewport_size({'width':width,'height':420});page.evaluate('openNavDrawer()');page.wait_for_timeout(400)
     page.locator('#navMenuBody').evaluate('e=>e.scrollTop=80');assert page.locator('#navMenuBody').evaluate('e=>e.scrollTop>0')
