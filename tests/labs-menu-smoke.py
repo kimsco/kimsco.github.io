@@ -38,8 +38,11 @@ try:
     first=page.locator('#navThreeSummaryBtn').bounding_box();second=page.locator('#navOneRMCalcBtn').bounding_box()
     routine=page.locator('#navMyRoutineBtn').bounding_box()
     assert abs(first['y']-second['y'])<1
-    assert routine['width']>first['width']*1.9 and routine['height']>=164
-    assert page.locator('#navMyRoutineBtn').evaluate('e=>getComputedStyle(e).color')=='rgb(33, 28, 29)'
+    assert routine['width']>first['width']*1.9 and 76<=routine['height']<90
+    assert page.locator('#navMyRoutineBtn').evaluate('e=>getComputedStyle(e).background')==page.locator('#navMuscleFinderBtn').evaluate('e=>getComputedStyle(e).background')
+    assert page.locator('#navWhoForBtn .nav-v2-description').count()==0
+    assert page.locator('#navThreeSummaryBtn .nav-menu-copy>span').first.evaluate('e=>getComputedStyle(e).fontWeight')=='500'
+    assert first['height']==64
     assert page.locator('#navDrawer .nav-v2-icon:visible').count()==5
     assert card.evaluate('e=>e.scrollWidth<=e.clientWidth')
     assert panel.evaluate('e=>e.scrollWidth<=e.clientWidth')
