@@ -18,7 +18,13 @@ try:
     Object.keys(records).forEach(k=>records[k]=[]);accRecordsByExercise={};bodyweightRoutineRecords=[];
     applyMenuV2(true);openNavDrawer();
    }''');page.wait_for_timeout(400)
-   assert page.locator('#navTodayRecordsEmpty').is_visible()
+   assert page.locator('#navTodayRecordsEmpty').count()==0
+   assert page.locator('#navTodayRecordsOpen').bounding_box()['height']==60
+   page.locator('#navTodayRecordsOpen').focus();page.keyboard.press('Enter');page.wait_for_timeout(350)
+   assert page.locator('#todayRecordsOverlay').is_visible() and page.locator('#navDrawerOverlay').is_hidden()
+   assert page.locator('#todayRecordsList li').count()==0
+   page.keyboard.press('Escape');page.wait_for_timeout(350)
+   page.evaluate('openNavDrawer()');page.wait_for_timeout(400)
    page.evaluate('''()=>{
     const date=formatTodayYYMMDD();
     records.bench=[{date,weight:60,reps:10,sets:1,createdAt:100},{date,weight:'60',reps:'10',sets:2,createdAt:101},{date,weight:65,reps:8,sets:1,createdAt:102},{date:'00.01.01',weight:999,reps:1,sets:1}];
@@ -34,7 +40,7 @@ try:
    assert '45kg · 12회 × 2set' in rows.nth(1).inner_text()
    assert page.locator('#navTodayRecordsList img').count()==0
    assert '총 3set · 30회' in rows.last.inner_text()
-   assert page.locator('#navTodayRecordsEmpty').is_hidden()
+   assert page.locator('#navTodayRecordsOpen').bounding_box()['height']>60
    for light in [False,True]:
     page.evaluate('v=>applyLightMode(v)',light)
     assert page.locator('#navDrawer').bounding_box()['width']==width
@@ -43,8 +49,26 @@ try:
     assert body.evaluate('e=>e.scrollTop>0')
     assert rows.last.is_visible()
     page.screenshot(path=f'/tmp/menu-today-{width}-{light}.png')
+   page.locator('#navTodayRecordsOpen').click();page.wait_for_timeout(350)
+   assert page.locator('#todayRecordsOverlay').is_visible()
+   assert page.locator('#todayRecordsOverlay').bounding_box()['width']==width
+   assert page.locator('#todayRecordsList li').count()==22
+   assert page.locator('#todayRecordsList li').first.inner_text()==rows.first.inner_text()
+   page.locator('#todayRecordsBody').evaluate('e=>e.scrollTop=e.scrollHeight')
+   assert page.locator('#todayRecordsBody').evaluate('e=>e.scrollTop>0')
    page.evaluate('''()=>{records.bench=[];accRecordsByExercise={};bodyweightRoutineRecords=[];window.dispatchEvent(new Event('mf-reminder-snapshot'));}''')
-   assert rows.count()==0 and page.locator('#navTodayRecordsEmpty').is_visible()
+   assert page.locator('#todayRecordsList li').count()==0
+   page.locator('#todayRecordsBack').click();page.wait_for_timeout(350)
+   assert page.locator('#todayRecordsOverlay').is_hidden()
+   page.evaluate('openNavDrawer()');page.wait_for_timeout(400)
+   assert rows.count()==0 and page.locator('#navTodayRecordsOpen').bounding_box()['height']==60
+   page.locator('#navTodayRecordsOpen').click();page.wait_for_timeout(350)
+   cdp=context.new_cdp_session(page)
+   cdp.send('Input.dispatchTouchEvent',{'type':'touchStart','touchPoints':[{'x':5,'y':200}]})
+   for i in range(1,11):
+    cdp.send('Input.dispatchTouchEvent',{'type':'touchMove','touchPoints':[{'x':5+width*.6*i/10,'y':200}]});page.wait_for_timeout(16)
+   cdp.send('Input.dispatchTouchEvent',{'type':'touchEnd','touchPoints':[]});page.wait_for_timeout(350)
+   assert page.locator('#todayRecordsOverlay').is_hidden()
    page.evaluate('applyMenuV2(false)');assert page.locator('#navTodayRecords').is_hidden()
    assert not errors,errors
    print('PASS all daily rows, grouped sets, updates, old dates, safe text, themes and scrolling',width)
