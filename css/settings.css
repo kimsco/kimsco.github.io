@@ -468,5 +468,5 @@ html.light-mode-on #navDrawer{background:linear-gradient(to right,transparent 55
 #navDrawer .settings-card>.settings-item:not(:last-child)::after{left:0;}
 
 /* Menu cards reveal the glow without dimming their contents. */
-#navDrawer .settings-card{background:rgba(28,28,29,.4);}
-html.light-mode-on #navDrawer .settings-card{background:rgba(255,255,255,.4);}
+#navDrawer .settings-card{background:rgba(28,28,29,.3);}
+html.light-mode-on #navDrawer .settings-card{background:rgba(255,255,255,.3);}
