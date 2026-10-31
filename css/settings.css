@@ -480,8 +480,4 @@ html.light-mode-on #navDrawer .settings-card{background:rgba(255,255,255,.3);}
 html.light-mode-on #labsSettingsOverlay{background:#f5f4f4;}
 
 .labs-settings-description{margin:14px 18px;color:var(--settings-muted);font-size:13px;line-height:1.7;}
-html.menu-v2-on #navDrawer{width:50%;}
-html.menu-v2-on #navDrawerDim{display:block;}
-html.menu-v2-on #navMenuCloseBtn{right:8px;}
-html.menu-v2-on #navMenuTitle{margin-right:44px;}
-html.menu-v2-on #navDrawer .settings-card{padding-inline:14px;}
+html.menu-v2-on #navDrawer .settings-card{width:50%;box-sizing:border-box;}
