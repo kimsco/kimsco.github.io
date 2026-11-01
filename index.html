@@ -13620,7 +13620,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.288";
+const APP_VERSION = "1.0.289";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -21619,7 +21619,17 @@ function openMenuCalculator(){
   const duration=reduced?0:430,revealDuration=reduced?0:360,easing='cubic-bezier(.22,1,.36,1)';
   const GEOMETRY_KEYS=['left','top','width','height','borderRadius'],COLOR_KEYS=['backgroundColor','borderColor','boxShadow'];
   const pick=(obj,keys)=>Object.fromEntries(keys.map(k=>[k,obj[k]]));
-  menuCalculatorMotion=menuCalculator.animate([pick(from,GEOMETRY_KEYS),pick(target,GEOMETRY_KEYS)],{duration,easing});
+  // 🔥 "뽀잉" 느낌 — 바로 커지지 않고, 처음 12%에서 제자리(같은 중심점)에서 살짝
+  //    오그라들었다가(93%) 그 지점부터 목표 크기까지 스프링처럼 튕기며 커짐.
+  const fromGeo=pick(from,GEOMETRY_KEYS),targetGeo=pick(target,GEOMETRY_KEYS);
+  const fw=parseFloat(from.width),fh=parseFloat(from.height),fl=parseFloat(from.left),ft=parseFloat(from.top);
+  const squashScale=0.93,sw=fw*squashScale,sh=fh*squashScale;
+  const squashGeo={left:(fl+(fw-sw)/2)+'px',top:(ft+(fh-sh)/2)+'px',width:sw+'px',height:sh+'px',borderRadius:from.borderRadius};
+  menuCalculatorMotion=menuCalculator.animate([
+    {...fromGeo,offset:0,easing:'cubic-bezier(.4,0,1,1)'},
+    {...squashGeo,offset:0.12,easing:'cubic-bezier(.34,1.56,.64,1)'},
+    targetGeo
+  ],{duration});
   // 🔥 커지는 동안(1단계)엔 타일과 같은 계열의 "불투명" 색(--menu-tile-bg-opaque)을
   //    써서 뒷배경이 비치지 않게 하고, 다 커진 뒤(2단계)에만 진한 색(target)으로
   //    전환함. 테두리/그림자는 타일 원래 값 그대로 써도 배경이 비치는 문제가
