@@ -13621,7 +13621,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.298";
+const APP_VERSION = "1.0.299";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -21694,10 +21694,27 @@ function openMenuCalculatorTile(tile){
   //    (처음엔 12%/93%로 했더니 너무 짧고 작아서 거의 안 보였음 — 구간/폭 다 늘림)
   const fw=parseFloat(from.width),fh=parseFloat(from.height),fl=parseFloat(from.left),ft=parseFloat(from.top);
   const squashScale=0.82,sw=fw*squashScale,sh=fh*squashScale;
-  const squashGeo={left:(fl+(fw-sw)/2)+'px',top:(ft+(fh-sh)/2)+'px',width:sw+'px',height:sh+'px',borderRadius:from.borderRadius};
+  const sqLeft=fl+(fw-sw)/2,sqTop=ft+(fh-sh)/2;
+  const squashGeo={left:sqLeft+'px',top:sqTop+'px',width:sw+'px',height:sh+'px',borderRadius:from.borderRadius};
+  // 🔥 카드가 이제 화면을 거의 꽉 채우는 크기라, 튕기며 커지는 구간의 오버슈트
+  //    (cubic-bezier(.34,1.56,.64,1)는 목표치보다 9.78% 더 튀어나갔다가(peak≈전체
+  //    타이밍의 65.8% 지점) 가라앉는 커브)가 실제 화면 경계를 넘어가 버림. 그 피크
+  //    지점의 좌표를 직접 계산해 화면 경계 안쪽(EDGE_SAFETY)으로 캡을 걸고, 그
+  //    지점을 키프레임으로 명시적으로 박아 넣어(스쿼시→피크, 피크→목표 두 구간으로
+  //    나눔) "튕기는" 느낌은 그대로 유지하면서 경계는 절대 안 넘게 함.
+  const OVERSHOOT_PEAK=1.0978,OVERSHOOT_OFFSET=0.2+0.573*0.8,EDGE_SAFETY=4;
+  const drawerBox=navDrawer.getBoundingClientRect();
+  const tLeft=parseFloat(target.left),tTop=parseFloat(target.top),tWidth=parseFloat(target.width),tHeight=parseFloat(target.height);
+  const lerp=(a,b,p)=>a+(b-a)*p;
+  const peakLeft=Math.max(EDGE_SAFETY,lerp(sqLeft,tLeft,OVERSHOOT_PEAK));
+  const peakTop=Math.max(EDGE_SAFETY,lerp(sqTop,tTop,OVERSHOOT_PEAK));
+  const peakWidth=Math.min(lerp(sw,tWidth,OVERSHOOT_PEAK),drawerBox.width-EDGE_SAFETY-peakLeft);
+  const peakHeight=Math.min(lerp(sh,tHeight,OVERSHOOT_PEAK),drawerBox.height-EDGE_SAFETY-peakTop);
+  const peakGeo={left:peakLeft+'px',top:peakTop+'px',width:peakWidth+'px',height:peakHeight+'px',borderRadius:target.borderRadius};
   menuCalculatorMotion=tile.btn.animate([
     {...from,offset:0,easing:'cubic-bezier(.45,0,.55,1)'},
-    {...squashGeo,offset:0.2,easing:'cubic-bezier(.34,1.56,.64,1)'},
+    {...squashGeo,offset:0.2,easing},
+    {...peakGeo,offset:OVERSHOOT_OFFSET,easing},
     target
   ],{duration});
   // 🔥 배경색은 더 이상 애니메이션으로 바뀌지 않음 — 타일의 원래 반투명 유리색
