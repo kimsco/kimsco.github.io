@@ -587,6 +587,11 @@ html.menu-v2-on #navToolsLabel{display:none;}
    닫기(X) 버튼이랑 같은 자리(우측상단)에 겹침 — 카드가 화면을 다 덮은
    상태에선 카드 안의 "뒤로가기" 버튼이 곧 나가는 길이라 X는 숨김 */
 #navDrawer.calculator-fullscreen #navMenuCloseBtn{display:none;}
+/* 🔥 전체화면일 땐 카드 상단이 화면 맨 꼭대기(상태표시줄/노치)까지 닿으므로, 헤더
+   안쪽에 안전영역(top) 여백을 더 얹어서 글자/버튼이 거기 눌려붙지 않게 함. */
+#navDrawer.calculator-fullscreen :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded>.menu-calculator-header{padding-top:calc(18px + env(safe-area-inset-top));}
+/* 🔥 전체화면일 땐 상단에 검은색 그라데이션을 깔아 헤더 버튼/글자의 대비를 살림. */
+#navDrawer.calculator-fullscreen :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded::before{content:'';position:absolute;inset:0 0 auto 0;height:calc(140px + env(safe-area-inset-top));background:linear-gradient(rgba(0,0,0,.55),rgba(0,0,0,0));pointer-events:none;z-index:0;}
 .menu-calculator-header{display:flex;align-items:center;gap:10px;flex:none;padding:18px 18px 10px;}
 .menu-expand-title-sr{margin:0;font-size:18px;font-weight:600;}
 :is(.menu-expand-back,.menu-expand-fullscreen){width:36px;height:36px;display:grid;place-items:center;flex:none;border:1px solid rgba(255,255,255,.12);border-radius:50%;padding:8px;background:rgba(255,255,255,.06);color:inherit;cursor:pointer;}
