@@ -13624,7 +13624,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.273";
+const APP_VERSION = "1.0.274";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -21529,56 +21529,25 @@ function calculatorCurrentFrame(){
   const style=getComputedStyle(menuCalculator);
   return Object.fromEntries(['left','top','width','height','borderRadius'].map(key=>[key,style[key]]));
 }
-function calculatorSpringFrames(from,to,duration){
-  const spring=(t,frequency,damping)=>{
-    const damped=frequency*Math.sqrt(1-damping*damping);
-    return 1-Math.exp(-damping*frequency*t)*(Math.cos(damped*t)+damping*frequency/damped*Math.sin(damped*t));
-  };
-  const radius=value=>{const parts=String(value).match(/[\d.]+/g)?.map(Number)||[32];return [parts[0],parts[1]??parts[0],parts[2]??parts[0],parts[3]??parts[1]??parts[0]];};
-  const startRadius=radius(from.borderRadius),endRadius=radius(to.borderRadius);
-  return Array.from({length:49},(_,i)=>{
-    const offset=i/48,t=offset*duration/1000;
-    const x=i===48?1:spring(t,18,.76),y=i===48?1:spring(t,16,.76);
-    const frame={offset};
-    for(const key of ['left','top','width','height']){
-      const a=parseFloat(from[key]),b=parseFloat(to[key]),p=(key==='left'||key==='width')?x:y;
-      const value=a+(b-a)*p;
-      frame[key]=((key==='width'||key==='height')?Math.max(Math.min(a,b)*.92,value):value)+'px';
-    }
-    frame.borderRadius=startRadius.map((r,j)=>Math.max(0,r+(endRadius[j]-r)*Math.min(1,y))+'px').join(' ');
-    return frame;
-  });
-}
-function calculatorCurveFrames(from,to){
-  const a=Object.fromEntries(['left','top','width','height'].map(k=>[k,parseFloat(from[k])]));
-  const b=Object.fromEntries(['left','top','width','height'].map(k=>[k,parseFloat(to[k])]));
-  const startX=a.left+a.width/2,endX=b.left+b.width/2;
-  const dip=Math.min(90,innerHeight*.1);
-  const bezier=(p0,p1,p2,p3,t)=>Math.pow(1-t,3)*p0+3*Math.pow(1-t,2)*t*p1+3*(1-t)*t*t*p2+t*t*t*p3;
-  const smooth=t=>t*t*(3-2*t);
-  return Array.from({length:61},(_,i)=>{
-    const t=i/60,travel=smooth(t);
-    const grow=t<.2?0:smooth((t-.2)/.8);
-    const pinch=t<.2?1-.12*smooth(t/.2):.88+.12*grow;
-    const width=(a.width+(b.width-a.width)*grow)*pinch;
-    const height=(a.height+(b.height-a.height)*grow)*pinch;
-    const center=bezier(startX,startX+8,endX-35,endX,travel);
-    const top=bezier(a.top,a.top+dip,a.top+dip,b.top,travel);
-    const bottomRadius=32*(1-grow);
-    return {offset:t,left:(center-width/2)+'px',top:top+'px',width:width+'px',height:height+'px',borderRadius:`32px 32px ${bottomRadius}px ${bottomRadius}px`};
-  });
-}
+const calculatorTextSizes=new WeakMap();
 function animateCalculatorText(open,reduced,fresh=false){
   const parts=[...menuCalculator.querySelectorAll('.menu-calculator-header,#menuCalculatorContent')];
   const opacity=parts.map(el=>Number(getComputedStyle(el).opacity));
+  const texts=[...menuCalculator.querySelectorAll('#menuCalculatorTitle,#oneRMLiftSelect,#weight,#reps,#goBtn,#tableArea>div')];
+  const sizes=texts.map(el=>{const size=parseFloat(getComputedStyle(el).fontSize);if(!calculatorTextSizes.has(el))calculatorTextSizes.set(el,size);return size;});
   const ghost=document.getElementById('menuCalculatorGhost'),ghostOpacity=Number(getComputedStyle(ghost).opacity);
   menuCalculatorTextMotions.forEach(m=>m.cancel());menuCalculatorTextMotions=[];
+  const duration=reduced?0:(open?215:165),easing='cubic-bezier(.22,1,.36,1)';
   for(const [i,el]of parts.entries()){
     el.style.opacity=open?'1':'0';
-    menuCalculatorTextMotions.push(el.animate([{opacity:open&&fresh?0:opacity[i],transform:open?'scale(.9)':'scale(1)'},{opacity:open?1:0,transform:open?'scale(1)':'scale(.92)'}],{duration:reduced?0:(open?360:240),delay:reduced||!open?0:90,fill:'backwards',easing:'ease-out'}));
+    menuCalculatorTextMotions.push(el.animate([{opacity:open&&fresh?0:opacity[i]},{opacity:open?1:0}],{duration,easing}));
+  }
+  for(const [i,el]of texts.entries()){
+    const size=calculatorTextSizes.get(el);
+    menuCalculatorTextMotions.push(el.animate([{fontSize:(open&&fresh?size*.45:sizes[i])+'px'},{fontSize:(open?size:size*.45)+'px'}],{duration,easing}));
   }
   ghost.style.opacity=open?'0':'1';
-  menuCalculatorTextMotions.push(ghost.animate([{opacity:open&&fresh?1:ghostOpacity},{opacity:open?0:1}],{duration:reduced?0:(open?260:260),delay:reduced||open?0:160,fill:'backwards',easing:'ease-out'}));
+  menuCalculatorTextMotions.push(ghost.animate([{opacity:open&&fresh?1:ghostOpacity},{opacity:open?0:1}],{duration:reduced?0:65,delay:reduced||open?0:80,fill:'backwards',easing:'ease-out'}));
 }
 function resetMenuCalculator(){
   ++menuCalculatorToken;menuCalculatorMotion?.cancel();menuCalculatorMotion=null;menuCalculatorOpen=false;
@@ -21605,7 +21574,7 @@ function openMenuCalculator(){
   navMenuBody.inert=true;navDrawer.classList.add('calculator-open');
   const reduced=matchMedia('(prefers-reduced-motion:reduce)').matches;
   animateCalculatorText(true,reduced,fresh);
-  menuCalculatorMotion=menuCalculator.animate(fresh?calculatorCurveFrames(from,target):calculatorSpringFrames(from,target,860),{duration:reduced?0:860,easing:'linear'});
+  menuCalculatorMotion=menuCalculator.animate([from,target],{duration:reduced?0:215,easing:'cubic-bezier(.22,1,.36,1)'});
   menuCalculatorMotion.finished.then(()=>{
     if(token!==menuCalculatorToken)return;menuCalculatorMotion=null;Object.assign(menuCalculator.style,menuCalculatorTarget());menuCalculator.inert=false;menuCalculator.classList.add('is-ready');menuCalculator.focus({preventScroll:true});
   }).catch(()=>{});
@@ -21617,8 +21586,7 @@ function closeMenuCalculator(){
   document.activeElement?.blur();
   const target=calculatorButtonFrame();Object.assign(menuCalculator.style,target);
   const reduced=matchMedia('(prefers-reduced-motion:reduce)').matches;animateCalculatorText(false,reduced);
-  const frames=calculatorCurveFrames(target,from).reverse().map((frame,i)=>({...frame,offset:i/60}));
-  menuCalculatorMotion=menuCalculator.animate(frames,{duration:reduced?0:660,easing:'linear'});
+  menuCalculatorMotion=menuCalculator.animate([from,target],{duration:reduced?0:165,easing:'cubic-bezier(.22,1,.36,1)'});
   menuCalculatorMotion.finished.then(()=>{if(token!==menuCalculatorToken)return;resetMenuCalculator();document.getElementById('navOneRMCalcBtn').focus({preventScroll:true});}).catch(()=>{});
 }
 document.getElementById('menuCalculatorBack').addEventListener('click',closeMenuCalculator);
