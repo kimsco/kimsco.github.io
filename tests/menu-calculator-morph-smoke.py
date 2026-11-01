@@ -21,12 +21,15 @@ try:
     button=page.locator('#navOneRMCalcBtn');start=button.bounding_box()
     heading=page.locator('#navMenuTitle').bounding_box()
     routine=page.locator('#navMyRoutineBtn').bounding_box()
-    button.click();page.wait_for_timeout(140)
+    button.click();page.wait_for_timeout(45)
     assert page.locator('#navMenuBody').evaluate('e=>getComputedStyle(e).opacity')=='1'
     assert page.locator('#navMenuTitle').bounding_box()==heading
     assert page.locator('#navMyRoutineBtn').bounding_box()==routine
     early=page.locator('#menuCalculator').bounding_box()
-    assert early['width']<start['width'] and early['y']>start['y'],(start,early)
+    assert early['width']>start['width'] and early['y']<start['y'],(start,early)
+    motion=page.evaluate('''()=>{const m=menuCalculatorMotion,f=m.effect.getKeyframes(),s=getComputedStyle(menuCalculator),a=f[0],b=f.at(-1);return {duration:m.effect.getTiming().duration,x:(parseFloat(s.left)-parseFloat(a.left))/(parseFloat(b.left)-parseFloat(a.left)),y:(parseFloat(s.top)-parseFloat(a.top))/(parseFloat(b.top)-parseFloat(a.top)),font:parseFloat(getComputedStyle(document.getElementById('menuCalculatorTitle')).fontSize)};}''')
+    assert motion['duration']==215 and abs(motion['x']-motion['y'])<.03,motion
+    assert 8<=motion['font']<18,motion
     page.wait_for_timeout(240)
     assert page.locator('#menuCalculatorContent').evaluate('e=>Number(getComputedStyle(e).opacity)')>.1
     page.screenshot(path=f'/tmp/menu-calculator-opening-{width}-{light}.png')
@@ -47,7 +50,9 @@ try:
     expected=page.evaluate('100*NSCA_TABLE.bench[4]')
     assert f'{expected:.1f}kg' in page.locator('#tableArea>div').first.inner_text()
     page.screenshot(path=f'/tmp/menu-calculator-{width}-{light}.png')
-    page.locator('#menuCalculatorBack').click();page.wait_for_timeout(110)
+    page.locator('#menuCalculatorBack').click()
+    assert page.evaluate('menuCalculatorMotion.effect.getTiming().duration')==165
+    page.wait_for_timeout(110)
     assert page.locator('#navMenuBody').evaluate('e=>getComputedStyle(e).opacity')=='1'
     assert page.locator('#navMyRoutineBtn').bounding_box()==routine
     page.wait_for_timeout(650)
