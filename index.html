@@ -13620,7 +13620,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.285";
+const APP_VERSION = "1.0.286";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -21515,7 +21515,7 @@ setInterval(refreshVisibleNavTodayRecords,60000);
 const menuCalculator=document.getElementById('navOneRMCalcBtn');
 const calculatorBody=document.getElementById('oneRMCalcBody');
 const calculatorHome=calculatorBody.parentNode;
-let menuCalculatorOpen=false,menuCalculatorMotion=null,menuCalculatorColorMotion=null,menuCalculatorSheenMotion=null,menuCalculatorBlurMotions=[],menuCalculatorToken=0,menuCalculatorTextMotions=[];
+let menuCalculatorOpen=false,menuCalculatorMotion=null,menuCalculatorColorMotion=null,menuCalculatorBlurMotions=[],menuCalculatorToken=0,menuCalculatorTextMotions=[];
 let calculatorPlaceholder=null,calculatorTileInlineStyle=null,calculatorTileMaterial=null,calculatorTileLabelFrame=null;
 let calculatorLayoutHeight=0,calculatorLayoutWidth=0,calculatorGestureSuppressUntil=0;
 function menuCalculatorTarget(){
@@ -21557,13 +21557,11 @@ function resetMenuCalculator(){
   ++menuCalculatorToken;
   menuCalculatorMotion?.cancel();menuCalculatorMotion=null;
   menuCalculatorColorMotion?.cancel();menuCalculatorColorMotion=null;
-  menuCalculatorSheenMotion?.cancel();menuCalculatorSheenMotion=null;
   menuCalculatorBlurMotions.forEach(m=>m.cancel());menuCalculatorBlurMotions=[];
   menuCalculatorOpen=false;
   menuCalculatorTextMotions.forEach(m=>m.cancel());menuCalculatorTextMotions=[];
   if(calculatorBody.parentNode!==calculatorHome)calculatorHome.appendChild(calculatorBody);
   menuCalculator.classList.remove('is-ready');menuCalculator.inert=false;
-  document.getElementById('menuCalculatorSheen').style.opacity='';
   document.querySelector('.menu-calculator-header').style.filter='';
   document.getElementById('menuCalculatorContent').style.filter='';
   if(calculatorPlaceholder){
@@ -21600,14 +21598,13 @@ function openMenuCalculator(){
     menuCalculator.classList.add('calculator-expanded');
     menuCalculator.setAttribute('role','dialog');menuCalculator.setAttribute('aria-modal','true');menuCalculator.setAttribute('aria-labelledby','menuCalculatorTitle');menuCalculator.tabIndex=-1;
   }else from=calculatorCurrentFrame();
-  menuCalculatorMotion?.cancel();menuCalculatorSheenMotion?.cancel();menuCalculatorBlurMotions.forEach(m=>m.cancel());menuCalculatorBlurMotions=[];
+  menuCalculatorMotion?.cancel();menuCalculatorColorMotion?.cancel();menuCalculatorBlurMotions.forEach(m=>m.cancel());menuCalculatorBlurMotions=[];
   const token=++menuCalculatorToken;menuCalculatorOpen=true;
   const material=getComputedStyle(menuCalculator);
   const target={...menuCalculatorTarget(),backgroundColor:material.backgroundColor,borderColor:material.borderColor,boxShadow:material.boxShadow};
-  // 🔥 색/그림자/테두리는 커지는 내내 전환 애니메이션 없이 처음부터 최종값 그대로 둠
-  //    (Object.assign으로 즉시 적용) — "카드 색은 기본색으로 맞춰서 다 커지게" 해달라는
-  //    요청. 대신 은은한 하이라이트 그라데이션 레이어(#menuCalculatorSheen)만 따로
-  //    opacity 0→1로 페이드인시킴.
+  // 🔥 여기서 Object.assign은 최종(진한) 색을 즉시 inline에 박아두는 것뿐 — 실제
+  //    화면에 보이는 값은 아래 menuCalculatorColorMotion이 합성해서 덮어씀(1단계 동안은
+  //    fill:'backwards'로 옅은 타일 색을 보여주다가 2단계에만 진한 색으로 전환).
   Object.assign(menuCalculator.style,target);menuCalculator.style.setProperty('--calculator-content-width',target.width);
   document.getElementById('menuCalculatorContent').appendChild(calculatorBody);calculatorBody.scrollTop=0;
   const cardBounds=menuCalculator.getBoundingClientRect(),backBounds=document.getElementById('menuCalculatorBack').getBoundingClientRect();
@@ -21622,12 +21619,15 @@ function openMenuCalculator(){
   const GEOMETRY_KEYS=['left','top','width','height','borderRadius'],COLOR_KEYS=['backgroundColor','borderColor','boxShadow'];
   const pick=(obj,keys)=>Object.fromEntries(keys.map(k=>[k,obj[k]]));
   // 🔥 크기 모프가 완전히 끝난 뒤에야(delay:duration) 색/블러가 바뀌도록 두 단계로 분리.
-  //    1단계(0~duration): 크기만 커짐 — 색은 원래(타일) 색 그대로, 글씨는 블러된 채.
-  //    2단계(duration~): 다 커진 상태에서 카드 색(+하이라이트)이 짙어지고 글씨 블러가
-  //    풀림. fill:'backwards'로 1단계 동안은 시작 값(원래 색/블러)을 유지시킴.
+  //    1단계(0~duration): 크기만 커짐 — 색은 원래(타일, 반투명 아크릴) 색이 늘어난
+  //    그대로 유지, 글씨는 블러된 채.
+  //    2단계(duration~): 다 커진 상태에서 배경색이 타일의 옅은 반투명 색(--menu-tile-bg)
+  //    에서 진한 색(--menu-tile-bg-deep, 원래 불투명 카드색)으로 실제로 바뀌면서(페이드인
+  //    아님 — 색 자체의 전환) 그림자도 짙어지고 글씨 블러가 풀림. fill:'backwards'로
+  //    1단계 동안은 시작 값을 유지시킴. 하이라이트 그라데이션은 타일 때부터 쭉 그대로라
+  //    따로 애니메이션하지 않음(흰색이 옅게 더해지면 오히려 더 밝아 보여서 뺌).
   menuCalculatorMotion=menuCalculator.animate([pick(from,GEOMETRY_KEYS),pick(target,GEOMETRY_KEYS)],{duration,easing});
   menuCalculatorColorMotion=menuCalculator.animate([pick(from,COLOR_KEYS),pick(target,COLOR_KEYS)],{duration:revealDuration,delay:duration,easing,fill:'backwards'});
-  menuCalculatorSheenMotion=document.getElementById('menuCalculatorSheen').animate([{opacity:0},{opacity:1}],{duration:revealDuration,delay:duration,easing,fill:'backwards'});
   if(!reduced){
     const blurKeyframes=[{filter:'blur(10px)'},{filter:'blur(0px)'}];
     menuCalculatorBlurMotions=[document.querySelector('.menu-calculator-header'),document.getElementById('menuCalculatorContent')]
@@ -21641,8 +21641,7 @@ function openMenuCalculator(){
   // 🔥 settle(상호작용 가능 상태로 표시)은 2단계(reveal)까지 다 끝난 뒤에.
   menuCalculatorColorMotion.finished.then(()=>{
     if(token!==menuCalculatorToken)return;
-    menuCalculatorColorMotion=null;menuCalculatorSheenMotion=null;menuCalculatorBlurMotions=[];
-    document.getElementById('menuCalculatorSheen').style.opacity='1';
+    menuCalculatorColorMotion=null;menuCalculatorBlurMotions=[];
     document.querySelector('.menu-calculator-header').style.filter='';
     document.getElementById('menuCalculatorContent').style.filter='';
     menuCalculator.inert=false;menuCalculator.classList.add('is-ready');menuCalculator.focus({preventScroll:true});
@@ -21651,7 +21650,7 @@ function openMenuCalculator(){
 function closeMenuCalculator(){
   if(!menuCalculatorOpen)return;
   const from=calculatorCurrentFrame();
-  menuCalculatorMotion?.cancel();menuCalculatorColorMotion?.cancel();menuCalculatorSheenMotion?.cancel();menuCalculatorBlurMotions.forEach(m=>m.cancel());menuCalculatorBlurMotions=[];
+  menuCalculatorMotion?.cancel();menuCalculatorColorMotion?.cancel();menuCalculatorBlurMotions.forEach(m=>m.cancel());menuCalculatorBlurMotions=[];
   const token=++menuCalculatorToken;menuCalculatorOpen=false;
   menuCalculator.classList.remove('is-ready');menuCalculator.inert=true;
   document.activeElement?.blur();
