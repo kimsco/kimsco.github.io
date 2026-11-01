@@ -9918,6 +9918,9 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
       </button>
     </div>
     <div id="myRoutineBody" style="flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; padding: 0 18px calc(24px + env(safe-area-inset-bottom));">
+      <div id="myRoutineTemplateSectionLabel" class="my-routine-section-label" style="display:none;">저장한 루틴</div>
+      <div id="myRoutineTemplateSection"></div>
+
       <div class="my-routine-today-card">
         <div id="myRoutinePastRow" class="my-routine-past-row">
           <div class="my-routine-past-row-icon">
@@ -9931,9 +9934,6 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
         </div>
         <div id="myRoutineTodayInline"></div>
       </div>
-
-      <div id="myRoutineTemplateSectionLabel" class="my-routine-section-label" style="display:none;">저장한 루틴</div>
-      <div id="myRoutineTemplateSection"></div>
     </div>
   </div>
 </div>
@@ -13621,7 +13621,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.304";
+const APP_VERSION = "1.0.305";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
