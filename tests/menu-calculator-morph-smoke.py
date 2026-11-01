@@ -21,10 +21,13 @@ try:
     button=page.locator('#navOneRMCalcBtn');start=button.bounding_box()
     heading=page.locator('#navMenuTitle').bounding_box()
     routine=page.locator('#navMyRoutineBtn').bounding_box()
-    button.click();page.wait_for_timeout(110)
+    button.click();page.wait_for_timeout(140)
     assert page.locator('#navMenuBody').evaluate('e=>getComputedStyle(e).opacity')=='1'
     assert page.locator('#navMenuTitle').bounding_box()==heading
     assert page.locator('#navMyRoutineBtn').bounding_box()==routine
+    early=page.locator('#menuCalculator').bounding_box()
+    assert early['width']<start['width'] and early['y']>start['y'],(start,early)
+    page.wait_for_timeout(240)
     assert page.locator('#menuCalculatorContent').evaluate('e=>Number(getComputedStyle(e).opacity)')>.1
     page.screenshot(path=f'/tmp/menu-calculator-opening-{width}-{light}.png')
     panel=page.locator('#menuCalculator');middle=panel.bounding_box()
@@ -33,7 +36,9 @@ try:
     page.wait_for_timeout(700)
     final=panel.bounding_box();assert final['width']>start['width']*1.9
     first=page.locator('#navThreeSummaryBtn').bounding_box()
-    assert abs(final['y']-first['y'])<1 and abs(final['y']+final['height']-844)<1,final
+    title=page.locator('#navMenuTitle').bounding_box()
+    expected_top=(title['y']+title['height']+first['y'])/2
+    assert abs(final['y']-expected_top)<1 and abs(final['y']+final['height']-844)<1,final
     assert page.locator('#oneRMCalcBody').evaluate('e=>!!e.closest("#menuCalculator")')
     assert page.locator('#weight').count()==1 and page.locator('#oneRMCalcDisclaimer').count()==0
     assert page.locator('#navMenuBody').evaluate('e=>e.inert')
@@ -45,13 +50,13 @@ try:
     page.locator('#menuCalculatorBack').click();page.wait_for_timeout(110)
     assert page.locator('#navMenuBody').evaluate('e=>getComputedStyle(e).opacity')=='1'
     assert page.locator('#navMyRoutineBtn').bounding_box()==routine
-    page.wait_for_timeout(510)
+    page.wait_for_timeout(650)
     assert panel.is_hidden() and not page.locator('#navMenuBody').evaluate('e=>e.inert')
     assert page.locator('#oneRMCalcBody').evaluate('e=>!!e.closest("#oneRMCalcOverlay")')
    # Reverse while opening, then reopen and close the full menu externally.
-   button.click();page.wait_for_timeout(90);page.keyboard.press('Escape');page.wait_for_timeout(620)
+   button.click();page.wait_for_timeout(90);page.keyboard.press('Escape');page.wait_for_timeout(760)
    assert panel.is_hidden() and page.locator('#navDrawerOverlay').is_visible()
-   button.click();page.wait_for_timeout(720);page.evaluate('closeNavDrawer()');page.wait_for_timeout(420)
+   button.click();page.wait_for_timeout(940);page.evaluate('closeNavDrawer()');page.wait_for_timeout(420)
    assert page.locator('#navDrawerOverlay').is_hidden() and panel.is_hidden()
    assert page.locator('.app').evaluate('e=>!e.inert&&!e.style.transform&&!e.style.opacity')
    page.evaluate('applyMenuV2(false);openNavDrawer()');page.wait_for_timeout(400)
