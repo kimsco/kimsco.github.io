@@ -8805,7 +8805,7 @@ document.addEventListener('dragstart', event => {
   event.preventDefault();
 });
 </script>
-<link rel="stylesheet" href="/css/settings.css?v=1.0.278">
+<link rel="stylesheet" href="/css/settings.css?v=1.0.279">
 </head>
 
 <body style="background-color:#000000;">
@@ -13620,7 +13620,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.278";
+const APP_VERSION = "1.0.279";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -21516,7 +21516,7 @@ const menuCalculator=document.getElementById('navOneRMCalcBtn');
 const calculatorBody=document.getElementById('oneRMCalcBody');
 const calculatorHome=calculatorBody.parentNode;
 let menuCalculatorOpen=false,menuCalculatorMotion=null,menuCalculatorToken=0,menuCalculatorTextMotions=[];
-let calculatorPlaceholder=null,calculatorTileInlineStyle=null,calculatorTileMaterial=null;
+let calculatorPlaceholder=null,calculatorTileInlineStyle=null,calculatorTileMaterial=null,calculatorTileLabelFrame=null;
 function menuCalculatorTarget(){
   const drawer=navDrawer.getBoundingClientRect(),body=navMenuBody.getBoundingClientRect(),style=getComputedStyle(navMenuBody);
   const left=body.left-drawer.left+parseFloat(style.paddingLeft);
@@ -21536,17 +21536,22 @@ function calculatorCurrentFrame(){
   return Object.fromEntries(['left','top','width','height','borderRadius','backgroundColor','borderColor','boxShadow'].map(key=>[key,style[key]]));
 }
 function animateCalculatorText(open,reduced,fresh=false){
-  const parts=[...menuCalculator.querySelectorAll('.menu-calculator-header,#menuCalculatorContent')];
+  const parts=[document.getElementById('menuCalculatorBack'),document.getElementById('menuCalculatorContent')];
   const opacity=parts.map(el=>Number(getComputedStyle(el).opacity));
-  const ghost=document.getElementById('menuCalculatorGhost'),ghostOpacity=Number(getComputedStyle(ghost).opacity);
+  const label=document.getElementById('menuCalculatorGhost'),icon=label.querySelector('.nav-v2-icon'),copy=label.querySelector('.nav-menu-copy');
+  const iconOpacity=Number(getComputedStyle(icon).opacity),copyStyle=getComputedStyle(copy);
+  const from=fresh?calculatorTileLabelFrame:{left:copyStyle.left,top:copyStyle.top};
   menuCalculatorTextMotions.forEach(m=>m.cancel());menuCalculatorTextMotions=[];
-  const delay=0,duration=reduced?0:(open?430:330),easing='cubic-bezier(.22,1,.36,1)';
+  const duration=reduced?0:(open?430:330),easing='cubic-bezier(.22,1,.36,1)';
   for(const [i,el]of parts.entries()){
     el.style.opacity=open?'1':'0';
-    menuCalculatorTextMotions.push(el.animate([{opacity:open&&fresh?0:opacity[i]},{opacity:open?1:0}],{duration,delay,fill:'backwards',easing}));
+    menuCalculatorTextMotions.push(el.animate([{opacity:open&&fresh?0:opacity[i]},{opacity:open?1:0}],{duration,easing}));
   }
-  ghost.style.opacity=open?'0':'1';
-  menuCalculatorTextMotions.push(ghost.animate([{opacity:open&&fresh?1:ghostOpacity},{opacity:open?0:1}],{duration:reduced?0:(open?120:110),delay:reduced||open?0:180,fill:'backwards',easing:'ease-out'}));
+  icon.style.opacity=open?'0':'1';
+  menuCalculatorTextMotions.push(icon.animate([{opacity:open&&fresh?1:iconOpacity},{opacity:open?0:1}],{duration,easing}));
+  const target=open?{left:menuCalculator.style.getPropertyValue('--calculator-title-left'),top:menuCalculator.style.getPropertyValue('--calculator-title-top')}:calculatorTileLabelFrame;
+  copy.style.left=target.left;copy.style.top=target.top;
+  menuCalculatorTextMotions.push(copy.animate([{left:from.left,top:from.top},{left:target.left,top:target.top}],{duration,easing}));
 }
 function resetMenuCalculator(){
   ++menuCalculatorToken;menuCalculatorMotion?.cancel();menuCalculatorMotion=null;menuCalculatorOpen=false;
@@ -21557,7 +21562,8 @@ function resetMenuCalculator(){
     calculatorPlaceholder.replaceWith(menuCalculator);calculatorPlaceholder=null;
     menuCalculator.classList.remove('calculator-expanded');
     if(calculatorTileInlineStyle===null)menuCalculator.removeAttribute('style');else menuCalculator.setAttribute('style',calculatorTileInlineStyle);
-    const label=document.getElementById('menuCalculatorGhost');label.classList.remove('menu-calculator-ghost');label.removeAttribute('style');
+    const label=document.getElementById('menuCalculatorGhost');label.classList.remove('menu-calculator-ghost');label.removeAttribute('style');label.removeAttribute('aria-hidden');
+    label.querySelector('.nav-v2-icon').style.opacity='';label.querySelector('.nav-menu-copy').removeAttribute('style');
     menuCalculator.setAttribute('role','button');menuCalculator.tabIndex=0;
     menuCalculator.removeAttribute('aria-modal');menuCalculator.removeAttribute('aria-labelledby');
   }
@@ -21571,11 +21577,15 @@ function openMenuCalculator(){
     const style=getComputedStyle(menuCalculator);
     calculatorTileMaterial={backgroundColor:style.backgroundColor,borderColor:style.borderColor,boxShadow:style.boxShadow};
     calculatorTileInlineStyle=menuCalculator.getAttribute('style');from=calculatorButtonFrame();
+    const tileRect=menuCalculator.getBoundingClientRect(),copy=menuCalculator.querySelector('.nav-menu-copy'),copyRect=copy.getBoundingClientRect(),titleStyle=getComputedStyle(copy.firstElementChild);
+    calculatorTileLabelFrame={left:(copyRect.left-tileRect.left)+'px',top:(copyRect.top-tileRect.top)+'px'};
+    const titleSize=titleStyle.fontSize,titleTop=(18+(36-parseFloat(titleStyle.lineHeight))/2)+'px';
     calculatorPlaceholder=document.createElement('div');calculatorPlaceholder.className='calculator-tile-placeholder';
     calculatorPlaceholder.style.height=menuCalculator.offsetHeight+'px';calculatorPlaceholder.setAttribute('aria-hidden','true');
     menuCalculator.before(calculatorPlaceholder);
     const label=document.getElementById('menuCalculatorGhost');
-    label.style.fontSize=style.fontSize;label.style.left=style.paddingLeft;label.classList.add('menu-calculator-ghost');
+    label.style.setProperty('--calculator-icon-left',style.paddingLeft);label.classList.add('menu-calculator-ghost');label.setAttribute('aria-hidden','true');
+    menuCalculator.style.setProperty('--calculator-title-size',titleSize);menuCalculator.style.setProperty('--calculator-title-top',titleTop);
     navDrawer.appendChild(menuCalculator);
     menuCalculator.classList.add('calculator-expanded');
     menuCalculator.setAttribute('role','dialog');menuCalculator.setAttribute('aria-modal','true');menuCalculator.setAttribute('aria-labelledby','menuCalculatorTitle');menuCalculator.tabIndex=-1;
@@ -21585,6 +21595,10 @@ function openMenuCalculator(){
   const target={...menuCalculatorTarget(),backgroundColor:material.backgroundColor,borderColor:material.borderColor,boxShadow:material.boxShadow};
   Object.assign(menuCalculator.style,target);menuCalculator.style.setProperty('--calculator-content-width',target.width);
   document.getElementById('menuCalculatorContent').appendChild(calculatorBody);calculatorBody.scrollTop=0;
+  const cardBounds=menuCalculator.getBoundingClientRect(),backBounds=document.getElementById('menuCalculatorBack').getBoundingClientRect();
+  const titleHeight=menuCalculator.querySelector('.nav-menu-copy').getBoundingClientRect().height;
+  menuCalculator.style.setProperty('--calculator-title-left',(backBounds.right-cardBounds.left-menuCalculator.clientLeft+10)+'px');
+  menuCalculator.style.setProperty('--calculator-title-top',(backBounds.top-cardBounds.top-menuCalculator.clientTop+(backBounds.height-titleHeight)/2)+'px');
   menuCalculator.classList.remove('is-ready');menuCalculator.inert=true;
   navMenuBody.inert=true;navDrawer.classList.add('calculator-open');
   const reduced=matchMedia('(prefers-reduced-motion:reduce)').matches;

@@ -598,3 +598,14 @@ html.menu-v2-on #navDrawer #navOneRMCalcBtn.calculator-expanded{display:flex;fle
 #navDrawer #navOneRMCalcBtn.calculator-expanded>#menuCalculatorContent{display:flex;}
 #navDrawer #navOneRMCalcBtn.calculator-expanded>#menuCalculatorGhost{width:auto;white-space:nowrap;}
 html.light-mode-on.menu-v2-on #navDrawer #navOneRMCalcBtn.calculator-expanded{background-color:#e2dede;color:#211c1d;border-color:rgba(50,30,35,.12)!important;}
+
+/* One continuous title and fluid content: no duplicate label or fixed-width slicing. */
+#navDrawer #navOneRMCalcBtn.calculator-expanded :is(.menu-calculator-header,#menuCalculatorContent){width:100%;left:auto;margin-left:0;}
+#navDrawer #navOneRMCalcBtn.calculator-expanded>#menuCalculatorGhost{display:block;position:absolute;inset:0;z-index:3;width:100%;height:0;pointer-events:none;}
+#navDrawer #navOneRMCalcBtn.calculator-expanded>#menuCalculatorGhost .nav-v2-icon{position:absolute;left:var(--calculator-icon-left,14px);top:15px;}
+#navDrawer #navOneRMCalcBtn.calculator-expanded>#menuCalculatorGhost .nav-menu-copy{position:absolute;left:64px;top:var(--calculator-title-top,26px);white-space:nowrap;}
+#navDrawer #navOneRMCalcBtn.calculator-expanded>#menuCalculatorGhost .nav-menu-copy>span:first-child{font-size:var(--calculator-title-size,14px);font-weight:500;line-height:1.35;}
+#menuCalculatorTitle{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;}
+
+/* Isolate the resizing workspace and avoid re-blurring the menu on each frame. */
+#navDrawer #navOneRMCalcBtn.calculator-expanded{contain:layout paint;-webkit-backdrop-filter:none;backdrop-filter:none;}
