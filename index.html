@@ -8805,7 +8805,7 @@ document.addEventListener('dragstart', event => {
   event.preventDefault();
 });
 </script>
-<link rel="stylesheet" href="/css/settings.css?v=1.0.275">
+<link rel="stylesheet" href="/css/settings.css?v=1.0.276">
 </head>
 
 <body style="background-color:#000000;">
@@ -13624,7 +13624,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.275";
+const APP_VERSION = "1.0.276";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -21531,14 +21531,6 @@ function calculatorCurrentFrame(){
   const style=getComputedStyle(menuCalculator);
   return Object.fromEntries(['left','top','width','height','borderRadius'].map(key=>[key,style[key]]));
 }
-function calculatorBeanFrame(workspace){
-  const width=72,height=40;
-  return {left:(parseFloat(workspace.left)+(parseFloat(workspace.width)-width)/2)+'px',top:(parseFloat(workspace.top)+(parseFloat(workspace.height)-height)/2)+'px',width:width+'px',height:height+'px',borderRadius:'999px'};
-}
-function calculatorBeanFrames(from,to,open){
-  const bean=calculatorBeanFrame(open?to:from),ease='cubic-bezier(.22,1,.36,1)';
-  return [{...from,offset:0,easing:ease},{...bean,offset:open?.42:.58,easing:ease},{...bean,offset:open?.46:.62,easing:ease},{...to,offset:1}];
-}
 const calculatorTextSizes=new WeakMap();
 function animateCalculatorText(open,reduced,fresh=false){
   const parts=[...menuCalculator.querySelectorAll('.menu-calculator-header,#menuCalculatorContent')];
@@ -21547,7 +21539,7 @@ function animateCalculatorText(open,reduced,fresh=false){
   const sizes=texts.map(el=>{const size=parseFloat(getComputedStyle(el).fontSize);if(!calculatorTextSizes.has(el))calculatorTextSizes.set(el,size);return size;});
   const ghost=document.getElementById('menuCalculatorGhost'),ghostOpacity=Number(getComputedStyle(ghost).opacity);
   menuCalculatorTextMotions.forEach(m=>m.cancel());menuCalculatorTextMotions=[];
-  const delay=reduced?0:(open?172:0),duration=reduced?0:(open?258:180),easing='cubic-bezier(.22,1,.36,1)';
+  const delay=0,duration=reduced?0:(open?430:330),easing='cubic-bezier(.22,1,.36,1)';
   for(const [i,el]of parts.entries()){
     el.style.opacity=open?'1':'0';
     menuCalculatorTextMotions.push(el.animate([{opacity:open&&fresh?0:opacity[i]},{opacity:open?1:0}],{duration,delay,fill:'backwards',easing}));
@@ -21557,7 +21549,7 @@ function animateCalculatorText(open,reduced,fresh=false){
     menuCalculatorTextMotions.push(el.animate([{fontSize:(open&&fresh?size*.45:sizes[i])+'px'},{fontSize:(open?size:size*.45)+'px'}],{duration,delay,fill:'backwards',easing}));
   }
   ghost.style.opacity=open?'0':'1';
-  menuCalculatorTextMotions.push(ghost.animate([{opacity:open&&fresh?1:ghostOpacity},{opacity:open?0:1}],{duration:reduced?0:(open?160:110),delay:reduced||open?0:200,fill:'backwards',easing:'ease-out'}));
+  menuCalculatorTextMotions.push(ghost.animate([{opacity:open&&fresh?1:ghostOpacity},{opacity:open?0:1}],{duration:reduced?0:(open?120:110),delay:reduced||open?0:180,fill:'backwards',easing:'ease-out'}));
 }
 function resetMenuCalculator(){
   ++menuCalculatorToken;menuCalculatorMotion?.cancel();menuCalculatorMotion=null;menuCalculatorOpen=false;
@@ -21584,7 +21576,7 @@ function openMenuCalculator(){
   navMenuBody.inert=true;navDrawer.classList.add('calculator-open');
   const reduced=matchMedia('(prefers-reduced-motion:reduce)').matches;
   animateCalculatorText(true,reduced,fresh);
-  menuCalculatorMotion=menuCalculator.animate(calculatorBeanFrames(from,target,true),{duration:reduced?0:430,easing:'linear'});
+  menuCalculatorMotion=menuCalculator.animate([from,target],{duration:reduced?0:430,easing:'cubic-bezier(.22,1,.36,1)'});
   menuCalculatorMotion.finished.then(()=>{
     if(token!==menuCalculatorToken)return;menuCalculatorMotion=null;Object.assign(menuCalculator.style,menuCalculatorTarget());menuCalculator.inert=false;menuCalculator.classList.add('is-ready');menuCalculator.focus({preventScroll:true});
   }).catch(()=>{});
@@ -21596,7 +21588,7 @@ function closeMenuCalculator(){
   document.activeElement?.blur();
   const target=calculatorButtonFrame();Object.assign(menuCalculator.style,target);
   const reduced=matchMedia('(prefers-reduced-motion:reduce)').matches;animateCalculatorText(false,reduced);
-  menuCalculatorMotion=menuCalculator.animate(calculatorBeanFrames(from,target,false),{duration:reduced?0:330,easing:'linear'});
+  menuCalculatorMotion=menuCalculator.animate([from,target],{duration:reduced?0:330,easing:'cubic-bezier(.22,1,.36,1)'});
   menuCalculatorMotion.finished.then(()=>{if(token!==menuCalculatorToken)return;resetMenuCalculator();document.getElementById('navOneRMCalcBtn').focus({preventScroll:true});}).catch(()=>{});
 }
 document.getElementById('menuCalculatorBack').addEventListener('click',closeMenuCalculator);
