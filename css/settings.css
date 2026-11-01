@@ -1,6 +1,6 @@
 /* 🔥 .settings-box-theme 클래스가 붙은 모든 화면에 적용(메인 설정 화면뿐 아니라
    홈 설정/단위 표기/내 정보 수정 같은 설정 하위 화면의 카드/행도 전부 동일한
-   박스 스타일로 통일하기 위해 #settingsOverlay 전용이던 걸 클래스로 바꿈) */
+   박스 스타일로 통일하기 위해 #settingsOverlay 전용이던 걸 클래스로 바꿈) */ 
 /* 🔥 카드 배경색은 레퍼런스 스크린샷에서 실제 픽셀 샘플링한 값(#1c1c1d) */
 .settings-box-theme{--settings-row-h:52px;--settings-card-bg:#1c1c1d;--settings-line:rgba(255,255,255,.09);--settings-muted:#8b8688;}
 /* 🔥 글로우는 이제 패널(고정) 쪽에만 둠 — body가 스크롤/바운스되는 동안에도
