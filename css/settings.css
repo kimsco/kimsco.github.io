@@ -621,7 +621,7 @@ html.light-mode-on .menu-expand-back{border-color:rgba(50,30,35,.12);background:
 #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded{min-height:0;min-width:0;overflow:hidden;contain:paint;}
 
 /* Leave a visible rounded lower edge above the home indicator. */
-#menuCalculatorBottomInset{position:absolute;bottom:0;left:0;width:0;height:calc(12px + env(safe-area-inset-bottom));visibility:hidden;pointer-events:none;}
+#menuCalculatorBottomInset{position:absolute;bottom:0;left:0;width:0;height:12px;visibility:hidden;pointer-events:none;}
 
 /* The original tile becomes the workspace; only an invisible grid spacer is left behind. */
 .calculator-tile-placeholder{visibility:hidden;pointer-events:none;min-width:0;}
