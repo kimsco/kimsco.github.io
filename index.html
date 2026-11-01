@@ -13620,7 +13620,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.282";
+const APP_VERSION = "1.0.283";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -21614,17 +21614,26 @@ function openMenuCalculator(){
   const GEOMETRY_KEYS=['left','top','width','height','borderRadius'],COLOR_KEYS=['backgroundColor','borderColor','boxShadow'];
   const pick=(obj,keys)=>Object.fromEntries(keys.map(k=>[k,obj[k]]));
   // 🔥 배경색(아크릴 재질)이 펼쳐지자마자 바로 짙어지면 어색해서, 크기/위치 모프는 전체
-  //    구간에 걸쳐 그대로 진행하되 색 전환만 중후반(55%)부터 시작하게 따로 분리된
-  //    애니메이션으로 둠 — delay 구간엔 fill:'backwards'로 시작 색을 유지.
+  //    구간에 걸쳐 그대로 진행하되 색/그림자 전환만 따로 분리된 애니메이션으로 둠.
+  //    55%부터 193ms 안에 몰아서 끝내니 그 전까지 그림자·테두리가 없어 카드가 밍밍하게
+  //    (반투명하게) 비어 보였음 — 시작을 앞당기고(35%) 훨씬 느리게 늘어지며 끝나도록 함
+  //    (크기 모프가 끝난 뒤에도 계속 짙어지다가 끝남). delay 구간엔 fill:'backwards'로
+  //    시작 색을 유지.
   menuCalculatorMotion=menuCalculator.animate([pick(from,GEOMETRY_KEYS),pick(target,GEOMETRY_KEYS)],{duration,easing});
-  const colorDelay=reduced?0:Math.round(duration*0.55);
-  menuCalculatorColorMotion=menuCalculator.animate([pick(from,COLOR_KEYS),pick(target,COLOR_KEYS)],{duration:Math.max(0,duration-colorDelay),delay:colorDelay,easing,fill:'backwards'});
+  const colorDelay=reduced?0:Math.round(duration*0.35);
+  const colorDuration=reduced?0:Math.round(duration*1.15);
+  menuCalculatorColorMotion=menuCalculator.animate([pick(from,COLOR_KEYS),pick(target,COLOR_KEYS)],{duration:colorDuration,delay:colorDelay,easing,fill:'backwards'});
+  // 🔥 색 전환이 크기 모프보다 더 오래 걸리므로(colorDuration이 duration을 넘어감),
+  //    geometry가 끝났다고 같이 null로 지워버리면 그 사이 "닫기"를 눌렀을 때 아직 돌고
+  //    있는 색 애니메이션을 못 끊음 — 자기 자신의 finished에서 따로 정리함.
+  const colorMotionToken=menuCalculatorColorMotion;
+  colorMotionToken.finished.then(()=>{if(menuCalculatorColorMotion===colorMotionToken)menuCalculatorColorMotion=null;}).catch(()=>{});
   // 🔥 펼쳐지는 동안(원래 타일 + 안의 콘텐츠 전부) 블러 처리된 상태로 두다가, 다 켜진
   //    직후(82%)에만 선명하게 전환 — 점진적으로 풀리는 게 아니라 끝에서 딱 풀리는 느낌.
   menuCalculatorBlurMotion=reduced?null:menuCalculator.animate([{filter:'blur(10px)'},{filter:'blur(10px)',offset:0.82},{filter:'blur(0px)'}],{duration,easing});
   menuCalculatorMotion.finished.then(()=>{
     if(token!==menuCalculatorToken)return;
-    menuCalculatorMotion=null;menuCalculatorColorMotion=null;menuCalculatorBlurMotion=null;
+    menuCalculatorMotion=null;menuCalculatorBlurMotion=null;
     Object.assign(menuCalculator.style,menuCalculatorTarget());menuCalculator.style.filter='';
     menuCalculator.inert=false;menuCalculator.classList.add('is-ready');menuCalculator.focus({preventScroll:true});
   }).catch(()=>{});
