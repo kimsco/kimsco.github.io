@@ -13621,7 +13621,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.309";
+const APP_VERSION = "1.0.310";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -21857,12 +21857,19 @@ function commitCalcDrag(tile,dampedOffsetX,dampedOffsetY,action){
 }
 (()=>{
   let gesture=null;
-  const DAMP=30,DOWN_THRESHOLD=110,UP_THRESHOLD=90;
+  const DOWN_THRESHOLD=110,UP_THRESHOLD=90;
   // 🔥 좌우로 당길 때도 같은 고무줄/진흙 저항을 걸음 — 축별로 독립 적용(대각선으로
   //    당기면 x/y 각각 저항 걸린 만큼 따로 움직여 자연스러운 합성 이동이 됨). 단,
   //    커밋(닫기/전체화면) 판정은 기존대로 세로(dy) 기준만 봄 — 좌우는 그 자체로
   //    특정 동작에 연결돼 있지 않고 놓으면 항상 원위치로 튕겨 돌아옴.
-  const damp=d=>Math.sign(d)*DAMP*(1-Math.exp(-Math.abs(d)/DAMP));
+  // 🔥 이전의 "k*(1-e^(-x/k))" 식은 시작점(x=0)의 기울기가 항상 1이라, 당기기
+  //    시작한 처음 몇십 px 구간은 거의 손가락 그대로 따라가다가(= "자유롭게 움직이는"
+  //    구간) 뒤늦게 저항이 느껴졌음. 실제 iOS 러버밴드 스크롤이 쓰는 식
+  //    "x·CAP·C / (CAP + C·x)"으로 바꿈 — 이 식은 x=0에서의 기울기가 바로 C(저항
+  //    계수)라서, 당기는 "첫 픽셀"부터 곧장 C배로 저항이 걸리고(처음부터 뻑뻑함),
+  //    멀리 당길수록 CAP에 점근함.
+  const CAP=30,RESIST=0.5;
+  const damp=d=>Math.sign(d)*(Math.abs(d)*CAP*RESIST)/(CAP+RESIST*Math.abs(d));
   function onStart(tile,event){
     gesture=null;
     if(event.touches.length!==1||tile!==activeCalcTile||!menuCalculatorOpen||menuCalculatorMotion)return;
