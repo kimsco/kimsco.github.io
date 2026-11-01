@@ -63,7 +63,7 @@ try:
     assert all(bounds[i+1]['height']>=bounds[i]['height']-.5 for i in range(len(bounds)-1)),bounds
     if width==390 and not light:
      page.evaluate("window.actualCalculatorViewport=window.visualViewport;Object.defineProperty(window,'visualViewport',{configurable:true,value:{height:500,offsetTop:0}});resizeMenuCalculator();")
-     short=panel.bounding_box();assert abs(short['y']+short['height']-480)<1,short
+     short=panel.bounding_box();assert short==final,(short,final)
      page.evaluate("Object.defineProperty(window,'visualViewport',{configurable:true,value:window.actualCalculatorViewport});resizeMenuCalculator();")
     first=page.locator('#navThreeSummaryBtn').bounding_box()
     title=page.locator('#navMenuTitle').bounding_box()

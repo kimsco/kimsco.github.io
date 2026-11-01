@@ -13620,7 +13620,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.279";
+const APP_VERSION = "1.0.280";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -21517,13 +21517,13 @@ const calculatorBody=document.getElementById('oneRMCalcBody');
 const calculatorHome=calculatorBody.parentNode;
 let menuCalculatorOpen=false,menuCalculatorMotion=null,menuCalculatorToken=0,menuCalculatorTextMotions=[];
 let calculatorPlaceholder=null,calculatorTileInlineStyle=null,calculatorTileMaterial=null,calculatorTileLabelFrame=null;
+let calculatorLayoutHeight=0,calculatorLayoutWidth=0,calculatorGestureSuppressUntil=0;
 function menuCalculatorTarget(){
   const drawer=navDrawer.getBoundingClientRect(),body=navMenuBody.getBoundingClientRect(),style=getComputedStyle(navMenuBody);
   const left=body.left-drawer.left+parseFloat(style.paddingLeft);
   const first=document.getElementById('navThreeSummaryBtn').getBoundingClientRect(),title=document.getElementById('navMenuTitle').getBoundingClientRect();
-  const viewport=window.visualViewport,visibleBottom=viewport?viewport.offsetTop+viewport.height:innerHeight;
   const bottomGap=document.getElementById('menuCalculatorBottomInset').offsetHeight;
-  const bottom=Math.max(0,Math.min(drawer.height,visibleBottom-drawer.top)-bottomGap);
+  const bottom=Math.max(0,(calculatorLayoutHeight||drawer.height)-bottomGap);
   const top=Math.max(0,Math.min(Math.max(16,(title.bottom+first.top)/2-drawer.top),bottom-120));
   return {left:left+'px',top:top+'px',width:(body.width-parseFloat(style.paddingLeft)-parseFloat(style.paddingRight))+'px',height:Math.max(0,bottom-top)+'px',borderRadius:'32px'};
 }
@@ -21568,12 +21568,14 @@ function resetMenuCalculator(){
     menuCalculator.removeAttribute('aria-modal');menuCalculator.removeAttribute('aria-labelledby');
   }
   navMenuBody.inert=false;navDrawer.classList.remove('calculator-open');
+  calculatorLayoutHeight=0;calculatorLayoutWidth=0;document.getElementById('menuCalculatorContent').style.maxHeight='';
 }
 function openMenuCalculator(){
   if(menuCalculatorOpen)return;
   const fresh=!menuCalculator.classList.contains('calculator-expanded');
   let from;
   if(fresh){
+    calculatorLayoutHeight=navDrawer.clientHeight;calculatorLayoutWidth=navDrawer.clientWidth;
     const style=getComputedStyle(menuCalculator);
     calculatorTileMaterial={backgroundColor:style.backgroundColor,borderColor:style.borderColor,boxShadow:style.boxShadow};
     calculatorTileInlineStyle=menuCalculator.getAttribute('style');from=calculatorButtonFrame();
@@ -21619,9 +21621,68 @@ function closeMenuCalculator(){
   menuCalculatorMotion.finished.then(()=>{if(token!==menuCalculatorToken)return;resetMenuCalculator();document.getElementById('navOneRMCalcBtn').focus({preventScroll:true});}).catch(()=>{});
 }
 document.getElementById('menuCalculatorBack').addEventListener('click',event=>{event.stopPropagation();closeMenuCalculator();});
-function resizeMenuCalculator(){if(menuCalculatorOpen&&!menuCalculatorMotion){const target=menuCalculatorTarget();Object.assign(menuCalculator.style,target);menuCalculator.style.setProperty('--calculator-content-width',target.width);}}
+function adjustCalculatorKeyboardContent(){
+  if(!menuCalculatorOpen)return;
+  const content=document.getElementById('menuCalculatorContent'),viewport=window.visualViewport;
+  const editing=menuCalculator.contains(document.activeElement)&&document.activeElement.matches('input,textarea');
+  const covered=viewport&&calculatorLayoutHeight-viewport.height>120;
+  if(editing&&covered){
+    const visibleBottom=viewport.offsetTop+viewport.height;
+    content.style.maxHeight=Math.max(0,visibleBottom-content.getBoundingClientRect().top-16)+'px';
+  }else content.style.maxHeight='';
+}
+function resizeMenuCalculator(){
+  if(!menuCalculatorOpen||menuCalculatorMotion)return;
+  const editing=menuCalculator.contains(document.activeElement)&&document.activeElement.matches('input,textarea');
+  const changedWidth=Math.abs(navDrawer.clientWidth-calculatorLayoutWidth)>1;
+  const covered=window.visualViewport&&calculatorLayoutHeight-window.visualViewport.height>120;
+  if(changedWidth||(!editing&&!covered)){calculatorLayoutHeight=navDrawer.clientHeight;calculatorLayoutWidth=navDrawer.clientWidth;}
+  const target=menuCalculatorTarget();Object.assign(menuCalculator.style,target);menuCalculator.style.setProperty('--calculator-content-width',target.width);
+  adjustCalculatorKeyboardContent();
+}
 window.addEventListener('resize',resizeMenuCalculator);
-window.visualViewport?.addEventListener('resize',resizeMenuCalculator);
+window.visualViewport?.addEventListener('resize',adjustCalculatorKeyboardContent);
+window.visualViewport?.addEventListener('scroll',adjustCalculatorKeyboardContent);
+menuCalculator.addEventListener('focusin',()=>requestAnimationFrame(adjustCalculatorKeyboardContent));
+menuCalculator.addEventListener('focusout',()=>requestAnimationFrame(adjustCalculatorKeyboardContent));
+// Inert background children retarget outside taps to the menu, which is handled here.
+navDrawerOverlay.addEventListener('click',event=>{
+  if(Date.now()<calculatorGestureSuppressUntil){event.preventDefault();event.stopImmediatePropagation();return;}
+  if(menuCalculatorOpen&&!menuCalculator.contains(event.target)){
+    event.preventDefault();event.stopImmediatePropagation();closeMenuCalculator();
+  }
+},true);
+function exitCalculatorMenuToHome(){
+  document.activeElement?.blur();closeNavDrawer();const token=navMenuToken;
+  setTimeout(()=>{if(token===navMenuToken&&!navMenuOpen)document.querySelector('.bottomTab .tabBtn[data-target="tab1"]').click();},matchMedia('(prefers-reduced-motion:reduce)').matches?0:360);
+}
+(()=>{
+  let gesture=null;
+  navDrawerOverlay.addEventListener('touchstart',event=>{
+    gesture=null;if(!navMenuOpen||event.touches.length!==1)return;
+    const touch=event.touches[0],bounds=navDrawerOverlay.getBoundingClientRect();
+    const side=touch.clientX<=bounds.left+28?'left':touch.clientX>=bounds.right-28?'right':null;
+    if(!side||(side==='left'&&!menuCalculatorOpen))return;
+    gesture={side,x:touch.clientX,y:touch.clientY,distance:0,dragging:false,width:bounds.width};event.stopPropagation();
+  },{capture:true,passive:true});
+  navDrawerOverlay.addEventListener('touchmove',event=>{
+    if(!gesture)return;if(event.touches.length!==1){finish(true);return;}
+    const touch=event.touches[0],dx=touch.clientX-gesture.x,dy=touch.clientY-gesture.y;
+    const distance=gesture.side==='left'?dx:-dx;
+    if(!gesture.dragging){if(Math.abs(dy)>Math.max(8,Math.abs(dx))||distance< -8){gesture=null;return;}if(distance<8)return;gesture.dragging=true;}
+    event.preventDefault();event.stopPropagation();gesture.distance=Math.max(0,Math.min(gesture.width,distance));
+    if(gesture.side==='right'){navDrawer.style.transition='none';navDrawer.style.transform=`translateX(${-gesture.distance}px)`;setNavMenuBackground(gesture.distance/gesture.width,true);}
+  },{capture:true,passive:false});
+  function finish(cancelled){
+    const g=gesture;gesture=null;if(!g||!g.dragging)return;
+    calculatorGestureSuppressUntil=Date.now()+450;
+    const dismiss=!cancelled&&g.distance>Math.max(60,g.width*.18);
+    if(g.side==='left'){if(dismiss)closeMenuCalculator();return;}
+    if(dismiss)exitCalculatorMenuToHome();else{navDrawer.style.transition='';navDrawer.style.transform='translateX(0)';setNavMenuBackground(0);}
+  }
+  navDrawerOverlay.addEventListener('touchend',()=>finish(false),{capture:true,passive:true});
+  navDrawerOverlay.addEventListener('touchcancel',()=>finish(true),{capture:true,passive:true});
+})();
 function openNavDrawer(){
   if(document.getElementById('bootSplash') || navMenuOpen)return;
   if(topBarEl.classList.contains('rtimer-card-active')){stopRestTimerManually();return;}
@@ -21644,12 +21705,11 @@ function openNavDrawer(){
 }
 function closeNavDrawer(){
   if(!navMenuOpen)return;
-  resetMenuCalculator();
   navMenuOpen=false;++navMenuToken;clearTimeout(navMenuCloseTimer);
   navDrawer.style.transition='';navDrawer.style.transform='translateX(-100%)';
   setNavMenuBackground(1);
   navMenuCloseTimer=setTimeout(()=>{
-    navDrawerOverlay.classList.add('hidden');resetNavMenuBackground();releaseNavMenuBackground();
+    navDrawerOverlay.classList.add('hidden');resetMenuCalculator();resetNavMenuBackground();releaseNavMenuBackground();
     navMenuReturnFocus?.focus({preventScroll:true});
   },matchMedia('(prefers-reduced-motion: reduce)').matches?0:360);
 }
