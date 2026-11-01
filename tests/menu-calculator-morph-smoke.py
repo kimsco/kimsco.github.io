@@ -16,20 +16,28 @@ try:
    page.goto('http://127.0.0.1:8232');page.wait_for_timeout(1600)
    page.evaluate('applyMenuV2(true);openNavDrawer()');page.wait_for_timeout(400)
    assert page.locator('#navToolsLabel').is_hidden()
+   page.evaluate('window.originalCalculatorCard=document.getElementById("navOneRMCalcBtn")')
+   assert page.locator('#menuCalculator').count()==0
    for light in [False,True]:
-    page.evaluate('v=>applyLightMode(v)',light)
+    page.evaluate('v=>applyLightMode(v)',light);page.wait_for_timeout(250)
     button=page.locator('#navOneRMCalcBtn');start=button.bounding_box()
+    source_color=button.evaluate('e=>getComputedStyle(e).backgroundColor')
     heading=page.locator('#navMenuTitle').bounding_box()
     routine=page.locator('#navMyRoutineBtn').bounding_box()
-    page.evaluate("window.calculatorBounds=[];window.captureCalculator=true;requestAnimationFrame(function capture(){if(!window.captureCalculator)return;const e=document.getElementById('menuCalculator');if(!e.classList.contains('hidden')){const r=e.getBoundingClientRect();calculatorBounds.push({bottom:r.bottom,width:r.width,height:r.height});}requestAnimationFrame(capture);});")
+    page.evaluate("window.calculatorBounds=[];window.captureCalculator=true;requestAnimationFrame(function capture(){if(!window.captureCalculator)return;const e=document.getElementById('navOneRMCalcBtn');if(e.classList.contains('calculator-expanded')){const r=e.getBoundingClientRect();calculatorBounds.push({bottom:r.bottom,width:r.width,height:r.height});}requestAnimationFrame(capture);});")
     button.click();page.wait_for_timeout(80)
     assert page.locator('#navMenuBody').evaluate('e=>getComputedStyle(e).opacity')=='1'
     assert page.locator('#navMenuTitle').bounding_box()==heading
     assert page.locator('#navMyRoutineBtn').bounding_box()==routine
-    early=page.locator('#menuCalculator').bounding_box()
+    early=page.locator('#navOneRMCalcBtn').bounding_box()
     assert early['width']>start['width'] and early['y']<start['y'],(start,early)
     motion=page.evaluate("()=>{const m=menuCalculatorMotion,f=m.effect.getKeyframes();return {duration:m.effect.getTiming().duration,frames:f.length};}")
     assert motion=={'duration':430,'frames':2},motion
+    assert page.evaluate('menuCalculator===window.originalCalculatorCard && document.getElementById("navOneRMCalcBtn")===window.originalCalculatorCard')
+    colors=page.evaluate('menuCalculatorMotion.effect.getKeyframes().map(f=>f.backgroundColor)')
+    assert colors[0]==source_color and colors[0]!=colors[-1],colors
+    current_color=button.evaluate('e=>getComputedStyle(e).backgroundColor')
+    assert current_color not in [colors[0],colors[-1]],(current_color,colors)
     fade=page.locator('#menuCalculatorContent').evaluate('e=>Number(getComputedStyle(e).opacity)')
     assert 0<fade<1,fade
     assert page.locator('#menuCalculatorTitle').evaluate('e=>parseFloat(getComputedStyle(e).fontSize)')==18
@@ -37,7 +45,7 @@ try:
     page.wait_for_timeout(240)
     assert page.locator('#menuCalculatorContent').evaluate('e=>Number(getComputedStyle(e).opacity)')>.1
     page.screenshot(path=f'/tmp/menu-calculator-opening-{width}-{light}.png')
-    panel=page.locator('#menuCalculator');middle=panel.bounding_box()
+    panel=page.locator('#navOneRMCalcBtn');middle=panel.bounding_box()
     assert middle['width']>start['width'] and middle['height']>start['height'],(start,middle)
     assert page.locator('#navDrawerOverlay').is_visible() and page.locator('#oneRMCalcOverlay').is_hidden()
     page.wait_for_timeout(700)
@@ -56,7 +64,7 @@ try:
     assert abs(final['y']-expected_top)<1 and abs(final['y']+final['height']-824)<1,final
     assert panel.evaluate('e=>getComputedStyle(e).borderBottomLeftRadius')=='32px'
     assert panel.evaluate('e=>getComputedStyle(e).borderBottomRightRadius')=='32px'
-    assert page.locator('#oneRMCalcBody').evaluate('e=>!!e.closest("#menuCalculator")')
+    assert page.locator('#oneRMCalcBody').evaluate('e=>!!e.closest(".calculator-expanded")')
     assert page.locator('#weight').count()==1 and page.locator('#oneRMCalcDisclaimer').count()==0
     assert page.locator('#navMenuBody').evaluate('e=>e.inert')
     page.locator('#oneRMLiftSelect').select_option('bench');page.locator('#weight').fill('100');page.locator('#reps').select_option('5');page.locator('#goBtn').click()
@@ -64,23 +72,24 @@ try:
     expected=page.evaluate('100*NSCA_TABLE.bench[4]')
     assert f'{expected:.1f}kg' in page.locator('#tableArea>div').first.inner_text()
     page.screenshot(path=f'/tmp/menu-calculator-{width}-{light}.png')
-    page.evaluate("window.calculatorClosingBounds=[];requestAnimationFrame(function capture(){const e=document.getElementById('menuCalculator');if(e.classList.contains('hidden'))return;const r=e.getBoundingClientRect();calculatorClosingBounds.push({bottom:r.bottom,height:r.height});requestAnimationFrame(capture);});")
+    page.evaluate("window.calculatorClosingBounds=[];requestAnimationFrame(function capture(){const e=document.getElementById('navOneRMCalcBtn');if(!e.classList.contains('calculator-expanded'))return;const r=e.getBoundingClientRect();calculatorClosingBounds.push({bottom:r.bottom,height:r.height});requestAnimationFrame(capture);});")
     page.locator('#menuCalculatorBack').click()
     assert page.evaluate('menuCalculatorMotion.effect.getTiming().duration')==330
     page.wait_for_timeout(110)
     assert page.locator('#navMenuBody').evaluate('e=>getComputedStyle(e).opacity')=='1'
     assert page.locator('#navMyRoutineBtn').bounding_box()==routine
     page.wait_for_timeout(650)
-    assert panel.is_hidden() and not page.locator('#navMenuBody').evaluate('e=>e.inert')
+    assert not panel.evaluate('e=>e.classList.contains("calculator-expanded")') and not page.locator('#navMenuBody').evaluate('e=>e.inert')
     closing=page.evaluate('calculatorClosingBounds')
     assert closing and max(r['bottom'] for r in closing)<=825,closing
     assert all(closing[i+1]['height']<=closing[i]['height']+.5 for i in range(len(closing)-1)),closing
     assert page.locator('#oneRMCalcBody').evaluate('e=>!!e.closest("#oneRMCalcOverlay")')
+    assert button.evaluate('e=>e===window.originalCalculatorCard && !!e.closest("#navMenuBody")')
    # Reverse while opening, then reopen and close the full menu externally.
    button.click();page.wait_for_timeout(90);page.keyboard.press('Escape');page.wait_for_timeout(760)
-   assert panel.is_hidden() and page.locator('#navDrawerOverlay').is_visible()
+   assert not panel.evaluate('e=>e.classList.contains("calculator-expanded")') and page.locator('#navDrawerOverlay').is_visible()
    button.click();page.wait_for_timeout(940);page.evaluate('closeNavDrawer()');page.wait_for_timeout(420)
-   assert page.locator('#navDrawerOverlay').is_hidden() and panel.is_hidden()
+   assert page.locator('#navDrawerOverlay').is_hidden() and not panel.evaluate('e=>e.classList.contains("calculator-expanded")')
    assert page.locator('.app').evaluate('e=>!e.inert&&!e.style.transform&&!e.style.opacity')
    page.evaluate('applyMenuV2(false);openNavDrawer()');page.wait_for_timeout(400)
    button.click();page.wait_for_timeout(150)
