@@ -19,7 +19,14 @@ try:
    for light in [False,True]:
     page.evaluate('v=>applyLightMode(v)',light)
     button=page.locator('#navOneRMCalcBtn');start=button.bounding_box()
+    heading=page.locator('#navMenuTitle').bounding_box()
+    routine=page.locator('#navMyRoutineBtn').bounding_box()
     button.click();page.wait_for_timeout(110)
+    assert page.locator('#navMenuBody').evaluate('e=>getComputedStyle(e).opacity')=='1'
+    assert page.locator('#navMenuTitle').bounding_box()==heading
+    assert page.locator('#navMyRoutineBtn').bounding_box()==routine
+    assert page.locator('#menuCalculatorContent').evaluate('e=>Number(getComputedStyle(e).opacity)')>.1
+    page.screenshot(path=f'/tmp/menu-calculator-opening-{width}-{light}.png')
     panel=page.locator('#menuCalculator');middle=panel.bounding_box()
     assert middle['width']>start['width'] and middle['height']>start['height'],(start,middle)
     assert page.locator('#navDrawerOverlay').is_visible() and page.locator('#oneRMCalcOverlay').is_hidden()
@@ -35,11 +42,14 @@ try:
     expected=page.evaluate('100*NSCA_TABLE.bench[4]')
     assert f'{expected:.1f}kg' in page.locator('#tableArea>div').first.inner_text()
     page.screenshot(path=f'/tmp/menu-calculator-{width}-{light}.png')
-    page.locator('#menuCalculatorBack').click();page.wait_for_timeout(520)
+    page.locator('#menuCalculatorBack').click();page.wait_for_timeout(110)
+    assert page.locator('#navMenuBody').evaluate('e=>getComputedStyle(e).opacity')=='1'
+    assert page.locator('#navMyRoutineBtn').bounding_box()==routine
+    page.wait_for_timeout(510)
     assert panel.is_hidden() and not page.locator('#navMenuBody').evaluate('e=>e.inert')
     assert page.locator('#oneRMCalcBody').evaluate('e=>!!e.closest("#oneRMCalcOverlay")')
    # Reverse while opening, then reopen and close the full menu externally.
-   button.click();page.wait_for_timeout(90);page.keyboard.press('Escape');page.wait_for_timeout(520)
+   button.click();page.wait_for_timeout(90);page.keyboard.press('Escape');page.wait_for_timeout(620)
    assert panel.is_hidden() and page.locator('#navDrawerOverlay').is_visible()
    button.click();page.wait_for_timeout(720);page.evaluate('closeNavDrawer()');page.wait_for_timeout(420)
    assert page.locator('#navDrawerOverlay').is_hidden() and panel.is_hidden()
