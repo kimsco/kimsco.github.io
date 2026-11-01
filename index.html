@@ -13621,7 +13621,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.305";
+const APP_VERSION = "1.0.306";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -21829,6 +21829,72 @@ for(const tile of Object.values(calcTiles)){
   tile.back.addEventListener('click',event=>{event.stopPropagation();closeMenuCalculator();});
   tile.fullscreenBtn.addEventListener('click',event=>{event.stopPropagation();toggleMenuCalculatorFullscreen(tile);});
 }
+// 🔥 헤더 줄(뒤로가기/제목/전체화면 사이 빈 공간)을 잡고 위아래로 드래그하면, 손가락
+//    이동량 그대로가 아니라 고무줄/진흙 느낌으로 덜(점점 뻑뻑하게) 따라오다가, 일정
+//    이상 잡아내리면 닫히고(뒤로가기) 일정 이상 올리면 전체화면으로 들어감 — 놓았을 때
+//    임계값을 못 넘었으면 원래 자리로 다시 튕겨 돌아옴.
+function releaseCalcDrag(tile){
+  const reduced=matchMedia('(prefers-reduced-motion:reduce)').matches;
+  if(reduced){tile.btn.style.transform='';return;}
+  tile.btn.style.transition='transform .32s cubic-bezier(.34,1.56,.64,1)';
+  tile.btn.style.transform='';
+  tile.btn.addEventListener('transitionend',function handler(event){
+    if(event.propertyName!=='transform')return;
+    tile.btn.style.transition='';tile.btn.removeEventListener('transitionend',handler);
+  });
+}
+function commitCalcDrag(tile,dampedOffset,action){
+  // 🔥 드래그로 밀린 만큼(진흙 저항 걸린 오프셋)을 실제 top 값에 더해넣고 transform은
+  //    지워서, 뒤이어 실행되는 닫기/전체화면 애니메이션이 지금 보이는(드래그로 밀린)
+  //    위치에서 자연스럽게 이어지게 함 — transform을 그대로 둔 채 left/top 기준
+  //    애니메이션을 시작하면 좌표계가 안 맞아 순간적으로 어긋나 보임.
+  const currentTop=parseFloat(getComputedStyle(tile.btn).top)||0;
+  tile.btn.style.top=(currentTop+dampedOffset)+'px';
+  tile.btn.style.transform='';
+  action();
+}
+(()=>{
+  let gesture=null;
+  const DAMP=64,DOWN_THRESHOLD=110,UP_THRESHOLD=90;
+  const dampedY=dy=>Math.sign(dy)*DAMP*(1-Math.exp(-Math.abs(dy)/DAMP));
+  function onStart(tile,event){
+    gesture=null;
+    if(event.touches.length!==1||tile!==activeCalcTile||!menuCalculatorOpen||menuCalculatorMotion)return;
+    if(event.target.closest('.menu-expand-back,.menu-expand-fullscreen'))return;
+    const touch=event.touches[0];
+    gesture={tile,x:touch.clientX,y:touch.clientY,dy:0,dragging:false};
+  }
+  function onMove(event){
+    if(!gesture)return;
+    if(event.touches.length!==1){finish(true);return;}
+    const touch=event.touches[0],dx=touch.clientX-gesture.x,dy=touch.clientY-gesture.y;
+    if(!gesture.dragging){
+      if(Math.abs(dy)<8||Math.abs(dx)>Math.abs(dy))return;
+      gesture.dragging=true;
+    }
+    event.preventDefault();
+    gesture.dy=dy;
+    gesture.tile.btn.style.transform=`translateY(${dampedY(dy).toFixed(2)}px)`;
+  }
+  function finish(cancelled){
+    const g=gesture;gesture=null;
+    if(!g||!g.dragging)return;
+    const tile=g.tile,damped=dampedY(g.dy);
+    if(!cancelled&&g.dy>DOWN_THRESHOLD){
+      commitCalcDrag(tile,damped,closeMenuCalculator);
+    }else if(!cancelled&&g.dy<-UP_THRESHOLD&&!tile.isFullscreen){
+      commitCalcDrag(tile,damped,()=>toggleMenuCalculatorFullscreen(tile));
+    }else{
+      releaseCalcDrag(tile);
+    }
+  }
+  for(const tile of Object.values(calcTiles)){
+    tile.header.addEventListener('touchstart',event=>onStart(tile,event),{passive:true});
+    tile.header.addEventListener('touchmove',onMove,{passive:false});
+    tile.header.addEventListener('touchend',()=>finish(false),{passive:true});
+    tile.header.addEventListener('touchcancel',()=>finish(true),{passive:true});
+  }
+})();
 function adjustCalculatorKeyboardContent(){
   const tile=activeCalcTile;
   if(!menuCalculatorOpen||!tile)return;
