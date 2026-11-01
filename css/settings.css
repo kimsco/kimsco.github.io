@@ -552,23 +552,28 @@ html.menu-v2-on #navDrawer .nav-today-card{box-sizing:border-box;min-height:60px
 /* Brand section retains its own heading and separation from the tool cards. */
 html.menu-v2-on #navDrawer .settings-group[aria-labelledby="navAboutLabel"]{padding-top:10px;}
 
-/* The calculator tile grows into its own workspace inside menu v2. */
+/* The calculator tile grows into its own workspace inside menu v2.
+   🔥 "3대 PR" 탭도 같은 매커니즘을 씀 — #navOneRMCalcBtn 하나만 가리키던 선택자를
+   :is(#navOneRMCalcBtn,#navThreeSummaryBtn)로 넓히고, 유령 라벨/헤더/본문/시트처럼
+   탭마다 DOM이 두 벌 있어야 하는 구성요소는 ID 대신 공용 클래스(.menu-expand-*)로
+   찾게 바꿈. .calculator-expanded 토글 클래스 이름 자체는 그대로 재사용(두 탭 다
+   "이 탭이 지금 펼쳐진 카드다"라는 같은 뜻으로 공유) */
 html.menu-v2-on #navToolsLabel{display:none;}
-#navDrawer #navOneRMCalcBtn.calculator-expanded{position:absolute;z-index:2;overflow:hidden;box-sizing:border-box;border:1px solid rgba(255,255,255,.2);background-color:var(--menu-tile-bg-deep,#1b1a1c);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);color:#f5f5f5;box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 16px 50px rgba(0,0,0,.2);outline:none;display:flex;flex-direction:column;}
+#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded{position:absolute;z-index:2;overflow:hidden;box-sizing:border-box;border:1px solid rgba(255,255,255,.2);background-color:var(--menu-tile-bg-deep,#1b1a1c);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);color:#f5f5f5;box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 16px 50px rgba(0,0,0,.2);outline:none;display:flex;flex-direction:column;}
 /* 🔥 은은한 하이라이트 그라데이션 — 타일일 때부터 쭉 같은 모양이라 애니메이션 없이
    항상 그대로 보여줌(흰색을 페이드인시키면 오히려 카드가 밝아 보여서 뺐음). */
-#navOneRMCalcBtn>#menuCalculatorSheen{display:none;}
-#navDrawer #navOneRMCalcBtn.calculator-expanded>#menuCalculatorSheen{display:block;position:absolute;inset:0;z-index:0;pointer-events:none;border-radius:inherit;background-image:linear-gradient(145deg,rgba(255,255,255,.07),transparent 65%);}
+:is(#navOneRMCalcBtn,#navThreeSummaryBtn)>.menu-expand-sheen{display:none;}
+#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded>.menu-expand-sheen{display:block;position:absolute;inset:0;z-index:0;pointer-events:none;border-radius:inherit;background-image:linear-gradient(145deg,rgba(255,255,255,.07),transparent 65%);}
 #navDrawer.calculator-open #navMenuBody{pointer-events:none;}
 
 #navDrawer.calculator-open #navMenuCloseBtn{z-index:4;}
 .menu-calculator-header{display:flex;align-items:center;gap:10px;flex:none;padding:18px 18px 10px;}
-#menuCalculatorTitle{margin:0;font-size:18px;font-weight:600;}
-#menuCalculatorBack{width:36px;height:36px;display:grid;place-items:center;flex:none;border:1px solid rgba(255,255,255,.12);border-radius:50%;padding:8px;background:rgba(255,255,255,.06);color:inherit;cursor:pointer;}
-#menuCalculatorBack svg{width:20px;height:20px;}
-#menuCalculatorContent{flex:1;min-height:0;display:flex;flex-direction:column;padding:0 22px;}
-#navDrawer #navOneRMCalcBtn.calculator-expanded :is(.menu-calculator-header,#menuCalculatorContent){box-sizing:border-box;width:var(--calculator-content-width);flex-shrink:0;}
-#navDrawer #navOneRMCalcBtn.calculator-expanded #oneRMCalcBody{min-height:0;padding:8px 0 calc(28px + env(safe-area-inset-bottom));overscroll-behavior:contain;scrollbar-width:none;}
+.menu-expand-title-sr{margin:0;font-size:18px;font-weight:600;}
+.menu-expand-back{width:36px;height:36px;display:grid;place-items:center;flex:none;border:1px solid rgba(255,255,255,.12);border-radius:50%;padding:8px;background:rgba(255,255,255,.06);color:inherit;cursor:pointer;}
+.menu-expand-back svg{width:20px;height:20px;}
+.menu-expand-content{flex:1;min-height:0;display:flex;flex-direction:column;padding:0 22px;}
+#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded :is(.menu-calculator-header,.menu-expand-content){box-sizing:border-box;width:var(--calculator-content-width);flex-shrink:0;}
+#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded :is(#oneRMCalcBody,#threeDetail){min-height:0;padding:8px 0 calc(28px + env(safe-area-inset-bottom));overscroll-behavior:contain;scrollbar-width:none;}
 #navDrawer #navOneRMCalcBtn.calculator-expanded :is(#oneRMLiftSelect,#weight,#reps,#goBtn){display:block;box-sizing:border-box;width:100%;min-height:48px;padding:12px 16px;margin:0 0 12px;border:1px solid rgba(255,255,255,.12);border-radius:24px;background:rgba(255,255,255,.07);color:inherit;font:inherit;font-size:15px;}
 #navDrawer #navOneRMCalcBtn.calculator-expanded #goBtn{background:#f5f5f5;color:#242124;font-weight:650;cursor:pointer;}
 #navDrawer #navOneRMCalcBtn.calculator-expanded #tableArea{margin-top:20px;}
@@ -576,40 +581,48 @@ html.light-mode-on #navDrawer #navOneRMCalcBtn.calculator-expanded{background-co
 html.light-mode-on #navDrawer #navOneRMCalcBtn.calculator-expanded :is(#oneRMLiftSelect,#weight,#reps){background:rgba(255,255,255,.7);border-color:rgba(50,30,35,.1);}
 html.light-mode-on #navDrawer #navOneRMCalcBtn.calculator-expanded #goBtn{background:#282628;color:#fff;}
 html.light-mode-on #navDrawer #navOneRMCalcBtn.calculator-expanded #tableArea>div{color:#211c1d!important;}
-html.light-mode-on #menuCalculatorBack{border-color:rgba(50,30,35,.12);background:rgba(50,30,35,.04);}
-@media(prefers-reduced-motion:reduce){#navDrawer #navOneRMCalcBtn.calculator-expanded *,#navMenuBody{transition:none!important;}}
+/* 🔥 "3대 PR" 전용 입력/버튼 — 기존 .rmInput/#save3Btn/.three-detail-link는 검은
+   배경 전용(흰 글씨/테두리)이라 라이트 카드에선 안 보였음. 카드 안에서만 보정 */
+html.light-mode-on #navDrawer #navThreeSummaryBtn.calculator-expanded{background-color:var(--menu-tile-bg-deep,#e2dede);color:#211c1d;border-color:rgba(50,30,35,.12);}
+html.light-mode-on #navDrawer #navThreeSummaryBtn.calculator-expanded #total3{color:#211c1d;}
+html.light-mode-on #navDrawer #navThreeSummaryBtn.calculator-expanded .rmInput{color:#211c1d;border-bottom-color:rgba(50,30,35,.18);}
+html.light-mode-on #navDrawer #navThreeSummaryBtn.calculator-expanded .rmInput:focus{border-bottom-color:#211c1d;}
+html.light-mode-on #navDrawer #navThreeSummaryBtn.calculator-expanded #save3Btn{border-color:#211c1d;color:#211c1d;}
+html.light-mode-on #navDrawer #navThreeSummaryBtn.calculator-expanded .three-detail-link{color:rgba(33,28,29,.5);}
+html.light-mode-on .menu-expand-back{border-color:rgba(50,30,35,.12);background:rgba(50,30,35,.04);}
+@media(prefers-reduced-motion:reduce){#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded *,#navMenuBody{transition:none!important;}}
 
 /* Keep surrounding cards still and visible; only the selected tile changes shape. */
 .menu-calculator-ghost{position:absolute;z-index:2;left:14px;top:15px;white-space:nowrap;pointer-events:none;font-size:14px;font-weight:500;}
-#menuCalculatorGhost .settings-item-label{width:auto;gap:10px;}
-#menuCalculatorGhost .nav-v2-description{display:none!important;}
-#menuCalculatorGhost .nav-v2-icon{width:28px;height:32px;}
+.menu-expand-ghost .settings-item-label{width:auto;gap:10px;}
+.menu-expand-ghost .nav-v2-description{display:none!important;}
+.menu-expand-ghost .nav-v2-icon{width:28px;height:32px;}
 
 /* Content grows from the card center rather than sliding in from its right edge. */
-#navDrawer #navOneRMCalcBtn.calculator-expanded :is(.menu-calculator-header,#menuCalculatorContent){position:relative;left:50%;margin-left:calc(var(--calculator-content-width) / -2);transform-origin:center top;}
+#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded :is(.menu-calculator-header,.menu-expand-content){position:relative;left:50%;margin-left:calc(var(--calculator-content-width) / -2);transform-origin:center top;}
 
 /* Keep all calculator contents clipped to the animated workspace bounds. */
-#navDrawer #navOneRMCalcBtn.calculator-expanded{min-height:0;min-width:0;overflow:hidden;contain:paint;}
+#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded{min-height:0;min-width:0;overflow:hidden;contain:paint;}
 
 /* Leave a visible rounded lower edge above the home indicator. */
 #menuCalculatorBottomInset{position:absolute;bottom:0;left:0;width:0;height:calc(20px + env(safe-area-inset-bottom));visibility:hidden;pointer-events:none;}
 
 /* The original tile becomes the workspace; only an invisible grid spacer is left behind. */
 .calculator-tile-placeholder{visibility:hidden;pointer-events:none;min-width:0;}
-#navOneRMCalcBtn>.menu-calculator-header,#navOneRMCalcBtn>#menuCalculatorContent{display:none;}
-html.menu-v2-on #navDrawer #navOneRMCalcBtn.calculator-expanded{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;position:absolute;z-index:2;min-width:0;min-height:0;margin:0;padding:0;border:1px solid rgba(255,255,255,.2)!important;background-color:var(--menu-tile-bg-deep,#1b1a1c);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);color:#f5f5f5;transform:none!important;transition:none;cursor:default;box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 16px 50px rgba(0,0,0,.2);}
-#navDrawer #navOneRMCalcBtn.calculator-expanded>.menu-calculator-header{display:flex;position:relative;z-index:1;}
-#navDrawer #navOneRMCalcBtn.calculator-expanded>#menuCalculatorContent{display:flex;position:relative;z-index:1;}
-#navDrawer #navOneRMCalcBtn.calculator-expanded>#menuCalculatorGhost{width:auto;white-space:nowrap;}
-html.light-mode-on.menu-v2-on #navDrawer #navOneRMCalcBtn.calculator-expanded{background-color:var(--menu-tile-bg-deep,#e2dede);color:#211c1d;border-color:rgba(50,30,35,.12)!important;}
+:is(#navOneRMCalcBtn,#navThreeSummaryBtn)>.menu-calculator-header,:is(#navOneRMCalcBtn,#navThreeSummaryBtn)>.menu-expand-content{display:none;}
+html.menu-v2-on #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;position:absolute;z-index:2;min-width:0;min-height:0;margin:0;padding:0;border:1px solid rgba(255,255,255,.2)!important;background-color:var(--menu-tile-bg-deep,#1b1a1c);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);color:#f5f5f5;transform:none!important;transition:none;cursor:default;box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 16px 50px rgba(0,0,0,.2);}
+#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded>.menu-calculator-header{display:flex;position:relative;z-index:1;}
+#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded>.menu-expand-content{display:flex;position:relative;z-index:1;}
+#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded>.menu-expand-ghost{width:auto;white-space:nowrap;}
+html.light-mode-on.menu-v2-on #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded{background-color:var(--menu-tile-bg-deep,#e2dede);color:#211c1d;border-color:rgba(50,30,35,.12)!important;}
 
 /* One continuous title and fluid content: no duplicate label or fixed-width slicing. */
-#navDrawer #navOneRMCalcBtn.calculator-expanded :is(.menu-calculator-header,#menuCalculatorContent){width:100%;left:auto;margin-left:0;}
-#navDrawer #navOneRMCalcBtn.calculator-expanded>#menuCalculatorGhost{display:block;position:absolute;inset:0;z-index:3;width:100%;height:0;pointer-events:none;}
-#navDrawer #navOneRMCalcBtn.calculator-expanded>#menuCalculatorGhost .nav-v2-icon{position:absolute;left:var(--calculator-icon-left,14px);top:15px;}
-#navDrawer #navOneRMCalcBtn.calculator-expanded>#menuCalculatorGhost .nav-menu-copy{position:absolute;left:64px;top:var(--calculator-title-top,26px);white-space:nowrap;}
-#navDrawer #navOneRMCalcBtn.calculator-expanded>#menuCalculatorGhost .nav-menu-copy>span:first-child{font-size:var(--calculator-title-size,14px);font-weight:500;line-height:1.35;}
-#menuCalculatorTitle{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;}
+#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded :is(.menu-calculator-header,.menu-expand-content){width:100%;left:auto;margin-left:0;}
+#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded>.menu-expand-ghost{display:block;position:absolute;inset:0;z-index:3;width:100%;height:0;pointer-events:none;}
+#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded>.menu-expand-ghost .nav-v2-icon{position:absolute;left:var(--calculator-icon-left,14px);top:15px;}
+#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded>.menu-expand-ghost .nav-menu-copy{position:absolute;left:64px;top:var(--calculator-title-top,26px);white-space:nowrap;}
+#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded>.menu-expand-ghost .nav-menu-copy>span:first-child{font-size:var(--calculator-title-size,14px);font-weight:500;line-height:1.35;}
+.menu-expand-title-sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;}
 
 /* Isolate the resizing workspace and avoid re-blurring the menu on each frame. */
-#navDrawer #navOneRMCalcBtn.calculator-expanded{contain:layout paint;-webkit-backdrop-filter:none;backdrop-filter:none;}
+#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded{contain:layout paint;-webkit-backdrop-filter:none;backdrop-filter:none;}
