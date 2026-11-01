@@ -13620,7 +13620,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.290";
+const APP_VERSION = "1.0.291";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -21551,7 +21551,25 @@ function animateCalculatorText(open,reduced,fresh=false){
   menuCalculatorTextMotions.push(icon.animate([{opacity:open&&fresh?1:iconOpacity},{opacity:open?0:1}],{duration,easing}));
   const target=open?{left:menuCalculator.style.getPropertyValue('--calculator-title-left'),top:menuCalculator.style.getPropertyValue('--calculator-title-top')}:calculatorTileLabelFrame;
   copy.style.left=target.left;copy.style.top=target.top;
-  menuCalculatorTextMotions.push(copy.animate([{left:from.left,top:from.top},{left:target.left,top:target.top}],{duration,easing}));
+  // 🔥 열 때는 카드 지오메트리의 스쿼시(0~20%, 제자리 유지)+바운스(20~100%, 같은
+  //    이징으로 튕기며 도착) 타임라인에 라벨 위치도 맞춰서 같이 움직이게 함 — 안
+  //    그러면 카드는 스쿼시-바운스로 움직이는데 글자만 단순한 경로로 따로 움직여서
+  //    카드 가장자리랑 안 맞고 따로 노는 것처럼 보였음.
+  const copyKeyframes=open?[
+    {left:from.left,top:from.top,offset:0,easing:'cubic-bezier(.45,0,.55,1)'},
+    {left:from.left,top:from.top,offset:0.2,easing:'cubic-bezier(.34,1.56,.64,1)'},
+    {left:target.left,top:target.top}
+  ]:[{left:from.left,top:from.top},{left:target.left,top:target.top}];
+  menuCalculatorTextMotions.push(copy.animate(copyKeyframes,{duration,easing}));
+  // 🔥 아이콘+텍스트(고스트 라벨) 전체도 헤더/콘텐츠와 같은 블러 리빌에 포함시킴 —
+  //    안 그러면 카드 안쪽은 블러됐다 풀리는데 라벨만 처음부터 선명해서 따로 놀았음.
+  if(open&&!reduced){
+    const blurKeyframes=[{filter:'blur(10px)'},{filter:'blur(0px)'}];
+    const revealDuration=360;
+    const labelBlur=label.animate(blurKeyframes,{duration:revealDuration,delay:duration,easing:'cubic-bezier(.22,1,.36,1)',fill:'backwards'});
+    menuCalculatorTextMotions.push(labelBlur);
+    labelBlur.finished.then(()=>{label.style.filter='';}).catch(()=>{});
+  }else label.style.filter='';
 }
 function resetMenuCalculator(){
   ++menuCalculatorToken;
@@ -21627,7 +21645,7 @@ function openMenuCalculator(){
   const squashScale=0.82,sw=fw*squashScale,sh=fh*squashScale;
   const squashGeo={left:(fl+(fw-sw)/2)+'px',top:(ft+(fh-sh)/2)+'px',width:sw+'px',height:sh+'px',borderRadius:from.borderRadius};
   menuCalculatorMotion=menuCalculator.animate([
-    {...fromGeo,offset:0,easing:'cubic-bezier(0,0,.2,1)'},
+    {...fromGeo,offset:0,easing:'cubic-bezier(.45,0,.55,1)'},
     {...squashGeo,offset:0.2,easing:'cubic-bezier(.34,1.56,.64,1)'},
     targetGeo
   ],{duration});
