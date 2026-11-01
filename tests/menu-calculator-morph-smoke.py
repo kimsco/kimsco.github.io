@@ -21,15 +21,15 @@ try:
     button=page.locator('#navOneRMCalcBtn');start=button.bounding_box()
     heading=page.locator('#navMenuTitle').bounding_box()
     routine=page.locator('#navMyRoutineBtn').bounding_box()
-    button.click();page.wait_for_timeout(45)
+    page.evaluate("window.calculatorBounds=[];window.captureCalculator=true;requestAnimationFrame(function capture(){if(!window.captureCalculator)return;const e=document.getElementById('menuCalculator');if(!e.classList.contains('hidden')){const r=e.getBoundingClientRect();calculatorBounds.push({bottom:r.bottom,width:r.width,height:r.height});}requestAnimationFrame(capture);});")
+    button.click();page.wait_for_timeout(80)
     assert page.locator('#navMenuBody').evaluate('e=>getComputedStyle(e).opacity')=='1'
     assert page.locator('#navMenuTitle').bounding_box()==heading
     assert page.locator('#navMyRoutineBtn').bounding_box()==routine
     early=page.locator('#menuCalculator').bounding_box()
-    assert early['width']>start['width'] and early['y']<start['y'],(start,early)
-    motion=page.evaluate('''()=>{const m=menuCalculatorMotion,f=m.effect.getKeyframes(),s=getComputedStyle(menuCalculator),a=f[0],b=f.at(-1);return {duration:m.effect.getTiming().duration,x:(parseFloat(s.left)-parseFloat(a.left))/(parseFloat(b.left)-parseFloat(a.left)),y:(parseFloat(s.top)-parseFloat(a.top))/(parseFloat(b.top)-parseFloat(a.top)),font:parseFloat(getComputedStyle(document.getElementById('menuCalculatorTitle')).fontSize)};}''')
-    assert motion['duration']==215 and abs(motion['x']-motion['y'])<.03,motion
-    assert 8<=motion['font']<18,motion
+    assert early['width']<start['width'] and early['y']>start['y'],(start,early)
+    motion=page.evaluate("()=>{const m=menuCalculatorMotion,f=m.effect.getKeyframes();return {duration:m.effect.getTiming().duration,beanWidth:parseFloat(f[1].width),beanHeight:parseFloat(f[1].height)};}")
+    assert motion=={'duration':430,'beanWidth':72,'beanHeight':40},motion
     page.wait_for_timeout(240)
     assert page.locator('#menuCalculatorContent').evaluate('e=>Number(getComputedStyle(e).opacity)')>.1
     page.screenshot(path=f'/tmp/menu-calculator-opening-{width}-{light}.png')
@@ -38,6 +38,13 @@ try:
     assert page.locator('#navDrawerOverlay').is_visible() and page.locator('#oneRMCalcOverlay').is_hidden()
     page.wait_for_timeout(700)
     final=panel.bounding_box();assert final['width']>start['width']*1.9
+    bounds=page.evaluate('window.captureCalculator=false;calculatorBounds')
+    assert bounds and max(r['bottom'] for r in bounds)<=845,bounds
+    assert any(r['width']<100 and r['height']<60 for r in bounds),bounds
+    if width==390 and not light:
+     page.evaluate("window.actualCalculatorViewport=window.visualViewport;Object.defineProperty(window,'visualViewport',{configurable:true,value:{height:500,offsetTop:0}});resizeMenuCalculator();")
+     short=panel.bounding_box();assert abs(short['y']+short['height']-500)<1,short
+     page.evaluate("Object.defineProperty(window,'visualViewport',{configurable:true,value:window.actualCalculatorViewport});resizeMenuCalculator();")
     first=page.locator('#navThreeSummaryBtn').bounding_box()
     title=page.locator('#navMenuTitle').bounding_box()
     expected_top=(title['y']+title['height']+first['y'])/2
@@ -51,7 +58,7 @@ try:
     assert f'{expected:.1f}kg' in page.locator('#tableArea>div').first.inner_text()
     page.screenshot(path=f'/tmp/menu-calculator-{width}-{light}.png')
     page.locator('#menuCalculatorBack').click()
-    assert page.evaluate('menuCalculatorMotion.effect.getTiming().duration')==165
+    assert page.evaluate('menuCalculatorMotion.effect.getTiming().duration')==330
     page.wait_for_timeout(110)
     assert page.locator('#navMenuBody').evaluate('e=>getComputedStyle(e).opacity')=='1'
     assert page.locator('#navMyRoutineBtn').bounding_box()==routine

@@ -585,3 +585,6 @@ html.light-mode-on #menuCalculatorBack{border-color:rgba(50,30,35,.12);backgroun
 
 /* Content grows from the card center rather than sliding in from its right edge. */
 #menuCalculator :is(.menu-calculator-header,#menuCalculatorContent){position:relative;left:50%;margin-left:calc(var(--calculator-content-width) / -2);transform-origin:center top;}
+
+/* Keep all calculator contents clipped to the animated workspace bounds. */
+#menuCalculator{min-height:0;min-width:0;overflow:clip;}
