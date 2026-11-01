@@ -13620,7 +13620,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.284";
+const APP_VERSION = "1.0.285";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -21515,7 +21515,7 @@ setInterval(refreshVisibleNavTodayRecords,60000);
 const menuCalculator=document.getElementById('navOneRMCalcBtn');
 const calculatorBody=document.getElementById('oneRMCalcBody');
 const calculatorHome=calculatorBody.parentNode;
-let menuCalculatorOpen=false,menuCalculatorMotion=null,menuCalculatorSheenMotion=null,menuCalculatorBlurMotions=[],menuCalculatorToken=0,menuCalculatorTextMotions=[];
+let menuCalculatorOpen=false,menuCalculatorMotion=null,menuCalculatorColorMotion=null,menuCalculatorSheenMotion=null,menuCalculatorBlurMotions=[],menuCalculatorToken=0,menuCalculatorTextMotions=[];
 let calculatorPlaceholder=null,calculatorTileInlineStyle=null,calculatorTileMaterial=null,calculatorTileLabelFrame=null;
 let calculatorLayoutHeight=0,calculatorLayoutWidth=0,calculatorGestureSuppressUntil=0;
 function menuCalculatorTarget(){
@@ -21556,6 +21556,7 @@ function animateCalculatorText(open,reduced,fresh=false){
 function resetMenuCalculator(){
   ++menuCalculatorToken;
   menuCalculatorMotion?.cancel();menuCalculatorMotion=null;
+  menuCalculatorColorMotion?.cancel();menuCalculatorColorMotion=null;
   menuCalculatorSheenMotion?.cancel();menuCalculatorSheenMotion=null;
   menuCalculatorBlurMotions.forEach(m=>m.cancel());menuCalculatorBlurMotions=[];
   menuCalculatorOpen=false;
@@ -21617,22 +21618,30 @@ function openMenuCalculator(){
   navMenuBody.inert=true;navDrawer.classList.add('calculator-open');
   const reduced=matchMedia('(prefers-reduced-motion:reduce)').matches;
   animateCalculatorText(true,reduced,fresh);
-  const duration=reduced?0:430,easing='cubic-bezier(.22,1,.36,1)';
-  const GEOMETRY_KEYS=['left','top','width','height','borderRadius'];
+  const duration=reduced?0:430,revealDuration=reduced?0:360,easing='cubic-bezier(.22,1,.36,1)';
+  const GEOMETRY_KEYS=['left','top','width','height','borderRadius'],COLOR_KEYS=['backgroundColor','borderColor','boxShadow'];
   const pick=(obj,keys)=>Object.fromEntries(keys.map(k=>[k,obj[k]]));
+  // 🔥 크기 모프가 완전히 끝난 뒤에야(delay:duration) 색/블러가 바뀌도록 두 단계로 분리.
+  //    1단계(0~duration): 크기만 커짐 — 색은 원래(타일) 색 그대로, 글씨는 블러된 채.
+  //    2단계(duration~): 다 커진 상태에서 카드 색(+하이라이트)이 짙어지고 글씨 블러가
+  //    풀림. fill:'backwards'로 1단계 동안은 시작 값(원래 색/블러)을 유지시킴.
   menuCalculatorMotion=menuCalculator.animate([pick(from,GEOMETRY_KEYS),pick(target,GEOMETRY_KEYS)],{duration,easing});
-  menuCalculatorSheenMotion=document.getElementById('menuCalculatorSheen').animate([{opacity:0},{opacity:1}],{duration,easing});
-  // 🔥 '블러 처리'는 카드(배경/테두리/그림자)가 아니라 안의 글씨(헤더+폼 콘텐츠)만 —
-  //    82% 지점까지 블러 상태를 유지하다 끝에서 딱 선명해짐.
+  menuCalculatorColorMotion=menuCalculator.animate([pick(from,COLOR_KEYS),pick(target,COLOR_KEYS)],{duration:revealDuration,delay:duration,easing,fill:'backwards'});
+  menuCalculatorSheenMotion=document.getElementById('menuCalculatorSheen').animate([{opacity:0},{opacity:1}],{duration:revealDuration,delay:duration,easing,fill:'backwards'});
   if(!reduced){
-    const blurKeyframes=[{filter:'blur(10px)'},{filter:'blur(10px)',offset:0.82},{filter:'blur(0px)'}];
+    const blurKeyframes=[{filter:'blur(10px)'},{filter:'blur(0px)'}];
     menuCalculatorBlurMotions=[document.querySelector('.menu-calculator-header'),document.getElementById('menuCalculatorContent')]
-      .map(el=>el.animate(blurKeyframes,{duration,easing}));
+      .map(el=>el.animate(blurKeyframes,{duration:revealDuration,delay:duration,easing,fill:'backwards'}));
   }
   menuCalculatorMotion.finished.then(()=>{
     if(token!==menuCalculatorToken)return;
-    menuCalculatorMotion=null;menuCalculatorSheenMotion=null;menuCalculatorBlurMotions=[];
+    menuCalculatorMotion=null;
     Object.assign(menuCalculator.style,menuCalculatorTarget());
+  }).catch(()=>{});
+  // 🔥 settle(상호작용 가능 상태로 표시)은 2단계(reveal)까지 다 끝난 뒤에.
+  menuCalculatorColorMotion.finished.then(()=>{
+    if(token!==menuCalculatorToken)return;
+    menuCalculatorColorMotion=null;menuCalculatorSheenMotion=null;menuCalculatorBlurMotions=[];
     document.getElementById('menuCalculatorSheen').style.opacity='1';
     document.querySelector('.menu-calculator-header').style.filter='';
     document.getElementById('menuCalculatorContent').style.filter='';
@@ -21642,7 +21651,7 @@ function openMenuCalculator(){
 function closeMenuCalculator(){
   if(!menuCalculatorOpen)return;
   const from=calculatorCurrentFrame();
-  menuCalculatorMotion?.cancel();menuCalculatorSheenMotion?.cancel();menuCalculatorBlurMotions.forEach(m=>m.cancel());menuCalculatorBlurMotions=[];
+  menuCalculatorMotion?.cancel();menuCalculatorColorMotion?.cancel();menuCalculatorSheenMotion?.cancel();menuCalculatorBlurMotions.forEach(m=>m.cancel());menuCalculatorBlurMotions=[];
   const token=++menuCalculatorToken;menuCalculatorOpen=false;
   menuCalculator.classList.remove('is-ready');menuCalculator.inert=true;
   document.activeElement?.blur();
