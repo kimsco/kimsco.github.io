@@ -588,3 +588,6 @@ html.light-mode-on #menuCalculatorBack{border-color:rgba(50,30,35,.12);backgroun
 
 /* Keep all calculator contents clipped to the animated workspace bounds. */
 #menuCalculator{min-height:0;min-width:0;overflow:hidden;contain:paint;}
+
+/* Leave a visible rounded lower edge above the home indicator. */
+#menuCalculatorBottomInset{position:absolute;bottom:0;left:0;width:0;height:calc(20px + env(safe-area-inset-bottom));visibility:hidden;pointer-events:none;}

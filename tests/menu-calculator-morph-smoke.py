@@ -30,6 +30,10 @@ try:
     assert early['width']>start['width'] and early['y']<start['y'],(start,early)
     motion=page.evaluate("()=>{const m=menuCalculatorMotion,f=m.effect.getKeyframes();return {duration:m.effect.getTiming().duration,frames:f.length};}")
     assert motion=={'duration':430,'frames':2},motion
+    fade=page.locator('#menuCalculatorContent').evaluate('e=>Number(getComputedStyle(e).opacity)')
+    assert 0<fade<1,fade
+    assert page.locator('#menuCalculatorTitle').evaluate('e=>parseFloat(getComputedStyle(e).fontSize)')==18
+    assert page.locator('#weight').evaluate('e=>parseFloat(getComputedStyle(e).fontSize)')==15
     page.wait_for_timeout(240)
     assert page.locator('#menuCalculatorContent').evaluate('e=>Number(getComputedStyle(e).opacity)')>.1
     page.screenshot(path=f'/tmp/menu-calculator-opening-{width}-{light}.png')
@@ -39,17 +43,19 @@ try:
     page.wait_for_timeout(700)
     final=panel.bounding_box();assert final['width']>start['width']*1.9
     bounds=page.evaluate('window.captureCalculator=false;calculatorBounds')
-    assert bounds and max(r['bottom'] for r in bounds)<=845,bounds
+    assert bounds and max(r['bottom'] for r in bounds)<=825,bounds
     assert all(r['width']>=start['width']*.96 and r['height']>=start['height']*.96 for r in bounds),bounds
     assert all(bounds[i+1]['height']>=bounds[i]['height']-.5 for i in range(len(bounds)-1)),bounds
     if width==390 and not light:
      page.evaluate("window.actualCalculatorViewport=window.visualViewport;Object.defineProperty(window,'visualViewport',{configurable:true,value:{height:500,offsetTop:0}});resizeMenuCalculator();")
-     short=panel.bounding_box();assert abs(short['y']+short['height']-500)<1,short
+     short=panel.bounding_box();assert abs(short['y']+short['height']-480)<1,short
      page.evaluate("Object.defineProperty(window,'visualViewport',{configurable:true,value:window.actualCalculatorViewport});resizeMenuCalculator();")
     first=page.locator('#navThreeSummaryBtn').bounding_box()
     title=page.locator('#navMenuTitle').bounding_box()
     expected_top=(title['y']+title['height']+first['y'])/2
-    assert abs(final['y']-expected_top)<1 and abs(final['y']+final['height']-844)<1,final
+    assert abs(final['y']-expected_top)<1 and abs(final['y']+final['height']-824)<1,final
+    assert panel.evaluate('e=>getComputedStyle(e).borderBottomLeftRadius')=='32px'
+    assert panel.evaluate('e=>getComputedStyle(e).borderBottomRightRadius')=='32px'
     assert page.locator('#oneRMCalcBody').evaluate('e=>!!e.closest("#menuCalculator")')
     assert page.locator('#weight').count()==1 and page.locator('#oneRMCalcDisclaimer').count()==0
     assert page.locator('#navMenuBody').evaluate('e=>e.inert')
@@ -67,7 +73,7 @@ try:
     page.wait_for_timeout(650)
     assert panel.is_hidden() and not page.locator('#navMenuBody').evaluate('e=>e.inert')
     closing=page.evaluate('calculatorClosingBounds')
-    assert closing and max(r['bottom'] for r in closing)<=845,closing
+    assert closing and max(r['bottom'] for r in closing)<=825,closing
     assert all(closing[i+1]['height']<=closing[i]['height']+.5 for i in range(len(closing)-1)),closing
     assert page.locator('#oneRMCalcBody').evaluate('e=>!!e.closest("#oneRMCalcOverlay")')
    # Reverse while opening, then reopen and close the full menu externally.
