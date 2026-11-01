@@ -639,7 +639,7 @@ html.light-mode-on :is(.menu-expand-back,.menu-expand-fullscreen){border-color:r
 #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded{min-height:0;min-width:0;overflow:hidden;contain:paint;}
 
 /* Leave a visible rounded lower edge above the home indicator. */
-#menuCalculatorBottomInset{position:absolute;bottom:0;left:0;width:0;height:12px;visibility:hidden;pointer-events:none;}
+#menuCalculatorBottomInset{position:absolute;bottom:0;left:0;width:0;height:20px;visibility:hidden;pointer-events:none;}
 
 /* The original tile becomes the workspace; only an invisible grid spacer is left behind. */
 .calculator-tile-placeholder{visibility:hidden;pointer-events:none;min-width:0;}
