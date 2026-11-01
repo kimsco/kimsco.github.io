@@ -13620,7 +13620,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.287";
+const APP_VERSION = "1.0.288";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -21515,7 +21515,7 @@ setInterval(refreshVisibleNavTodayRecords,60000);
 const menuCalculator=document.getElementById('navOneRMCalcBtn');
 const calculatorBody=document.getElementById('oneRMCalcBody');
 const calculatorHome=calculatorBody.parentNode;
-let menuCalculatorOpen=false,menuCalculatorMotion=null,menuCalculatorBlurMotions=[],menuCalculatorToken=0,menuCalculatorTextMotions=[];
+let menuCalculatorOpen=false,menuCalculatorMotion=null,menuCalculatorColorMotion=null,menuCalculatorBlurMotions=[],menuCalculatorToken=0,menuCalculatorTextMotions=[];
 let calculatorPlaceholder=null,calculatorTileInlineStyle=null,calculatorTileMaterial=null,calculatorTileLabelFrame=null;
 let calculatorLayoutHeight=0,calculatorLayoutWidth=0,calculatorGestureSuppressUntil=0;
 function menuCalculatorTarget(){
@@ -21556,6 +21556,7 @@ function animateCalculatorText(open,reduced,fresh=false){
 function resetMenuCalculator(){
   ++menuCalculatorToken;
   menuCalculatorMotion?.cancel();menuCalculatorMotion=null;
+  menuCalculatorColorMotion?.cancel();menuCalculatorColorMotion=null;
   menuCalculatorBlurMotions.forEach(m=>m.cancel());menuCalculatorBlurMotions=[];
   menuCalculatorOpen=false;
   menuCalculatorTextMotions.forEach(m=>m.cancel());menuCalculatorTextMotions=[];
@@ -21597,13 +21598,14 @@ function openMenuCalculator(){
     menuCalculator.classList.add('calculator-expanded');
     menuCalculator.setAttribute('role','dialog');menuCalculator.setAttribute('aria-modal','true');menuCalculator.setAttribute('aria-labelledby','menuCalculatorTitle');menuCalculator.tabIndex=-1;
   }else from=calculatorCurrentFrame();
-  menuCalculatorMotion?.cancel();menuCalculatorBlurMotions.forEach(m=>m.cancel());menuCalculatorBlurMotions=[];
+  menuCalculatorMotion?.cancel();menuCalculatorColorMotion?.cancel();menuCalculatorBlurMotions.forEach(m=>m.cancel());menuCalculatorBlurMotions=[];
   const token=++menuCalculatorToken;menuCalculatorOpen=true;
   const material=getComputedStyle(menuCalculator);
   const target={...menuCalculatorTarget(),backgroundColor:material.backgroundColor,borderColor:material.borderColor,boxShadow:material.boxShadow};
-  // 🔥 색/테두리/그림자는 타일(반투명)과 상관없이 펼쳐지는 순간부터 끝까지 쭉
-  //    진한 불투명 색(target) 그대로 — "뒷배경 안 비치고 처음부터 불투명하게"
-  //    해달라는 요청으로, 더 이상 색을 따로 애니메이션하지 않고 즉시 적용.
+  // 🔥 여기서 Object.assign은 최종(진한) 색을 즉시 inline에 박아두는 것뿐 — 실제
+  //    화면에 보이는 값은 아래 menuCalculatorColorMotion이 합성해서 덮어씀: 커지는
+  //    동안(1단계)은 fill:'backwards'로 타일의 옅은 색을 그대로 보여주다가, 다 커진
+  //    뒤(2단계)에만 진한 색으로 전환.
   Object.assign(menuCalculator.style,target);menuCalculator.style.setProperty('--calculator-content-width',target.width);
   document.getElementById('menuCalculatorContent').appendChild(calculatorBody);calculatorBody.scrollTop=0;
   const cardBounds=menuCalculator.getBoundingClientRect(),backBounds=document.getElementById('menuCalculatorBack').getBoundingClientRect();
@@ -21615,11 +21617,18 @@ function openMenuCalculator(){
   const reduced=matchMedia('(prefers-reduced-motion:reduce)').matches;
   animateCalculatorText(true,reduced,fresh);
   const duration=reduced?0:430,revealDuration=reduced?0:360,easing='cubic-bezier(.22,1,.36,1)';
-  const GEOMETRY_KEYS=['left','top','width','height','borderRadius'];
+  const GEOMETRY_KEYS=['left','top','width','height','borderRadius'],COLOR_KEYS=['backgroundColor','borderColor','boxShadow'];
   const pick=(obj,keys)=>Object.fromEntries(keys.map(k=>[k,obj[k]]));
   menuCalculatorMotion=menuCalculator.animate([pick(from,GEOMETRY_KEYS),pick(target,GEOMETRY_KEYS)],{duration,easing});
-  // 🔥 글씨 블러는 여전히 크기 모프가 완전히 끝난 뒤(delay:duration)에만 풀리게 둠 —
-  //    이건 색과 별개로 유지해 달라고 했던 요청.
+  // 🔥 커지는 동안(1단계)엔 타일과 같은 계열의 "불투명" 색(--menu-tile-bg-opaque)을
+  //    써서 뒷배경이 비치지 않게 하고, 다 커진 뒤(2단계)에만 진한 색(target)으로
+  //    전환함. 테두리/그림자는 타일 원래 값 그대로 써도 배경이 비치는 문제가
+  //    없으니 그대로 둠.
+  const opaqueTileBg=getComputedStyle(navDrawer).getPropertyValue('--menu-tile-bg-opaque').trim()||target.backgroundColor;
+  const growthColor={...pick(from,COLOR_KEYS),backgroundColor:opaqueTileBg};
+  menuCalculatorColorMotion=menuCalculator.animate([growthColor,pick(target,COLOR_KEYS)],{duration:revealDuration,delay:duration,easing,fill:'backwards'});
+  // 🔥 글씨 블러도 색과 같은 타이밍으로, 크기 모프가 완전히 끝난 뒤(delay:duration)에만
+  //    풀리게 둠.
   let blurFinished=Promise.resolve();
   if(!reduced){
     const blurKeyframes=[{filter:'blur(10px)'},{filter:'blur(0px)'}];
@@ -21632,9 +21641,9 @@ function openMenuCalculator(){
     menuCalculatorMotion=null;
     Object.assign(menuCalculator.style,menuCalculatorTarget());
   }).catch(()=>{});
-  blurFinished.then(()=>{
+  Promise.all([menuCalculatorColorMotion.finished,blurFinished]).then(()=>{
     if(token!==menuCalculatorToken)return;
-    menuCalculatorBlurMotions=[];
+    menuCalculatorColorMotion=null;menuCalculatorBlurMotions=[];
     document.querySelector('.menu-calculator-header').style.filter='';
     document.getElementById('menuCalculatorContent').style.filter='';
     menuCalculator.inert=false;menuCalculator.classList.add('is-ready');menuCalculator.focus({preventScroll:true});
@@ -21643,7 +21652,7 @@ function openMenuCalculator(){
 function closeMenuCalculator(){
   if(!menuCalculatorOpen)return;
   const from=calculatorCurrentFrame();
-  menuCalculatorMotion?.cancel();menuCalculatorBlurMotions.forEach(m=>m.cancel());menuCalculatorBlurMotions=[];
+  menuCalculatorMotion?.cancel();menuCalculatorColorMotion?.cancel();menuCalculatorBlurMotions.forEach(m=>m.cancel());menuCalculatorBlurMotions=[];
   const token=++menuCalculatorToken;menuCalculatorOpen=false;
   menuCalculator.classList.remove('is-ready');menuCalculator.inert=true;
   document.activeElement?.blur();

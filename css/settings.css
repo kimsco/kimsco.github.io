@@ -483,7 +483,7 @@ html.light-mode-on #labsSettingsOverlay{background:#f5f4f4;}
 
 /* Version 2: control-center tiles. The original list keeps its existing appearance. */
 #navDrawer .nav-v2-icon,#navDrawer .nav-v2-description{display:none;}
-html.menu-v2-on #navDrawer{--menu-tile-bg:rgba(100,96,98,.34);--menu-tile-bg-deep:#1b1a1c;--menu-tile-line:rgba(255,255,255,.18);}
+html.menu-v2-on #navDrawer{--menu-tile-bg:rgba(100,96,98,.34);--menu-tile-bg-opaque:#64605f;--menu-tile-bg-deep:#1b1a1c;--menu-tile-line:rgba(255,255,255,.18);}
 html.menu-v2-on #navMenuBody{padding-inline:24px;}
 html.menu-v2-on #navMenuTitle{margin-bottom:36px;}
 html.menu-v2-on #navDrawer .settings-section-label{padding-left:4px;margin-bottom:14px;font-size:13px;letter-spacing:.3px;}
@@ -507,7 +507,7 @@ html.menu-v2-on #navDrawer #navWhoForBtn{grid-column:1/-1;min-height:60px;paddin
 html.menu-v2-on #navDrawer #navWhoForBtn .nav-menu-copy>span:first-child{font-size:13px;letter-spacing:.6px;}
 html.menu-v2-on #navDrawer .nav-drawer-item.settings-item:active{transform:scale(.965);}
 html.menu-v2-on #navDrawer .nav-drawer-item:focus-visible{outline:2px solid currentColor;outline-offset:4px;}
-html.light-mode-on.menu-v2-on #navDrawer{--menu-tile-bg:rgba(255,255,255,.58);--menu-tile-bg-deep:#e2dede;--menu-tile-line:rgba(70,40,46,.12);}
+html.light-mode-on.menu-v2-on #navDrawer{--menu-tile-bg:rgba(255,255,255,.58);--menu-tile-bg-opaque:#f1efef;--menu-tile-bg-deep:#e2dede;--menu-tile-line:rgba(70,40,46,.12);}
 html.light-mode-on.menu-v2-on #navDrawer .nav-v2-description{color:#827579;}
 @media(max-width:350px){html.menu-v2-on #navMenuBody{padding-inline:20px;}html.menu-v2-on #navDrawer :is(#navThreeSummaryBtn,#navOneRMCalcBtn){padding:12px 10px;font-size:12px;}html.menu-v2-on #navDrawer .settings-item-label{gap:7px;}}
 @media(prefers-reduced-motion:reduce){html.menu-v2-on #navDrawer .nav-drawer-item.settings-item{transition:none;}}
