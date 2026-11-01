@@ -13621,7 +13621,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.301";
+const APP_VERSION = "1.0.302";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -21777,15 +21777,19 @@ function closeMenuCalculator(){
   menuCalculatorMotion?.cancel();menuCalculatorBlurMotions.forEach(m=>m.cancel());menuCalculatorBlurMotions=[];
   const token=++menuCalculatorToken;menuCalculatorOpen=false;
   // 🔥 전체화면 상태로 닫기 시작하면, 축소 애니메이션이 끝날 때까지(resetMenuCalculator
-  //    호출 전까지) 기다리지 않고 지금 바로 되돌림 — 안 그러면 카드는 이미 타일 크기로
-  //    쪼그라드는 중인데 아이콘은 여전히 "축소" 모양이고 드로어 X 버튼도 계속 숨겨진
-  //    채로 있어서 "따로 노는" 것처럼 보였음.
+  //    호출 전까지) 기다리지 않고 아이콘/aria-pressed는 지금 바로 되돌림 — 안 그러면
+  //    카드는 이미 타일 크기로 쪼그라드는 중인데 아이콘은 여전히 "축소" 모양으로 남아
+  //    있어서 따로 노는 것처럼 보였음. 단, navDrawer.calculator-fullscreen 클래스는
+  //    여기서 같이 떼면 안 됨 — 그 클래스에 달린 헤더 안전영역 패딩/그라데이션이 즉시
+  //    사라지면서 카드는 아직 전체화면 크기 그대로인데 헤더(버튼 포함)만 safe-area
+  //    인셋만큼 순간 위로 튀어버림(진짜 "버튼이 따로 도는" 현상). 그래서 이 클래스는
+  //    기존대로 축소 애니메이션이 다 끝난 뒤 resetMenuCalculator()에서 떼어, 카드
+  //    크기가 줄어드는 동안엔 패딩/그라데이션도 그대로 유지되게 둠.
   if(tile.isFullscreen){
     tile.isFullscreen=false;
     tile.fullscreenBtn.setAttribute('aria-pressed','false');
     tile.fullscreenBtn.querySelector('.menu-expand-fullscreen-enter-icon').classList.remove('hidden');
     tile.fullscreenBtn.querySelector('.menu-expand-fullscreen-exit-icon').classList.add('hidden');
-    navDrawer.classList.remove('calculator-fullscreen');
   }
   tile.btn.classList.remove('is-ready');tile.btn.inert=true;
   document.activeElement?.blur();
