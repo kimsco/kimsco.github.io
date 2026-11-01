@@ -8805,7 +8805,7 @@ document.addEventListener('dragstart', event => {
   event.preventDefault();
 });
 </script>
-<link rel="stylesheet" href="/css/settings.css?v=1.0.296">
+<link rel="stylesheet" href="/css/settings.css?v=1.0.297">
 </head>
 
 <body style="background-color:#000000;">
@@ -13621,7 +13621,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.296";
+const APP_VERSION = "1.0.297";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -21565,7 +21565,11 @@ let menuCalculatorOpen=false,menuCalculatorMotion=null,menuCalculatorBlurMotions
 let calculatorGestureSuppressUntil=0;
 function menuCalculatorTarget(tile){
   const drawer=navDrawer.getBoundingClientRect(),body=navMenuBody.getBoundingClientRect(),style=getComputedStyle(navMenuBody);
-  const left=body.left-drawer.left+parseFloat(style.paddingLeft);
+  // 🔥 카드를 네 방향 모두 옆면 여백(navMenuBody 패딩 24px)의 절반인 12px만큼 더
+  // 키움 — 좌우는 패딩 바깥쪽으로 12px씩 더 나가고(여백이 24→12로 줄어듦), 위/아래도
+  // 똑같이 12px 더 나가게(아래는 바로 아래 bottomGap 자체를 12px 기준으로 줄여둠)
+  const EXTRA=12;
+  const left=body.left-drawer.left+parseFloat(style.paddingLeft)-EXTRA;
   const title=document.getElementById('navMenuTitle').getBoundingClientRect();
   const bottomGap=document.getElementById('menuCalculatorBottomInset').offsetHeight;
   const bottom=Math.max(0,(tile.layoutHeight||drawer.height)-bottomGap);
@@ -21575,8 +21579,8 @@ function menuCalculatorTarget(tile){
   // 기준점 삼는 피드백 루프가 생겨 도착 직전에 갑자기 위치가 튀었음 — fresh 오픈
   // 시점(아직 아무 것도 안 움직였을 때)에 한 번만 재서 tile.anchorFirstTop에
   // 캐싱해두고 계속 재사용
-  const top=Math.max(0,Math.min(Math.max(16,(title.bottom+tile.anchorFirstTop)/2-drawer.top),bottom-120));
-  return {left:left+'px',top:top+'px',width:(body.width-parseFloat(style.paddingLeft)-parseFloat(style.paddingRight))+'px',height:Math.max(0,bottom-top)+'px',borderRadius:'32px'};
+  const top=Math.max(0,Math.min(Math.max(16,(title.bottom+tile.anchorFirstTop)/2-drawer.top),bottom-120)-EXTRA);
+  return {left:left+'px',top:top+'px',width:(body.width-parseFloat(style.paddingLeft)-parseFloat(style.paddingRight)+EXTRA*2)+'px',height:Math.max(0,bottom-top)+'px',borderRadius:'32px'};
 }
 function calculatorButtonFrame(tile){
   const drawer=navDrawer.getBoundingClientRect(),button=(tile.placeholder||tile.btn).getBoundingClientRect();
