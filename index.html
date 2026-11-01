@@ -13620,7 +13620,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.291";
+const APP_VERSION = "1.0.292";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -21755,7 +21755,14 @@ function exitCalculatorMenuToHome(){
 })();
 function openNavDrawer(){
   if(document.getElementById('bootSplash') || navMenuOpen)return;
-  if(topBarEl.classList.contains('rtimer-card-active')){stopRestTimerManually();return;}
+  // 🔥 "메뉴 누르면 타이머가 꺼지는" 버그 — rtimer-card-active는 탭을 떠나는 축소
+  // 애니메이션(~260ms) 내내 "아직" 켜져 있음(측정을 위해 애니메이션 시작 시 무조건
+  // 켜두고, 끄는 건 애니메이션이 끝난 뒤 syncRestTimerUI가 함) — 그 좁은 창에서 이
+  // 버튼을 누르면 실제로는 이미 홈/달력 등으로 넘어간 상태인데도 "타이머 중지" 쪽
+  // 분기를 타버림. 애니메이션 진행 상태가 아니라 "지금 진짜로 타이머 탭에 있는지"를
+  // 직접 계산해서 판단하면 이 타이밍 창이 사라짐
+  const onRealTimerTab = restTimerEnabled && restTimerActive && REST_TIMER_TABS.includes(currentActiveTabTarget());
+  if(onRealTimerTab){stopRestTimerManually();return;}
   clearTimeout(navMenuCloseTimer);const token=++navMenuToken;
   if(!navMenuBackground.length){
     navMenuReturnFocus=document.activeElement;
@@ -23364,6 +23371,14 @@ function playRestTimerTransition(toFull, previous){
   restTimerDisplay.style.visibility='hidden';restTimerPauseBtn.style.visibility='hidden';
   topTitleText.classList.add('hidden');topBarEl.classList.add('rtimer-card-active');
   restTimerCardBg.classList.remove('hidden','rtimer-card-enter','rtimer-card-bleed-in');
+  // 🔥 "커질 때 도착 위치가 틀어지는" 버그 — 햄버거 버튼은 안의 아이콘이 메뉴(☰)일 땐
+  // 44px, 정지(X)일 땐 42px로 CSS가 다르게 그림(settings.css의 :has() 규칙). 근데 이
+  // 아이콘 전환(navDrawerMenuIcon/StopIcon)이 지금까지는 full.pill을 측정한 "다음"에
+  // 일어나서, 측정 시점엔 버튼이 아직 옛(44px) 크기였음 — 애니메이션은 그 틀린 좌표로
+  // 커지고, 다 커진 뒤 syncRestTimerUI가 진짜(42px 기준) 위치로 다시 맞추면서 눈에 보이는
+  // 위치 점프가 생겼음. 아이콘 전환을 측정 "전"으로 옮겨서 측정 시점부터 최종 아이콘
+  // 상태(=최종 버튼 크기)로 미리 맞춰둠.
+  navDrawerMenuIcon.classList.toggle('hidden',toFull);navDrawerStopIcon.classList.toggle('hidden',!toFull);
   positionRestTimerCard();
   const full={pill:MFRestMotion.rect(restTimerCardBg),time:MFRestMotion.textRect(restTimerValueEl),
     icon:MFRestMotion.rect(restTimerPausedAt?restTimerPlayIcon:restTimerPauseIcon),weight:800};
@@ -23371,7 +23386,6 @@ function playRestTimerTransition(toFull, previous){
   full.close={left:closeButton.left+(closeButton.width-22)/2,top:closeButton.top+(closeButton.height-22)/2,width:22,height:22};full.closeOpacity=1;
   openAnnouncementBtn.style.display=announcementDisplay;openSettingsBtn.style.display=settingsDisplay;
   topTitleText.classList.toggle('hidden',toFull);
-  navDrawerMenuIcon.classList.toggle('hidden',toFull);navDrawerStopIcon.classList.toggle('hidden',!toFull);
   topBarEl.classList.toggle('rtimer-mini-active',!toFull);
   document.documentElement.classList.toggle('rtimer-mini-active',!toFull);
   const to=toFull?full:mini;
