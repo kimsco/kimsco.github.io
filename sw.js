@@ -1,10 +1,10 @@
-const CACHE = "mf-v277"; // 🔥 settings.css가 바뀔 때마다: 이 CACHE 이름 + 아래 settings.css
+const CACHE = "mf-v278"; // 🔥 settings.css가 바뀔 때마다: 이 CACHE 이름 + 아래 settings.css
                          // 줄의 ?v= + <link> 태그의 ?v=(index.html) 세 군데를 항상 같이 올림
                          // (하나라도 빠지면 그 전 버전의 v1.0.279 멈춤 사고가 반복됨)
 const ASSETS = [
   "/",
   "/index.html",
-  "/css/settings.css?v=1.0.298",
+  "/css/settings.css?v=1.0.300",
   "/manifest.json?v=1.0.141",
   "/sw.js",
   "/js/sync.js?v=1.0.141",

@@ -583,10 +583,20 @@ html.menu-v2-on #navToolsLabel{display:none;}
 #navDrawer.calculator-open #navMenuBody{pointer-events:none;}
 
 #navDrawer.calculator-open #navMenuCloseBtn{z-index:4;}
+/* 🔥 카드가 전체화면일 땐 카드 우측상단 전체화면 버튼이 드로어 자체의 메뉴
+   닫기(X) 버튼이랑 같은 자리(우측상단)에 겹침 — 카드가 화면을 다 덮은
+   상태에선 카드 안의 "뒤로가기" 버튼이 곧 나가는 길이라 X는 숨김 */
+#navDrawer.calculator-fullscreen #navMenuCloseBtn{display:none;}
 .menu-calculator-header{display:flex;align-items:center;gap:10px;flex:none;padding:18px 18px 10px;}
 .menu-expand-title-sr{margin:0;font-size:18px;font-weight:600;}
-.menu-expand-back{width:36px;height:36px;display:grid;place-items:center;flex:none;border:1px solid rgba(255,255,255,.12);border-radius:50%;padding:8px;background:rgba(255,255,255,.06);color:inherit;cursor:pointer;}
-.menu-expand-back svg{width:20px;height:20px;}
+:is(.menu-expand-back,.menu-expand-fullscreen){width:36px;height:36px;display:grid;place-items:center;flex:none;border:1px solid rgba(255,255,255,.12);border-radius:50%;padding:8px;background:rgba(255,255,255,.06);color:inherit;cursor:pointer;}
+:is(.menu-expand-back,.menu-expand-fullscreen) svg{width:20px;height:20px;}
+/* 🔥 뒤로가기는 헤더 왼쪽 끝에 그대로 두고, 전체화면 버튼만 margin-left:auto로
+   오른쪽 끝까지 밀어냄(가운데 h2는 스크린리더 전용이라 flex 흐름에서 빠져있어서
+   둘 사이에 다른 요소가 안 끼어듦) */
+.menu-expand-fullscreen{margin-left:auto;}
+/* 🔥 이 코드베이스엔 범용 .hidden{display:none} 규칙이 없고 요소별로 개별 지정 */
+.menu-expand-fullscreen-enter-icon.hidden,.menu-expand-fullscreen-exit-icon.hidden{display:none;}
 .menu-expand-content{flex:1;min-height:0;display:flex;flex-direction:column;padding:0 22px;}
 #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded :is(.menu-calculator-header,.menu-expand-content){box-sizing:border-box;width:var(--calculator-content-width);flex-shrink:0;}
 #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded :is(#oneRMCalcBody,#threeDetail){min-height:0;padding:8px 0 calc(28px + env(safe-area-inset-bottom));overscroll-behavior:contain;scrollbar-width:none;}
@@ -605,7 +615,7 @@ html.light-mode-on #navDrawer #navThreeSummaryBtn.calculator-expanded .rmInput{c
 html.light-mode-on #navDrawer #navThreeSummaryBtn.calculator-expanded .rmInput:focus{border-bottom-color:#211c1d;}
 html.light-mode-on #navDrawer #navThreeSummaryBtn.calculator-expanded #save3Btn{border-color:#211c1d;color:#211c1d;}
 html.light-mode-on #navDrawer #navThreeSummaryBtn.calculator-expanded .three-detail-link{color:rgba(33,28,29,.5);}
-html.light-mode-on .menu-expand-back{border-color:rgba(50,30,35,.12);background:rgba(50,30,35,.04);}
+html.light-mode-on :is(.menu-expand-back,.menu-expand-fullscreen){border-color:rgba(50,30,35,.12);background:rgba(50,30,35,.04);}
 @media(prefers-reduced-motion:reduce){#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded *,#navMenuBody{transition:none!important;}}
 
 /* Keep surrounding cards still and visible; only the selected tile changes shape. */
