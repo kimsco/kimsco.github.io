@@ -8805,7 +8805,7 @@ document.addEventListener('dragstart', event => {
   event.preventDefault();
 });
 </script>
-<link rel="stylesheet" href="/css/settings.css?v=1.0.294">
+<link rel="stylesheet" href="/css/settings.css?v=1.0.295">
 </head>
 
 <body style="background-color:#000000;">
@@ -10559,7 +10559,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
       </section>
       <section id="navTodayRecords" class="settings-group nav-v2-today" aria-labelledby="navTodayRecordsTitle">
         <div id="navTodayRecordsOpen" class="nav-today-card" role="button" tabindex="0" aria-haspopup="dialog" aria-controls="todayRecordsOverlay" aria-labelledby="navTodayRecordsTitle">
-          <h2 id="navTodayRecordsTitle">오늘 운동 레코드</h2>
+          <div class="today-record-heading-row"><h2 id="navTodayRecordsTitle">오늘 운동 레코드</h2><span id="navTodayRecordsCount" class="today-record-count"></span></div>
           <ul id="navTodayRecordsList" class="today-record-list"></ul>
         </div>
       </section>
@@ -10583,6 +10583,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
   <header class="today-records-header">
    <button id="todayRecordsBack" type="button" class="bw-menu-header-close" aria-label="뒤로가기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
    <h1 id="todayRecordsTitle">오늘 기록</h1>
+   <span id="todayRecordsCount" class="today-record-count"></span>
   </header>
   <div id="todayRecordsBody"><ul id="todayRecordsList" class="today-record-list"></ul></div>
  </div>
@@ -13620,7 +13621,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.294";
+const APP_VERSION = "1.0.295";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -21446,10 +21447,11 @@ function releaseNavMenuBackground(){
 function renderTodayRecordList(list){
   const groups=getExerciseRecordsForDate(getCalendarKeyToday());
   const fragment=document.createDocumentFragment();
+  let totalSets=0;
   for(const group of groups){
     const row=document.createElement('li');
-    const name=document.createElement('span');name.className='nav-today-name';name.textContent=group.exercise;
-    const details=document.createElement('span');details.className='nav-today-details';
+    const name=document.createElement('div');name.className='nav-today-name';name.textContent=group.exercise;
+    row.append(name);
     const packed=new Map();
     for(const line of group.lines){
       const key=JSON.stringify([line.weight==null?null:Number(line.weight),Number(line.reps)]);
@@ -21457,14 +21459,25 @@ function renderTodayRecordList(list){
       if(existing && group.accent!=='routine')existing.sets+=Number(line.sets)||1;
       else packed.set(group.accent==='routine'?key+':'+packed.size:key,{...line,sets:Number(line.sets)||1});
     }
-    details.textContent=[...packed.values()].map(line=>{
-      if(group.accent==='routine')return `총 ${formatCountSmart(line.sets)}${setsUnit()} · ${formatCountSmart(line.reps)}${repsUnit()}`;
-      const weight=Number(line.weight)>0?`${formatKgSmart(line.weight)}${weightUnit()} · `:'';
-      return `${weight}${formatCountSmart(line.reps)}${repsUnit()} × ${formatCountSmart(line.sets)}${setsUnit()}`;
-    }).join(' / ');
-    row.append(name,details);fragment.append(row);
+    // 🔥 세트를 "/"로 한 줄에 몰아넣지 않고, 달력 탭의 날짜별 운동 목록(date-agenda)처럼
+    //    각자 줄을 따로 둬서 한눈에 읽기 쉽게 함(1세트일 땐 "× N세트" 생략도 거기랑 동일)
+    for(const line of packed.values()){
+      totalSets+=line.sets;
+      const detail=document.createElement('div');detail.className='nav-today-details';
+      if(group.accent==='routine'){
+        detail.textContent=`총 ${formatCountSmart(line.sets)}${setsUnit()} · ${formatCountSmart(line.reps)}${repsUnit()}`;
+      }else{
+        const weight=Number(line.weight)>0?`${formatKgSmart(line.weight)}${weightUnit()} · `:'';
+        const setsSuffix=line.sets>=2?` × ${formatCountSmart(line.sets)}${setsUnit()}`:'';
+        detail.textContent=`${weight}${formatCountSmart(line.reps)}${repsUnit()}${setsSuffix}`;
+      }
+      row.append(detail);
+    }
+    fragment.append(row);
   }
   list.replaceChildren(fragment);
+  const countEl=document.getElementById(list.id==='todayRecordsList'?'todayRecordsCount':'navTodayRecordsCount');
+  if(countEl)countEl.textContent=groups.length?`${groups.length}개 종목 · ${formatCountSmart(totalSets)}${setsUnit()}`:'';
   return groups.length;
 }
 function renderNavTodayRecords(){

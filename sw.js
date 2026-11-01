@@ -1,13 +1,10 @@
-const CACHE = "mf-v273"; // 🔥 settings.css의 ?v= 캐시버스터가 v1.0.279에서 멈춰있던 채로
-                         // 여러 버전(계산기/3대 PR 카드 CSS 등)이 지나가버려서, 이미 설치된
-                         // 서비스워커가 구버전 settings.css를 계속 캐시째로 돌려주고 있었음
-                         // (아래 settings.css 줄의 ?v=도 같이 올렸지만, 이미 설치된 SW는 캐시
-                         // 이름을 안 바꾸면 install을 다시 안 돌려서 이 줄 자체를 안 읽으므로
-                         // 캐시 이름도 반드시 같이 올려야 함 — 바로 위 교훈 반복)
+const CACHE = "mf-v274"; // 🔥 settings.css가 바뀔 때마다: 이 CACHE 이름 + 아래 settings.css
+                         // 줄의 ?v= + <link> 태그의 ?v=(index.html) 세 군데를 항상 같이 올림
+                         // (하나라도 빠지면 그 전 버전의 v1.0.279 멈춤 사고가 반복됨)
 const ASSETS = [
   "/",
   "/index.html",
-  "/css/settings.css?v=1.0.294",
+  "/css/settings.css?v=1.0.295",
   "/manifest.json?v=1.0.141",
   "/sw.js",
   "/js/sync.js?v=1.0.141",
