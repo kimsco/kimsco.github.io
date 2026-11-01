@@ -13621,7 +13621,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.307";
+const APP_VERSION = "1.0.308";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -21843,47 +21843,53 @@ function releaseCalcDrag(tile){
     tile.btn.style.transition='';tile.btn.removeEventListener('transitionend',handler);
   });
 }
-function commitCalcDrag(tile,dampedOffset,action){
-  // 🔥 드래그로 밀린 만큼(진흙 저항 걸린 오프셋)을 실제 top 값에 더해넣고 transform은
-  //    지워서, 뒤이어 실행되는 닫기/전체화면 애니메이션이 지금 보이는(드래그로 밀린)
-  //    위치에서 자연스럽게 이어지게 함 — transform을 그대로 둔 채 left/top 기준
-  //    애니메이션을 시작하면 좌표계가 안 맞아 순간적으로 어긋나 보임.
+function commitCalcDrag(tile,dampedOffsetX,dampedOffsetY,action){
+  // 🔥 드래그로 밀린 만큼(진흙 저항 걸린 오프셋, 좌우 포함)을 실제 left/top 값에
+  //    더해넣고 transform은 지워서, 뒤이어 실행되는 닫기/전체화면 애니메이션이 지금
+  //    보이는(드래그로 밀린) 위치에서 자연스럽게 이어지게 함 — transform을 그대로 둔
+  //    채 left/top 기준 애니메이션을 시작하면 좌표계가 안 맞아 순간적으로 어긋나 보임.
+  const currentLeft=parseFloat(getComputedStyle(tile.btn).left)||0;
   const currentTop=parseFloat(getComputedStyle(tile.btn).top)||0;
-  tile.btn.style.top=(currentTop+dampedOffset)+'px';
+  tile.btn.style.left=(currentLeft+dampedOffsetX)+'px';
+  tile.btn.style.top=(currentTop+dampedOffsetY)+'px';
   tile.btn.style.transform='';
   action();
 }
 (()=>{
   let gesture=null;
   const DAMP=64,DOWN_THRESHOLD=110,UP_THRESHOLD=90;
-  const dampedY=dy=>Math.sign(dy)*DAMP*(1-Math.exp(-Math.abs(dy)/DAMP));
+  // 🔥 좌우로 당길 때도 같은 고무줄/진흙 저항을 걸음 — 축별로 독립 적용(대각선으로
+  //    당기면 x/y 각각 저항 걸린 만큼 따로 움직여 자연스러운 합성 이동이 됨). 단,
+  //    커밋(닫기/전체화면) 판정은 기존대로 세로(dy) 기준만 봄 — 좌우는 그 자체로
+  //    특정 동작에 연결돼 있지 않고 놓으면 항상 원위치로 튕겨 돌아옴.
+  const damp=d=>Math.sign(d)*DAMP*(1-Math.exp(-Math.abs(d)/DAMP));
   function onStart(tile,event){
     gesture=null;
     if(event.touches.length!==1||tile!==activeCalcTile||!menuCalculatorOpen||menuCalculatorMotion)return;
     if(event.target.closest('.menu-expand-back,.menu-expand-fullscreen'))return;
     const touch=event.touches[0];
-    gesture={tile,x:touch.clientX,y:touch.clientY,dy:0,dragging:false};
+    gesture={tile,x:touch.clientX,y:touch.clientY,dx:0,dy:0,dragging:false};
   }
   function onMove(event){
     if(!gesture)return;
     if(event.touches.length!==1){finish(true);return;}
     const touch=event.touches[0],dx=touch.clientX-gesture.x,dy=touch.clientY-gesture.y;
     if(!gesture.dragging){
-      if(Math.abs(dy)<8||Math.abs(dx)>Math.abs(dy))return;
+      if(Math.hypot(dx,dy)<8)return;
       gesture.dragging=true;
     }
     event.preventDefault();
-    gesture.dy=dy;
-    gesture.tile.btn.style.transform=`translateY(${dampedY(dy).toFixed(2)}px)`;
+    gesture.dx=dx;gesture.dy=dy;
+    gesture.tile.btn.style.transform=`translate(${damp(dx).toFixed(2)}px,${damp(dy).toFixed(2)}px)`;
   }
   function finish(cancelled){
     const g=gesture;gesture=null;
     if(!g||!g.dragging)return;
-    const tile=g.tile,damped=dampedY(g.dy);
+    const tile=g.tile,dampedX=damp(g.dx),dampedY=damp(g.dy);
     if(!cancelled&&g.dy>DOWN_THRESHOLD){
-      commitCalcDrag(tile,damped,closeMenuCalculator);
+      commitCalcDrag(tile,dampedX,dampedY,closeMenuCalculator);
     }else if(!cancelled&&g.dy<-UP_THRESHOLD&&!tile.isFullscreen){
-      commitCalcDrag(tile,damped,()=>toggleMenuCalculatorFullscreen(tile));
+      commitCalcDrag(tile,dampedX,dampedY,()=>toggleMenuCalculatorFullscreen(tile));
     }else{
       releaseCalcDrag(tile);
     }
