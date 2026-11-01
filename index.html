@@ -8805,7 +8805,7 @@ document.addEventListener('dragstart', event => {
   event.preventDefault();
 });
 </script>
-<link rel="stylesheet" href="/css/settings.css?v=1.0.295">
+<link rel="stylesheet" href="/css/settings.css?v=1.0.296">
 </head>
 
 <body style="background-color:#000000;">
@@ -13621,7 +13621,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.295";
+const APP_VERSION = "1.0.296";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -21550,7 +21550,7 @@ function createCalcTile(btnId,body,opts={}){
     header:btn.querySelector('.menu-calculator-header'),back:btn.querySelector('.menu-expand-back'),
     content:btn.querySelector('.menu-expand-content'),titleId:opts.titleId,
     onFreshOpen:opts.onFreshOpen||null,onClosed:opts.onClosed||null,
-    placeholder:null,tileInlineStyle:null,tileMaterial:null,tileLabelFrame:null,
+    placeholder:null,tileInlineStyle:null,tileLabelFrame:null,
     layoutHeight:0,layoutWidth:0,
   };
 }
@@ -21561,7 +21561,7 @@ const calcTiles={
     onFreshOpen(){weightPRDetailInline.classList.add('hidden');threeDetailViewBtn.textContent='상세보기 〉';}}),
 };
 let menuCalculator=null,activeCalcTile=null;
-let menuCalculatorOpen=false,menuCalculatorMotion=null,menuCalculatorColorMotion=null,menuCalculatorBlurMotions=[],menuCalculatorToken=0,menuCalculatorTextMotions=[];
+let menuCalculatorOpen=false,menuCalculatorMotion=null,menuCalculatorBlurMotions=[],menuCalculatorToken=0,menuCalculatorTextMotions=[];
 let calculatorGestureSuppressUntil=0;
 function menuCalculatorTarget(tile){
   const drawer=navDrawer.getBoundingClientRect(),body=navMenuBody.getBoundingClientRect(),style=getComputedStyle(navMenuBody);
@@ -21580,11 +21580,11 @@ function menuCalculatorTarget(tile){
 }
 function calculatorButtonFrame(tile){
   const drawer=navDrawer.getBoundingClientRect(),button=(tile.placeholder||tile.btn).getBoundingClientRect();
-  return {left:(button.left-drawer.left)+'px',top:(button.top-drawer.top)+'px',width:button.width+'px',height:button.height+'px',borderRadius:'32px',...(tile.tileMaterial||{})};
+  return {left:(button.left-drawer.left)+'px',top:(button.top-drawer.top)+'px',width:button.width+'px',height:button.height+'px',borderRadius:'32px'};
 }
 function calculatorCurrentFrame(tile){
   const style=getComputedStyle(tile.btn);
-  return Object.fromEntries(['left','top','width','height','borderRadius','backgroundColor','borderColor','boxShadow'].map(key=>[key,style[key]]));
+  return Object.fromEntries(['left','top','width','height','borderRadius'].map(key=>[key,style[key]]));
 }
 function animateCalculatorText(tile,open,reduced,fresh=false){
   const parts=[tile.back,tile.content];
@@ -21627,7 +21627,6 @@ function resetMenuCalculator(){
   if(!tile)return;
   ++menuCalculatorToken;
   menuCalculatorMotion?.cancel();menuCalculatorMotion=null;
-  menuCalculatorColorMotion?.cancel();menuCalculatorColorMotion=null;
   menuCalculatorBlurMotions.forEach(m=>m.cancel());menuCalculatorBlurMotions=[];
   menuCalculatorOpen=false;
   menuCalculatorTextMotions.forEach(m=>m.cancel());menuCalculatorTextMotions=[];
@@ -21658,7 +21657,6 @@ function openMenuCalculatorTile(tile){
     tile.layoutHeight=navDrawer.clientHeight;tile.layoutWidth=navDrawer.clientWidth;
     tile.anchorFirstTop=document.getElementById('navThreeSummaryBtn').getBoundingClientRect().top;
     const style=getComputedStyle(tile.btn);
-    tile.tileMaterial={backgroundColor:style.backgroundColor,borderColor:style.borderColor,boxShadow:style.boxShadow};
     tile.tileInlineStyle=tile.btn.getAttribute('style');from=calculatorButtonFrame(tile);
     const tileRect=tile.btn.getBoundingClientRect(),copy=tile.copy,copyRect=copy.getBoundingClientRect(),titleStyle=getComputedStyle(copy.firstElementChild);
     tile.tileLabelFrame={left:(copyRect.left-tileRect.left)+'px',top:(copyRect.top-tileRect.top)+'px'};
@@ -21673,14 +21671,9 @@ function openMenuCalculatorTile(tile){
     tile.btn.setAttribute('role','dialog');tile.btn.setAttribute('aria-modal','true');tile.btn.setAttribute('aria-labelledby',tile.titleId);tile.btn.tabIndex=-1;
     tile.onFreshOpen?.();
   }else from=calculatorCurrentFrame(tile);
-  menuCalculatorMotion?.cancel();menuCalculatorColorMotion?.cancel();menuCalculatorBlurMotions.forEach(m=>m.cancel());menuCalculatorBlurMotions=[];
+  menuCalculatorMotion?.cancel();menuCalculatorBlurMotions.forEach(m=>m.cancel());menuCalculatorBlurMotions=[];
   const token=++menuCalculatorToken;menuCalculatorOpen=true;
-  const material=getComputedStyle(tile.btn);
-  const target={...menuCalculatorTarget(tile),backgroundColor:material.backgroundColor,borderColor:material.borderColor,boxShadow:material.boxShadow};
-  // 🔥 여기서 Object.assign은 최종(진한) 색을 즉시 inline에 박아두는 것뿐 — 실제
-  //    화면에 보이는 값은 아래 menuCalculatorColorMotion이 합성해서 덮어씀: 커지는
-  //    동안(1단계)은 fill:'backwards'로 타일의 옅은 색을 그대로 보여주다가, 다 커진
-  //    뒤(2단계)에만 진한 색으로 전환.
+  const target=menuCalculatorTarget(tile);
   Object.assign(tile.btn.style,target);tile.btn.style.setProperty('--calculator-content-width',target.width);
   tile.content.appendChild(tile.body);tile.body.scrollTop=0;
   const cardBounds=tile.btn.getBoundingClientRect(),backBounds=tile.back.getBoundingClientRect();
@@ -21692,28 +21685,21 @@ function openMenuCalculatorTile(tile){
   const reduced=matchMedia('(prefers-reduced-motion:reduce)').matches;
   animateCalculatorText(tile,true,reduced,fresh);
   const duration=reduced?0:430,revealDuration=reduced?0:360,easing='cubic-bezier(.22,1,.36,1)';
-  const GEOMETRY_KEYS=['left','top','width','height','borderRadius'],COLOR_KEYS=['backgroundColor','borderColor','boxShadow'];
-  const pick=(obj,keys)=>Object.fromEntries(keys.map(k=>[k,obj[k]]));
   // 🔥 "뽀잉" 느낌 — 바로 커지지 않고, 처음 20%(약 86ms) 동안 제자리(같은 중심점)에서
   //    눈에 띄게 오그라들었다가(82%) 그 지점부터 목표 크기까지 스프링처럼 튕기며 커짐.
   //    (처음엔 12%/93%로 했더니 너무 짧고 작아서 거의 안 보였음 — 구간/폭 다 늘림)
-  const fromGeo=pick(from,GEOMETRY_KEYS),targetGeo=pick(target,GEOMETRY_KEYS);
   const fw=parseFloat(from.width),fh=parseFloat(from.height),fl=parseFloat(from.left),ft=parseFloat(from.top);
   const squashScale=0.82,sw=fw*squashScale,sh=fh*squashScale;
   const squashGeo={left:(fl+(fw-sw)/2)+'px',top:(ft+(fh-sh)/2)+'px',width:sw+'px',height:sh+'px',borderRadius:from.borderRadius};
   menuCalculatorMotion=tile.btn.animate([
-    {...fromGeo,offset:0,easing:'cubic-bezier(.45,0,.55,1)'},
+    {...from,offset:0,easing:'cubic-bezier(.45,0,.55,1)'},
     {...squashGeo,offset:0.2,easing:'cubic-bezier(.34,1.56,.64,1)'},
-    targetGeo
+    target
   ],{duration});
-  // 🔥 커지는 동안(1단계)엔 타일과 같은 계열의 "불투명" 색(--menu-tile-bg-opaque)을
-  //    써서 뒷배경이 비치지 않게 하고, 다 커진 뒤(2단계)에만 진한 색(target)으로
-  //    전환함. 테두리/그림자는 타일 원래 값 그대로 써도 배경이 비치는 문제가
-  //    없으니 그대로 둠.
-  const opaqueTileBg=getComputedStyle(navDrawer).getPropertyValue('--menu-tile-bg-opaque').trim()||target.backgroundColor;
-  const growthColor={...pick(from,COLOR_KEYS),backgroundColor:opaqueTileBg};
-  menuCalculatorColorMotion=tile.btn.animate([growthColor,pick(target,COLOR_KEYS)],{duration:revealDuration,delay:duration,easing,fill:'backwards'});
-  // 🔥 글씨 블러도 색과 같은 타이밍으로, 크기 모프가 완전히 끝난 뒤(delay:duration)에만
+  // 🔥 배경색은 더 이상 애니메이션으로 바뀌지 않음 — 타일의 원래 반투명 유리색
+  //    (--menu-tile-bg)을 처음부터 끝까지 그대로 쓰고, CSS가 그 바로 아래에
+  //    불투명한 받침색(--menu-tile-bg-deep)을 깔아둬서 뒷배경은 안 비치면서도
+  //    색 전환(번쩍임)은 아예 없게 함. 글씨 블러만 크기 모프가 끝난 뒤(delay:duration)
   //    풀리게 둠.
   let blurFinished=Promise.resolve();
   if(!reduced){
@@ -21727,9 +21713,9 @@ function openMenuCalculatorTile(tile){
     menuCalculatorMotion=null;
     Object.assign(tile.btn.style,menuCalculatorTarget(tile));
   }).catch(()=>{});
-  Promise.all([menuCalculatorColorMotion.finished,blurFinished]).then(()=>{
+  blurFinished.then(()=>{
     if(token!==menuCalculatorToken)return;
-    menuCalculatorColorMotion=null;menuCalculatorBlurMotions=[];
+    menuCalculatorBlurMotions=[];
     tile.header.style.filter='';
     tile.content.style.filter='';
     tile.btn.inert=false;tile.btn.classList.add('is-ready');tile.btn.focus({preventScroll:true});
@@ -21739,7 +21725,7 @@ function closeMenuCalculator(){
   const tile=activeCalcTile;
   if(!menuCalculatorOpen||!tile)return;
   const from=calculatorCurrentFrame(tile);
-  menuCalculatorMotion?.cancel();menuCalculatorColorMotion?.cancel();menuCalculatorBlurMotions.forEach(m=>m.cancel());menuCalculatorBlurMotions=[];
+  menuCalculatorMotion?.cancel();menuCalculatorBlurMotions.forEach(m=>m.cancel());menuCalculatorBlurMotions=[];
   const token=++menuCalculatorToken;menuCalculatorOpen=false;
   tile.btn.classList.remove('is-ready');tile.btn.inert=true;
   document.activeElement?.blur();

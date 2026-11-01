@@ -568,7 +568,14 @@ html.menu-v2-on #navDrawer .settings-group[aria-labelledby="navAboutLabel"]{padd
    찾게 바꿈. .calculator-expanded 토글 클래스 이름 자체는 그대로 재사용(두 탭 다
    "이 탭이 지금 펼쳐진 카드다"라는 같은 뜻으로 공유) */
 html.menu-v2-on #navToolsLabel{display:none;}
-#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded{position:absolute;z-index:2;overflow:hidden;box-sizing:border-box;border:1px solid rgba(255,255,255,.2);background-color:var(--menu-tile-bg-deep,#1b1a1c);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);color:#f5f5f5;box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 16px 50px rgba(0,0,0,.2);outline:none;display:flex;flex-direction:column;}
+/* 🔥 커질 때 색이 "타일색(옅음) → 진한색"으로 바뀌면서 흰빛이 번쩍하고 지나가는
+   느낌이 거슬린다는 피드백 — 색 전환 애니메이션 자체를 없애고, 처음부터 끝까지
+   타일의 원래 반투명 유리색(--menu-tile-bg)만 그대로 씀. 대신 그 레이어 바로
+   아래에 불투명한 진한색(--menu-tile-bg-deep)을 "배경으로 받쳐"서(같은
+   background 안의 다음 레이어), 반투명 유리색이 뒤의 진짜 메뉴 내용 대신 이
+   받침색과 섞이게 함 — 뒷배경이 비치지도 않고, 색이 중간에 바뀌지도 않음(JS의
+   menuCalculatorColorMotion 자체를 제거) */
+#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded{position:absolute;z-index:2;overflow:hidden;box-sizing:border-box;border:1px solid rgba(255,255,255,.2);background:linear-gradient(var(--menu-tile-bg,rgba(100,96,98,.34)),var(--menu-tile-bg,rgba(100,96,98,.34))),var(--menu-tile-bg-deep,#1b1a1c);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);color:#f5f5f5;box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 16px 50px rgba(0,0,0,.2);outline:none;display:flex;flex-direction:column;}
 /* 🔥 은은한 하이라이트 그라데이션 — 타일일 때부터 쭉 같은 모양이라 애니메이션 없이
    항상 그대로 보여줌(흰색을 페이드인시키면 오히려 카드가 밝아 보여서 뺐음). */
 :is(#navOneRMCalcBtn,#navThreeSummaryBtn)>.menu-expand-sheen{display:none;}
@@ -586,13 +593,13 @@ html.menu-v2-on #navToolsLabel{display:none;}
 #navDrawer #navOneRMCalcBtn.calculator-expanded :is(#oneRMLiftSelect,#weight,#reps,#goBtn){display:block;box-sizing:border-box;width:100%;min-height:48px;padding:12px 16px;margin:0 0 12px;border:1px solid rgba(255,255,255,.12);border-radius:24px;background:rgba(255,255,255,.07);color:inherit;font:inherit;font-size:15px;}
 #navDrawer #navOneRMCalcBtn.calculator-expanded #goBtn{background:#f5f5f5;color:#242124;font-weight:650;cursor:pointer;}
 #navDrawer #navOneRMCalcBtn.calculator-expanded #tableArea{margin-top:20px;}
-html.light-mode-on #navDrawer #navOneRMCalcBtn.calculator-expanded{background-color:var(--menu-tile-bg-deep,#e2dede);color:#211c1d;border-color:rgba(50,30,35,.12);}
+html.light-mode-on #navDrawer #navOneRMCalcBtn.calculator-expanded{color:#211c1d;border-color:rgba(50,30,35,.12);}
 html.light-mode-on #navDrawer #navOneRMCalcBtn.calculator-expanded :is(#oneRMLiftSelect,#weight,#reps){background:rgba(255,255,255,.7);border-color:rgba(50,30,35,.1);}
 html.light-mode-on #navDrawer #navOneRMCalcBtn.calculator-expanded #goBtn{background:#282628;color:#fff;}
 html.light-mode-on #navDrawer #navOneRMCalcBtn.calculator-expanded #tableArea>div{color:#211c1d!important;}
 /* 🔥 "3대 PR" 전용 입력/버튼 — 기존 .rmInput/#save3Btn/.three-detail-link는 검은
    배경 전용(흰 글씨/테두리)이라 라이트 카드에선 안 보였음. 카드 안에서만 보정 */
-html.light-mode-on #navDrawer #navThreeSummaryBtn.calculator-expanded{background-color:var(--menu-tile-bg-deep,#e2dede);color:#211c1d;border-color:rgba(50,30,35,.12);}
+html.light-mode-on #navDrawer #navThreeSummaryBtn.calculator-expanded{color:#211c1d;border-color:rgba(50,30,35,.12);}
 html.light-mode-on #navDrawer #navThreeSummaryBtn.calculator-expanded #total3{color:#211c1d;}
 html.light-mode-on #navDrawer #navThreeSummaryBtn.calculator-expanded .rmInput{color:#211c1d;border-bottom-color:rgba(50,30,35,.18);}
 html.light-mode-on #navDrawer #navThreeSummaryBtn.calculator-expanded .rmInput:focus{border-bottom-color:#211c1d;}
@@ -619,11 +626,11 @@ html.light-mode-on .menu-expand-back{border-color:rgba(50,30,35,.12);background:
 /* The original tile becomes the workspace; only an invisible grid spacer is left behind. */
 .calculator-tile-placeholder{visibility:hidden;pointer-events:none;min-width:0;}
 :is(#navOneRMCalcBtn,#navThreeSummaryBtn)>.menu-calculator-header,:is(#navOneRMCalcBtn,#navThreeSummaryBtn)>.menu-expand-content{display:none;}
-html.menu-v2-on #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;position:absolute;z-index:2;min-width:0;min-height:0;margin:0;padding:0;border:1px solid rgba(255,255,255,.2)!important;background-color:var(--menu-tile-bg-deep,#1b1a1c);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);color:#f5f5f5;transform:none!important;transition:none;cursor:default;box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 16px 50px rgba(0,0,0,.2);}
+html.menu-v2-on #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;position:absolute;z-index:2;min-width:0;min-height:0;margin:0;padding:0;border:1px solid rgba(255,255,255,.2)!important;background:linear-gradient(var(--menu-tile-bg,rgba(100,96,98,.34)),var(--menu-tile-bg,rgba(100,96,98,.34))),var(--menu-tile-bg-deep,#1b1a1c);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);color:#f5f5f5;transform:none!important;transition:none;cursor:default;box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 16px 50px rgba(0,0,0,.2);}
 #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded>.menu-calculator-header{display:flex;position:relative;z-index:1;}
 #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded>.menu-expand-content{display:flex;position:relative;z-index:1;}
 #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded>.menu-expand-ghost{width:auto;white-space:nowrap;}
-html.light-mode-on.menu-v2-on #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded{background-color:var(--menu-tile-bg-deep,#e2dede);color:#211c1d;border-color:rgba(50,30,35,.12)!important;}
+html.light-mode-on.menu-v2-on #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded{color:#211c1d;border-color:rgba(50,30,35,.12)!important;}
 
 /* One continuous title and fluid content: no duplicate label or fixed-width slicing. */
 #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded :is(.menu-calculator-header,.menu-expand-content){width:100%;left:auto;margin-left:0;}
