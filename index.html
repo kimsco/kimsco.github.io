@@ -8805,7 +8805,7 @@ document.addEventListener('dragstart', event => {
   event.preventDefault();
 });
 </script>
-<link rel="stylesheet" href="/css/settings.css?v=1.0.276">
+<link rel="stylesheet" href="/css/settings.css?v=1.0.277">
 </head>
 
 <body style="background-color:#000000;">
@@ -10545,6 +10545,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
   <div id="navDrawerDim" class="nav-drawer-dim"></div>
   <div id="navDrawer" class="nav-drawer settings-box-theme" onclick="event.stopPropagation()">
     <button id="navMenuCloseBtn" class="nav-menu-close" aria-label="메뉴 닫기"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+    <div id="menuCalculatorBottomInset" aria-hidden="true"></div>
     <section id="menuCalculator" class="hidden" role="dialog" aria-modal="true" aria-labelledby="menuCalculatorTitle" tabindex="-1">
       <div id="menuCalculatorGhost" class="menu-calculator-ghost" aria-hidden="true"></div>
       <div class="menu-calculator-header"><button id="menuCalculatorBack" type="button" aria-label="메뉴로 돌아가기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2 id="menuCalculatorTitle">1RM 계산기</h2></div>
@@ -13624,7 +13625,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.276";
+const APP_VERSION = "1.0.277";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -21519,9 +21520,10 @@ function menuCalculatorTarget(){
   const left=body.left-drawer.left+parseFloat(style.paddingLeft);
   const first=document.getElementById('navThreeSummaryBtn').getBoundingClientRect(),title=document.getElementById('navMenuTitle').getBoundingClientRect();
   const viewport=window.visualViewport,visibleBottom=viewport?viewport.offsetTop+viewport.height:innerHeight;
-  const bottom=Math.min(drawer.height,visibleBottom-drawer.top);
+  const bottomGap=document.getElementById('menuCalculatorBottomInset').offsetHeight;
+  const bottom=Math.max(0,Math.min(drawer.height,visibleBottom-drawer.top)-bottomGap);
   const top=Math.max(0,Math.min(Math.max(16,(title.bottom+first.top)/2-drawer.top),bottom-120));
-  return {left:left+'px',top:top+'px',width:(body.width-parseFloat(style.paddingLeft)-parseFloat(style.paddingRight))+'px',height:Math.max(0,bottom-top)+'px',borderRadius:'32px 32px 0px 0px'};
+  return {left:left+'px',top:top+'px',width:(body.width-parseFloat(style.paddingLeft)-parseFloat(style.paddingRight))+'px',height:Math.max(0,bottom-top)+'px',borderRadius:'32px'};
 }
 function calculatorButtonFrame(){
   const drawer=navDrawer.getBoundingClientRect(),button=document.getElementById('navOneRMCalcBtn').getBoundingClientRect();
@@ -21531,22 +21533,15 @@ function calculatorCurrentFrame(){
   const style=getComputedStyle(menuCalculator);
   return Object.fromEntries(['left','top','width','height','borderRadius'].map(key=>[key,style[key]]));
 }
-const calculatorTextSizes=new WeakMap();
 function animateCalculatorText(open,reduced,fresh=false){
   const parts=[...menuCalculator.querySelectorAll('.menu-calculator-header,#menuCalculatorContent')];
   const opacity=parts.map(el=>Number(getComputedStyle(el).opacity));
-  const texts=[...menuCalculator.querySelectorAll('#menuCalculatorTitle,#oneRMLiftSelect,#weight,#reps,#goBtn,#tableArea>div')];
-  const sizes=texts.map(el=>{const size=parseFloat(getComputedStyle(el).fontSize);if(!calculatorTextSizes.has(el))calculatorTextSizes.set(el,size);return size;});
   const ghost=document.getElementById('menuCalculatorGhost'),ghostOpacity=Number(getComputedStyle(ghost).opacity);
   menuCalculatorTextMotions.forEach(m=>m.cancel());menuCalculatorTextMotions=[];
   const delay=0,duration=reduced?0:(open?430:330),easing='cubic-bezier(.22,1,.36,1)';
   for(const [i,el]of parts.entries()){
     el.style.opacity=open?'1':'0';
     menuCalculatorTextMotions.push(el.animate([{opacity:open&&fresh?0:opacity[i]},{opacity:open?1:0}],{duration,delay,fill:'backwards',easing}));
-  }
-  for(const [i,el]of texts.entries()){
-    const size=calculatorTextSizes.get(el);
-    menuCalculatorTextMotions.push(el.animate([{fontSize:(open&&fresh?size*.45:sizes[i])+'px'},{fontSize:(open?size:size*.45)+'px'}],{duration,delay,fill:'backwards',easing}));
   }
   ghost.style.opacity=open?'0':'1';
   menuCalculatorTextMotions.push(ghost.animate([{opacity:open&&fresh?1:ghostOpacity},{opacity:open?0:1}],{duration:reduced?0:(open?120:110),delay:reduced||open?0:180,fill:'backwards',easing:'ease-out'}));
