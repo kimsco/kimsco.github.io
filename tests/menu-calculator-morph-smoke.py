@@ -33,6 +33,11 @@ try:
     assert early['width']>start['width'] and early['y']<start['y'],(start,early)
     motion=page.evaluate("()=>{const m=menuCalculatorMotion,f=m.effect.getKeyframes();return {duration:m.effect.getTiming().duration,frames:f.length};}")
     assert motion=={'duration':430,'frames':2},motion
+    content_bounds=page.evaluate("()=>{const c=menuCalculator.getBoundingClientRect(),i=document.getElementById('weight').getBoundingClientRect();return {left:c.left,right:c.right,inputLeft:i.left,inputRight:i.right};}")
+    assert content_bounds['inputLeft']>=content_bounds['left']+20 and content_bounds['inputRight']<=content_bounds['right']-20,content_bounds
+    assert page.locator('#menuCalculatorGhost .nav-menu-copy').count()==1
+    assert page.locator('#menuCalculatorTitle').evaluate('e=>getComputedStyle(e).clipPath')=='inset(50%)'
+    assert page.locator('#menuCalculatorGhost .nav-menu-copy>span').first.evaluate('e=>getComputedStyle(e).opacity')=='1'
     assert page.evaluate('menuCalculator===window.originalCalculatorCard && document.getElementById("navOneRMCalcBtn")===window.originalCalculatorCard')
     colors=page.evaluate('menuCalculatorMotion.effect.getKeyframes().map(f=>f.backgroundColor)')
     assert colors[0]==source_color and colors[0]!=colors[-1],colors
@@ -50,6 +55,8 @@ try:
     assert page.locator('#navDrawerOverlay').is_visible() and page.locator('#oneRMCalcOverlay').is_hidden()
     page.wait_for_timeout(700)
     final=panel.bounding_box();assert final['width']>start['width']*1.9
+    label_box=page.locator('#menuCalculatorGhost .nav-menu-copy').bounding_box();back_box=page.locator('#menuCalculatorBack').bounding_box()
+    assert abs(label_box['y']+label_box['height']/2-back_box['y']-back_box['height']/2)<1,(label_box,back_box)
     bounds=page.evaluate('window.captureCalculator=false;calculatorBounds')
     assert bounds and max(r['bottom'] for r in bounds)<=825,bounds
     assert all(r['width']>=start['width']*.96 and r['height']>=start['height']*.96 for r in bounds),bounds
