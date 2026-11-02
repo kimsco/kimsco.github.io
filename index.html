@@ -13622,7 +13622,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.322";
+const APP_VERSION = "1.0.323";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -21631,9 +21631,21 @@ function toggleMenuCalculatorFullscreen(tile){
   tile.btn.style.setProperty('--calculator-title-top',titleTop);
   const copyFrom={left:tile.copy.style.left,top:tile.copy.style.top};
   tile.copy.style.left=titleLeft;tile.copy.style.top=titleTop;
-  menuCalculatorMotion=tile.btn.animate([from,to],{duration:reduced?0:320,easing:'cubic-bezier(.22,1,.36,1)'});
+  const duration=reduced?0:320,easing='cubic-bezier(.22,1,.36,1)';
+  menuCalculatorMotion=tile.btn.animate([from,to],{duration,easing});
   if(!reduced&&(copyFrom.left!==titleLeft||copyFrom.top!==titleTop)){
-    menuCalculatorTextMotions.push(tile.copy.animate([copyFrom,{left:titleLeft,top:titleTop}],{duration:320,easing:'cubic-bezier(.22,1,.36,1)'}));
+    menuCalculatorTextMotions.push(tile.copy.animate([copyFrom,{left:titleLeft,top:titleTop}],{duration,easing}));
+  }
+  // 🔥 카드 width/height를 WAAPI로 직접 바꾸는 동안, 안의 글/입력창/표는 평범한
+  //    레이아웃 요소라 매 프레임 리플로우(줄바꿈 위치·칸 너비 등 재계산)되는데
+  //    그게 눈에는 "흔들리는" 것처럼 보임 — 열 때(openMenuCalculatorTile)와 같은
+  //    방식으로, 크기가 바뀌는 구간 내내 블러로 가려뒀다가 다 바뀐 뒤에만 풀어서
+  //    리플로우 과정 자체가 안 보이게 함.
+  if(!reduced){
+    menuCalculatorBlurMotions.forEach(m=>m.cancel());
+    const blurKeyframes=[{filter:'blur(8px)'},{filter:'blur(0px)'}];
+    menuCalculatorBlurMotions=[tile.header,tile.content]
+      .map(el=>el.animate(blurKeyframes,{duration:240,delay:duration,easing,fill:'backwards'}));
   }
   menuCalculatorMotion.finished.then(()=>{if(token!==menuCalculatorToken)return;menuCalculatorMotion=null;}).catch(()=>{});
 }
