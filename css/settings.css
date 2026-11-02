@@ -570,12 +570,12 @@ html.menu-v2-on #navDrawer .settings-group[aria-labelledby="navAboutLabel"]{padd
 html.menu-v2-on #navToolsLabel{display:none;}
 /* 🔥 커질 때 색이 "타일색(옅음) → 진한색"으로 바뀌면서 흰빛이 번쩍하고 지나가는
    느낌이 거슬린다는 피드백 — 색 전환 애니메이션 자체를 없애고, 처음부터 끝까지
-   타일의 원래 반투명 유리색(--menu-tile-bg)만 그대로 씀. 대신 그 레이어 바로
-   아래에 불투명한 진한색(--menu-tile-bg-deep)을 "배경으로 받쳐"서(같은
-   background 안의 다음 레이어), 반투명 유리색이 뒤의 진짜 메뉴 내용 대신 이
-   받침색과 섞이게 함 — 뒷배경이 비치지도 않고, 색이 중간에 바뀌지도 않음(JS의
-   menuCalculatorColorMotion 자체를 제거) */
-#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded{position:absolute;z-index:2;overflow:hidden;box-sizing:border-box;border:1px solid rgba(255,255,255,.2);background:linear-gradient(var(--menu-tile-bg,rgba(100,96,98,.34)),var(--menu-tile-bg,rgba(100,96,98,.34))),var(--menu-tile-bg-deep,#1b1a1c);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);color:#f5f5f5;box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 16px 50px rgba(0,0,0,.2);outline:none;display:flex;flex-direction:column;}
+   타일의 원래 반투명 유리색(--menu-tile-bg)만 그대로 씀(JS의 menuCalculatorColorMotion
+   자체를 제거). 뒤에 불투명한 진한색을 받쳐 뒷배경을 가리던 레이어는 뺐음 — 대신
+   backdrop-filter:blur(18px)가 뒤를 흐릿하게 가려주고, 아래 ::after 레이어가 다
+   펼쳐진 뒤 점점 짙어지며 덮어서, 처음엔 진짜 반투명 유리처럼 보이다가 서서히
+   짙어지는 쪽을 택함. */
+#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded{position:absolute;z-index:2;overflow:hidden;box-sizing:border-box;border:1px solid rgba(255,255,255,.2);background:var(--menu-tile-bg,rgba(100,96,98,.34));-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);color:#f5f5f5;box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 16px 50px rgba(0,0,0,.2);outline:none;display:flex;flex-direction:column;}
 /* 🔥 은은한 하이라이트 그라데이션 — 타일일 때부터 쭉 같은 모양이라 애니메이션 없이
    항상 그대로 보여줌(흰색을 페이드인시키면 오히려 카드가 밝아 보여서 뺐음). */
 :is(#navOneRMCalcBtn,#navThreeSummaryBtn)>.menu-expand-sheen{display:none;}
@@ -660,7 +660,7 @@ html.light-mode-on :is(.menu-expand-back,.menu-expand-fullscreen){border-color:r
 /* The original tile becomes the workspace; only an invisible grid spacer is left behind. */
 .calculator-tile-placeholder{visibility:hidden;pointer-events:none;min-width:0;}
 :is(#navOneRMCalcBtn,#navThreeSummaryBtn)>.menu-calculator-header,:is(#navOneRMCalcBtn,#navThreeSummaryBtn)>.menu-expand-content{display:none;}
-html.menu-v2-on #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;position:absolute;z-index:2;min-width:0;min-height:0;margin:0;padding:0;border:1px solid rgba(255,255,255,.2)!important;background:linear-gradient(var(--menu-tile-bg,rgba(100,96,98,.34)),var(--menu-tile-bg,rgba(100,96,98,.34))),var(--menu-tile-bg-deep,#1b1a1c);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);color:#f5f5f5;transition:border-color 1.8s ease;cursor:default;box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 16px 50px rgba(0,0,0,.2);}
+html.menu-v2-on #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;position:absolute;z-index:2;min-width:0;min-height:0;margin:0;padding:0;border:1px solid rgba(255,255,255,.2)!important;background:var(--menu-tile-bg,rgba(100,96,98,.34));-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);color:#f5f5f5;transition:border-color 1.8s ease;cursor:default;box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 16px 50px rgba(0,0,0,.2);}
 /* 🔥 카드가 검게 짙어지는 동안 겉 테두리 선 색도 같이 옅어지게 함(bg-ready와 같은
    타이밍/길이로). */
 html.menu-v2-on #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded.bg-ready{border-color:rgba(255,255,255,.08)!important;}
