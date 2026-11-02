@@ -13622,7 +13622,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.319";
+const APP_VERSION = "1.0.320";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -21594,6 +21594,12 @@ function menuCalculatorFullscreenTarget(){
 function toggleMenuCalculatorFullscreen(tile){
   if(tile!==activeCalcTile||!menuCalculatorOpen||menuCalculatorMotion)return;
   tile.isFullscreen=!tile.isFullscreen;
+  if(!tile.isFullscreen){
+    // 🔥 전체화면에서 나올 때도 닫을 때처럼, 짙어진 색이 토글 애니메이션(320ms)과
+    //    같은 속도로 원래 타일색으로 돌아가게 함 — 열 때 쓰는 느긋한 1.8초가 아니라.
+    tile.btn.classList.add('bg-closing');
+    tile.btn.classList.remove('bg-ready');
+  }
   tile.fullscreenBtn.setAttribute('aria-pressed',String(tile.isFullscreen));
   tile.fullscreenBtn.querySelector('.menu-expand-fullscreen-enter-icon').classList.toggle('hidden',tile.isFullscreen);
   tile.fullscreenBtn.querySelector('.menu-expand-fullscreen-exit-icon').classList.toggle('hidden',!tile.isFullscreen);
