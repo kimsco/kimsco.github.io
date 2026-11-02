@@ -664,6 +664,11 @@ html.menu-v2-on #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-
 /* 🔥 카드가 검게 짙어지는 동안 겉 테두리 선 색도 같이 옅어지게 함(bg-ready와 같은
    타이밍/길이로). */
 html.menu-v2-on #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded.bg-ready{border-color:rgba(255,255,255,.08)!important;}
+/* 🔥 닫을 때(bg-closing)는 색이 열 때의 느긋한 1.8초가 아니라, 카드가 작아지는
+   애니메이션(330ms)과 같은 속도로 원래 색에 돌아가야 자연스러움 — 트랜지션 길이만
+   짧게 덮어씀(목표 색 자체는 bg-ready가 빠지면서 기본값으로 저절로 돌아감). */
+html.menu-v2-on #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded.bg-closing{transition:border-color .33s ease;}
+#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded.bg-closing::after{transition:opacity .33s ease;}
 /* 🔥 완료 시점(카드가 열리기 시작한 뒤 대략 1.8~1.9초 지점 — 예전 is-ready+1초 때와
    비슷하게 맞춤)은 그대로 두고, 시작은 bg-ready 클래스를 카드가 막 펼쳐지기 시작할
    때(한 프레임 뒤)부터 걸어서 훨씬 더 서서히/일찍부터 바뀌게 함. 펼쳐지는 스쿼시/
