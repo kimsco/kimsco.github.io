@@ -13622,7 +13622,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.334";
+const APP_VERSION = "1.0.335";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -21564,37 +21564,16 @@ const calcTiles={
 };
 let menuCalculator=null,activeCalcTile=null;
 let menuCalculatorOpen=false,menuCalculatorMotion=null,menuCalculatorBlurMotions=[],menuCalculatorToken=0,menuCalculatorTextMotions=[];
-// 🔥 카드를 펼칠 때(openMenuCalculatorTile) 쓰는 geometry WAAPI 애니메이션 +
-//    헤더/본문 filter:blur() 리빌이 "세션에서 처음" 실제로 돌아갈 때만 살짝
-//    버벅이는 문제가 있었음(실기기에서 반복 확인: 첫 번째로 열 때만 뚝 끊기고
-//    두세 번째부터는 매끈함). 화면 밖 1px 가짜 요소(효과 없었음) → 헤더/본문만
-//    복제해서 블러만 따로 예열(이것도 효과 없었음), 두 번 다 실패 — 아마 블러
-//    자체보다, 이 카드 요소(.calculator-expanded)에 걸린 수많은 CSS 규칙들이
-//    "이 구체적인 엘리먼트에 처음" 적용될 때의 스타일 재계산/레이아웃 비용이 진짜
-//    원인인 듯. 그래서 이번엔 "진짜" 여는 함수(openMenuCalculatorTile)를 실제
-//    타일에 그대로 한 번 돌리되, 메뉴 드로어 전체를 opacity:0으로 완전히 투명하게
-//    가려서 사용자 눈에는 아무것도 안 보이게 함 — 애니메이션이 끝나면 즉시
-//    resetMenuCalculator()로 깨끗이 원상복구해서, 실제 첫 탭 때는 이미 한 번
-//    "진짜로" 열어본 상태(=모든 비용을 미리 치른 상태)에서 시작하게 함.
-//    메뉴가 이미 열려있으면(= 사용자가 이미 쓰고 있으면) 건드리지 않고 건너뜀.
-(function warmUpCalculatorFirstOpen(){
-  try{
-    if(navMenuOpen||menuCalculatorOpen)return;
-    const overlay=navDrawerOverlay;
-    if(!overlay.classList.contains('hidden'))return;
-    overlay.style.opacity='0';overlay.style.pointerEvents='none';
-    overlay.classList.remove('hidden');
-    void navDrawer.offsetHeight;
-    openMenuCalculatorTile(calcTiles.calc);
-    setTimeout(()=>{
-      try{
-        resetMenuCalculator();
-        overlay.classList.add('hidden');
-        overlay.style.opacity='';overlay.style.pointerEvents='';
-      }catch(_){}
-    },850);
-  }catch(_){}
-})();
+// 🔥 카드를 펼칠 때(openMenuCalculatorTile) 쓰는 헤더/본문 filter:blur() 리빌이
+//    "세션에서 처음" 실제로 돌아갈 때만 살짝 버벅이는 문제가 실기기에서 계속
+//    확인됨(두세 번째부터는 매끈함). 미리 예열해보는 시도를 세 번(화면 밖 1px
+//    가짜 요소 / 헤더·본문 복제 / 진짜 open함수를 투명하게 한 번 돌려보기) 다
+//    해봤는데 전부 효과 없었음 — 콜드스타트(기기 클럭 안 올라온 상태)도 1분
+//    기다렸다 열어도 똑같이 버벅여서 아님. 원인을 더 못 찾겠어서, 원인 제거
+//    대신 "버벅일 거리" 자체를 없애는 쪽으로 감: 세션의 첫 번째 카드 열기에서만
+//    블러 리빌을 생략하고 바로 선명하게 보여줌(그 자체로는 가벼운 연산이라
+//    버벅일 게 없음) — 두 번째 열기부터는 원래 블러 연출 그대로 씀.
+let calculatorBlurRevealUsedOnce=false;
 let calculatorGestureSuppressUntil=0;
 function menuCalculatorTarget(tile){
   const drawer=navDrawer.getBoundingClientRect(),body=navMenuBody.getBoundingClientRect(),style=getComputedStyle(navMenuBody);
@@ -21738,7 +21717,9 @@ function animateCalculatorText(tile,open,reduced,fresh=false){
   menuCalculatorTextMotions.push(copy.animate(copyKeyframes,{duration,easing}));
   // 🔥 아이콘+텍스트(고스트 라벨) 전체도 헤더/콘텐츠와 같은 블러 리빌에 포함시킴 —
   //    안 그러면 카드 안쪽은 블러됐다 풀리는데 라벨만 처음부터 선명해서 따로 놀았음.
-  if(open&&!reduced){
+  //    단, 헤더/본문과 마찬가지로 세션 첫 열기(calculatorBlurRevealUsedOnce===false)
+  //    에서는 이 블러도 같이 생략함 — 라벨만 블러 걸면 거꾸로 헤더/본문이랑 따로 놀게 됨.
+  if(open&&!reduced&&calculatorBlurRevealUsedOnce){
     const blurKeyframes=[{filter:'blur(10px)'},{filter:'blur(0px)'}];
     const revealDuration=360;
     const labelBlur=label.animate(blurKeyframes,{duration:revealDuration,delay:duration,easing:'cubic-bezier(.22,1,.36,1)',fill:'backwards'});
@@ -21853,12 +21834,13 @@ function openMenuCalculatorTile(tile){
   //    색 전환(번쩍임)은 아예 없게 함. 글씨 블러만 크기 모프가 끝난 뒤(delay:duration)
   //    풀리게 둠.
   let blurFinished=Promise.resolve();
-  if(!reduced){
+  if(!reduced&&calculatorBlurRevealUsedOnce){
     const blurKeyframes=[{filter:'blur(10px)'},{filter:'blur(0px)'}];
     menuCalculatorBlurMotions=[tile.header,tile.content]
       .map(el=>el.animate(blurKeyframes,{duration:revealDuration,delay:duration,easing,fill:'backwards'}));
     blurFinished=Promise.all(menuCalculatorBlurMotions.map(m=>m.finished));
   }
+  calculatorBlurRevealUsedOnce=true;
   menuCalculatorMotion.finished.then(()=>{
     if(token!==menuCalculatorToken)return;
     menuCalculatorMotion=null;
