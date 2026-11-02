@@ -13622,7 +13622,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.333";
+const APP_VERSION = "1.0.334";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -21562,39 +21562,39 @@ const calcTiles={
   pr3:createCalcTile('navThreeSummaryBtn',document.getElementById('threeDetail'),{titleId:'menu3daePRTitle',
     onFreshOpen(){weightPRDetailInline.classList.add('hidden');threeDetailViewBtn.textContent='상세보기 〉';}}),
 };
-// 🔥 카드를 펼칠 때 헤더/본문에 filter:blur()로 리빌 애니메이션을 거는데(아래
-//    openMenuCalculatorTile), 이게 "세션에서 처음" 실제(복잡한) 콘텐츠에 쓰일 때
-//    브라우저가 블러용 GPU 레이어/파이프라인을 그 자리에서 새로 준비하느라 첫
-//    사용 순간에만 살짝 버벅이는 문제가 있었음(실기기에서 확인: 첫 번째로 열 때만
-//    블러가 풀리는 순간이 뚝 끊겨 보이고, 두 번째부터는 매끈함). 화면 밖의 안 보이는
-//    1px짜리 가짜 요소로 먼저 시도해봤는데 효과가 없었음 — 아마 GPU/브라우저가
-//    "비어있고 사소한" 블러와 "셀렉트/입력창 등이 들어있는 실제 카드 블러"를 서로
-//    다르게 최적화하는 듯. 그래서 실제 헤더/본문(tile.header/tile.content)을
-//    그대로 복제해(=똑같이 복잡한 내용) 화면 밖 투명한 곳에 붙여놓고, 실제 리빌과
-//    똑같은 블러 애니메이션을 한 번 돌려서 그 준비 비용을 먼저 치르게 함. 진짜
-//    DOM(navDrawer 등)은 전혀 건드리지 않고 복제본만 쓰므로 앱 상태에는 영향 없음
-//    — id가 중복되면 document.getElementById가 복제본을 집어올 수 있어 전부 제거함.
-(function warmUpCalculatorBlurFilter(){
-  try{
-    const wrapper=document.createElement('div');
-    wrapper.style.cssText='position:fixed;left:-9999px;top:-9999px;width:366px;opacity:0;pointer-events:none;';
-    const clones=[calcTiles.calc.header,calcTiles.calc.content].map(el=>{
-      const clone=el.cloneNode(true);
-      clone.style.display='flex';
-      if(clone.hasAttribute('id'))clone.removeAttribute('id');
-      clone.querySelectorAll('[id]').forEach(n=>n.removeAttribute('id'));
-      wrapper.appendChild(clone);
-      return clone;
-    });
-    document.body.appendChild(wrapper);
-    void wrapper.offsetHeight;
-    const blurKeyframes=[{filter:'blur(10px)'},{filter:'blur(0px)'}];
-    const motions=clones.map(el=>el.animate(blurKeyframes,{duration:360,easing:'cubic-bezier(.22,1,.36,1)'}));
-    Promise.allSettled(motions.map(m=>m.finished)).then(()=>wrapper.remove());
-  }catch(_){}
-})();
 let menuCalculator=null,activeCalcTile=null;
 let menuCalculatorOpen=false,menuCalculatorMotion=null,menuCalculatorBlurMotions=[],menuCalculatorToken=0,menuCalculatorTextMotions=[];
+// 🔥 카드를 펼칠 때(openMenuCalculatorTile) 쓰는 geometry WAAPI 애니메이션 +
+//    헤더/본문 filter:blur() 리빌이 "세션에서 처음" 실제로 돌아갈 때만 살짝
+//    버벅이는 문제가 있었음(실기기에서 반복 확인: 첫 번째로 열 때만 뚝 끊기고
+//    두세 번째부터는 매끈함). 화면 밖 1px 가짜 요소(효과 없었음) → 헤더/본문만
+//    복제해서 블러만 따로 예열(이것도 효과 없었음), 두 번 다 실패 — 아마 블러
+//    자체보다, 이 카드 요소(.calculator-expanded)에 걸린 수많은 CSS 규칙들이
+//    "이 구체적인 엘리먼트에 처음" 적용될 때의 스타일 재계산/레이아웃 비용이 진짜
+//    원인인 듯. 그래서 이번엔 "진짜" 여는 함수(openMenuCalculatorTile)를 실제
+//    타일에 그대로 한 번 돌리되, 메뉴 드로어 전체를 opacity:0으로 완전히 투명하게
+//    가려서 사용자 눈에는 아무것도 안 보이게 함 — 애니메이션이 끝나면 즉시
+//    resetMenuCalculator()로 깨끗이 원상복구해서, 실제 첫 탭 때는 이미 한 번
+//    "진짜로" 열어본 상태(=모든 비용을 미리 치른 상태)에서 시작하게 함.
+//    메뉴가 이미 열려있으면(= 사용자가 이미 쓰고 있으면) 건드리지 않고 건너뜀.
+(function warmUpCalculatorFirstOpen(){
+  try{
+    if(navMenuOpen||menuCalculatorOpen)return;
+    const overlay=navDrawerOverlay;
+    if(!overlay.classList.contains('hidden'))return;
+    overlay.style.opacity='0';overlay.style.pointerEvents='none';
+    overlay.classList.remove('hidden');
+    void navDrawer.offsetHeight;
+    openMenuCalculatorTile(calcTiles.calc);
+    setTimeout(()=>{
+      try{
+        resetMenuCalculator();
+        overlay.classList.add('hidden');
+        overlay.style.opacity='';overlay.style.pointerEvents='';
+      }catch(_){}
+    },850);
+  }catch(_){}
+})();
 let calculatorGestureSuppressUntil=0;
 function menuCalculatorTarget(tile){
   const drawer=navDrawer.getBoundingClientRect(),body=navMenuBody.getBoundingClientRect(),style=getComputedStyle(navMenuBody);
