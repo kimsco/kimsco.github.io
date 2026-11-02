@@ -640,7 +640,7 @@ html.light-mode-on #navDrawer #navThreeSummaryBtn.calculator-expanded .rmInput:f
 html.light-mode-on #navDrawer #navThreeSummaryBtn.calculator-expanded #save3Btn{border-color:#211c1d;color:#211c1d;}
 html.light-mode-on #navDrawer #navThreeSummaryBtn.calculator-expanded .three-detail-link{color:rgba(33,28,29,.5);}
 html.light-mode-on :is(.menu-expand-back,.menu-expand-fullscreen){border-color:rgba(50,30,35,.12);background:rgba(50,30,35,.04);}
-@media(prefers-reduced-motion:reduce){#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded *,#navMenuBody{transition:none!important;}}
+@media(prefers-reduced-motion:reduce){#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded,#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded *,#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded::after,#navMenuBody{transition:none!important;}}
 
 /* Keep surrounding cards still and visible; only the selected tile changes shape. */
 .menu-calculator-ghost{position:absolute;z-index:2;left:14px;top:15px;white-space:nowrap;pointer-events:none;font-size:14px;font-weight:500;}
@@ -661,6 +661,26 @@ html.light-mode-on :is(.menu-expand-back,.menu-expand-fullscreen){border-color:r
 .calculator-tile-placeholder{visibility:hidden;pointer-events:none;min-width:0;}
 :is(#navOneRMCalcBtn,#navThreeSummaryBtn)>.menu-calculator-header,:is(#navOneRMCalcBtn,#navThreeSummaryBtn)>.menu-expand-content{display:none;}
 html.menu-v2-on #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;position:absolute;z-index:2;min-width:0;min-height:0;margin:0;padding:0;border:1px solid rgba(255,255,255,.2)!important;background:linear-gradient(var(--menu-tile-bg,rgba(100,96,98,.34)),var(--menu-tile-bg,rgba(100,96,98,.34))),var(--menu-tile-bg-deep,#1b1a1c);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);color:#f5f5f5;transition:none;cursor:default;box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 16px 50px rgba(0,0,0,.2);}
+/* 🔥 카드가 다 펼쳐진 뒤(is-ready — 지오메트리 정착 + 블러 리빌까지 다 끝난 시점)엔
+   타일의 옅은 회색 유리색 위로 검정 그라데이션을 천천히(1초) 덮어씌워서 바탕이 검정으로
+   바뀐 것처럼 보이게 함 — 펼쳐지는 도중(스쿼시/바운스)엔 안 바뀌어서 예전의 "하얀
+   번쩍임"과는 다름. CSS 그라데이션 자체(var(--menu-tile-bg) 포함)는 직접 전환시켜도
+   브라우저가 부드럽게 보간 안 해주고 순간 전환돼버려서(실측 확인함), 대신 별도
+   ::after 레이어를 opacity로 페이드인시키는 방식을 씀 — opacity는 항상 매끄럽게 보간됨. */
+#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded::after{content:'';display:block;position:absolute;inset:0;border-radius:inherit;background:linear-gradient(180deg,#111 0%,#000 60%,#000 100%);opacity:0;pointer-events:none;z-index:0;transition:opacity 1s ease;}
+html.menu-v2-on #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded.is-ready::after{opacity:1;}
+/* 🔥 라이트모드에서는 카드 글자색이 어두운(#211c1d) 라이트 카드 기준이라, 배경이 위
+   ::after로 검정에 가깝게 덮이고 나면 어두운 글자가 거의 안 보임 — 전체화면 때와
+   같은 이유라 같은 방식으로, is-ready(=검정 배경이 거의 다 덮인 시점) 때는 다크모드와
+   같은 밝은 배색으로 되돌림. */
+html.light-mode-on #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded.is-ready{color:#f5f5f5!important;}
+html.light-mode-on #navDrawer #navOneRMCalcBtn.calculator-expanded.is-ready :is(#oneRMLiftSelect,#weight,#reps){background:rgba(255,255,255,.07)!important;border-color:rgba(255,255,255,.12)!important;}
+html.light-mode-on #navDrawer #navOneRMCalcBtn.calculator-expanded.is-ready #tableArea>div{color:#f5f5f5!important;}
+html.light-mode-on #navDrawer #navThreeSummaryBtn.calculator-expanded.is-ready #total3{color:#fff!important;}
+html.light-mode-on #navDrawer #navThreeSummaryBtn.calculator-expanded.is-ready .rmInput{color:#fff!important;border-bottom-color:rgba(255,255,255,.18)!important;}
+html.light-mode-on #navDrawer #navThreeSummaryBtn.calculator-expanded.is-ready .rmInput:focus{border-bottom-color:#fff!important;}
+html.light-mode-on #navDrawer #navThreeSummaryBtn.calculator-expanded.is-ready #save3Btn{border-color:#fff!important;color:#fff!important;}
+html.light-mode-on #navDrawer #navThreeSummaryBtn.calculator-expanded.is-ready .three-detail-link{color:rgba(255,255,255,.45)!important;}
 #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded>.menu-calculator-header{display:flex;position:relative;z-index:1;}
 #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded>.menu-expand-content{display:flex;position:relative;z-index:1;}
 #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded>.menu-expand-ghost{width:auto;white-space:nowrap;}
