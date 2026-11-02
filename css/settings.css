@@ -607,7 +607,9 @@ html.menu-v2-on #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-
    자체를 바로 바꾸면(특히 그라데이션↔단색 사이) 브라우저가 부드럽게 보간을 안 해줘서
    전체화면 나갈 때 "검정 → 순식간에 원래색"처럼 뚝 끊겨 보였음(실측 확인함). opacity는
    항상 매끄럽게 보간되니, 켜고 끌 때 모두 자연스럽게 서서히 바뀜. */
-html.menu-v2-on #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded.fs-tint.fs-tint::after{opacity:.97;}
+/* 🔥 .97로는 navDrawer 자신의 배경(좌상단 붉은 방사형 그라데이션)이 가장자리에
+   미세하게 비쳐 보였음(실기기에서 확인됨) — 전체화면은 완전히 불투명해야 하므로 1로. */
+html.menu-v2-on #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded.fs-tint.fs-tint::after{opacity:1;}
 /* 🔥 라이트모드 전용 어두운 글자색/밝은 입력창 배경들이 라이트 카드 기준으로 만들어져
    있어서, 배경을 검정으로 강제한 전체화면에서는 그대로 두면 안 보이거나(어두운
    글자가 검정 위에) 거꾸로 안 보임(흰 글자가 거의-흰색 입력창 배경 위에). 라이트모드
