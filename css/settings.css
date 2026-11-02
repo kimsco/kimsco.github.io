@@ -660,15 +660,19 @@ html.light-mode-on :is(.menu-expand-back,.menu-expand-fullscreen){border-color:r
 /* The original tile becomes the workspace; only an invisible grid spacer is left behind. */
 .calculator-tile-placeholder{visibility:hidden;pointer-events:none;min-width:0;}
 :is(#navOneRMCalcBtn,#navThreeSummaryBtn)>.menu-calculator-header,:is(#navOneRMCalcBtn,#navThreeSummaryBtn)>.menu-expand-content{display:none;}
-html.menu-v2-on #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;position:absolute;z-index:2;min-width:0;min-height:0;margin:0;padding:0;border:1px solid rgba(255,255,255,.2)!important;background:linear-gradient(var(--menu-tile-bg,rgba(100,96,98,.34)),var(--menu-tile-bg,rgba(100,96,98,.34))),var(--menu-tile-bg-deep,#1b1a1c);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);color:#f5f5f5;transition:none;cursor:default;box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 16px 50px rgba(0,0,0,.2);}
-/* 🔥 카드가 다 펼쳐진 뒤(is-ready — 지오메트리 정착 + 블러 리빌까지 다 끝난 시점)엔
-   타일의 옅은 회색 유리색 위로 검정 그라데이션을 천천히(1초) 덮어씌워서 바탕이 검정으로
-   바뀐 것처럼 보이게 함 — 펼쳐지는 도중(스쿼시/바운스)엔 안 바뀌어서 예전의 "하얀
-   번쩍임"과는 다름. CSS 그라데이션 자체(var(--menu-tile-bg) 포함)는 직접 전환시켜도
-   브라우저가 부드럽게 보간 안 해주고 순간 전환돼버려서(실측 확인함), 대신 별도
-   ::after 레이어를 opacity로 페이드인시키는 방식을 씀 — opacity는 항상 매끄럽게 보간됨. */
-#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded::after{content:'';display:block;position:absolute;inset:0;border-radius:inherit;background:linear-gradient(180deg,#111 0%,#000 60%,#000 100%);opacity:0;pointer-events:none;z-index:0;transition:opacity 1s ease;}
-html.menu-v2-on #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded.is-ready::after{opacity:.6;}
+html.menu-v2-on #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;position:absolute;z-index:2;min-width:0;min-height:0;margin:0;padding:0;border:1px solid rgba(255,255,255,.2)!important;background:linear-gradient(var(--menu-tile-bg,rgba(100,96,98,.34)),var(--menu-tile-bg,rgba(100,96,98,.34))),var(--menu-tile-bg-deep,#1b1a1c);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);color:#f5f5f5;transition:border-color 1.8s ease;cursor:default;box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 16px 50px rgba(0,0,0,.2);}
+/* 🔥 카드가 검게 짙어지는 동안 겉 테두리 선 색도 같이 옅어지게 함(bg-ready와 같은
+   타이밍/길이로). */
+html.menu-v2-on #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded.bg-ready{border-color:rgba(255,255,255,.08)!important;}
+/* 🔥 완료 시점(카드가 열리기 시작한 뒤 대략 1.8~1.9초 지점 — 예전 is-ready+1초 때와
+   비슷하게 맞춤)은 그대로 두고, 시작은 bg-ready 클래스를 카드가 막 펼쳐지기 시작할
+   때(한 프레임 뒤)부터 걸어서 훨씬 더 서서히/일찍부터 바뀌게 함. 펼쳐지는 스쿼시/
+   바운스 도중에도 같이 조금씩 짙어지지만 워낙 느리게 진행돼서 예전의 "하얀 번쩍임"과
+   는 다름. CSS 그라데이션 자체(var(--menu-tile-bg) 포함)는 직접 전환시켜도 브라우저가
+   부드럽게 보간 안 해주고 순간 전환돼버려서(실측 확인함), 대신 별도 ::after 레이어를
+   opacity로 페이드인시키는 방식을 씀 — opacity는 항상 매끄럽게 보간됨. */
+#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded::after{content:'';display:block;position:absolute;inset:0;border-radius:inherit;background:linear-gradient(180deg,#111 0%,#000 60%,#000 100%);opacity:0;pointer-events:none;z-index:0;transition:opacity 1.8s ease;}
+html.menu-v2-on #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded.bg-ready::after{opacity:.6;}
 /* 🔥 라이트모드에서는 카드 글자색이 어두운(#211c1d) 라이트 카드 기준이라, 배경이 위
    ::after로 검정에 가깝게 덮이고 나면 어두운 글자가 거의 안 보임 — 전체화면 때와
    같은 이유라 같은 방식으로, is-ready(=검정 배경이 거의 다 덮인 시점) 때는 다크모드와

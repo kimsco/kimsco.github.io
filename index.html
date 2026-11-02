@@ -8805,7 +8805,7 @@ document.addEventListener('dragstart', event => {
   event.preventDefault();
 });
 </script>
-<link rel="stylesheet" href="/css/settings.css?v=1.0.316">
+<link rel="stylesheet" href="/css/settings.css?v=1.0.317">
 </head>
 
 <body style="background-color:#000000;">
@@ -13215,6 +13215,7 @@ save3Btn.addEventListener('click', async ()=>{
 }, { merge: true });
 
     showSave3Message('기기에 저장됨 · 서버 동기화 중');
+    showProfileSaveToast('3대 PR을 저장했어요');
   }catch(e){
     console.error('3대 저장 에러:', e);
     showSave3Message('저장 실패 (콘솔 확인)');
@@ -13621,7 +13622,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.316";
+const APP_VERSION = "1.0.317";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -21685,7 +21686,7 @@ function resetMenuCalculator(){
   menuCalculatorOpen=false;
   menuCalculatorTextMotions.forEach(m=>m.cancel());menuCalculatorTextMotions=[];
   if(tile.body.parentNode!==tile.home)tile.home.appendChild(tile.body);
-  tile.btn.classList.remove('is-ready');tile.btn.inert=false;
+  tile.btn.classList.remove('is-ready','bg-ready');tile.btn.inert=false;
   tile.header.style.filter='';
   tile.content.style.filter='';
   if(tile.placeholder){
@@ -21739,7 +21740,12 @@ function openMenuCalculatorTile(tile){
   const titleHeight=tile.copy.getBoundingClientRect().height;
   tile.btn.style.setProperty('--calculator-title-left',(backBounds.right-cardBounds.left-tile.btn.clientLeft+10)+'px');
   tile.btn.style.setProperty('--calculator-title-top',(backBounds.top-cardBounds.top-tile.btn.clientTop+(backBounds.height-titleHeight)/2)+'px');
-  tile.btn.classList.remove('is-ready');tile.btn.inert=true;
+  tile.btn.classList.remove('is-ready','bg-ready');tile.btn.inert=true;
+  // 🔥 배경이 검게 바뀌는 그라데이션은 완료 시점(기존 is-ready+1초 지점)은 그대로 두고
+  //    시작만 훨씬 앞당겨서(카드가 막 펼쳐지기 시작할 때부터) 더 서서히 바뀌게 함 —
+  //    bg-ready 클래스를 한 프레임 뒤에 붙여서(같은 틱에 붙이면 opacity:0 상태가 한
+  //    번도 렌더되지 않아 전환 자체가 안 먹힘) 트랜지션이 제대로 걸리게 함.
+  requestAnimationFrame(()=>tile.btn.classList.add('bg-ready'));
   navMenuBody.inert=true;navDrawer.classList.add('calculator-open');
   const reduced=matchMedia('(prefers-reduced-motion:reduce)').matches;
   animateCalculatorText(tile,true,reduced,fresh);
@@ -21818,7 +21824,7 @@ function closeMenuCalculator(){
     tile.fullscreenBtn.querySelector('.menu-expand-fullscreen-enter-icon').classList.remove('hidden');
     tile.fullscreenBtn.querySelector('.menu-expand-fullscreen-exit-icon').classList.add('hidden');
   }
-  tile.btn.classList.remove('is-ready');tile.btn.inert=true;
+  tile.btn.classList.remove('is-ready','bg-ready');tile.btn.inert=true;
   document.activeElement?.blur();
   const target=calculatorButtonFrame(tile);Object.assign(tile.btn.style,target);
   const reduced=matchMedia('(prefers-reduced-motion:reduce)').matches;animateCalculatorText(tile,false,reduced);
