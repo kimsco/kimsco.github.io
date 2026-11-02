@@ -13622,7 +13622,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.327";
+const APP_VERSION = "1.0.328";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -21946,6 +21946,9 @@ function commitCalcDrag(tile,dampedOffsetX,dampedOffsetY,action){
   function onHeaderStart(tile,event){
     gesture=null;
     if(event.touches.length!==1||tile!==activeCalcTile||!menuCalculatorOpen||menuCalculatorMotion)return;
+    // 🔥 전체화면일 땐 헤더를 끌어도 고무줄처럼 안 딸려오게(=제스처 자체를 시작 안 함)
+    //    고정함 — 전체화면에서 나가거나 닫는 건 전용 버튼(축소/뒤로가기)으로만 하게.
+    if(tile.isFullscreen)return;
     if(event.target.closest('.menu-expand-back,.menu-expand-fullscreen'))return;
     const touch=event.touches[0];
     gesture={tile,x:touch.clientX,y:touch.clientY,dx:0,dy:0,dragging:false,fromBody:false};
@@ -21958,6 +21961,7 @@ function commitCalcDrag(tile,dampedOffsetX,dampedOffsetY,action){
   function onBodyStart(tile,event){
     gesture=null;
     if(event.touches.length!==1||tile!==activeCalcTile||!menuCalculatorOpen||menuCalculatorMotion)return;
+    if(tile.isFullscreen)return; // 🔥 헤더와 동일하게 전체화면에선 본체 끌기도 고정
     if(tile.body.scrollTop>0)return;
     if(event.target.closest('input,select,button,textarea,a'))return;
     const touch=event.touches[0];
