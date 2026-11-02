@@ -601,7 +601,17 @@ html.menu-v2-on #navToolsLabel{display:none;}
    색 오버라이드까지 거기 묶여있으면 전체화면에서 드래그로 바로 닫을 때 색이 축소되는
    내내 그대로 박혀있다가 애니메이션이 끝나는 순간 한번에 뚝 끊겨 바뀌는 문제가 있었음.
    fs-tint는 닫기가 시작되는 즉시 떼지므로 bg-closing의 .33s 트랜지션이 처음부터 먹힘. */
-html.menu-v2-on #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded.fs-tint.fs-tint{border-color:transparent!important;box-shadow:0 0 0 rgba(0,0,0,0)!important;color:#f5f5f5!important;}
+/* 🔥 어두워지는 ::after 오버레이를 완전 불투명(1)으로 올렸는데도 실기기(PWA)에서
+   가장자리 1px 정도에 navDrawer 자체 배경(붉은/회색 그라데이션)이 미세하게 비쳐
+   보이는 문제가 남아있었음 — 실측해보니(픽셀 색 직접 샘플링) 그 1px은 정확히
+   카드 "테두리"가 있던 자리와 일치함: ::after는 inset:0이라 패딩 박스까지만
+   덮고, 그 바깥 1px(테두리 자리)는 카드 자신의 background(반투명 유리색
+   --menu-tile-bg)가 그대로 칠해지는 자리라 거기만 안 덮임 — 거기에
+   backdrop-filter:blur까지 걸려있어 그 틈으로 뒤(navDrawer)가 블러된 채로 살짝
+   비쳐 보였음. 전체화면에선 카드 배경 자체를 완전 불투명한 검정으로 바꿔서
+   (글라스 틴트 대신) 그 테두리 자리를 포함해 어디에도 뒤가 비칠 틈이 없게 하고,
+   더 이상 필요 없는 backdrop-filter도 꺼서 안전하게 둘 다 제거함. */
+html.menu-v2-on #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded.fs-tint.fs-tint{border-color:transparent!important;box-shadow:0 0 0 rgba(0,0,0,0)!important;color:#f5f5f5!important;background:#000!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;}
 /* 🔥 전체화면의 "검정 배경"은 메인 background를 직접 바꾸지 않고, 이미 있는 ::after
    어두워지는 오버레이의 목표 opacity를 거의 1까지 올리는 식으로 구현함 — background
    자체를 바로 바꾸면(특히 그라데이션↔단색 사이) 브라우저가 부드럽게 보간을 안 해줘서
