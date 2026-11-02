@@ -13621,7 +13621,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.312";
+const APP_VERSION = "1.0.313";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -21870,12 +21870,25 @@ function commitCalcDrag(tile,dampedOffsetX,dampedOffsetY,action){
   //    멀리 당길수록 CAP에 점근함.
   const CAP=30,RESIST=0.5;
   const damp=d=>Math.sign(d)*(Math.abs(d)*CAP*RESIST)/(CAP+RESIST*Math.abs(d));
-  function onStart(tile,event){
+  function onHeaderStart(tile,event){
     gesture=null;
     if(event.touches.length!==1||tile!==activeCalcTile||!menuCalculatorOpen||menuCalculatorMotion)return;
     if(event.target.closest('.menu-expand-back,.menu-expand-fullscreen'))return;
     const touch=event.touches[0];
-    gesture={tile,x:touch.clientX,y:touch.clientY,dx:0,dy:0,dragging:false};
+    gesture={tile,x:touch.clientX,y:touch.clientY,dx:0,dy:0,dragging:false,fromBody:false};
+  }
+  // 🔥 본체(스크롤 영역)를 직접 잡고 끌어도 똑같이 당겨지게 함 — 단, 스크롤이 맨 위가
+  //    아니면 평범한 스크롤이어야 하므로 scrollTop===0일 때만 제스처 후보로 인정하고,
+  //    입력/버튼류를 직접 잡은 경우도 제외(탭/포커스가 가로채이지 않게). 세로로 더
+  //    "올리는"(스크롤 내려서 더 보기) 방향이면 우리가 가로채지 않고 그대로 스크롤에
+  //    양보함 — 아래/좌우로 움직일 때만 드래그 제스처로 인정.
+  function onBodyStart(tile,event){
+    gesture=null;
+    if(event.touches.length!==1||tile!==activeCalcTile||!menuCalculatorOpen||menuCalculatorMotion)return;
+    if(tile.body.scrollTop>0)return;
+    if(event.target.closest('input,select,button,textarea,a'))return;
+    const touch=event.touches[0];
+    gesture={tile,x:touch.clientX,y:touch.clientY,dx:0,dy:0,dragging:false,fromBody:true};
   }
   function onMove(event){
     if(!gesture)return;
@@ -21883,6 +21896,7 @@ function commitCalcDrag(tile,dampedOffsetX,dampedOffsetY,action){
     const touch=event.touches[0],dx=touch.clientX-gesture.x,dy=touch.clientY-gesture.y;
     if(!gesture.dragging){
       if(Math.hypot(dx,dy)<8)return;
+      if(gesture.fromBody&&dy<0&&Math.abs(dy)>Math.abs(dx)){gesture=null;return;}
       gesture.dragging=true;
     }
     event.preventDefault();
@@ -21895,17 +21909,23 @@ function commitCalcDrag(tile,dampedOffsetX,dampedOffsetY,action){
     const tile=g.tile,dampedX=damp(g.dx),dampedY=damp(g.dy);
     if(!cancelled&&g.dy>DOWN_THRESHOLD){
       commitCalcDrag(tile,dampedX,dampedY,closeMenuCalculator);
-    }else if(!cancelled&&g.dy<-UP_THRESHOLD&&!tile.isFullscreen){
+    }else if(!cancelled&&!g.fromBody&&g.dy<-UP_THRESHOLD&&!tile.isFullscreen){
+      // 🔥 전체화면 진입은 헤더를 잡고 당겼을 때만 — 본체에서 위로 당기는 건 이미
+      //    "스크롤 내려서 더 보기" 쪽으로 양보했으므로 여기까지 안 옴.
       commitCalcDrag(tile,dampedX,dampedY,()=>toggleMenuCalculatorFullscreen(tile));
     }else{
       releaseCalcDrag(tile);
     }
   }
   for(const tile of Object.values(calcTiles)){
-    tile.header.addEventListener('touchstart',event=>onStart(tile,event),{passive:true});
+    tile.header.addEventListener('touchstart',event=>onHeaderStart(tile,event),{passive:true});
     tile.header.addEventListener('touchmove',onMove,{passive:false});
     tile.header.addEventListener('touchend',()=>finish(false),{passive:true});
     tile.header.addEventListener('touchcancel',()=>finish(true),{passive:true});
+    tile.body.addEventListener('touchstart',event=>onBodyStart(tile,event),{passive:true});
+    tile.body.addEventListener('touchmove',onMove,{passive:false});
+    tile.body.addEventListener('touchend',()=>finish(false),{passive:true});
+    tile.body.addEventListener('touchcancel',()=>finish(true),{passive:true});
   }
 })();
 function adjustCalculatorKeyboardContent(){
