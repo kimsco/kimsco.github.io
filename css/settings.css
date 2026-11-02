@@ -496,7 +496,7 @@ html.menu-v2-on #navDrawer .settings-item-label{width:100%;gap:10px;}
 html.menu-v2-on #navDrawer .nav-v2-icon{display:grid;place-items:center;flex:0 0 28px;width:28px;height:32px;}
 html.menu-v2-on #navDrawer .nav-v2-icon svg{width:28px;height:28px;}
 html.menu-v2-on #navDrawer .nav-menu-copy{display:flex;flex-direction:column;gap:4px;min-width:0;}
-html.menu-v2-on #navDrawer .nav-menu-copy>span:first-child{font-weight:500;line-height:1.35;letter-spacing:-.3px;word-break:keep-all;}
+html.menu-v2-on #navDrawer .nav-menu-copy>span:first-child{font-size:16px;font-weight:500;line-height:1.35;letter-spacing:-.3px;word-break:keep-all;}
 html.menu-v2-on #navDrawer .nav-v2-description{display:block;font-size:11px;line-height:1.5;font-weight:400;letter-spacing:-.2px;color:rgba(255,255,255,.5);word-break:keep-all;}
 html.menu-v2-on #navDrawer :is(#navThreeSummaryBtn,#navOneRMCalcBtn) .nav-v2-description{display:none;}
 html.menu-v2-on #navDrawer #navMyRoutineBtn{grid-column:1/-1;min-height:76px;padding:14px 22px;border-radius:28px;}
@@ -504,7 +504,7 @@ html.menu-v2-on #navDrawer #navMyRoutineBtn .nav-v2-icon{width:40px;flex-basis:4
 html.menu-v2-on #navDrawer #navMuscleFinderBtn{grid-column:1/-1;min-height:76px;border-radius:28px;padding:14px 22px;}
 html.menu-v2-on #navDrawer #navMuscleFinderBtn .nav-v2-icon{width:40px;flex-basis:40px;}
 html.menu-v2-on #navDrawer #navWhoForBtn{grid-column:1/-1;min-height:60px;padding:12px 22px;}
-html.menu-v2-on #navDrawer #navWhoForBtn .nav-menu-copy>span:first-child{font-size:13px;letter-spacing:.6px;}
+html.menu-v2-on #navDrawer #navWhoForBtn .nav-menu-copy>span:first-child{font-size:15px;letter-spacing:.6px;}
 html.menu-v2-on #navDrawer .nav-drawer-item.settings-item:not(.calculator-expanded):active{transform:scale(.965);}
 html.menu-v2-on #navDrawer .nav-drawer-item:focus-visible{outline:2px solid currentColor;outline-offset:4px;}
 html.light-mode-on.menu-v2-on #navDrawer{--menu-tile-bg:rgba(255,255,255,.58);--menu-tile-bg-opaque:#f1efef;--menu-tile-bg-deep:#e2dede;--menu-tile-line:rgba(70,40,46,.12);}
@@ -515,7 +515,7 @@ html.light-mode-on.menu-v2-on #navDrawer .nav-v2-description{color:#827579;}
 /* Match the routine and muscle tools to the compact brand pill. */
 html.menu-v2-on #navDrawer :is(#navMyRoutineBtn,#navMuscleFinderBtn){min-height:60px;padding:12px 22px;border-radius:999px;}
 html.menu-v2-on #navDrawer :is(#navMyRoutineBtn,#navMuscleFinderBtn) .nav-v2-icon{width:28px;flex-basis:28px;}
-html.menu-v2-on #navDrawer :is(#navMyRoutineBtn,#navMuscleFinderBtn) .nav-menu-copy>span:first-child{font-size:13px;letter-spacing:.6px;}
+html.menu-v2-on #navDrawer :is(#navMyRoutineBtn,#navMuscleFinderBtn) .nav-menu-copy>span:first-child{font-size:15px;letter-spacing:.6px;}
 
 /* Full, read-only daily record list in the experimental control center. */
 #navDrawer .nav-v2-today{display:none;}
