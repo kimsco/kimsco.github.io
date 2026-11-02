@@ -13622,7 +13622,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.329";
+const APP_VERSION = "1.0.330";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -21629,7 +21629,6 @@ function toggleMenuCalculatorFullscreen(tile){
   const titleTop=(backBounds.top-cardBounds.top-tile.btn.clientTop+(backBounds.height-titleHeight)/2)+'px';
   tile.btn.style.setProperty('--calculator-title-left',titleLeft);
   tile.btn.style.setProperty('--calculator-title-top',titleTop);
-  const copyFrom={left:tile.copy.style.left,top:tile.copy.style.top};
   tile.copy.style.left=titleLeft;tile.copy.style.top=titleTop;
   const duration=reduced?0:320,easing='cubic-bezier(.22,1,.36,1)';
   // 🔥 width/height를 실제 레이아웃값으로 직접 바꾸면 안의 글/입력창/표가 매 프레임
@@ -21651,34 +21650,16 @@ function toggleMenuCalculatorFullscreen(tile){
     {transform:`translate(${flipDx}px,${flipDy}px) scale(${flipSx},${flipSy})`,borderRadius:from.borderRadius},
     {transform:'none',borderRadius:to.borderRadius}
   ],{duration,easing});
-  if(!reduced&&(copyFrom.left!==titleLeft||copyFrom.top!==titleTop)){
-    menuCalculatorTextMotions.push(tile.copy.animate([copyFrom,{left:titleLeft,top:titleTop}],{duration,easing}));
-  }
-  // 🔥 고스트 제목(tile.copy)도 btn의 자식이라 위 transform을 그대로 같이 받음 — 일부러
-  //    제목 글자만 반대 비율(counter-scale)로 눌러서 안 늘어나게 했더니, 카드의 나머지
-  //    (배경/테두리/버튼 등)는 다 같이 늘었다 줄었다 하는데 제목만 혼자 비율을 유지해서
-  //    "따로 노는" 것처럼 보이는 역효과가 났음 — counter-scale은 뺐지만(크기는 다른
-  //    요소들처럼 같이 늘었다 줄었다 하게 둠), "위치"만 따로 보면 여전히 살짝 어긋남:
-  //    제목 자신의 left/top 이동(copyFrom→titleLeft/titleTop)이 부모 transform
-  //    안쪽에 있다 보니 "그대로 더해지는 게" 아니라 그 순간의 부모 배율만큼 같이
-  //    눌려서, 원래(=부모가 실제 레이아웃으로 움직이던 때) 의도했던 경로보다 살짝
-  //    못 미치는 지점에서 움직임 — 매 프레임 부모의 실제 렌더링된 배율을 읽어서,
-  //    제목 "위치"만 그 배율의 역수만큼 보정 translate를 추가로 걸어 상쇄함(크기는
-  //    그대로 둬서 나머지 요소들과 똑같이 늘었다 줄었다 하는 모습은 유지됨).
-  if(!reduced){
-    (function syncGhostTitlePosition(){
-      if(token!==menuCalculatorToken||menuCalculatorMotion?.playState!=='running'){tile.copy.style.transform='';return;}
-      const m=new DOMMatrix(getComputedStyle(tile.btn).transform);
-      const curSx=m.a||1,curSy=m.d||1;
-      if(curSx===1&&curSy===1){tile.copy.style.transform='';}
-      else{
-        const curLx=parseFloat(getComputedStyle(tile.copy).left)||0;
-        const curLy=parseFloat(getComputedStyle(tile.copy).top)||0;
-        tile.copy.style.transform=`translate(${(curLx*(1-curSx)/curSx).toFixed(2)}px,${(curLy*(1-curSy)/curSy).toFixed(2)}px)`;
-      }
-      requestAnimationFrame(syncGhostTitlePosition);
-    })();
-  }
+  // 🔥 제목(tile.copy)을 copyFrom→titleLeft/titleTop로 따로 애니메이션하거나(이전)
+  //    그 어긋남을 보정하는 transform을 따로 걸면(그 이전), 부모(btn)의 scale
+  //    transform 안쪽에서 "제목 자신의" 움직임이 그 순간의 배율만큼 같이 눌려
+  //    뒤틀리기 때문에, 바로 옆 뒤로가기/전체화면 버튼(헤더 안에서 그냥 부모
+  //    transform을 그대로 받을 뿐, 자기 위치를 따로 애니메이션하지 않음)과 다른
+  //    경로로 움직여서 "제목 글자만 먼저 가버리는"(따로 노는) 것처럼 보였음. 그
+  //    버튼들처럼 제목도 로컬 위치(left/top)는 바로 위에서 이미 최종값으로 즉시
+  //    고정해두고(바로 위 tile.copy.style.left/top=... 두 줄), 더 이상 따로
+  //    애니메이션/보정하지 않음 — 부모 transform만 그대로 같이 받아서 버튼들과
+  //    완전히 같은 경로로 움직이게 함.
   menuCalculatorMotion.finished.then(()=>{if(token!==menuCalculatorToken)return;menuCalculatorMotion=null;}).catch(()=>{});
 }
 function calculatorButtonFrame(tile){
