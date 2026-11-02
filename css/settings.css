@@ -583,6 +583,11 @@ html.menu-v2-on #navToolsLabel{display:none;}
 #navDrawer.calculator-open #navMenuBody{pointer-events:none;}
 
 #navDrawer.calculator-open #navMenuCloseBtn{z-index:4;}
+/* 🔥 카드를 위로 끌어올릴 때(전체화면 진입 제스처) 카드가 메뉴 닫기(X) 버튼
+   자리까지 올라오는데, X 버튼이 평소엔 카드(z-index:2)보다 위(4)에 있어서
+   끄는 동안 카드가 X 버튼 밑으로 깔려 보였음 — 끄는 동안(calc-dragging)만
+   카드를 X보다 위로 올림(끝나면 바로 원래대로 돌아감). */
+#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded.calc-dragging.calc-dragging{z-index:5;}
 /* 🔥 카드가 전체화면일 땐 카드 우측상단 전체화면 버튼이 드로어 자체의 메뉴
    닫기(X) 버튼이랑 같은 자리(우측상단)에 겹침 — 카드가 화면을 다 덮은
    상태에선 카드 안의 "뒤로가기" 버튼이 곧 나가는 길이라 X는 숨김 */
