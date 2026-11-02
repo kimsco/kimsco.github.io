@@ -668,7 +668,7 @@ html.menu-v2-on #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-
    브라우저가 부드럽게 보간 안 해주고 순간 전환돼버려서(실측 확인함), 대신 별도
    ::after 레이어를 opacity로 페이드인시키는 방식을 씀 — opacity는 항상 매끄럽게 보간됨. */
 #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded::after{content:'';display:block;position:absolute;inset:0;border-radius:inherit;background:linear-gradient(180deg,#111 0%,#000 60%,#000 100%);opacity:0;pointer-events:none;z-index:0;transition:opacity 1s ease;}
-html.menu-v2-on #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded.is-ready::after{opacity:1;}
+html.menu-v2-on #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded.is-ready::after{opacity:.6;}
 /* 🔥 라이트모드에서는 카드 글자색이 어두운(#211c1d) 라이트 카드 기준이라, 배경이 위
    ::after로 검정에 가깝게 덮이고 나면 어두운 글자가 거의 안 보임 — 전체화면 때와
    같은 이유라 같은 방식으로, is-ready(=검정 배경이 거의 다 덮인 시점) 때는 다크모드와
