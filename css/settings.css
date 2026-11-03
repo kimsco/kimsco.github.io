@@ -483,7 +483,7 @@ html.light-mode-on #labsSettingsOverlay{background:#f5f4f4;}
 
 /* Version 2: control-center tiles. The original list keeps its existing appearance. */
 #navDrawer .nav-v2-icon,#navDrawer .nav-v2-description{display:none;}
-html.menu-v2-on #navDrawer{--menu-tile-bg:rgba(100,96,98,.34);--menu-tile-bg-opaque:#64605f;--menu-tile-bg-deep:#1b1a1c;--menu-tile-line:rgba(255,255,255,.18);}
+html.menu-v2-on #navDrawer{--menu-tile-bg:rgba(0,0,0,.34);--menu-tile-bg-opaque:#000;--menu-tile-bg-deep:#1b1a1c;--menu-tile-line:rgba(255,255,255,.18);}
 html.menu-v2-on #navMenuBody{padding-inline:24px;}
 html.menu-v2-on #navMenuTitle{margin-bottom:36px;}
 html.menu-v2-on #navDrawer .settings-section-label{padding-left:4px;margin-bottom:14px;font-size:13px;letter-spacing:.3px;}
