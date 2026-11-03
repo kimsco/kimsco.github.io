@@ -13631,7 +13631,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.341";
+const APP_VERSION = "1.0.342";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -21036,19 +21036,28 @@ function runLabelFlip(text, fromRect, fromColor, toRect, toColor, durationMs){
 
 // 🔥 같은 탭 재탭 시 맨 위로: 순간이동(scrollTop=0) 대신, 짧고 빠르게 "올라가는" 모습이 보이도록
 function scrollTabToTopFast(el, duration=220){
-  if (!el || el.scrollTop<=0) { if (el) el.scrollTop=0; return; }
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) { el.scrollTop=0; return; }
+  if (!el) return;
+  // 🔥 더블/트리플 클릭처럼 애니메이션이 끝나기 전에 또 호출되면, 토큰으로 이전 루프를 취소
+  //    (안 그러면 두 루프가 동시에 scrollTop을 쓰다가, 먼저 끝난 쪽이 snap-type을 복구시켜버려서
+  //    아직 돌고 있는 루프가 snap에 걸려 순간이동하는 것처럼 보임)
+  const myToken=(el.__scrollFastToken=(el.__scrollFastToken||0)+1);
+  const finishSnap=()=>{if(el.__scrollFastSnapOverride){el.style.scrollSnapType=el.__scrollFastPrevSnap;el.__scrollFastSnapOverride=false;}};
+  if (el.scrollTop<=0 || matchMedia('(prefers-reduced-motion: reduce)').matches) { el.scrollTop=0; finishSnap(); return; }
   // 🔥 scroll-snap이 걸린 컨테이너(집중모드)는 중간 scrollTop 값을 즉시 가까운 snap 지점으로
   //    되돌려버려서 애니메이션이 하나도 안 보이고 순간이동처럼 보임 — 애니메이션 동안만 꺼둠
-  const prevSnap=el.style.scrollSnapType;
-  el.style.scrollSnapType='none';
+  if (!el.__scrollFastSnapOverride) {
+    el.__scrollFastPrevSnap=el.style.scrollSnapType;
+    el.style.scrollSnapType='none';
+    el.__scrollFastSnapOverride=true;
+  }
   const start=el.scrollTop, startTs=performance.now();
   (function step(ts){
+    if (myToken!==el.__scrollFastToken) return; // 🔥 그사이 또 호출돼서 이 루프는 취소됨
     const p=Math.min(1,(ts-startTs)/duration);
     const eased=1-Math.pow(1-p,3);
     el.scrollTop=start*(1-eased);
     if (p<1) requestAnimationFrame(step);
-    else { el.scrollTop=0; el.style.scrollSnapType=prevSnap; }
+    else { el.scrollTop=0; finishSnap(); }
   })(startTs);
 }
 
