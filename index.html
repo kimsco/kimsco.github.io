@@ -13631,7 +13631,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.337";
+const APP_VERSION = "1.0.338";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -21072,6 +21072,7 @@ bottomTabBtns.forEach(btn => {
     });
 
     document.querySelector('.app').scrollTo({ top: 0, behavior: 'auto' });
+    if (homeSeriousModeScreen) homeSeriousModeScreen.scrollTop = 0; // 🔥 집중모드는 .app과 별개의 스크롤 컨테이너라 위 리셋만으로는 안 먹음
 
     // 🔥 홈탭(스크롤 잠금 풀림, 아래쪽 스프링 바운스 살아있음)과 다른 탭들(계속
     //    overscroll-behavior:none으로 잠금) 사이를 탭 전환 때마다 다시 맞춰줌
