@@ -13631,7 +13631,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.338";
+const APP_VERSION = "1.0.339";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -21034,6 +21034,24 @@ function runLabelFlip(text, fromRect, fromColor, toRect, toColor, durationMs){
   setTimeout(() => clone.remove(), durationMs + 60);
 }
 
+// 🔥 같은 탭 재탭 시 맨 위로: 순간이동(scrollTop=0) 대신, 짧고 빠르게 "올라가는" 모습이 보이도록
+function scrollTabToTopFast(el, duration=220){
+  if (!el || el.scrollTop<=0) { if (el) el.scrollTop=0; return; }
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) { el.scrollTop=0; return; }
+  // 🔥 scroll-snap이 걸린 컨테이너(집중모드)는 중간 scrollTop 값을 즉시 가까운 snap 지점으로
+  //    되돌려버려서 애니메이션이 하나도 안 보이고 순간이동처럼 보임 — 애니메이션 동안만 꺼둠
+  const prevSnap=el.style.scrollSnapType;
+  el.style.scrollSnapType='none';
+  const start=el.scrollTop, startTs=performance.now();
+  (function step(ts){
+    const p=Math.min(1,(ts-startTs)/duration);
+    const eased=1-Math.pow(1-p,3);
+    el.scrollTop=start*(1-eased);
+    if (p<1) requestAnimationFrame(step);
+    else { el.scrollTop=0; el.style.scrollSnapType=prevSnap; }
+  })(startTs);
+}
+
 bottomTabBtns.forEach(btn => {
   btn.addEventListener('click', () => {
     calPopup.classList.add("hidden");
@@ -21071,8 +21089,8 @@ bottomTabBtns.forEach(btn => {
       }
     });
 
-    document.querySelector('.app').scrollTo({ top: 0, behavior: 'auto' });
-    if (homeSeriousModeScreen) homeSeriousModeScreen.scrollTop = 0; // 🔥 집중모드는 .app과 별개의 스크롤 컨테이너라 위 리셋만으로는 안 먹음
+    scrollTabToTopFast(document.querySelector('.app'));
+    scrollTabToTopFast(homeSeriousModeScreen); // 🔥 집중모드는 .app과 별개의 스크롤 컨테이너라 위 리셋만으로는 안 먹음
 
     // 🔥 홈탭(스크롤 잠금 풀림, 아래쪽 스프링 바운스 살아있음)과 다른 탭들(계속
     //    overscroll-behavior:none으로 잠금) 사이를 탭 전환 때마다 다시 맞춰줌
