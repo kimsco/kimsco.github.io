@@ -537,7 +537,21 @@ html.light-mode-on .today-record-count{color:#a79ba0;}
 
 /* Empty daily record card is a single compact action; saved rows grow it naturally. */
 html.menu-v2-on #navDrawer .nav-today-card{box-sizing:border-box;min-height:60px;padding:18px 22px;border-radius:30px;cursor:pointer;touch-action:pan-y;transition:transform .32s cubic-bezier(.22,1,.36,1);}
-#navTodayRecordsTitle{margin:0;font-size:13px;font-weight:500;letter-spacing:.6px;line-height:22px;}
+/* 🔥 "오늘 운동 레코드"도 1RM/3대 타일과 같은 blur+확장 매커니즘을 쓰게 되면서, 접힌
+   상태의 카드 높이를 다른 알약 버튼(최소 64px)의 약 3배(192px)로 고정 — 기록이
+   많아져도 카드 자체는 안 커지고, 리스트 쪽만 안에서 자체 스크롤 + 하단 페이드 */
+html.menu-v2-on #navDrawer #navTodayRecordsOpen{min-height:192px;}
+#navTodayRecordsOpen .nav-today-ghost{display:flex;flex-direction:column;width:100%;}
+#navTodayRecordsOpen .nav-today-ghost-top{display:flex;align-items:center;gap:10px;}
+#navTodayRecordsOpen .nav-today-ghost-top .today-record-heading-row{flex:1;min-width:0;margin-bottom:0;}
+#navTodayRecordsOpen .nav-today-preview{position:relative;max-height:140px;overflow:hidden;margin-top:10px;-webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 48px),transparent 100%);mask-image:linear-gradient(to bottom,#000 calc(100% - 48px),transparent 100%);}
+/* 🔥 확장되는 순간 ghost는 height:0으로 접히는데(1RM/3대와 공용 규칙), 미리보기
+   리스트/카운트는 overflow 지정이 없어 그 0 높이 밖으로 그대로 삐져나와 펼쳐진
+   카드 내용(헤더/본문) 위에 겹쳐 보임 — ghost 전체에 overflow:hidden을 걸면
+   (처음에 그렇게 했었음) 아이콘/제목처럼 의도적으로 absolute 위치시킨 자식들까지
+   같이 잘려서 안 보이게 되는 부작용이 있었음 — 미리보기/카운트만 콕 집어서 숨김 */
+#navDrawer #navTodayRecordsOpen.calculator-expanded>.menu-expand-ghost .nav-today-preview,
+#navDrawer #navTodayRecordsOpen.calculator-expanded>.menu-expand-ghost .today-record-count{display:none;}
 #navTodayRecordsOpen.has-records .today-record-heading-row{margin-bottom:16px;}
 #navTodayRecordsOpen:active{transform:scale(.98);}
 #navTodayRecordsOpen:focus-visible{outline:2px solid currentColor;outline-offset:4px;}
@@ -563,7 +577,7 @@ html.menu-v2-on #navDrawer .settings-group[aria-labelledby="navAboutLabel"]{padd
 
 /* The calculator tile grows into its own workspace inside menu v2.
    🔥 "3대 PR" 탭도 같은 매커니즘을 씀 — #navOneRMCalcBtn 하나만 가리키던 선택자를
-   :is(#navOneRMCalcBtn,#navThreeSummaryBtn)로 넓히고, 유령 라벨/헤더/본문/시트처럼
+   :is(#navOneRMCalcBtn,#navThreeSummaryBtn,#navTodayRecordsOpen)로 넓히고, 유령 라벨/헤더/본문/시트처럼
    탭마다 DOM이 두 벌 있어야 하는 구성요소는 ID 대신 공용 클래스(.menu-expand-*)로
    찾게 바꿈. .calculator-expanded 토글 클래스 이름 자체는 그대로 재사용(두 탭 다
    "이 탭이 지금 펼쳐진 카드다"라는 같은 뜻으로 공유) */
@@ -575,11 +589,11 @@ html.menu-v2-on #navToolsLabel{display:none;}
    backdrop-filter:blur(18px)가 뒤를 흐릿하게 가려주고, 아래 ::after 레이어가 다
    펼쳐진 뒤 점점 짙어지며 덮어서, 처음엔 진짜 반투명 유리처럼 보이다가 서서히
    짙어지는 쪽을 택함. */
-#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded{position:absolute;z-index:2;overflow:hidden;box-sizing:border-box;border:1px solid rgba(255,255,255,.2);background:var(--menu-tile-bg,rgba(100,96,98,.34));-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);color:#f5f5f5;box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 16px 50px rgba(0,0,0,.2);outline:none;display:flex;flex-direction:column;}
+#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn,#navTodayRecordsOpen).calculator-expanded{position:absolute;z-index:2;overflow:hidden;box-sizing:border-box;border:1px solid rgba(255,255,255,.2);background:var(--menu-tile-bg,rgba(100,96,98,.34));-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);color:#f5f5f5;box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 16px 50px rgba(0,0,0,.2);outline:none;display:flex;flex-direction:column;}
 /* 🔥 은은한 하이라이트 그라데이션 — 타일일 때부터 쭉 같은 모양이라 애니메이션 없이
    항상 그대로 보여줌(흰색을 페이드인시키면 오히려 카드가 밝아 보여서 뺐음). */
-:is(#navOneRMCalcBtn,#navThreeSummaryBtn)>.menu-expand-sheen{display:none;}
-#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded>.menu-expand-sheen{display:block;position:absolute;inset:0;z-index:0;pointer-events:none;border-radius:inherit;background-image:linear-gradient(145deg,rgba(255,255,255,.07),transparent 65%);}
+:is(#navOneRMCalcBtn,#navThreeSummaryBtn,#navTodayRecordsOpen)>.menu-expand-sheen{display:none;}
+#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn,#navTodayRecordsOpen).calculator-expanded>.menu-expand-sheen{display:block;position:absolute;inset:0;z-index:0;pointer-events:none;border-radius:inherit;background-image:linear-gradient(145deg,rgba(255,255,255,.07),transparent 65%);}
 #navDrawer.calculator-open #navMenuBody{pointer-events:none;}
 
 #navDrawer.calculator-open #navMenuCloseBtn{z-index:4;}
@@ -587,16 +601,16 @@ html.menu-v2-on #navToolsLabel{display:none;}
    자리까지 올라오는데, X 버튼이 평소엔 카드(z-index:2)보다 위(4)에 있어서
    끄는 동안 카드가 X 버튼 밑으로 깔려 보였음 — 끄는 동안(calc-dragging)만
    카드를 X보다 위로 올림(끝나면 바로 원래대로 돌아감). */
-#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded.calc-dragging.calc-dragging{z-index:5;}
+#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn,#navTodayRecordsOpen).calculator-expanded.calc-dragging.calc-dragging{z-index:5;}
 /* 🔥 카드가 전체화면일 땐 카드 우측상단 전체화면 버튼이 드로어 자체의 메뉴
    닫기(X) 버튼이랑 같은 자리(우측상단)에 겹침 — 카드가 화면을 다 덮은
    상태에선 카드 안의 "뒤로가기" 버튼이 곧 나가는 길이라 X는 숨김 */
 #navDrawer.calculator-fullscreen #navMenuCloseBtn{display:none;}
 /* 🔥 전체화면일 땐 카드 상단이 화면 맨 꼭대기(상태표시줄/노치)까지 닿으므로, 헤더
    안쪽에 안전영역(top) 여백을 더 얹어서 글자/버튼이 거기 눌려붙지 않게 함. */
-#navDrawer.calculator-fullscreen :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded>.menu-calculator-header{padding-top:calc(18px + env(safe-area-inset-top));}
+#navDrawer.calculator-fullscreen :is(#navOneRMCalcBtn,#navThreeSummaryBtn,#navTodayRecordsOpen).calculator-expanded>.menu-calculator-header{padding-top:calc(18px + env(safe-area-inset-top));}
 /* 🔥 전체화면일 땐 상단에 검은색 그라데이션을 깔아 헤더 버튼/글자의 대비를 살림. */
-#navDrawer.calculator-fullscreen :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded::before{content:'';position:absolute;inset:0 0 auto 0;height:calc(140px + env(safe-area-inset-top));background:linear-gradient(rgba(0,0,0,.55),rgba(0,0,0,0));pointer-events:none;z-index:0;}
+#navDrawer.calculator-fullscreen :is(#navOneRMCalcBtn,#navThreeSummaryBtn,#navTodayRecordsOpen).calculator-expanded::before{content:'';position:absolute;inset:0 0 auto 0;height:calc(140px + env(safe-area-inset-top));background:linear-gradient(rgba(0,0,0,.55),rgba(0,0,0,0));pointer-events:none;z-index:0;}
 /* 🔥 전체화면일 땐 타일의 반투명 유리 테두리 대신 테두리선을 없애고 글자는 모드
    상관없이 밝게 고정. 일반 상태 규칙(border!important 포함)보다 선택자를 더
    구체적으로 만들어서 확실히 덮어씀.
@@ -616,7 +630,7 @@ html.menu-v2-on #navToolsLabel{display:none;}
    비쳐 보였음. 전체화면에선 카드 배경 자체를 완전 불투명한 검정으로 바꿔서
    (글라스 틴트 대신) 그 테두리 자리를 포함해 어디에도 뒤가 비칠 틈이 없게 하고,
    더 이상 필요 없는 backdrop-filter도 꺼서 안전하게 둘 다 제거함. */
-html.menu-v2-on #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded.fs-tint.fs-tint{border-color:transparent!important;box-shadow:0 0 0 rgba(0,0,0,0)!important;color:#f5f5f5!important;background:#000!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;}
+html.menu-v2-on #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn,#navTodayRecordsOpen).calculator-expanded.fs-tint.fs-tint{border-color:transparent!important;box-shadow:0 0 0 rgba(0,0,0,0)!important;color:#f5f5f5!important;background:#000!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;}
 /* 🔥 전체화면의 "검정 배경"은 메인 background를 직접 바꾸지 않고, 이미 있는 ::after
    어두워지는 오버레이의 목표 opacity를 거의 1까지 올리는 식으로 구현함 — background
    자체를 바로 바꾸면(특히 그라데이션↔단색 사이) 브라우저가 부드럽게 보간을 안 해줘서
@@ -624,7 +638,7 @@ html.menu-v2-on #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-
    항상 매끄럽게 보간되니, 켜고 끌 때 모두 자연스럽게 서서히 바뀜. */
 /* 🔥 .97로는 navDrawer 자신의 배경(좌상단 붉은 방사형 그라데이션)이 가장자리에
    미세하게 비쳐 보였음(실기기에서 확인됨) — 전체화면은 완전히 불투명해야 하므로 1로. */
-html.menu-v2-on #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded.fs-tint.fs-tint::after{opacity:1;}
+html.menu-v2-on #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn,#navTodayRecordsOpen).calculator-expanded.fs-tint.fs-tint::after{opacity:1;}
 /* 🔥 라이트모드 전용 어두운 글자색/밝은 입력창 배경들이 라이트 카드 기준으로 만들어져
    있어서, 배경을 검정으로 강제한 전체화면에서는 그대로 두면 안 보이거나(어두운
    글자가 검정 위에) 거꾸로 안 보임(흰 글자가 거의-흰색 입력창 배경 위에). 라이트모드
@@ -647,11 +661,11 @@ html.light-mode-on #navDrawer #navThreeSummaryBtn.calculator-expanded.fs-tint.fs
 /* 🔥 이 코드베이스엔 범용 .hidden{display:none} 규칙이 없고 요소별로 개별 지정 */
 .menu-expand-fullscreen-enter-icon.hidden,.menu-expand-fullscreen-exit-icon.hidden{display:none;}
 .menu-expand-content{flex:1;min-height:0;display:flex;flex-direction:column;padding:0 22px;}
-#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded :is(.menu-calculator-header,.menu-expand-content){box-sizing:border-box;width:var(--calculator-content-width);flex-shrink:0;}
+#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn,#navTodayRecordsOpen).calculator-expanded :is(.menu-calculator-header,.menu-expand-content){box-sizing:border-box;width:var(--calculator-content-width);flex-shrink:0;}
 /* 🔥 #oneRMCalcBody는 인라인 style로 overflow-y:auto가 걸려있었지만 #threeDetail은
    빠져있었음 — "상세보기"를 펼쳐 내용이 카드 높이를 넘기면 카드 자체의 overflow:hidden에
    그냥 잘려서 스크롤로 볼 방법이 없었음. 여기서 같이 지정해서 넘치는 만큼 스크롤되게 함. */
-#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded :is(#oneRMCalcBody,#threeDetail){min-height:0;overflow-y:auto;padding:8px 0 calc(28px + env(safe-area-inset-bottom));overscroll-behavior:contain;scrollbar-width:none;}
+#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn,#navTodayRecordsOpen).calculator-expanded :is(#oneRMCalcBody,#threeDetail,#todayRecordsBody){min-height:0;overflow-y:auto;padding:8px 0 calc(28px + env(safe-area-inset-bottom));overscroll-behavior:contain;scrollbar-width:none;}
 #navDrawer #navOneRMCalcBtn.calculator-expanded :is(#oneRMLiftSelect,#weight,#reps,#goBtn){display:block;box-sizing:border-box;width:100%;min-height:48px;padding:12px 16px;margin:0 0 12px;border:1px solid rgba(255,255,255,.12);border-radius:24px;background:rgba(255,255,255,.07);color:inherit;font:inherit;font-size:15px;}
 #navDrawer #navOneRMCalcBtn.calculator-expanded #goBtn{background:#f5f5f5;color:#242124;font-weight:650;cursor:pointer;}
 #navDrawer #navOneRMCalcBtn.calculator-expanded #tableArea{margin-top:20px;}
@@ -668,7 +682,7 @@ html.light-mode-on #navDrawer #navThreeSummaryBtn.calculator-expanded .rmInput:f
 html.light-mode-on #navDrawer #navThreeSummaryBtn.calculator-expanded #save3Btn{border-color:#211c1d;color:#211c1d;}
 html.light-mode-on #navDrawer #navThreeSummaryBtn.calculator-expanded .three-detail-link{color:rgba(33,28,29,.5);}
 html.light-mode-on :is(.menu-expand-back,.menu-expand-fullscreen){border-color:rgba(50,30,35,.12);background:rgba(50,30,35,.04);}
-@media(prefers-reduced-motion:reduce){#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded,#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded *,#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded::after,#navMenuBody{transition:none!important;}}
+@media(prefers-reduced-motion:reduce){#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn,#navTodayRecordsOpen).calculator-expanded,#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn,#navTodayRecordsOpen).calculator-expanded *,#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn,#navTodayRecordsOpen).calculator-expanded::after,#navMenuBody{transition:none!important;}}
 
 /* Keep surrounding cards still and visible; only the selected tile changes shape. */
 .menu-calculator-ghost{position:absolute;z-index:2;left:14px;top:15px;white-space:nowrap;pointer-events:none;font-size:14px;font-weight:500;}
@@ -677,26 +691,26 @@ html.light-mode-on :is(.menu-expand-back,.menu-expand-fullscreen){border-color:r
 .menu-expand-ghost .nav-v2-icon{width:28px;height:32px;}
 
 /* Content grows from the card center rather than sliding in from its right edge. */
-#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded :is(.menu-calculator-header,.menu-expand-content){position:relative;left:50%;margin-left:calc(var(--calculator-content-width) / -2);transform-origin:center top;}
+#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn,#navTodayRecordsOpen).calculator-expanded :is(.menu-calculator-header,.menu-expand-content){position:relative;left:50%;margin-left:calc(var(--calculator-content-width) / -2);transform-origin:center top;}
 
 /* Keep all calculator contents clipped to the animated workspace bounds. */
-#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded{min-height:0;min-width:0;overflow:hidden;contain:paint;}
+#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn,#navTodayRecordsOpen).calculator-expanded{min-height:0;min-width:0;overflow:hidden;contain:paint;}
 
 /* Leave a visible rounded lower edge above the home indicator. */
 #menuCalculatorBottomInset{position:absolute;bottom:0;left:0;width:0;height:20px;visibility:hidden;pointer-events:none;}
 
 /* The original tile becomes the workspace; only an invisible grid spacer is left behind. */
 .calculator-tile-placeholder{visibility:hidden;pointer-events:none;min-width:0;}
-:is(#navOneRMCalcBtn,#navThreeSummaryBtn)>.menu-calculator-header,:is(#navOneRMCalcBtn,#navThreeSummaryBtn)>.menu-expand-content{display:none;}
-html.menu-v2-on #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;position:absolute;z-index:2;min-width:0;min-height:0;margin:0;padding:0;border:1px solid rgba(255,255,255,.2)!important;background:var(--menu-tile-bg,rgba(100,96,98,.34));-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);color:#f5f5f5;transition:border-color 1.8s ease;cursor:default;box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 16px 50px rgba(0,0,0,.2);}
+:is(#navOneRMCalcBtn,#navThreeSummaryBtn,#navTodayRecordsOpen)>.menu-calculator-header,:is(#navOneRMCalcBtn,#navThreeSummaryBtn,#navTodayRecordsOpen)>.menu-expand-content{display:none;}
+html.menu-v2-on #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn,#navTodayRecordsOpen).calculator-expanded{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;position:absolute;z-index:2;min-width:0;min-height:0;margin:0;padding:0;border:1px solid rgba(255,255,255,.2)!important;background:var(--menu-tile-bg,rgba(100,96,98,.34));-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);color:#f5f5f5;transition:border-color 1.8s ease;cursor:default;box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 16px 50px rgba(0,0,0,.2);}
 /* 🔥 카드가 검게 짙어지는 동안 겉 테두리 선 색도 같이 옅어지게 함(bg-ready와 같은
    타이밍/길이로). */
-html.menu-v2-on #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded.bg-ready{border-color:rgba(255,255,255,.08)!important;}
+html.menu-v2-on #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn,#navTodayRecordsOpen).calculator-expanded.bg-ready{border-color:rgba(255,255,255,.08)!important;}
 /* 🔥 닫을 때(bg-closing)는 색이 열 때의 느긋한 1.8초가 아니라, 카드가 작아지는
    애니메이션(330ms)과 같은 속도로 원래 색에 돌아가야 자연스러움 — 트랜지션 길이만
    짧게 덮어씀(목표 색 자체는 bg-ready가 빠지면서 기본값으로 저절로 돌아감). */
-html.menu-v2-on #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded.bg-closing{transition:border-color .33s ease;}
-#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded.bg-closing::after{transition:opacity .33s ease;}
+html.menu-v2-on #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn,#navTodayRecordsOpen).calculator-expanded.bg-closing{transition:border-color .33s ease;}
+#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn,#navTodayRecordsOpen).calculator-expanded.bg-closing::after{transition:opacity .33s ease;}
 /* 🔥 완료 시점(카드가 열리기 시작한 뒤 대략 1.8~1.9초 지점 — 예전 is-ready+1초 때와
    비슷하게 맞춤)은 그대로 두고, 시작은 bg-ready 클래스를 카드가 막 펼쳐지기 시작할
    때(한 프레임 뒤)부터 걸어서 훨씬 더 서서히/일찍부터 바뀌게 함. 펼쳐지는 스쿼시/
@@ -704,13 +718,13 @@ html.menu-v2-on #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-
    는 다름. CSS 그라데이션 자체(var(--menu-tile-bg) 포함)는 직접 전환시켜도 브라우저가
    부드럽게 보간 안 해주고 순간 전환돼버려서(실측 확인함), 대신 별도 ::after 레이어를
    opacity로 페이드인시키는 방식을 씀 — opacity는 항상 매끄럽게 보간됨. */
-#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded::after{content:'';display:block;position:absolute;inset:0;border-radius:inherit;background:linear-gradient(180deg,#111 0%,#000 60%,#000 100%);opacity:0;pointer-events:none;z-index:0;transition:opacity 1.8s ease;}
-html.menu-v2-on #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded.bg-ready::after{opacity:.6;}
+#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn,#navTodayRecordsOpen).calculator-expanded::after{content:'';display:block;position:absolute;inset:0;border-radius:inherit;background:linear-gradient(180deg,#111 0%,#000 60%,#000 100%);opacity:0;pointer-events:none;z-index:0;transition:opacity 1.8s ease;}
+html.menu-v2-on #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn,#navTodayRecordsOpen).calculator-expanded.bg-ready::after{opacity:.6;}
 /* 🔥 라이트모드에서는 카드 글자색이 어두운(#211c1d) 라이트 카드 기준이라, 배경이 위
    ::after로 검정에 가깝게 덮이고 나면 어두운 글자가 거의 안 보임 — 전체화면 때와
    같은 이유라 같은 방식으로, is-ready(=검정 배경이 거의 다 덮인 시점) 때는 다크모드와
    같은 밝은 배색으로 되돌림. */
-html.light-mode-on #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded.is-ready{color:#f5f5f5!important;}
+html.light-mode-on #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn,#navTodayRecordsOpen).calculator-expanded.is-ready{color:#f5f5f5!important;}
 html.light-mode-on #navDrawer #navOneRMCalcBtn.calculator-expanded.is-ready :is(#oneRMLiftSelect,#weight,#reps){background:rgba(255,255,255,.07)!important;border-color:rgba(255,255,255,.12)!important;}
 html.light-mode-on #navDrawer #navOneRMCalcBtn.calculator-expanded.is-ready #tableArea>div{color:#f5f5f5!important;}
 html.light-mode-on #navDrawer #navThreeSummaryBtn.calculator-expanded.is-ready #total3{color:#fff!important;}
@@ -718,18 +732,18 @@ html.light-mode-on #navDrawer #navThreeSummaryBtn.calculator-expanded.is-ready .
 html.light-mode-on #navDrawer #navThreeSummaryBtn.calculator-expanded.is-ready .rmInput:focus{border-bottom-color:#fff!important;}
 html.light-mode-on #navDrawer #navThreeSummaryBtn.calculator-expanded.is-ready #save3Btn{border-color:#fff!important;color:#fff!important;}
 html.light-mode-on #navDrawer #navThreeSummaryBtn.calculator-expanded.is-ready .three-detail-link{color:rgba(255,255,255,.45)!important;}
-#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded>.menu-calculator-header{display:flex;position:relative;z-index:1;}
-#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded>.menu-expand-content{display:flex;position:relative;z-index:1;}
-#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded>.menu-expand-ghost{width:auto;white-space:nowrap;}
-html.light-mode-on.menu-v2-on #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded{color:#211c1d;border-color:rgba(50,30,35,.12)!important;}
+#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn,#navTodayRecordsOpen).calculator-expanded>.menu-calculator-header{display:flex;position:relative;z-index:1;}
+#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn,#navTodayRecordsOpen).calculator-expanded>.menu-expand-content{display:flex;position:relative;z-index:1;}
+#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn,#navTodayRecordsOpen).calculator-expanded>.menu-expand-ghost{width:auto;white-space:nowrap;}
+html.light-mode-on.menu-v2-on #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn,#navTodayRecordsOpen).calculator-expanded{color:#211c1d;border-color:rgba(50,30,35,.12)!important;}
 
 /* One continuous title and fluid content: no duplicate label or fixed-width slicing. */
-#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded :is(.menu-calculator-header,.menu-expand-content){width:100%;left:auto;margin-left:0;}
-#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded>.menu-expand-ghost{display:block;position:absolute;inset:0;z-index:3;width:100%;height:0;pointer-events:none;}
-#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded>.menu-expand-ghost .nav-v2-icon{position:absolute;left:var(--calculator-icon-left,14px);top:15px;}
-#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded>.menu-expand-ghost .nav-menu-copy{position:absolute;left:64px;top:var(--calculator-title-top,26px);white-space:nowrap;}
-#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded>.menu-expand-ghost .nav-menu-copy>span:first-child{font-size:var(--calculator-title-size,14px);font-weight:500;line-height:1.35;}
+#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn,#navTodayRecordsOpen).calculator-expanded :is(.menu-calculator-header,.menu-expand-content){width:100%;left:auto;margin-left:0;}
+#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn,#navTodayRecordsOpen).calculator-expanded>.menu-expand-ghost{display:block;position:absolute;inset:0;z-index:3;width:100%;height:0;pointer-events:none;}
+#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn,#navTodayRecordsOpen).calculator-expanded>.menu-expand-ghost .nav-v2-icon{position:absolute;left:var(--calculator-icon-left,14px);top:15px;}
+#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn,#navTodayRecordsOpen).calculator-expanded>.menu-expand-ghost .nav-menu-copy{position:absolute;left:64px;top:var(--calculator-title-top,26px);white-space:nowrap;}
+#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn,#navTodayRecordsOpen).calculator-expanded>.menu-expand-ghost .nav-menu-copy>span:first-child{font-size:var(--calculator-title-size,14px);font-weight:500;line-height:1.35;}
 .menu-expand-title-sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;}
 
 /* Isolate the resizing workspace and avoid re-blurring the menu on each frame. */
-#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn).calculator-expanded{contain:layout paint;-webkit-backdrop-filter:none;backdrop-filter:none;}
+#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn,#navTodayRecordsOpen).calculator-expanded{contain:layout paint;-webkit-backdrop-filter:none;backdrop-filter:none;}

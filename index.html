@@ -8805,7 +8805,7 @@ document.addEventListener('dragstart', event => {
   event.preventDefault();
 });
 </script>
-<link rel="stylesheet" href="/css/settings.css?v=1.0.345">
+<link rel="stylesheet" href="/css/settings.css?v=1.0.346">
 </head>
 
 <body style="background-color:#000000;">
@@ -10567,10 +10567,7 @@ window.__bootSplashDonePromise = new Promise(function(resolveBootSplashDone){
         </div>
       </section>
       <section id="navTodayRecords" class="settings-group nav-v2-today" aria-labelledby="navTodayRecordsTitle">
-        <div id="navTodayRecordsOpen" class="nav-today-card" role="button" tabindex="0" aria-haspopup="dialog" aria-controls="todayRecordsOverlay" aria-labelledby="navTodayRecordsTitle">
-          <div class="today-record-heading-row"><h2 id="navTodayRecordsTitle">오늘 운동 레코드</h2><span id="navTodayRecordsCount" class="today-record-count"></span></div>
-          <ul id="navTodayRecordsList" class="today-record-list"></ul>
-        </div>
+        <div id="navTodayRecordsOpen" class="nav-today-card" role="button" tabindex="0" aria-haspopup="dialog" aria-label="오늘 운동 레코드"><div class="menu-expand-sheen" aria-hidden="true"></div><span class="nav-today-ghost menu-expand-ghost"><div class="nav-today-ghost-top"><span class="nav-v2-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 9h6M9 13h6M9 17h3"/></svg></span><div class="today-record-heading-row"><span class="nav-menu-copy"><span>오늘 운동 레코드</span></span><span id="navTodayRecordsCount" class="today-record-count"></span></div></div><div class="nav-today-preview"><ul id="navTodayRecordsList" class="today-record-list"></ul></div></span><div class="menu-calculator-header"><button class="menu-expand-back" type="button" aria-label="메뉴로 돌아가기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h2 id="navTodayRecordsTitle" class="menu-expand-title-sr">오늘 운동 레코드</h2><button class="menu-expand-fullscreen" type="button" aria-label="전체화면으로 보기" aria-pressed="false"><svg class="menu-expand-fullscreen-enter-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg><svg class="menu-expand-fullscreen-exit-icon hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14h6v6M20 10h-6v-6M14 10l7-7M3 21l7-7"/></svg></button></div><div class="menu-expand-content"></div></div>
       </section>
       <section class="settings-group" aria-labelledby="navAboutLabel">
         <h2 id="navAboutLabel" class="settings-section-label">To the Top</h2>
@@ -13631,7 +13628,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.345";
+const APP_VERSION = "1.0.346";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -21550,8 +21547,19 @@ function closeTodayRecords(){
   todayRecordsScreen.style.transition='';todayRecordsScreen.style.transform='translateX(100%)';
   todayRecordsCloseTimer=setTimeout(()=>{todayRecordsOverlay.classList.add('hidden');document.getElementById('openNavDrawerBtn').focus({preventScroll:true});},matchMedia('(prefers-reduced-motion:reduce)').matches?0:300);
 }
-document.getElementById('navTodayRecordsOpen').addEventListener('click',openTodayRecords);
-document.getElementById('navTodayRecordsOpen').addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();event.stopPropagation();openTodayRecords();}});
+document.getElementById('navTodayRecordsOpen').addEventListener('click',()=>{
+  if(document.getElementById('navTodayRecordsOpen').classList.contains('calculator-expanded'))return;
+  if(document.documentElement.classList.contains('menu-v2-on')){
+    renderTodayRecordList(document.getElementById('todayRecordsList'));
+    openMenuCalculatorTile(calcTiles.today);
+    return;
+  }
+  openTodayRecords();
+});
+document.getElementById('navTodayRecordsOpen').addEventListener('keydown',event=>{
+  if(event.target!==event.currentTarget||event.currentTarget.getAttribute('role')!=='button')return;
+  if(event.key==='Enter'||event.key===' '){event.preventDefault();event.stopPropagation();event.currentTarget.click();}
+});
 document.getElementById('todayRecordsBack').addEventListener('click',closeTodayRecords);
 document.addEventListener('keydown',event=>{
   if(todayRecordsOverlay.classList.contains('hidden'))return;
@@ -21608,6 +21616,7 @@ const calcTiles={
   // 🔥 다음에 다시 열 때는 항상 접힌 상태로 시작(closeThreeSummary()의 기존 리셋과 동일)
   pr3:createCalcTile('navThreeSummaryBtn',document.getElementById('threeDetail'),{titleId:'menu3daePRTitle',
     onFreshOpen(){weightPRDetailInline.classList.add('hidden');threeDetailViewBtn.textContent='상세보기 〉';}}),
+  today:createCalcTile('navTodayRecordsOpen',document.getElementById('todayRecordsBody'),{titleId:'navTodayRecordsTitle'}),
 };
 let menuCalculator=null,activeCalcTile=null;
 let menuCalculatorOpen=false,menuCalculatorMotion=null,menuCalculatorBlurMotions=[],menuCalculatorToken=0,menuCalculatorTextMotions=[];
