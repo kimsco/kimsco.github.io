@@ -13631,7 +13631,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.342";
+const APP_VERSION = "1.0.343";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -21042,6 +21042,13 @@ function scrollTabToTopFast(el, duration=220){
   //    아직 돌고 있는 루프가 snap에 걸려 순간이동하는 것처럼 보임)
   const myToken=(el.__scrollFastToken=(el.__scrollFastToken||0)+1);
   const finishSnap=()=>{if(el.__scrollFastSnapOverride){el.style.scrollSnapType=el.__scrollFastPrevSnap;el.__scrollFastSnapOverride=false;}};
+  // 🔥 사용자가 손을 뗀 뒤 아직 관성(모멘텀) 스크롤이 진행 중일 때 탭하면, 그 관성이 scrollTop을
+  //    계속 밀고 있어서 우리 애니메이션 값을 덮어쓰다가 끝에 가서 순간이동처럼 보임 — overflow를
+  //    한 프레임 끈 뒤 바로 복구하면 scrollTop 값은 그대로 두고 관성(속도)만 죽일 수 있음
+  const prevOverflowY=el.style.overflowY;
+  el.style.overflowY='hidden';
+  void el.offsetHeight;
+  el.style.overflowY=prevOverflowY;
   if (el.scrollTop<=0 || matchMedia('(prefers-reduced-motion: reduce)').matches) { el.scrollTop=0; finishSnap(); return; }
   // 🔥 scroll-snap이 걸린 컨테이너(집중모드)는 중간 scrollTop 값을 즉시 가까운 snap 지점으로
   //    되돌려버려서 애니메이션이 하나도 안 보이고 순간이동처럼 보임 — 애니메이션 동안만 꺼둠
