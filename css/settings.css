@@ -561,7 +561,12 @@ html.menu-v2-on #navDrawer #navTodayRecordsOpen{min-height:192px;}
    막판에 순간이동하는 것처럼 보였음) — margin을 줄 전체(.nav-today-ghost-top)
    쪽으로 옮겨서 아이콘/제목 사이의 정렬은 안 건드리고 미리보기와의 간격만 띄움 */
 #navTodayRecordsOpen.has-records .nav-today-ghost-top{margin-bottom:16px;}
-#navTodayRecordsOpen:active{transform:scale(.98);}
+/* 🔥 1RM/3대 타일(.nav-drawer-item.settings-item:not(.calculator-expanded):active)처럼
+   펼쳐진 뒤에는 눌림 효과를 꺼야 하는데, 이 규칙은 원래(펼쳐지는 기능이 없던 시절)
+   그대로라 :not(.calculator-expanded)이 빠져있었음 — 펼친 카드 본문을 스크롤/터치할
+   때마다 카드 전체가 눌림 스케일을 타면서 다른 WAAPI 애니메이션/제스처와 겹쳐
+   흔들리거나 클릭 반응처럼 보였음 */
+#navTodayRecordsOpen:not(.calculator-expanded):active{transform:scale(.98);}
 #navTodayRecordsOpen:focus-visible{outline:2px solid currentColor;outline-offset:4px;}
 #todayRecordsOverlay{position:fixed;inset:0;z-index:100001;background:var(--c-bg,#000);color:var(--c-text-primary);overflow:hidden;outline:none;}
 #todayRecordsOverlay.hidden{display:none;}
