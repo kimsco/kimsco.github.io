@@ -673,22 +673,25 @@ html.light-mode-on #navDrawer #navThreeSummaryBtn.calculator-expanded.fs-tint.fs
 .menu-expand-fullscreen{margin-left:auto;}
 /* 🔥 이 코드베이스엔 범용 .hidden{display:none} 규칙이 없고 요소별로 개별 지정 */
 .menu-expand-fullscreen-enter-icon.hidden,.menu-expand-fullscreen-exit-icon.hidden{display:none;}
-/* 🔥 "오늘 기록"만 전체화면 버튼 아래에 "자세히 보기" 토글이 하나 더 있어서, 그
-   둘을 세로로 쌓는 전용 래퍼 — 원래 전체화면 버튼 혼자 margin-left:auto로 헤더
-   오른쪽 끝까지 밀려났는데, 이제 래퍼가 그 역할을 대신 하고 버튼은 래퍼 안에서
-   margin 없이 둘이 나란히(세로로) 쌓임. 뒤로가기/제목은 쌓인 높이에 맞춰 위쪽
-   정렬로 바꿔서(그래야 뒤로가기가 전체화면 버튼이랑 같은 높이에서 시작) */
-#navTodayRecordsOpen .menu-calculator-header{align-items:flex-start;}
-#navTodayRecordsOpen .today-header-right-col{margin-left:auto;display:flex;flex-direction:column;align-items:center;gap:8px;}
-#navTodayRecordsOpen .today-header-right-col .menu-expand-fullscreen{margin-left:0;}
+/* 🔥 "자세히 보기" 토글+라벨을 제목과 전체화면 버튼 사이에 나란히 배치 —
+   전체화면 버튼은 그대로 margin-left:auto로 헤더 오른쪽 끝에 남고, 이 묶음은
+   제목 바로 뒤 자리(기존 gap:10px)에 자연스럽게 흐름 */
+/* 🔥 제목(copy)이 flex 흐름 밖(absolute)이라 일반 흐름으로 "제목 뒤"에 못 붙임 —
+   JS가 제목 끝 x좌표를 실측해서 넣어주는 --calculator-toggle-left/top을 그대로 씀
+   (같은 방식으로 아이콘도 --calculator-icon-left/top을 씀) */
+#navTodayRecordsOpen .today-detail-toggle-wrap{position:absolute;left:var(--calculator-toggle-left,100px);top:var(--calculator-toggle-top,12px);display:flex;align-items:center;gap:6px;}
 /* 🔥 체크 아이콘/눌렸을 때 초록 채움은 프로필 저장 토스트(.profile-toast-check)랑
-   같은 디자인 — 안 눌렸을 땐 뒤로가기/전체화면이랑 같은 톤의 outline 원형 버튼 */
-.today-detail-toggle{width:36px;height:36px;display:grid;place-items:center;flex:none;border:1px solid rgba(255,255,255,.12);border-radius:50%;padding:8px;background:rgba(255,255,255,.06);color:inherit;cursor:pointer;transition:background .2s,border-color .2s,color .2s;}
-.today-detail-toggle svg{width:17px;height:17px;}
+   같은 디자인 — 안 눌렸을 땐 뒤로가기/전체화면이랑 같은 톤의 outline 원형 버튼.
+   뒤로가기/전체화면(36px)보다 한 단계 작게(28px) */
+.today-detail-toggle{width:28px;height:28px;display:grid;place-items:center;flex:none;border:1px solid rgba(255,255,255,.12);border-radius:50%;padding:6px;background:rgba(255,255,255,.06);color:inherit;cursor:pointer;transition:background .2s,border-color .2s,color .2s;}
+.today-detail-toggle svg{width:14px;height:14px;}
 .today-detail-toggle path{stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;}
 .today-detail-toggle[aria-pressed="true"]{background:#30c780;border-color:#30c780;color:#fff;}
 html.light-mode-on .today-detail-toggle{border-color:rgba(50,30,35,.12);background:rgba(50,30,35,.04);}
 html.light-mode-on .today-detail-toggle[aria-pressed="true"]{background:#30c780;border-color:#30c780;color:#fff;}
+/* 🔥 버튼 옆 소제목 — 버튼(28px)에 맞춰 작게 */
+.today-detail-toggle-label{font-size:12px;font-weight:500;color:rgba(255,255,255,.6);white-space:nowrap;cursor:pointer;}
+html.light-mode-on .today-detail-toggle-label{color:#827579;}
 /* 🔥 자세히 보기 꺼진(기본) 상태 — 종목명+세트수만 한 줄로 */
 .nav-today-row-condensed{font-weight:600;}
 .menu-expand-content{flex:1;min-height:0;display:flex;flex-direction:column;padding:0 22px;}
