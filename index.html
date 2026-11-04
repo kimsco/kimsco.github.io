@@ -8805,7 +8805,7 @@ document.addEventListener('dragstart', event => {
   event.preventDefault();
 });
 </script>
-<link rel="stylesheet" href="/css/settings.css?v=1.0.354">
+<link rel="stylesheet" href="/css/settings.css?v=1.0.355">
 </head>
 
 <body style="background-color:#000000;">
@@ -13628,7 +13628,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.354";
+const APP_VERSION = "1.0.355";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -17347,8 +17347,17 @@ document.getElementById("navMuscleFinderBtn").addEventListener("click", () => {
 });
 
 const muscleFinderBody = document.getElementById("muscleFinderBody");
+const muscleFinderScreen = document.getElementById("muscleFinderScreen");
+let muscleFinderCloseTimer = 0, muscleFinderToken = 0;
 function openMuscleFinder(){
+  clearTimeout(muscleFinderCloseTimer);++muscleFinderToken;
+  // 🔥 직전에 스와이프하다가 중간에 멈춘 상태로 남아있을 수 있어서, 열 때마다
+  //    트랜지션 없이 제자리(0)로 되돌려둠(오늘 운동 레코드의 openTodayRecords와 동일 패턴)
+  muscleFinderScreen.style.transition = "none";
+  muscleFinderScreen.style.transform = "translateX(0)";
   muscleFinderOverlay.classList.remove("hidden");
+  void muscleFinderScreen.offsetHeight;
+  muscleFinderScreen.style.transition = "";
   // 🔥 열 때마다 항상 검은 화면부터 시작 — 헤더의 "?" 버튼을 눌러야 아래
   //    정면/후면 전환+인체 이미지가 나타남
   muscleFinderBody.classList.add("hidden");
@@ -17367,10 +17376,49 @@ function showMuscleFinderBody(){
 }
 document.getElementById("muscleFinderHelpBtn").addEventListener("click", showMuscleFinderBody);
 function closeMuscleFinder(){
-  muscleFinderOverlay.classList.add("hidden");
+  if (muscleFinderOverlay.classList.contains("hidden")) return;
+  ++muscleFinderToken;clearTimeout(muscleFinderCloseTimer);
+  muscleFinderScreen.style.transition = "";
+  muscleFinderScreen.style.transform = "translateX(100%)";
+  muscleFinderCloseTimer = setTimeout(() => {
+    muscleFinderOverlay.classList.add("hidden");
+  }, matchMedia("(prefers-reduced-motion:reduce)").matches ? 0 : 300);
   // 🔥 회전 모드를 켠 채로 닫았어도, 다음에 다시 열 때는 항상 평소 상태로 시작
   if (muscleFinderRotateMode) toggleMuscleFinderRotateMode();
 }
+// 🔥 왼쪽 가장자리를 잡고 오른쪽으로 끌면 닫힘 — 오늘 운동 레코드(todayRecordsScreen)의
+// 스와이프-뒤로가기와 동일한 패턴(가장자리 30px 이내에서 시작, 가로 움직임일 때만
+// 드래그로 인정, 화면 폭의 30% 이상 끌면 닫힘, 아니면 제자리로 튕겨 돌아옴)
+(() => {
+  let start = null, dragging = false;
+  muscleFinderScreen.addEventListener("touchstart", event => {
+    if (event.touches.length !== 1 || event.touches[0].clientX > 30) return;
+    start = { x: event.touches[0].clientX, y: event.touches[0].clientY };
+    dragging = false;
+  }, { passive: true });
+  muscleFinderScreen.addEventListener("touchmove", event => {
+    if (!start) return;
+    if (event.touches.length !== 1) { finish(true); return; }
+    const dx = event.touches[0].clientX - start.x, dy = event.touches[0].clientY - start.y;
+    if (!dragging) {
+      if (Math.abs(dy) > Math.max(8, Math.abs(dx)) || dx < -8) { start = null; return; }
+      if (dx < 8) return;
+      dragging = true;muscleFinderScreen.style.transition = "none";
+    }
+    event.preventDefault();
+    muscleFinderScreen.style.transform = `translateX(${Math.max(0, dx)}px)`;
+  }, { passive: false });
+  function finish(cancelled, event){
+    if (!start) return;
+    const dx = event?.changedTouches?.[0]?.clientX - start.x;start = null;
+    if (!dragging) return;
+    dragging = false;muscleFinderScreen.style.transition = "";
+    if (!cancelled && dx > muscleFinderScreen.clientWidth * .3) closeMuscleFinder();
+    else muscleFinderScreen.style.transform = "translateX(0)";
+  }
+  muscleFinderScreen.addEventListener("touchend", event => finish(false, event), { passive: true });
+  muscleFinderScreen.addEventListener("touchcancel", () => finish(true), { passive: true });
+})();
 
 // 🔥 카드처럼 뒤집는 회전 애니메이션 없이, FRONT/BACK 버튼 누르면 이미지가 그 자리에서 바로 바뀜
 // (부위 선택과 완전히 독립 — 어떤 부위를 골랐든 정면/후면은 언제든 따로 전환 가능)
