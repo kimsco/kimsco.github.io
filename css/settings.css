@@ -542,8 +542,13 @@ html.light-mode-on .today-record-count{color:#a79ba0;}
 html.menu-v2-on #navDrawer .nav-today-card{box-sizing:border-box;min-height:60px;padding:18px 22px;border-radius:30px;cursor:pointer;touch-action:pan-y;transition:transform .32s cubic-bezier(.22,1,.36,1);}
 /* 🔥 "오늘 운동 레코드"도 1RM/3대 타일과 같은 blur+확장 매커니즘을 쓰게 되면서, 접힌
    상태의 카드 높이를 다른 알약 버튼(최소 64px)의 약 3배(192px)로 고정 — 기록이
-   많아져도 카드 자체는 안 커지고, 리스트 쪽만 안에서 자체 스크롤 + 하단 페이드 */
-html.menu-v2-on #navDrawer #navTodayRecordsOpen{min-height:192px;}
+   많아져도 카드 자체는 안 커지고, 리스트 쪽만 안에서 자체 스크롤 + 하단 페이드.
+   🔥 근데 min-height라 "바닥"일 뿐 "천장"이 아니었음 — 기록이 좀 쌓여서 헤딩
+   여백(16px)+미리보기(최대140px)까지 다 채워지면 192px를 넘어 실제로는
+   더 커졌음(기록 없을 때 192 vs 기록 있을 때 ~240 식으로 들쑥날쑥) — min-height를
+   height로 바꾸고 overflow:hidden을 걸어서 기록 수와 무관하게 항상 정확히
+   192px로 고정(펼쳐진 상태는 :not(.calculator-expanded)로 제외) */
+html.menu-v2-on #navDrawer #navTodayRecordsOpen:not(.calculator-expanded){height:192px;overflow:hidden;}
 #navTodayRecordsOpen .nav-today-ghost{display:flex;flex-direction:column;width:100%;}
 #navTodayRecordsOpen .nav-today-ghost-top{display:flex;align-items:center;gap:10px;}
 #navTodayRecordsOpen .nav-today-ghost-top .today-record-heading-row{flex:1;min-width:0;margin-bottom:0;}
