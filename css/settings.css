@@ -581,6 +581,9 @@ html.menu-v2-on #navDrawer #navTodayRecordsOpen{min-height:192px;}
 #todayRecordsList li{font-size:17px;line-height:1.6;}
 #todayRecordsList li+li{margin-top:28px;}
 #todayRecordsList .nav-today-name{font-size:19px;margin-bottom:6px;}
+/* 🔥 간략히 보기(종목명+세트수만)의 글자 크기가 li 기본값(17px)을 그대로 물려받아서
+   자세히 보기의 종목명(19px)보다 작아 보였음 — 같은 크기로 통일 */
+#todayRecordsList .nav-today-row-condensed{font-size:19px;}
 #todayRecordsList .nav-today-details{font-size:15px;}
 #todayRecordsList .nav-today-details+.nav-today-details{margin-top:4px;}
 @media(prefers-reduced-motion:reduce){#todayRecordsScreen,#navTodayRecordsOpen{transition:none!important;}#navTodayRecordsOpen:active{transform:none;}}
