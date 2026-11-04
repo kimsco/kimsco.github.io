@@ -8805,7 +8805,7 @@ document.addEventListener('dragstart', event => {
   event.preventDefault();
 });
 </script>
-<link rel="stylesheet" href="/css/settings.css?v=1.0.346">
+<link rel="stylesheet" href="/css/settings.css?v=1.0.347">
 </head>
 
 <body style="background-color:#000000;">
@@ -13628,7 +13628,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.346";
+const APP_VERSION = "1.0.347";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -21818,7 +21818,14 @@ function openMenuCalculatorTile(tile){
     tile.placeholder=document.createElement('div');tile.placeholder.className='calculator-tile-placeholder';
     tile.placeholder.style.height=tile.btn.offsetHeight+'px';tile.placeholder.setAttribute('aria-hidden','true');
     tile.btn.before(tile.placeholder);
-    tile.ghost.style.setProperty('--calculator-icon-left',style.paddingLeft);tile.ghost.classList.add('menu-calculator-ghost');tile.ghost.setAttribute('aria-hidden','true');
+    // 🔥 top은 그동안 15px 고정값(CSS 기본값)에 기대고 있었는데, 그 값은 1RM/3대
+    // 타일의 패딩/줄 구성에서만 우연히 맞아떨어지는 값이었음 — 패딩이 다른 타일
+    // (오늘 운동 레코드)에서는 실제 접힌 위치와 어긋나, 접었을 때 인라인 스타일이
+    // 벗겨지는 순간 아이콘이 살짝 튀어 보였음. left처럼 타일마다 실측해서 박아둠.
+    const iconRect=tile.icon.getBoundingClientRect();
+    tile.ghost.style.setProperty('--calculator-icon-left',style.paddingLeft);
+    tile.ghost.style.setProperty('--calculator-icon-top',(iconRect.top-tileRect.top)+'px');
+    tile.ghost.classList.add('menu-calculator-ghost');tile.ghost.setAttribute('aria-hidden','true');
     tile.btn.style.setProperty('--calculator-title-size',titleSize);tile.btn.style.setProperty('--calculator-title-top',titleTop);
     navDrawer.appendChild(tile.btn);
     tile.btn.classList.add('calculator-expanded');
