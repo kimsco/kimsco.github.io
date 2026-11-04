@@ -574,6 +574,11 @@ html.menu-v2-on #navDrawer #navTodayRecordsOpen{min-height:192px;}
 #todayRecordsOverlay{position:fixed;inset:0;z-index:100001;background:var(--c-bg,#000);color:var(--c-text-primary);overflow:hidden;outline:none;}
 #todayRecordsOverlay.hidden{display:none;}
 #todayRecordsScreen{height:100%;box-sizing:border-box;max-width:440px;margin:auto;padding:calc(16px + env(safe-area-inset-top)) 20px calc(24px + env(safe-area-inset-bottom));display:flex;flex-direction:column;background:var(--c-bg,#000);transition:transform .3s cubic-bezier(.22,1,.36,1);}
+/* 🔥 근육부위도 오늘 운동 레코드(#todayRecordsScreen)와 같은 왼쪽 가장자리
+   스와이프로 뒤로가기(닫기) — 트랜지션은 CSS로, 드래그 로직은 JS에서 같은
+   패턴으로 처리 */
+#muscleFinderScreen{transition:transform .3s cubic-bezier(.22,1,.36,1);}
+@media(prefers-reduced-motion:reduce){#muscleFinderScreen{transition:none!important;}}
 .today-records-header{display:flex;align-items:center;gap:12px;margin-bottom:24px;flex:none;}
 #todayRecordsTitle{font-size:19px;font-weight:650;margin:0;}
 #todayRecordsCount{margin-left:auto;}
