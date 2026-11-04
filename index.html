@@ -288,8 +288,8 @@ html.rtimer-mini-active{
 .topBar{
   position: fixed;
   top: 0;
-  left: 50%;
-  transform: translateX(-50%);
+  left: var(--header-left, 0px);
+  transform: none;
 
   width: 390px;
   max-width: 100%;
@@ -307,29 +307,15 @@ html.rtimer-mini-active{
   gap: 10px;
 
   z-index: 99999;
-  /* 🔥 [1차 시도 — 효과 없었음, 기록 남김] backdrop-filter를 아래 ::before로 분리해도
-     아이콘/제목이 계속 흐려 보인다는 재확인을 받음 — 범인이 backdrop-filter와의 조합이
-     아니라 will-change:transform 그 자체(GPU 레이어 승격)였을 가능성이 높음: 이 요소를
-     강제로 별도 합성 레이어로 올려두면, 가운데 정렬용 translateX(-50%)가 기기 뷰포트
-     폭에 따라 정확히 정수 픽셀에 안 맞아떨어질 때(390px 고정폭 vs 실제 뷰포트 폭의
-     차이가 홀수면 0.5px 단위가 남음) 그 레이어 전체가 사파리에서 서브픽셀 보간되며
-     흐릿하게 그려지는 것으로 추정 — .bottomTab은 똑같이 translateX(-50%)를 쓰지만
-     will-change가 없어 레이어 승격이 안 되고, 그래서 멀쩡했던 것과 들어맞음.
-     🔥 원래 이 속성은 메뉴/설정/식단 드로어가 열릴 때 JS가 transform에 거는 밀림
-     트랜지션이 사파리에서 애니메이션 없이 순간 적용되던 문제를 고치려고 추가했던 것 —
-     일단 제거해서 블러가 사라지는지부터 확인하고, 밀림 트랜지션이 다시 끊겨 보이면
-     "평소엔 꺼두고 트랜지션 직전에만 JS로 잠깐 켰다 끄는" 방식으로 바꿔야 함 */
 }
-/* 🔥 유리(frosted glass) 배경은 .topBar 본체가 아니라 별도 ::before 레이어에 둠(위
-   will-change 제거와는 별개로, 배경/컨텐츠 레이어를 분리해두는 것 자체는 이유가 있음 —
-   .rtimer-card-active일 때 이 배경만 통째로 꺼야 해서 분리해두는 게 더 명확함) */
+/* Opaque header backing avoids Safari backdrop/compositing artifacts. */
 .topBar::before{
   content: "";
   position: absolute;
   inset: 0;
-  background: rgba(0,0,0,0.92);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
+  background: #000;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
   border-bottom: 1px solid rgba(255,255,255,0.04);
   z-index: 0;
   pointer-events: none;
@@ -6007,7 +5993,12 @@ html.light-mode-on .settings-delete-account-text:active {
 }
 
 /* Reference header proportions: centered wordmark and two evenly spaced actions. */
-#topTitleText{font-size:clamp(19px,6.15vw,24px);translate:-8px -4px;}
+#topTitleText{font-size:clamp(19px,6.15vw,24px);translate:none;transform:none;top:calc(env(safe-area-inset-top) + (var(--topBarRowH) - 1.4em)/2 - 4px);}
+#topTitleText.rtimer-exit-up{transform:translateY(-18px);}
+#topTitleText.rtimer-enter-from-below{transform:translateY(18px);}
+#topTitleText.rtimer-collapse-center{transform:scale(.05);}
+html.light-mode-on .topBar::before{background:#fff;border-bottom-color:rgba(0,0,0,.06);}
+html.light-mode-on .topBar.rtimer-card-active::before{background:transparent;border-bottom-color:transparent;}
 .topBar .topBar-right{position:relative;right:6px;gap:10px;}
 .topBar :is(#openAnnouncementBtn,#openSettingsBtn){position:relative;top:-1px;width:44px;height:44px;flex:0 0 44px;box-sizing:border-box;}
 .topBar :is(#openAnnouncementBtn,#openSettingsBtn)>svg{width:23px;height:23px;}
@@ -13648,7 +13639,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.365";
+const APP_VERSION = "1.0.366";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -20914,6 +20905,13 @@ const bottomTabBtns = document.querySelectorAll('.bottomTab .tabBtn');
 const bottomTabContents = document.querySelectorAll('.tabContent');
 const bottomTabEl = document.getElementById('bottomTab');
 const topBarEl = document.querySelector('.topBar'); // 🔥 메뉴/설정/식단 열고닫을 때 뒷화면(.app)과 같이 밀리게 하는 용도
+// Center through layout, snapped to the physical pixel grid, not a resting transform.
+function alignHeaderToPixels(){
+  if(!topBarEl)return;
+  const dpr=window.devicePixelRatio||1,width=document.documentElement.clientWidth;
+  topBarEl.style.setProperty('--header-left',(Math.round((width-topBarEl.offsetWidth)*dpr/2)/dpr)+'px');
+}
+alignHeaderToPixels();window.addEventListener('resize',alignHeaderToPixels);
 const dietSubTabBar = document.getElementById('dietSubTabBar');
 
 // 🔥 메뉴/설정/식단 드로어 스와이프 드래그가 확정된(dragging=true) 순간부터 손을 뗄 때까지,
@@ -20944,7 +20942,7 @@ const RECORDFLOATBAR_BASE_TRANSITION = 'transform 0.28s cubic-bezier(0.22, 1, 0.
 //    (즉시 같이 복귀시키면 오버레이가 가리고 있는 동안 이미 다 끝나버려서 복귀 액션 자체가
 //    안 보이는 문제가 있었음)
 function setBarsPush(px){
-  if (topBarEl) topBarEl.style.transform = px ? `translateX(-50%) translateX(${px}px)` : '';
+  if (topBarEl) topBarEl.style.transform = px ? `translateX(${px}px)` : '';
   const t = px ? `${px}px` : '';
   if (bottomTabEl) bottomTabEl.style.translate = t;
 }
