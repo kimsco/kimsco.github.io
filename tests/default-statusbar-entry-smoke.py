@@ -30,7 +30,13 @@ try:
     page.locator('#openSettingsBtn').click();page.wait_for_timeout(350)
     body=page.locator('#settingsOverlay .settings-body');body.evaluate('e=>e.scrollTop=170');assert body.evaluate('e=>e.scrollTop>0')
     assert body.evaluate('e=>getComputedStyle(e).filter')=='none'
+    assert page.locator('meta[name="theme-color"]').get_attribute('content')==('#eadcde' if light else '#54161b')
     page.evaluate('closeSettings()');page.wait_for_timeout(350)
+    assert page.locator('meta[name="theme-color"]').get_attribute('content')==('#ffffff' if light else '#000000')
+    page.evaluate('openNavDrawer()');page.wait_for_timeout(450)
+    assert page.locator('meta[name="theme-color"]').get_attribute('content')==('#f0eaeb' if light else '#2d0f12')
+    page.evaluate('closeNavDrawerInstant()');page.wait_for_timeout(100)
+    assert page.locator('meta[name="theme-color"]').get_attribute('content')==('#ffffff' if light else '#000000')
     assert page.locator('meta[name="apple-mobile-web-app-status-bar-style"]').count()==0
     assert page.locator('link[rel="manifest"]').get_attribute('href')=='/ios-default/manifest.webmanifest'
     assert page.evaluate('document.baseURI')=='http://127.0.0.1:8238/'

@@ -10,8 +10,9 @@
   html=html.replace(/<link\s+rel=["']manifest["'][^>]*>/i,'<link rel="manifest" href="/ios-default/manifest.webmanifest">');
   html=html.replace(/<meta\s+name=["']apple-mobile-web-app-title["'][^>]*>/i,'<meta name="apple-mobile-web-app-title" content="TTT 새 상태바">');
   html=html.replace('<head>','<head><base href="/">');
-  const viewportStyle='<style id="defaultStatusbarLayout">html,body{height:100%;overflow:hidden}.app{height:100%;height:100dvh}.topBar{background:#000}html.light-mode-on .topBar{background:#fff}.topBar.rtimer-card-active,html.light-mode-on .topBar.rtimer-card-active{background:transparent}</style>';
+  const viewportStyle='<style id="defaultStatusbarLayout">html,body{height:100%;overflow:hidden;background-color:var(--native-status-color,#000)!important}.app{height:100%;height:100dvh}.topBar{background:#000}html.light-mode-on .topBar{background:#fff}.topBar.rtimer-card-active,html.light-mode-on .topBar.rtimer-card-active{background:transparent}</style>';
   html=html.replace('</head>',viewportStyle+'</head>');
+  html=html.replace('</body>','<script src="/ios-default/chrome.js?v=1.0.371"><\/script></body>');
   document.open();document.write(html);document.close();
  }catch(error){
   const message=document.getElementById('loadMessage');message.textContent='앱을 열지 못했어요. 인터넷 연결을 확인하고 다시 열어주세요.';
