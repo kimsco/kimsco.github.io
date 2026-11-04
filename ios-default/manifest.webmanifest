@@ -1,0 +1,22 @@
+{
+  "id": "/ios-default/install-v1",
+  "name": "To The Top 새 상태바",
+  "short_name": "TTT 새 상태바",
+  "start_url": "/ios-default/?startup_check=ios-default-install-v1",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

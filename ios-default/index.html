@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#000000"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="TTT 새 상태바"><link rel="manifest" href="/ios-default/manifest.webmanifest"><link rel="apple-touch-icon" href="/icons/apple-touch-icon.png"><title>To The Top</title><style>html,body{margin:0;height:100%;background:#000;color:#eee;font-family:-apple-system,BlinkMacSystemFont,sans-serif}body{display:grid;place-items:center}p{padding:24px;text-align:center;line-height:1.8}button{display:block;margin:16px auto;padding:12px 20px;border:0;border-radius:999px;background:#282828;color:#fff}</style></head><body><p id="loadMessage">앱을 여는 중…</p><script>
+(async()=>{
+ try{
+  const response=await fetch('/',{cache:'no-cache'});
+  if(!response.ok)throw Error('load');
+  let html=await response.text();
+  if(!html.includes('id="topTitleText"'))throw Error('page');
+  html=html.replace(/<meta\s+name=["']apple-mobile-web-app-status-bar-style["'][^>]*>/gi,'');
+  html=html.replace(/<link\s+rel=["']manifest["'][^>]*>/i,'<link rel="manifest" href="/ios-default/manifest.webmanifest">');
+  html=html.replace(/<meta\s+name=["']apple-mobile-web-app-title["'][^>]*>/i,'<meta name="apple-mobile-web-app-title" content="TTT 새 상태바">');
+  html=html.replace('<head>','<head><base href="/">');
+  const viewportStyle='<style id="defaultStatusbarLayout">html,body{height:100%;overflow:hidden}.app{height:100%;height:100dvh}.topBar{background:#000}html.light-mode-on .topBar{background:#fff}.topBar.rtimer-card-active,html.light-mode-on .topBar.rtimer-card-active{background:transparent}</style>';
+  html=html.replace('</head>',viewportStyle+'</head>');
+  document.open();document.write(html);document.close();
+ }catch(error){
+  const message=document.getElementById('loadMessage');message.textContent='앱을 열지 못했어요. 인터넷 연결을 확인하고 다시 열어주세요.';
+  const retry=document.createElement('button');retry.type='button';retry.textContent='다시 열기';retry.onclick=()=>location.reload();message.append(retry);
+ }
+})();
+</script></body></html>

@@ -37,3 +37,15 @@ test('diagnostic navigation bypasses cache and never overwrites the production s
 test('production navigation continues to cache only the production app shell',async()=>{
  const w=worker();await w.navigate('/');assert.deepEqual(w.writes.map(x=>x[0]).sort(),['/','/index.html']);
 });
+
+test('functional default-status entry has a separate identity and loads the maintained main app',()=>{
+ const entry=fs.readFileSync('ios-default/index.html','utf8'),m=JSON.parse(fs.readFileSync('ios-default/manifest.webmanifest'));
+ assert.notEqual(m.id,'/');assert.notEqual(m.id,'/statusbar-test/a/install-v1');
+ assert.equal(m.start_url,'/ios-default/?startup_check=ios-default-install-v1');
+ assert.ok(entry.includes("fetch('/',{cache:'no-cache'})"));
+ assert.ok(entry.includes('defaultStatusbarLayout'));assert.ok(entry.includes('<base href="/">'));
+});
+test('functional default-status navigation caches its entry without replacing the main shell',async()=>{
+ const w=worker();await w.navigate('/ios-default/?startup_check=ios-default-install-v1');
+ assert.deepEqual(w.writes.map(x=>x[0]),['/ios-default/']);
+});
