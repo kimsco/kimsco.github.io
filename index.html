@@ -13628,7 +13628,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.351";
+const APP_VERSION = "1.0.352";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -21537,7 +21537,7 @@ function renderTodayRecordList(list,detailed=true){
   return groups.length;
 }
 function renderNavTodayRecords(){
-  const count=renderTodayRecordList(document.getElementById('navTodayRecordsList'));
+  const count=renderTodayRecordList(document.getElementById('navTodayRecordsList'),false);
   document.getElementById('navTodayRecordsOpen').classList.toggle('has-records',count>0);
 }
 const todayRecordsOverlay=document.getElementById('todayRecordsOverlay');
@@ -21711,7 +21711,10 @@ function toggleMenuCalculatorFullscreen(tile){
     const fsLeftPx=tile.fullscreenBtn.getBoundingClientRect().left-cardBounds.left-tile.btn.clientLeft;
     const wrapWidth=tile.toggleWrap.getBoundingClientRect().width;
     tile.btn.style.setProperty('--calculator-toggle-left',(titleEndPx+(fsLeftPx-titleEndPx-wrapWidth)/2)+'px');
-    tile.btn.style.setProperty('--calculator-toggle-top',(backBounds.top-cardBounds.top-tile.btn.clientTop+(backBounds.height-28)/2)+'px');
+    // 🔥 뒤로가기/전체화면(36px)이랑 가운데(center)가 아니라 아랫선(bottom)을
+    // 맞춤 — 토글(28px)이 더 작아서 가운데 맞추면 뒤로가기/전체화면보다 살짝
+    // 위로 떠 보였음
+    tile.btn.style.setProperty('--calculator-toggle-top',(backBounds.top-cardBounds.top-tile.btn.clientTop+(backBounds.height-28))+'px');
   }
   const duration=reduced?0:320,easing='cubic-bezier(.22,1,.36,1)';
   // 🔥 width/height를 실제 레이아웃값으로 직접 바꾸면 안의 글/입력창/표가 매 프레임
@@ -21876,7 +21879,7 @@ function openMenuCalculatorTile(tile){
     const fsLeftPx2=tile.fullscreenBtn.getBoundingClientRect().left-cardBounds.left-tile.btn.clientLeft;
     const wrapWidth2=tile.toggleWrap.getBoundingClientRect().width;
     tile.btn.style.setProperty('--calculator-toggle-left',(titleEndPx2+(fsLeftPx2-titleEndPx2-wrapWidth2)/2)+'px');
-    tile.btn.style.setProperty('--calculator-toggle-top',(backBounds.top-cardBounds.top-tile.btn.clientTop+(backBounds.height-28)/2)+'px');
+    tile.btn.style.setProperty('--calculator-toggle-top',(backBounds.top-cardBounds.top-tile.btn.clientTop+(backBounds.height-28))+'px');
   }
   tile.btn.classList.remove('is-ready','bg-ready','bg-closing','fs-tint','calc-dragging');tile.btn.inert=true;
   // 🔥 배경이 검게 바뀌는 그라데이션은 완료 시점(기존 is-ready+1초 지점)은 그대로 두고
