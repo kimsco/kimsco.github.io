@@ -561,7 +561,13 @@ html.menu-v2-on #navDrawer #navTodayRecordsOpen:not(.calculator-expanded){height
 #navTodayRecordsOpen:not(.calculator-expanded) .nav-today-ghost{height:100%;}
 #navTodayRecordsOpen .nav-today-ghost-top{display:flex;align-items:center;gap:10px;flex:none;}
 #navTodayRecordsOpen .nav-today-ghost-top .today-record-heading-row{flex:1;min-width:0;margin-bottom:0;}
-#navTodayRecordsOpen .nav-today-preview{position:relative;flex:1;min-height:0;overflow:hidden;margin-top:10px;-webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 48px),transparent 100%);mask-image:linear-gradient(to bottom,#000 calc(100% - 48px),transparent 100%);}
+/* 🔥 (1) 헤딩~첫 기록 사이 간격을 줄인 만큼(마진 16→10) 미리보기가 flex:1로 더
+   넓어짐 — (2) 그런데도 페이드 구간(48px)이 미리보기 전체 높이(~100px)의 거의
+   절반이라 3번째 줄까지 이미 반쯤 투명해지고, 4번째 줄은 페이드 맨 끝(거의
+   100% 투명)에 걸려 "블러로 흐려 보이기"는커녕 완전히 안 보였음 — 페이드 구간을
+   32px로 줄여서 위쪽은 또렷하게, 다음 줄은 끝까지 사라지기 직전 블러로 살짝
+   "보이도록"(완전 무존재가 아니라 다음 기록이 더 있다는 힌트가 되도록) 함 */
+#navTodayRecordsOpen .nav-today-preview{position:relative;flex:1;min-height:0;overflow:hidden;margin-top:8px;-webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 32px),transparent 100%);mask-image:linear-gradient(to bottom,#000 calc(100% - 32px),transparent 100%);}
 /* 🔥 확장되는 순간 ghost는 height:0으로 접히는데(1RM/3대와 공용 규칙), 미리보기
    리스트/카운트는 overflow 지정이 없어 그 0 높이 밖으로 그대로 삐져나와 펼쳐진
    카드 내용(헤더/본문) 위에 겹쳐 보임 — ghost 전체에 overflow:hidden을 걸면
@@ -577,7 +583,7 @@ html.menu-v2-on #navDrawer #navTodayRecordsOpen:not(.calculator-expanded){height
    제목이랑 어긋났음(닫을 때도 이 어긋난 "진짜" 위치로 인라인 스타일이 벗겨지면서
    막판에 순간이동하는 것처럼 보였음) — margin을 줄 전체(.nav-today-ghost-top)
    쪽으로 옮겨서 아이콘/제목 사이의 정렬은 안 건드리고 미리보기와의 간격만 띄움 */
-#navTodayRecordsOpen.has-records .nav-today-ghost-top{margin-bottom:16px;}
+#navTodayRecordsOpen.has-records .nav-today-ghost-top{margin-bottom:10px;}
 /* 🔥 1RM/3대 타일(.nav-drawer-item.settings-item:not(.calculator-expanded):active)처럼
    펼쳐진 뒤에는 눌림 효과를 꺼야 하는데, 이 규칙은 원래(펼쳐지는 기능이 없던 시절)
    그대로라 :not(.calculator-expanded)이 빠져있었음 — 펼친 카드 본문을 스크롤/터치할
