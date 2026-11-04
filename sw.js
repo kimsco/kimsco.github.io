@@ -1,4 +1,4 @@
-const CACHE = "mf-v314"; // 🔥 settings.css가 바뀔 때마다: 이 CACHE 이름 + 아래 settings.css
+const CACHE = "mf-v315"; // 🔥 settings.css가 바뀔 때마다: 이 CACHE 이름 + 아래 settings.css
                          // 줄의 ?v= + <link> 태그의 ?v=(index.html) 세 군데를 항상 같이 올림
                          // (하나라도 빠지면 그 전 버전의 v1.0.279 멈춤 사고가 반복됨)
 const ASSETS = [
@@ -63,6 +63,11 @@ self.addEventListener("activate", e => {
 
 self.addEventListener("fetch", e => {
   const url = e.request.url;
+
+  // Diagnostic pages must never be stored as the production app shell.
+  if (new URL(url).origin === self.location.origin && new URL(url).pathname.startsWith('/statusbar-test/')) {
+    return e.respondWith(fetch(e.request, { cache: 'no-store' }));
+  }
 
   // Startup version probes must bypass both HTTP and worker caches.
   if (new URL(url).origin === self.location.origin && new URL(url).searchParams.has('startup_check')) {
