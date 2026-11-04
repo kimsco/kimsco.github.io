@@ -524,6 +524,9 @@ html.menu-v2-on #navDrawer .nav-today-card{padding:20px 22px;border:1px solid va
 .today-record-list{list-style:none;padding:0;margin:0;}
 .today-record-list li{font-size:13px;line-height:1.8;overflow-wrap:anywhere;}
 .today-record-list li+li{margin-top:16px;}
+/* 🔥 "오늘 기록" 위젯 버튼(접힌 미리보기)만 줄 간격을 기본값의 절반으로 줄임 —
+   펼친 화면(#todayRecordsList)/옛 전체화면 오버레이는 그대로 둠 */
+#navTodayRecordsList li+li{margin-top:8px;}
 /* 🔥 종목명 한 줄 + 세트마다 각자 한 줄씩(이전엔 "/"로 전부 한 줄에 몰아넣어서
    스쿼트처럼 세트 수가 많은 날은 줄바꿈이 줄줄이 이어져 읽기 힘들었음) — 달력 탭의
    날짜별 운동 목록(date-agenda)과 같은 형식으로 통일 */
