@@ -549,10 +549,19 @@ html.menu-v2-on #navDrawer .nav-today-card{box-sizing:border-box;min-height:60px
    height로 바꾸고 overflow:hidden을 걸어서 기록 수와 무관하게 항상 정확히
    192px로 고정(펼쳐진 상태는 :not(.calculator-expanded)로 제외) */
 html.menu-v2-on #navDrawer #navTodayRecordsOpen:not(.calculator-expanded){height:192px;overflow:hidden;}
+/* 🔥 위 height:192px 고정 직후, 미리보기(.nav-today-preview)는 여전히 자기 혼자
+   max-height:140px를 채우려 들었음 — 근데 헤딩 줄+여백을 빼면 카드 안에 실제로
+   남는 공간은 140px보다 훨씬 적어서(약 97px), 바깥 overflow:hidden이 미리보기
+   "자기 박스 안에서" 서서히 투명해지던 하단 48px 페이드 구간을 다 끝나기도 전에
+   뚝 잘라버려 하단이 부드럽게 사라지는 대신 뚝 끊겨 보였음 — ghost를 카드 높이에
+   꽉 채우는 flex 컬럼으로, 미리보기를 flex:1로 바꿔서 "실제로 남는 공간"만큼만
+   차지하게 함 — 이러면 마스크의 페이드 구간이 항상 미리보기 자신의 진짜 바닥에서
+   끝나서 중간에 잘릴 일이 없음(헤딩 줄 높이가 나중에 바뀌어도 자동으로 맞음) */
 #navTodayRecordsOpen .nav-today-ghost{display:flex;flex-direction:column;width:100%;}
-#navTodayRecordsOpen .nav-today-ghost-top{display:flex;align-items:center;gap:10px;}
+#navTodayRecordsOpen:not(.calculator-expanded) .nav-today-ghost{height:100%;}
+#navTodayRecordsOpen .nav-today-ghost-top{display:flex;align-items:center;gap:10px;flex:none;}
 #navTodayRecordsOpen .nav-today-ghost-top .today-record-heading-row{flex:1;min-width:0;margin-bottom:0;}
-#navTodayRecordsOpen .nav-today-preview{position:relative;max-height:140px;overflow:hidden;margin-top:10px;-webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 48px),transparent 100%);mask-image:linear-gradient(to bottom,#000 calc(100% - 48px),transparent 100%);}
+#navTodayRecordsOpen .nav-today-preview{position:relative;flex:1;min-height:0;overflow:hidden;margin-top:10px;-webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 48px),transparent 100%);mask-image:linear-gradient(to bottom,#000 calc(100% - 48px),transparent 100%);}
 /* 🔥 확장되는 순간 ghost는 height:0으로 접히는데(1RM/3대와 공용 규칙), 미리보기
    리스트/카운트는 overflow 지정이 없어 그 0 높이 밖으로 그대로 삐져나와 펼쳐진
    카드 내용(헤더/본문) 위에 겹쳐 보임 — ghost 전체에 overflow:hidden을 걸면
