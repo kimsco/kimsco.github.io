@@ -683,7 +683,10 @@ html.light-mode-on #navDrawer #navThreeSummaryBtn.calculator-expanded.fs-tint.fs
 /* 🔥 체크 아이콘/눌렸을 때 초록 채움은 프로필 저장 토스트(.profile-toast-check)랑
    같은 디자인 — 안 눌렸을 땐 뒤로가기/전체화면이랑 같은 톤의 outline 원형 버튼.
    뒤로가기/전체화면(36px)보다 한 단계 작게(28px) */
-.today-detail-toggle{width:28px;height:28px;display:grid;place-items:center;flex:none;border:1px solid rgba(255,255,255,.12);border-radius:50%;padding:6px;background:rgba(255,255,255,.06);color:inherit;cursor:pointer;transition:background .2s,border-color .2s,color .2s;}
+/* 🔥 button 기본 상하 마진이 안 지워져 있어서(뒤로가기/전체화면은 header의
+   align-items:center가 대칭 마진이라 티가 안 났지만, 이 버튼은 래퍼 안에서
+   단독으로 높이를 결정하다 보니 그 마진만큼 아래로 밀려 보였음) margin:0 명시 */
+.today-detail-toggle{width:28px;height:28px;margin:0;display:grid;place-items:center;flex:none;border:1px solid rgba(255,255,255,.12);border-radius:50%;padding:6px;background:rgba(255,255,255,.06);color:inherit;cursor:pointer;transition:background .2s,border-color .2s,color .2s;}
 .today-detail-toggle svg{width:14px;height:14px;}
 .today-detail-toggle path{stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;}
 .today-detail-toggle[aria-pressed="true"]{background:#30c780;border-color:#30c780;color:#fff;}
