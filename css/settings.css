@@ -552,7 +552,15 @@ html.menu-v2-on #navDrawer #navTodayRecordsOpen{min-height:192px;}
    같이 잘려서 안 보이게 되는 부작용이 있었음 — 미리보기/카운트만 콕 집어서 숨김 */
 #navDrawer #navTodayRecordsOpen.calculator-expanded>.menu-expand-ghost .nav-today-preview,
 #navDrawer #navTodayRecordsOpen.calculator-expanded>.menu-expand-ghost .today-record-count{display:none;}
-#navTodayRecordsOpen.has-records .today-record-heading-row{margin-bottom:16px;}
+/* 🔥 레코드 있을 때 아이콘+제목 줄과 그 아래 미리보기 리스트 사이 여백 — 원래
+   구조에선 이 margin-bottom이 heading-row(제목+카운트)에만 붙었는데, 지금은
+   heading-row가 아이콘과 같은 flex 줄(.nav-today-ghost-top) 안에 같이 있어서
+   그 margin이 줄 전체의 cross-axis 높이를 늘려버림 — align-items:center가 그
+   늘어난 높이 기준으로 아이콘을 다시 가운데 맞추면서 아이콘만 아래로 밀려
+   제목이랑 어긋났음(닫을 때도 이 어긋난 "진짜" 위치로 인라인 스타일이 벗겨지면서
+   막판에 순간이동하는 것처럼 보였음) — margin을 줄 전체(.nav-today-ghost-top)
+   쪽으로 옮겨서 아이콘/제목 사이의 정렬은 안 건드리고 미리보기와의 간격만 띄움 */
+#navTodayRecordsOpen.has-records .nav-today-ghost-top{margin-bottom:16px;}
 #navTodayRecordsOpen:active{transform:scale(.98);}
 #navTodayRecordsOpen:focus-visible{outline:2px solid currentColor;outline-offset:4px;}
 #todayRecordsOverlay{position:fixed;inset:0;z-index:100001;background:var(--c-bg,#000);color:var(--c-text-primary);overflow:hidden;outline:none;}
@@ -740,7 +748,7 @@ html.light-mode-on.menu-v2-on #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBt
 /* One continuous title and fluid content: no duplicate label or fixed-width slicing. */
 #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn,#navTodayRecordsOpen).calculator-expanded :is(.menu-calculator-header,.menu-expand-content){width:100%;left:auto;margin-left:0;}
 #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn,#navTodayRecordsOpen).calculator-expanded>.menu-expand-ghost{display:block;position:absolute;inset:0;z-index:3;width:100%;height:0;pointer-events:none;}
-#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn,#navTodayRecordsOpen).calculator-expanded>.menu-expand-ghost .nav-v2-icon{position:absolute;left:var(--calculator-icon-left,14px);top:15px;}
+#navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn,#navTodayRecordsOpen).calculator-expanded>.menu-expand-ghost .nav-v2-icon{position:absolute;left:var(--calculator-icon-left,14px);top:var(--calculator-icon-top,15px);}
 #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn,#navTodayRecordsOpen).calculator-expanded>.menu-expand-ghost .nav-menu-copy{position:absolute;left:64px;top:var(--calculator-title-top,26px);white-space:nowrap;}
 #navDrawer :is(#navOneRMCalcBtn,#navThreeSummaryBtn,#navTodayRecordsOpen).calculator-expanded>.menu-expand-ghost .nav-menu-copy>span:first-child{font-size:var(--calculator-title-size,14px);font-weight:500;line-height:1.35;}
 .menu-expand-title-sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;}
