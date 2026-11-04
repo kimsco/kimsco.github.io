@@ -1,4 +1,4 @@
-"""Status-bar install metadata and viewport layout; native iOS rendering needs a device."""
+"""Preserve the installed-app status metadata and viewport contract after rollback."""
 from pathlib import Path
 import subprocess,time
 from playwright.sync_api import sync_playwright
@@ -16,7 +16,7 @@ try:
    page.goto('http://127.0.0.1:8236');page.wait_for_timeout(1800)
    for light in [False,True]:
     page.evaluate('v=>applyLightMode(v)',light)
-    assert page.locator('meta[name="apple-mobile-web-app-status-bar-style"]').count()==0
+    assert page.locator('meta[name="apple-mobile-web-app-status-bar-style"]').get_attribute('content')=='black-translucent'
     assert page.locator('meta[name="theme-color"]').get_attribute('content')==('#ffffff' if light else '#000000')
     assert 'viewport-fit=cover' in page.locator('meta[name="viewport"]').get_attribute('content')
     for height in [852,650]:
@@ -29,8 +29,8 @@ try:
     body=page.locator('#settingsOverlay .settings-body');body.evaluate('e=>e.scrollTop=170');assert body.evaluate('e=>e.scrollTop>0')
     assert body.evaluate('e=>getComputedStyle(e).filter')=='none'
     page.evaluate('closeSettings()');page.wait_for_timeout(350)
-    assert page.locator('meta[name="apple-mobile-web-app-status-bar-style"]').count()==0
+    assert page.locator('meta[name="apple-mobile-web-app-status-bar-style"]').get_attribute('content')=='black-translucent'
    assert not errors,errors
-   print('PASS normal status-bar metadata, theme, viewport sizing, root bounds and nested scrolling',width);c.close()
+   print('PASS restored status-bar metadata, theme, viewport sizing, root bounds and nested scrolling',width);c.close()
   b.close()
 finally:server.terminate();server.wait()
