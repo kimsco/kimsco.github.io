@@ -1,4 +1,4 @@
-const CACHE = "mf-v315"; // 🔥 settings.css가 바뀔 때마다: 이 CACHE 이름 + 아래 settings.css
+const CACHE = "mf-v316"; // 🔥 settings.css가 바뀔 때마다: 이 CACHE 이름 + 아래 settings.css
                          // 줄의 ?v= + <link> 태그의 ?v=(index.html) 세 군데를 항상 같이 올림
                          // (하나라도 빠지면 그 전 버전의 v1.0.279 멈춤 사고가 반복됨)
 const ASSETS = [
@@ -63,6 +63,15 @@ self.addEventListener("activate", e => {
 
 self.addEventListener("fetch", e => {
   const url = e.request.url;
+
+  // The default-status install loads the same app, but keeps its entry cached separately.
+  const requestUrl=new URL(url);
+  if(requestUrl.origin===self.location.origin && ['/ios-default/','/ios-default/index.html'].includes(requestUrl.pathname)){
+    return e.respondWith(fetch(e.request,{cache:'no-store'}).then(response=>{
+      if(response.ok){const copy=response.clone();e.waitUntil(caches.open(CACHE).then(cache=>cache.put('/ios-default/',copy)));}
+      return response;
+    }).catch(()=>caches.match('/ios-default/')));
+  }
 
   // Diagnostic pages must never be stored as the production app shell.
   if (new URL(url).origin === self.location.origin && new URL(url).pathname.startsWith('/statusbar-test/')) {
