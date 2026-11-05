@@ -45,9 +45,9 @@ try:
    expand();swipe(width-5,250,-30);assert expanded()
    swipe(width-5,250,-180)
    assert page.locator('#navDrawerOverlay').is_hidden() and not expanded()
-   assert page.locator('.bottomTab .tabBtn.active').get_attribute('data-target')=='tab1'
+   assert page.locator('.bottomTab .tabBtn.active').get_attribute('data-target')=='tab4'
    assert page.locator('.app').evaluate('e=>!e.inert&&!e.style.opacity&&!e.style.transform')
    assert not errors,errors
-   print('PASS outside collapse, left edge collapse, right edge home, cancelled/vertical gestures and keyboard stability',width);c.close()
+   print('PASS outside collapse, left edge collapse, right edge dismissal, cancelled/vertical gestures and keyboard stability',width);c.close()
   b.close()
 finally:server.terminate();server.wait()
