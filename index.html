@@ -13632,7 +13632,7 @@ const settingsHeaderName = document.getElementById("settingsHeaderName");
 const settingsHeaderSub = document.getElementById("settingsHeaderSub");
 
 /* ✅ 앱 버전 정의 — 의미 있는 수정/배포마다 올림(설정 화면에서 "최신 버전 받았는지" 확인용) */
-const APP_VERSION = "1.0.372";
+const APP_VERSION = "1.0.373";
 window.__startupUpdateReady=window.__prepareStartupUpdate(APP_VERSION);
 const appVersionDisplay = document.getElementById("appVersionDisplay");
 if (appVersionDisplay) {
@@ -22231,8 +22231,9 @@ navDrawerOverlay.addEventListener('click',event=>{
   }
 },true);
 function exitCalculatorMenuToHome(){
+  // Re-clicking an already active home tab scrolls it to the top; dismissal must not.
   document.activeElement?.blur();closeNavDrawer();const token=navMenuToken;
-  setTimeout(()=>{if(token===navMenuToken&&!navMenuOpen)document.querySelector('.bottomTab .tabBtn[data-target="tab1"]').click();},matchMedia('(prefers-reduced-motion:reduce)').matches?0:360);
+  setTimeout(()=>{if(token===navMenuToken&&!navMenuOpen&&currentActiveTabTarget()!=="tab1")document.querySelector('.bottomTab .tabBtn[data-target="tab1"]').click();},matchMedia('(prefers-reduced-motion:reduce)').matches?0:360);
 }
 (()=>{
   let gesture=null;
