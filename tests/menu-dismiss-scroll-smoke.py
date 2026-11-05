@@ -1,4 +1,4 @@
-"""Menu edge dismissal preserves home scroll, including with an expanded card."""
+"""Menu edge dismissal preserves the current tab and scroll, including with an expanded card."""
 from pathlib import Path
 import subprocess,time
 from playwright.sync_api import sync_playwright
@@ -25,24 +25,29 @@ try:
     for i in range(1,11):
      cdp.send('Input.dispatchTouchEvent',{'type':'touchMove','touchPoints':[{'x':x+dx*i/10,'y':y+dy*i/10}]});page.wait_for_timeout(16)
     cdp.send('Input.dispatchTouchEvent',{'type':'touchEnd','touchPoints':[]});page.wait_for_timeout(520)
-   # Another tab still returns home, preserving the existing menu exit behavior.
+   # Return to the same tab, both from the plain menu and from an expanded card.
    swipe(width-5,250,-180)
    assert page.locator('#navDrawerOverlay').is_hidden()
-   assert page.locator('.bottomTab .tabBtn.active').get_attribute('data-target')=='tab1'
+   assert page.locator('.bottomTab .tabBtn.active').get_attribute('data-target')=='tab4'
    app=page.locator('.app')
-   app.evaluate('e=>e.scrollTop=220');page.wait_for_timeout(100)
-   saved=app.evaluate('e=>e.scrollTop');assert saved>0
-   for calculator in [False,True]:
-    page.evaluate('openNavDrawer()');page.wait_for_timeout(420)
-    if calculator: expand()
-    swipe(width-5,250,-180)
-    assert page.locator('#navDrawerOverlay').is_hidden() and not expanded()
-    assert abs(app.evaluate('e=>e.scrollTop')-saved)<1
-    assert app.evaluate('e=>!e.inert&&!e.style.opacity&&!e.style.transform')
+   for target in ['tab2','tab3','tab4','tab1']:
+    page.locator('.bottomTab .tabBtn[data-target="'+target+'"]').click();page.wait_for_timeout(450)
+    if target=='tab1':
+     app.evaluate('e=>e.scrollTop=220');page.wait_for_timeout(100)
+     assert app.evaluate('e=>e.scrollTop')>0
+    saved=page.evaluate("[...document.querySelectorAll('.app,#homeSeriousModeScreen,#exerciseScreen,#acc-records,#tab2 .folderContent.active')].map(e=>e.scrollTop)")
+    for calculator in [False,True]:
+     page.evaluate('openNavDrawer()');page.wait_for_timeout(420)
+     if calculator: expand()
+     swipe(width-5,250,-180)
+     assert page.locator('#navDrawerOverlay').is_hidden() and not expanded()
+     assert page.locator('.bottomTab .tabBtn.active').get_attribute('data-target')==target
+     assert page.evaluate("[...document.querySelectorAll('.app,#homeSeriousModeScreen,#exerciseScreen,#acc-records,#tab2 .folderContent.active')].map(e=>e.scrollTop)")==saved
+     assert app.evaluate('e=>!e.inert&&!e.style.opacity&&!e.style.transform')
    # Explicit home re-tap should retain its intentional scroll-to-top behavior.
    page.locator('.bottomTab .tabBtn[data-target="tab1"]').click();page.wait_for_timeout(500)
    assert app.evaluate('e=>e.scrollTop')==0
    assert not errors,errors
-   print('PASS menu edge dismissal preserves home scroll with/without card, other-tab return and explicit home re-tap',width);c.close()
+   print('PASS menu edge dismissal preserves the current tab and scroll with/without card, other-tab return and explicit home re-tap',width);c.close()
   b.close()
 finally:server.terminate();server.wait()
